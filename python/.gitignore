@@ -1,0 +1,8 @@
+# Venv
+.venv
+
+# IDE
+.idea
+
+# Credentials
+config/neo4j_driver.json

@@ -34,7 +34,7 @@ def main():
 
             # res = session.run("CREATE (a:A {name: 'node_a'})-[r:R {name: 'edge_r'}]->(b:B {name: 'node_b'})")
 
-            res = session.run("MATCH (a:A)-[r:R]->(b) RETURN a, r, b")
+            res = session.run("MATCH (a:A)-[r:R]->(b) RETURN a, r, b, elementId(a)")
 
             json_data = json.dumps(res.data())
 

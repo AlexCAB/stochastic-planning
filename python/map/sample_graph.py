@@ -15,34 +15,34 @@ r"""|||||||||||||||||||||||||||||||
 from dataclasses import dataclass
 from typing import List
 
-from map.knowledge_graph import VariableNode
+from map.knowledge_graph import VariableNode, VariableNodeId
 from map.variable import Value
 
 
 @dataclass
 class SampleId:
-    neo4j_id: int
+    neo4j_id: str
 
 
 class ValueNode:
-    def __init__(self, value: Value, variable_node: VariableNode | None):
+    def __init__(self, value: Value, variable_node_id: VariableNodeId):
         self.value: Value = value
-        self.variable_node: VariableNode | None = variable_node
+        self.variable_node_id: VariableNodeId = variable_node_id
 
 
 class InputValueNode(ValueNode):
-    def __init__(self, value: Value, variable_node: VariableNode | None):
-        super().__init__(value, variable_node)
+    def __init__(self, value: Value, variable_node_id: VariableNodeId):
+        super().__init__(value, variable_node_id)
 
 
 class HiddenValueNode(ValueNode):
-    def __init__(self, value: Value, variable_node: VariableNode | None):
-        super().__init__(value, variable_node)
+    def __init__(self, value: Value, variable_node_id: VariableNodeId):
+        super().__init__(value, variable_node_id)
 
 
 class OutputValueNode(ValueNode):
-    def __init__(self, value: Value, variable_node: VariableNode | None):
-        super().__init__(value, variable_node)
+    def __init__(self, value: Value, variable_node_id: VariableNodeId):
+        super().__init__(value, variable_node_id)
 
 
 class RelationEdge:
@@ -61,13 +61,16 @@ class ThenRelationEdge(RelationEdge):
         super().__init__(source, target)
 
 
-class SampleGraph:
-    def __init__(self,
-                 sample_id: SampleId,
-                 value_nodes: List[ValueNode],
-                 relation_edges: List[RelationEdge],
-                 probability_count: int):
+class SampleData:
+    def __init__(self, sample_id: SampleId, probability_count: int, utility:  float, name: str | None):
         self.sample_id: SampleId = sample_id
+        self.probability_count: int = probability_count
+        self.utility: float = utility
+        self.name: str | None = name
+
+
+class SampleGraph:
+    def __init__(self,data: SampleData, value_nodes: List[ValueNode], relation_edges: List[RelationEdge]):
+        self.data: SampleData = data
         self.value_nodes: list[ValueNode] = value_nodes
         self.relation_edges: list[RelationEdge] = relation_edges
-        self.probability_count = probability_count

@@ -12,17 +12,22 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created:  2024-12-19 |||||||||"""
 
-from typing import Dict, List, Set
+from typing import Dict, Set
 
-from map.sample_graph import SampleId
+from map.sample_graph import *
 from map.variable import *
+
+@dataclass
+class VariableNodeId:
+    neo4j_id: str | None
+    manual_id: str | None  # In case 'neo4j_id' is None this ID will be used for lookup
 
 
 class VariableNode:
-    def __init__(self, name: str, variable: Variable, neo4j_id: str | None):
+    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
         self.name: str = name
         self.variable: Variable = variable
-        self.neo4j_id: str | None = neo4j_id
+        self.variable_node_id: VariableNodeId = node_id
 
         self.outgoing_link_edges: Dict[VariableNode, 'LinkJointEdge'] = {}
         self.outgoing_then_edges: Dict[VariableNode, 'ThenJointEdge'] = {}
@@ -30,25 +35,24 @@ class VariableNode:
 
 
 class InputVariableNode(VariableNode):
-    def __init__(self, name: str, variable: Variable, neo4j_id: str | None):
-        super().__init__(name, variable, neo4j_id)
+    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
+        super().__init__(name, variable, node_id)
 
 
 class HiddenVariableNode(VariableNode):
-    def __init__(self, name: str | None, neo4j_id: str | None):
-        super().__init__(name is None if name else f"Hidden variable, id = {neo4j_id}", TimeVariable(), neo4j_id)
+    def __init__(self, name: str | None, node_id: VariableNodeId):
+        super().__init__(name is None if name else f"Hidden variable, id = {node_id}", TimeVariable(), node_id)
 
 
 class OutputVariableNode(VariableNode):
-    def __init__(self, name: str, variable: Variable, neo4j_id: str | None):
-        super().__init__(name, variable, neo4j_id)
+    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
+        super().__init__(name, variable, node_id)
 
 
 class SampleEdge:
-    def __init__(self, source_index: int, target_index: int, probability_count: int):
+    def __init__(self, source_index: int, target_index: int):
         self.source_value_index: int = source_index
         self.target_value_index: int = target_index
-        self.probability_count = probability_count
 
 
 class JointEdge:
@@ -72,6 +76,7 @@ class Metadata:
 
 
 class KnowledgeGraph:
-    def __init__(self, metadata: Metadata, variable_nodes: List[VariableNode]):
+    def __init__(self, metadata: Metadata, variable_nodes: List[VariableNode], sample_data: List[SampleData]):
         self.metadata: Metadata = metadata
-        self.variable_nodes: Dict[str, VariableNode] = {node.neo4j_id: node for node in variable_nodes}
+        self.variable_nodes: Dict[str, VariableNode] = {node.variable_node_id.neo4j_id: node for node in variable_nodes}
+        self.sample_data: Dict[str, SampleData] = {data.sample_id.neo4j_id: data for data in sample_data}

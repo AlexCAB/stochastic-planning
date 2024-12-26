@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "stochastic-planning"
+version = "0.1.0"
+description = "Support code for stochastic planning research"
+authors = ["CAB <cabemailbox@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+neo4j = "^5.27.0"
+pyyed = "^1.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

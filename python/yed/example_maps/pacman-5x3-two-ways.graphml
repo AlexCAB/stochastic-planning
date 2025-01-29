@@ -185,7 +185,7 @@
           <y:Geometry height="521.0" width="991.6666666666665" x="236.0" y="34.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Consolas" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="312.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="966.158203125" x="12.754231770833258" xml:space="preserve" y="11.0">Pacman 5x3 example:
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Consolas" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="508.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="966.158203125" x="12.754231770833258" xml:space="preserve" y="11.0">Pacman 5x3 example:
 
    x12345
   y#######    B - beginning cell (1,1), Pacman starts here and need to reach end cell.
@@ -195,7 +195,7 @@
    #######
 
 Pacman will got:
- 1. Small penalty for each move, so need to find shortest way.
+ 1. Small penalty for each move (exepth for pass move), so need to find shortest way.
  2. A bit bigger penalty for each hitting of walls, so need to learn to not step in to the wall.
  3. Huge penalty and reset of position to beginning (1,1) for meet the Ghost (for step in to the Ghost cell).
  4. Prize for reaching the end cell (3,3).
@@ -206,7 +206,21 @@ There is 2 ways:
   2. (1,1)-&gt;(2,1)-&gt;(3,1)-&gt;(4,1)-&gt;(5,1-&gt;(5,2)-&gt;(5,3)-&gt;(4,3)-&gt;(3,3)
      This way is longer so cost more, but it is safe.
 
-Map variables:<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="-0.47888675623800386" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
+Map variables:
+  Pacman observe the cell in front of him and see it number and type, also type of objeсt in the cell. Pacman
+can move forward (step into the cell in fromt of him), rotate left and right, also do nothing.
+
+Input variables: 
+  cell number: 'C', {&lt;number in format (x,y)&gt;}
+  cell type:   'T', {'f' - free cell, 'w' - wall}
+  object type: 'O', {'b' - beginning cell, 'e' - end cell, 'g' - cell ocupated by ghost}
+  
+Output variables:
+  action: 'A', {'f' - forward, 'l' - rotate left, 'r' - rotate right, 'p' - pass (do nothing)}
+  
+Label formats:
+  Value label: '&lt;variable name&gt;:&lt;value&gt;:&lt;optional description&gt;', example: 'A:f:step in cell (2,3)'
+  Sample label: '&lt;sample id&gt;:&lt;probability count&gt;:&lt;utility&gt;:&lt;optional description&gt;', eample: 'S1:123:-5.5:hit the wall'<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="-0.47888675623800386" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
           <y:Shape type="roundrectangle"/>
         </y:ShapeNode>
       </data>

@@ -14,69 +14,36 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import Dict, Set
 
-from map.sample_graph import *
-from map.variable import *
-
-@dataclass
-class VariableNodeId:
-    neo4j_id: str | None
-    manual_id: str | None  # In case 'neo4j_id' is None this ID will be used for lookup
-
-
-class VariableNode:
-    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
-        self.name: str = name
-        self.variable: Variable = variable
-        self.variable_node_id: VariableNodeId = node_id
-
-        self.outgoing_link_edges: Dict[VariableNode, 'LinkJointEdge'] = {}
-        self.outgoing_then_edges: Dict[VariableNode, 'ThenJointEdge'] = {}
-        self.ingoing_edges: Set[VariableNode] = set()
-
-
-class InputVariableNode(VariableNode):
-    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
-        super().__init__(name, variable, node_id)
-
-
-class HiddenVariableNode(VariableNode):
-    def __init__(self, name: str | None, node_id: VariableNodeId):
-        super().__init__(name is None if name else f"Hidden variable, id = {node_id}", TimeVariable(), node_id)
-
-
-class OutputVariableNode(VariableNode):
-    def __init__(self, name: str, variable: Variable, node_id: VariableNodeId):
-        super().__init__(name, variable, node_id)
-
-
-class SampleEdge:
-    def __init__(self, source_index: int, target_index: int):
-        self.source_value_index: int = source_index
-        self.target_value_index: int = target_index
-
-
-class JointEdge:
-    def __init__(self, samples: Dict[SampleId, SampleEdge]):
-        self.samples_dict: Dict[SampleId, SampleEdge] = samples
-
-
-class LinkJointEdge(JointEdge):
-    def __init__(self, samples: Dict[SampleId, SampleEdge]):
-        super().__init__(samples)
-
-
-class ThenJointEdge(JointEdge):
-    def __init__(self, samples: Dict[SampleId, SampleEdge]):
-        super().__init__(samples)
+from map.full_sample_graph import *
+from map.hidden import *
+from map.in_out import *
 
 
 class Metadata:
-    def __init__(self, num_of_samples: int):
+    def __init__(self, num_of_samples: int, sample_data: List[SampleData]):
+        assert num_of_samples is not None, "Number of samples should be defined"
+        assert sample_data is not None, "Sample data should be defined"
+
         self.num_of_samples: int = num_of_samples
+        self.sample_data: Dict[int, SampleData] = {data.sample_id: data for data in sample_data}
 
 
 class KnowledgeGraph:
-    def __init__(self, metadata: Metadata, variable_nodes: List[VariableNode], sample_data: List[SampleData]):
+    def __init__(
+            self, metadata: Metadata,
+            input: List[InputNode],
+            output: List[OutputNode],
+            hidden: List[HiddenNode],
+            relations: List[RelationEdge]):
+
+        assert metadata is not None, "Metadata should be defined"
+        assert input is not None, "Input should be defined"
+        assert output is not None, "Output should be defined"
+        assert hidden is not None, "Hidden should be defined"
+        assert relations is not None, "Relations should be defined"
+
         self.metadata: Metadata = metadata
-        self.variable_nodes: Dict[str, VariableNode] = {node.variable_node_id.neo4j_id: node for node in variable_nodes}
-        self.sample_data: Dict[str, SampleData] = {data.sample_id.neo4j_id: data for data in sample_data}
+        self.input: List[InputNode] = input
+        self.output: List[OutputNode] = output
+        self.hidden: List[HiddenNode] = hidden
+        self.relations: List[RelationEdge] = relations

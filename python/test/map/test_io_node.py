@@ -13,7 +13,9 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2025-01-30 ||||||||||"""
 
 import unittest
-from map.io_node import IoNode
+
+from map.hidden import ConcreteHiddenNode
+from map.in_out import IoNode
 
 class TestIoNode(unittest.TestCase):
 
@@ -43,6 +45,26 @@ class TestIoNode(unittest.TestCase):
     def test_raises_assertion_error_for_none_list_values_with_list_type(self):
         with self.assertRaises(AssertionError):
             IoNode(list, "test_node", "12345")
+
+    def test_adds_hidden_node_correctly(self):
+        node = IoNode(int, "test_node", "12345")
+        hidden_node = ConcreteHiddenNode("hidden_node", "12345", node)
+        node.add_hidden_node(hidden_node, 1)
+        self.assertIn(hidden_node, node.hidden_nodes)
+        self.assertEqual(node.hidden_nodes[hidden_node], 1)
+
+    def test_removes_hidden_node_correctly(self):
+        node = IoNode(int, "test_node", "12345")
+        hidden_node = ConcreteHiddenNode("hidden_node", "12345", node)
+        node.add_hidden_node(hidden_node, 1)
+        node.remove_hidden_node(hidden_node)
+        self.assertNotIn(hidden_node, node.hidden_nodes)
+
+    def test_raises_assertion_error_when_removing_nonexistent_hidden_node(self):
+        node = IoNode(int, "test_node", "12345")
+        hidden_node = ConcreteHiddenNode("hidden_node", "12345", node)
+        with self.assertRaises(AssertionError):
+            node.remove_hidden_node(hidden_node)
 
     def test_returns_correct_value_for_bool_type(self):
         node = IoNode(bool, "test_node", "12345")

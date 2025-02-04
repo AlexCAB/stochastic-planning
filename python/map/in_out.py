@@ -12,7 +12,10 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-01-29 ||||||||||"""
 
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING, Dict
+
+if TYPE_CHECKING:
+    from map.hidden import ConcreteHiddenNode
 
 
 class IoNode:
@@ -21,6 +24,7 @@ class IoNode:
         assert \
             _type is bool or _type is int or _type is float or _type is list, \
             f"Type should be bool, int, float or list, but got {str(_type)}. Example of usage: IoNode(int)"
+
         assert name is not None, "Name should be defined"
         assert neo4j_id is not None, "Neo4j id should be defined"
         assert list_values is not None or _type is not list, "List values should be defined for list type"
@@ -29,6 +33,17 @@ class IoNode:
         self.name: str = name
         self.neo4j_id: str = neo4j_id
         self.list_values: List[Any] = list_values
+
+        self.hidden_nodes: Dict['ConcreteHiddenNode', int] = {} # hidden nodes with value index
+
+    def add_hidden_node(self, hidden_node: 'ConcreteHiddenNode', value_index: int):
+        self.hidden_nodes[hidden_node] = value_index
+
+    def remove_hidden_node(self, hidden_node: 'ConcreteHiddenNode'):
+        assert hidden_node in self.hidden_nodes, \
+            f"Hidden node {hidden_node} is not in the list of hidden nodes, for node {self}"
+
+        self.hidden_nodes.pop(hidden_node)
 
     def value_for_index(self, index: int):
         match self._type:
@@ -67,12 +82,12 @@ class IoNode:
                 raise NotImplementedError(f"Type {str(self._type)} is not supported")
 
 
-class InputIoNode(IoNode):
+class InputNode(IoNode):
     def __init__(self, _type: type, name: str, neo4j_id: str, list_values: List[Any] = None):
         super().__init__(_type, name, neo4j_id, list_values)
 
 
-class OutputIoNode(IoNode):
+class OutputNode(IoNode):
     def __init__(self, _type: type, name: str, neo4j_id: str, list_values: List[Any] = None):
         super().__init__(_type, name, neo4j_id, list_values)
 

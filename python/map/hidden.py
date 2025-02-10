@@ -12,7 +12,7 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-02-04 ||||||||||"""
 
-from typing import Dict
+from typing import Dict, Tuple
 
 from map.in_out import IoNode
 
@@ -35,17 +35,17 @@ class ConcreteHiddenNode(AbstractHiddenNode):
 
 
 class HiddenEdge:
-    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, (int, int)]):
+    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, Tuple[int, int]]):
         self.source: HiddenNode = source
         self.target: HiddenNode = target
         self.samples: Dict[int, (int, int)] = samples # sample id -> (source time index, target time index)
 
 
 class LinkHiddenEdge(HiddenEdge):
-    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, (int, int)]):
+    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, Tuple[int, int]]):
         super().__init__(source, target, samples)
 
 
 class ThenHiddenEdge(HiddenEdge):
-    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, (int, int)]):
+    def __init__(self, source: HiddenNode, target: HiddenNode, samples: Dict[int, Tuple[int, int]]):
         super().__init__(source, target, samples)

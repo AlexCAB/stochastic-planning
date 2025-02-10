@@ -13,11 +13,12 @@ r"""|||||||||||||||||||||||||||||||
 | created:  2024-11-30 |||||||||"""
 
 import json
+import os
 from neo4j import GraphDatabase
 
 
 def main():
-    print("########### TEST ###########")
+    print("########### TEST ########### work dir = " + os. getcwd())
 
     driver_config = json.load(open("../config/neo4j_driver.json"))
 
@@ -39,6 +40,9 @@ def main():
             json_data = json.dumps(res.data())
 
             print(f"res = {json_data}")
+            print(f"res = {res.data()}")
+
+
 
 
 

@@ -36,5 +36,5 @@ Label formats:
   IO variable label: '<I or O>:<name>:<bool or int or float or list>:<optional description>', example: 'I:C:list:cell number'
   Hidden concrete value label: 'C:<in/out variable name>:<value>:<node name>:<optional description>', example: 'C:A:f:n1:step in cell (2,3)'
   Hidden abstract value label: 'A:<node name>:<optional description>', example: 'A:n2:step in cell (2,3)'
-  Sample label: 'S:<sample id>:<probability count>:<utility>:<optional description>', eample: 'S:S1:123:-5.5:hit the wall'
+  Sample label: 'S:<sample id/name>:<probability count>:<utility>:<optional description>', eample: 'S:S1:123:-5.5:hit the wall'
   

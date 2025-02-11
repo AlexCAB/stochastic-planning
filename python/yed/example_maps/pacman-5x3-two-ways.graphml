@@ -124,7 +124,7 @@ Label formats:
   IO variable label: '&lt;I or O&gt;:&lt;name&gt;:&lt;bool or int or float or list&gt;:&lt;optional description&gt;', example: 'I:C:list:cell number'
   Hidden concrete value label: 'C:&lt;in/out variable name&gt;:&lt;value&gt;:&lt;node name&gt;:&lt;optional description&gt;', example: 'C:A:f:n1:step in cell (2,3)'
   Hidden abstract value label: 'A:&lt;node name&gt;:&lt;optional description&gt;', example: 'A:n2:step in cell (2,3)'
-  Sample label: 'S:&lt;sample id&gt;:&lt;probability count&gt;:&lt;utility&gt;:&lt;optional description&gt;', eample: 'S:S1:123:-5.5:hit the wall'<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="-0.47888675623800386" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
+  Sample label: 'S:&lt;sample id/name&gt;:&lt;probability count&gt;:&lt;utility&gt;:&lt;optional description&gt;', eample: 'S:S1:123:-5.5:hit the wall'<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="-0.47888675623800386" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
           <y:Shape type="roundrectangle"/>
         </y:ShapeNode>
       </data>
@@ -201,7 +201,7 @@ Label formats:
           <y:Geometry height="30.0" width="30.0" x="765.2895397489542" y="933.473640167364"/>
           <y:Fill color="#FF0000" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="68.69921875" x="-19.349609375" xml:space="preserve" y="42.804225777980946">C:A:f::A005:<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="0.5" offsetX="0.0" offsetY="12.804225777980946" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="65.365234375" x="-17.6826171875" xml:space="preserve" y="42.804225777980946">C:A:f:A005:<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="-0.5" nodeRatioX="0.0" nodeRatioY="0.5" offsetX="0.0" offsetY="12.804225777980946" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
           <y:Shape type="ellipse"/>
         </y:ShapeNode>
       </data>

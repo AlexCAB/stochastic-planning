@@ -14,7 +14,7 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import Dict, Tuple
 
-from map.in_out import IoNode
+from map.io_node import IoNode
 
 class HiddenNode:
     pass

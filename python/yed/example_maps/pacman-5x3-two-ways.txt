@@ -1,4 +1,4 @@
-Pacman 5x3 example:
+G:pacman-5x3-example:
 
    x12345
   y#######    B - beginning cell (1,1), Pacman starts here and need to reach end cell.
@@ -23,18 +23,23 @@ Map variables:
   Pacman observe the cell in front of him and see it number and type, also type of objeсt in the cell. Pacman
 can move forward (step into the cell in fromt of him), rotate left and right, also do nothing.
 
-Input hidden variables: 
+Input hidden variables:
   cell number: 'C', {<number in format (x,y)>}
   cell type:   'T', {'f' - free cell, 'w' - wall}
   object type: 'O', {'b' - beginning cell, 'e' - end cell, 'g' - cell ocupated by ghost}
-  
+
 Output hidden variables:
   action: 'A', {'f' - forward, 'l' - rotate left, 'r' - rotate right, 'p' - pass (do nothing)}
-  
+
 Label formats:
   Graph label: 'G:<graph name>:<optional description>', example: 'G:Pacman 5x3:this description'
-  IO variable label: '<I or O>:<name>:<bool or int or float or list>:<optional description>', example: 'I:C:list:cell number'
+  IO variable label: '<I or O>:<name>:<bool or int or float or list>:<range>:<optional description>', example: 'I:C:list:cell number'
   Hidden concrete value label: 'C:<in/out variable name>:<value>:<node name>:<optional description>', example: 'C:A:f:n1:step in cell (2,3)'
   Hidden abstract value label: 'A:<node name>:<optional description>', example: 'A:n2:step in cell (2,3)'
   Sample label: 'S:<sample id/name>:<probability count>:<utility>:<optional description>', eample: 'S:S1:123:-5.5:hit the wall'
-  
+
+Variable range:
+  bool: <t;f>, example: 'I:O:bool:t;f:true or false or unobserved variable',  'I:O:bool:t:true or unobserved variable'
+  int:  <min;max>, example: 'I:O:int:1;10:integer from 1 to 10 or unobserved variable'
+  float: <min;max>, example: 'I:O:float:0.0;1.0:float from 0.0 to 1.0 or unobserved variable'
+  list: <list of possible values separated by ;>, example: 'I:O:list:a;b;1;2:list of possible values or unobserved variable'

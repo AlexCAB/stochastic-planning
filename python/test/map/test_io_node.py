@@ -15,7 +15,7 @@ r"""|||||||||||||||||||||||||||||||
 import unittest
 
 from map.hidden import ConcreteHiddenNode
-from map.in_out import IoNode
+from map.io_node import IoNode
 
 class TestIoNode(unittest.TestCase):
 

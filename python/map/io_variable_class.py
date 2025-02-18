@@ -17,7 +17,10 @@ from typing import List, Any, Tuple
 
 class IoVariable:
     @staticmethod
-    def create_variable(_type: type, domain: List[bool] | Tuple[int, int] | Tuple[float, float] | List[Any]):
+    def create_variable(
+            _type: type,
+            domain: List[bool] | Tuple[int, int] | Tuple[float, float] | List[Any]) -> 'IoVariable':
+
         match _type:
             case t if t is bool:
                 return BoolVariable(domain)

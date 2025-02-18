@@ -14,9 +14,10 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import Dict, Set
 
-from map.full_sample_graph import *
-from map.hidden import *
-from map.io_node import *
+from database.neo4j_database_class import No4jDatabase
+from map.full_sample_graph_class import *
+from map.hidden_node_class import *
+from map.io_node_class import *
 
 
 class Metadata:
@@ -37,6 +38,24 @@ class Metadata:
 
 
 class KnowledgeGraph:
+    @staticmethod
+    def create_empty_knowledge_graph(
+            name: str,
+            input: List[InputNode],
+            output: List[OutputNode],
+            database: No4jDatabase,
+            description: str | None = None) -> 'KnowledgeGraph':
+
+        database.clear_database()
+
+        metadata: Metadata = Metadata(name, 0, [], description)
+
+
+
+
+        return KnowledgeGraph(metadata, input, output, hidden = None, relations = None)
+
+
     def __init__(
             self,
             metadata: Metadata,

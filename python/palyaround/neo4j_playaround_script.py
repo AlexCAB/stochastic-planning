@@ -14,7 +14,7 @@ r"""|||||||||||||||||||||||||||||||
 
 import json
 import os
-from neo4j import GraphDatabase
+from database import GraphDatabase
 
 
 def main():

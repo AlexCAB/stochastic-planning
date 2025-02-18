@@ -14,8 +14,8 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import List
 
-from map.hidden import AbstractHiddenNode, ConcreteHiddenNode
-from map.io_node import IoNode
+from map.hidden_node_class import AbstractHiddenNode, ConcreteHiddenNode
+from map.io_node_class import IoNode
 
 
 

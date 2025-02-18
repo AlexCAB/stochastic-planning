@@ -10,24 +10,9 @@ r"""|||||||||||||||||||||||||||||||
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created:  2024-12-26 |||||||||"""
+| created: 2025-02-19 ||||||||||"""
 
-import argparse
-import os
-import logging
-from typing import List, Dict, Set, Any, Tuple
-
-from networkx.algorithms.components import weakly_connected_components
-from networkx.classes import MultiDiGraph
-from networkx.readwrite.graphml import read_graphml
-
-from map.io_node import InputNode, OutputNode
-from map.io_variable import IoVariable
-from map.knowledge_graph import KnowledgeGraph, Metadata
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+from typing import List, Any, Tuple
 
 class ParsedNode:
     def __init__(self, id: str, label: str):
@@ -141,81 +126,3 @@ class ParsedNode:
             f"description = {self.description}, probability_count = {self.probability_count}, "\
             f"utility = {self.utility}, value_type = {self.value_type}, value_range = {self.value_range}, "\
             f"variable_name = {self.variable_name}, value = {self.value}"
-
-
-def read_args():
-    parser = argparse.ArgumentParser(description="yEd map graph loader")
-    parser.add_argument(
-        '--path',
-        type=str,
-        required=False,
-        help='Path to yEd graph file (*.graphml)')
-    args = parser.parse_args()
-    return args
-
-def build_knowledge_graph(parsed_nodes: Dict[str, ParsedNode], graph_components: List[Set[str]]) -> KnowledgeGraph:
-    graph_node: ParsedNode = next(filter(lambda n: n.node_type == "G", parsed_nodes.values()), None)
-    assert graph_node is not None, "Graph node should be defined"
-    component: Set[str] = next((c for c in graph_components if graph_node.id in c), None)
-    assert component is not None, "Graph node should be in one of the components"
-    metadata: Metadata = Metadata(graph_node.name, 0, [], graph_node.description)
-
-    in_parsed_nodes: List[ParsedNode] = [parsed_nodes[id] for id in component if parsed_nodes[id].node_type == "I"]
-    assert len(in_parsed_nodes) > 0, "At least one input node should be defined"
-    out_parsed_nodes: List[ParsedNode] = [parsed_nodes[id] for id in component if parsed_nodes[id].node_type == "O"]
-    assert len(out_parsed_nodes) > 0, "At least one output node should be defined"
-
-    input_nodes: List[InputNode] = [
-        InputNode(node.name, IoVariable.create_variable(node.value_type, node.value_range))
-        for node in in_parsed_nodes]
-
-    output_nodes: List[OutputNode] = [
-        OutputNode(node.name, IoVariable.create_variable(node.value_type, node.value_range))
-        for node in out_parsed_nodes]
-
-    return KnowledgeGraph(metadata, input_nodes, output_nodes)
-
-
-
-
-
-
-
-
-def load_yed_graph(yed_path: str):
-    logger.info(f"[load_yed_graph] Loading yEd graph from {yed_path}, work dir = {os.getcwd()}")
-
-    yed_graph: MultiDiGraph  = read_graphml(yed_path)
-
-    parsed_nodes: Dict[str, ParsedNode] = {id: ParsedNode(id, props['label']) for (id, props) in yed_graph.nodes(data=True)}
-
-    graph_components: List[Set[str]] = list(weakly_connected_components(yed_graph))
-
-    for node in parsed_nodes.values():
-        print(f"Node: {node}")
-
-    for com in weakly_connected_components(yed_graph):
-        print(f"Connected component: {com}")
-
-    knowledge_graph: KnowledgeGraph = build_knowledge_graph(parsed_nodes, graph_components)
-
-    print(knowledge_graph)
-
-
-
-
-
-
-
-
-
-
-def main():
-    args = read_args()
-    if args.path is not None:
-        load_yed_graph(args.path)
-    else:
-        load_yed_graph("yed/example_maps/pacman-5x3-two-ways.graphml") # default path
-
-if __name__ == "__main__":
-    main()

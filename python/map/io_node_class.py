@@ -14,10 +14,10 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import Any, List, TYPE_CHECKING, Dict, Tuple
 
-from map.io_variable import IoVariable
+from map.io_variable_class import IoVariable
 
 if TYPE_CHECKING:
-    from map.hidden import ConcreteHiddenNode
+    from map.hidden_node_class import ConcreteHiddenNode
 
 
 class IoNode:

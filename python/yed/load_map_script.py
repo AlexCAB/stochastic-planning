@@ -126,6 +126,8 @@ def load_yed_graph(yed_path: str, database_name: str, neo4j_config_path: str):
     for node in parsed_nodes.values():
         logger.info(f"[load_yed_graph] Found yEd {node}")
 
+    # TODO: Preparing as samples
+
     with connect_to_neo4j(neo4j_config_path, database_name) as database:
         logger.info(f"[load_yed_graph] Connected to Neo4j database: {database}")
 

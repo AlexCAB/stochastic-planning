@@ -12,7 +12,7 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-02-18 ||||||||||"""
 
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Dict
 
 
 class IoVariable:
@@ -39,6 +39,9 @@ class IoVariable:
     def index_for_value(self, value: bool | int | float | Any) -> int:
         raise NotImplementedError("Abstract method")
 
+    def to_properties(self) -> Dict[str, Any]:
+        raise NotImplementedError("Abstract method")
+
 
 
 class BoolVariable(IoVariable):
@@ -62,15 +65,21 @@ class BoolVariable(IoVariable):
     def __str__(self):
         return f"bool{self.domain}"
 
+    def to_properties(self) -> Dict[str, Any]:
+        return {
+            'type': 'bool',
+            'domain': ['t' if n else 'f' for n in self.domain]
+        }
+
 
 class IntVariable(IoVariable):
-    def __init__(self, domain: Tuple[int]):
+    def __init__(self, domain: Tuple[int, int]):
         assert isinstance(domain, tuple), "Value range should be tuple for int type"
         assert len(domain) == 2, "Value range should have 2 values for int type"
         assert all(isinstance(value, int) for value in domain), "Values should be int for int type"
         assert domain[0] <= domain[1], "First value should be <= than the second value for int type"
 
-        self.domain: Tuple[int] = domain
+        self.domain: Tuple[int, int] = domain
 
     def value_for_index(self, index: int) -> int:
         assert \
@@ -89,15 +98,22 @@ class IntVariable(IoVariable):
     def __str__(self):
         return f"int{self.domain}"
 
+    def to_properties(self) -> Dict[str, Any]:
+        return {
+            'type': 'int',
+            'min': self.domain[0],
+            'max': self.domain[1]
+        }
+
 
 class FloatVariable(IoVariable):
-    def __init__(self, domain: Tuple[float]):
+    def __init__(self, domain: Tuple[float, float]):
         assert isinstance(domain, tuple), "Value range should be tuple for float type"
         assert len(domain) == 2, "Value range should have 2 values for float type"
         assert all(isinstance(value, float) for value in domain), "Values should be float for float type"
         assert domain[0] <= domain[1], "First value should be <= than the second value for float type"
 
-        self.domain: Tuple[float] = domain
+        self.domain: Tuple[float, float] = domain
 
     def value_for_index(self, index: int) -> float:
         value = float(index) / 10000.0
@@ -118,6 +134,13 @@ class FloatVariable(IoVariable):
 
     def __str__(self):
         return f"float{self.domain}"
+
+    def to_properties(self) -> Dict[str, Any]:
+        return {
+            'type': 'float',
+            'min': self.domain[0],
+            'max': self.domain[1]
+        }
 
 
 class ListVariable(IoVariable):
@@ -143,3 +166,9 @@ class ListVariable(IoVariable):
 
     def __str__(self):
         return f"list{self.domain}"
+
+    def to_properties(self) -> Dict[str, Any]:
+        return {
+            'type': 'list',
+            'domain': self.domain
+        }

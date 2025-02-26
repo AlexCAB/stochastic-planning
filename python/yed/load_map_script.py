@@ -16,8 +16,10 @@ import argparse
 import logging
 import os
 import json
+
 from typing import List, Dict, Set, Tuple
 
+from bs4 import BeautifulSoup
 from networkx.algorithms.components import weakly_connected_components
 from networkx.classes import MultiDiGraph
 from networkx.readwrite.graphml import read_graphml
@@ -26,6 +28,7 @@ from database.neo4j_database_class import No4jDatabase
 from map.io_node_class import InputNode, OutputNode
 from map.io_variable_class import IoVariable
 from map.knowledge_graph_class import KnowledgeGraph
+from yed.parsed_edge_class import ParsedEdge
 from yed.parsed_node_class import ParsedNode
 
 logging.basicConfig(level=logging.INFO)
@@ -59,14 +62,19 @@ def read_args():
     return args
 
 
-def read_and_parse_yed_file(yed_path: str) -> Tuple[Dict[str, ParsedNode], List[Set[str]]]:
+def read_and_parse_yed_file(yed_path: str) -> Tuple[Dict[str, ParsedNode], List[Set[str]], List[ParsedEdge]]:
     yed_graph: MultiDiGraph = read_graphml(yed_path)
 
-    parsed_nodes: Dict[str, ParsedNode] = {
-        id: ParsedNode(id, props['label']) for (id, props) in yed_graph.nodes(data=True)}
+    with open(yed_path, encoding="utf8") as fp:
+        parsed_nodes: Dict[str, ParsedNode] = {
+            id: ParsedNode(id, props['label']) for (id, props) in yed_graph.nodes(data=True)}
 
-    graph_components: List[Set[str]] = list(weakly_connected_components(yed_graph))
-    return parsed_nodes, graph_components
+        graph_components: List[Set[str]] = list(weakly_connected_components(yed_graph))
+
+        parsed_edges: List[ParsedEdge] = [
+            ParsedEdge(e) for e in BeautifulSoup(fp, 'lxml').find_all("edge")]
+
+        return parsed_nodes, graph_components, parsed_edges
 
 
 def connect_to_neo4j(driver_config_path: str, database_name: str) -> No4jDatabase:
@@ -111,6 +119,12 @@ def build_empty_knowledge_graph(
         database,
         graph_node.description)
 
+def load_samples(
+        knowledge_graph: KnowledgeGraph,
+        parsed_nodes: Dict[str, ParsedNode],
+        graph_components: List[Set[str]]):
+
+    pass
 
 
 
@@ -121,18 +135,22 @@ def build_empty_knowledge_graph(
 def load_yed_graph(yed_path: str, database_name: str, neo4j_config_path: str):
     logger.info(f"[load_yed_graph] Loading yEd graph from {yed_path}, work dir = {os.getcwd()}")
 
-    parsed_nodes, graph_components = read_and_parse_yed_file(yed_path)
+    parsed_nodes, graph_components, parsed_edges = read_and_parse_yed_file(yed_path)
 
     for node in parsed_nodes.values():
         logger.info(f"[load_yed_graph] Found yEd {node}")
 
-    # TODO: Preparing as samples
+    for edge in parsed_edges:
+        logger.info(f"[load_yed_graph] Found yEd {edge}")
 
-    with connect_to_neo4j(neo4j_config_path, database_name) as database:
-        logger.info(f"[load_yed_graph] Connected to Neo4j database: {database}")
-
-        knowledge_graph: KnowledgeGraph = build_empty_knowledge_graph(parsed_nodes, graph_components, database)
-        logger.info(f"[load_yed_graph] Created empty: {knowledge_graph}")
+    #
+    # with connect_to_neo4j(neo4j_config_path, database_name) as database:
+    #     logger.info(f"[load_yed_graph] Connected to Neo4j database: {database}")
+    #
+    #     knowledge_graph: KnowledgeGraph = build_empty_knowledge_graph(parsed_nodes, graph_components, database)
+    #     logger.info(f"[load_yed_graph] Created empty: {knowledge_graph}")
+    #
+    #     load_samples(knowledge_graph, parsed_nodes, graph_components)
 
 
 

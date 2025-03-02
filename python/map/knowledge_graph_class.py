@@ -21,39 +21,37 @@ if TYPE_CHECKING:
 
 
 class Metadata:
-    def __init__(self, name: str, num_of_samples: int, sample_data: List[SampleData], description: str | None = None):
+    def __init__(self, name: str,  sample_data: List[SampleData], description: str | None = None):
         assert name is not None, "Name should be defined"
-        assert num_of_samples is not None, "Number of samples should be defined"
         assert sample_data is not None, "Sample data should be defined"
 
         self.name: str = name
-        self.num_of_samples: int = num_of_samples
         self.sample_data: Dict[int, SampleData] = {data.sample_id: data for data in sample_data}
         self.description: str | None = description
 
     def __str__(self):
         return (f"Metadata: {self.name}\n"
                 f"Description: {self.description}\n"
-                f"Number of samples: {self.num_of_samples}\n")
+                f"Number of samples: {len(self.sample_data)}\n")
 
     def to_properties(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "num_of_samples": self.num_of_samples,
+            "num_of_samples": len(self.sample_data),
             "description": self.description
         }
 
 
 class KnowledgeGraph:
     @staticmethod
-    def create_empty_knowledge_graph(
+    def create_empty(
             name: str,
             input_nodes: List[InputNode],
             output_nodes: List[OutputNode],
             database: 'No4jDatabase',
             description: str | None = None) -> 'KnowledgeGraph':
 
-        metadata: Metadata = Metadata(name, 0, [], description)
+        metadata: Metadata = Metadata(name, [], description)
         database.clear_database()
         root_neo4j_id: str = database.insert_root_node(metadata, input_nodes, output_nodes)
         return KnowledgeGraph(metadata, input_nodes, output_nodes, root_neo4j_id, hidden = None, relations = None)
@@ -76,8 +74,38 @@ class KnowledgeGraph:
         self.input: List[InputNode] = input_nodes
         self.output: List[OutputNode] = output_nodes
         self.root_neo4j_id: str = root_neo4j_id
-        self.hidden: List[HiddenNode] = hidden if hidden is not None else []
+
+        self.abstract_nodes: List[AbstractHiddenNode] = []
+        self.concrete_nodes: List[ConcreteHiddenNode] = []
+
+        for node in hidden if hidden else []:
+            if isinstance(node, AbstractHiddenNode):
+                self.abstract_nodes.append(node)
+            elif isinstance(node, ConcreteHiddenNode):
+                self.concrete_nodes.append(node)
+            else:
+                raise ValueError(f"Unknown hidden node type: {node}, should be either abstract or concrete")
+
         self.relations: List[RelationEdge] = relations if relations is not None else []
+
+    def get_abstract_variable_nodes_for_name(self, name: str) -> List[AbstractHiddenNode]:
+        return [node for node in self.abstract_nodes if node.name == name]
+
+    def get_concrete_variable_nodes_for_name(self, name: str) -> List[ConcreteHiddenNode]:
+        return [node for node in self.concrete_nodes if node.name == name]
+
+    def get_io_nodes_for_name(self, name: str) -> List[IoNode]:
+        return [node for node in (self.input + self.output) if node.name == name]
+
+    def get_next_sample_id(self) -> int:
+        return max(self.metadata.sample_data.keys()) + 1 if self.metadata.sample_data else 1
+
+    def add_sample(self, sample: FullSampleGraph):
+        pass
+
+
+
+
 
     def __str__(self):
         return (f"Knowledge graph: '{self.metadata.name}'\n"
@@ -85,3 +113,6 @@ class KnowledgeGraph:
                 f"Root Neo4j id: {self.root_neo4j_id}\n"
                 f"Input nodes:\n  {"\n  ".join([str(n) for n in self.input])}\n"
                 f"Output nodes:\n  {"\n  ".join([str(n) for n in self.output])}")
+
+    def __repr__(self):
+        return self.__str__()

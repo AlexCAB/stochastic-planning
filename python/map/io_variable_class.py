@@ -167,6 +167,9 @@ class ListVariable(IoVariable):
     def __str__(self):
         return f"list{self.domain}"
 
+    def __repr__(self):
+        return self.__str__()
+
     def to_properties(self) -> Dict[str, Any]:
         return {
             'type': 'list',

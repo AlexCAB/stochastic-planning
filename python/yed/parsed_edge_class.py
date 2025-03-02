@@ -29,9 +29,9 @@ class ParsedEdge:
 
         match edge_elem.find('y:linestyle').attrs['color']:
             case "#FF0000":
-                self.edge_type = ParsedEdgeType.LinkEdge
-            case "#00FF00":
                 self.edge_type = ParsedEdgeType.ThenEdge
+            case "#00FF00":
+                self.edge_type = ParsedEdgeType.LinkEdge
             case "#888888":
                 self.edge_type = ParsedEdgeType.SupportEdge
             case _:
@@ -43,3 +43,6 @@ class ParsedEdge:
 
     def __str__(self):
         return f"Edge: {self.source_id} - {self.edge_type} -> {self.target_id}"
+
+    def __repr__(self):
+        return self.__str__()

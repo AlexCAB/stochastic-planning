@@ -46,6 +46,9 @@ class IoNode:
     def __str__(self):
         return f"{self.name}: {self.variable}"
 
+    def __repr__(self):
+        return self.__str__()
+
     def to_properties(self) -> Dict[str, Any]:
         match self:
             case t if isinstance(t, InputNode):

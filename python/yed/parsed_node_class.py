@@ -21,6 +21,10 @@ class ParsedNode:
         self.id: str = id
         self.node_type: str = split_label[0].strip()
 
+        assert self.id, f"Node ID is empty or None, label = {label}"
+        assert self.node_type, f"Node type is empty or None, label = {label}"
+        assert self.node_type in ["G", "S", "I", "O", "C", "A"], f"Unknown node type: {self.node_type}, label = {label}"
+
         self.name: str = ""
         self.description: str | None = None
         self.probability_count: int | None = None
@@ -116,7 +120,6 @@ class ParsedNode:
             case _:
                raise ValueError(f"Unknown node type: {split_label[0]}, expected one of: G, S, I, O, C, A")
 
-        assert self.node_type != "" and self.node_type is not None, f"Node type is empty or None, label = {label}"
         assert self.name != "" and self.name is not None, f"Node name is empty or None, label = {label}"
 
         self.description = self.description if self.description != "" else None

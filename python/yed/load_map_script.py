@@ -25,11 +25,13 @@ from networkx.classes import MultiDiGraph
 from networkx.readwrite.graphml import read_graphml
 
 from database.neo4j_database_class import No4jDatabase
+from map.full_sample_graph_class import FullSampleGraph
 from map.io_node_class import InputNode, OutputNode
 from map.io_variable_class import IoVariable
 from map.knowledge_graph_class import KnowledgeGraph
 from yed.parsed_edge_class import ParsedEdge
 from yed.parsed_node_class import ParsedNode
+from yed.raw_sample_class import RawSample
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -112,24 +114,22 @@ def build_empty_knowledge_graph(
     names: List[str] = [n.name for n in input_nodes + output_nodes]
     assert len(set(names)) == len(names), f"IO node names should be unique, names = {names}"
 
-    return KnowledgeGraph.create_empty_knowledge_graph(
+    return KnowledgeGraph.create_empty(
         graph_node.name,
         input_nodes,
         output_nodes,
         database,
         graph_node.description)
 
-def load_samples(
-        knowledge_graph: KnowledgeGraph,
+
+def build_raw_samples(
         parsed_nodes: Dict[str, ParsedNode],
-        graph_components: List[Set[str]]):
+        graph_components: List[Set[str]],
+        parsed_edges: List[ParsedEdge]) -> List[RawSample]:
 
-    pass
-
-
-
-
-
+    return [
+        RawSample(parsed_node, parsed_nodes, graph_components, parsed_edges)
+        for parsed_node in parsed_nodes.values() if parsed_node.node_type == "S"]
 
 
 def load_yed_graph(yed_path: str, database_name: str, neo4j_config_path: str):
@@ -143,22 +143,22 @@ def load_yed_graph(yed_path: str, database_name: str, neo4j_config_path: str):
     for edge in parsed_edges:
         logger.info(f"[load_yed_graph] Found yEd {edge}")
 
-    #
-    # with connect_to_neo4j(neo4j_config_path, database_name) as database:
-    #     logger.info(f"[load_yed_graph] Connected to Neo4j database: {database}")
-    #
-    #     knowledge_graph: KnowledgeGraph = build_empty_knowledge_graph(parsed_nodes, graph_components, database)
-    #     logger.info(f"[load_yed_graph] Created empty: {knowledge_graph}")
-    #
-    #     load_samples(knowledge_graph, parsed_nodes, graph_components)
+    raw_samples: List[RawSample] = build_raw_samples(parsed_nodes, graph_components, parsed_edges)
 
+    for sample in raw_samples:
+        logger.info(f"[load_yed_graph] Found raw {sample}")
 
+    with connect_to_neo4j(neo4j_config_path, database_name) as database:
+        logger.info(f"[load_yed_graph] Connected to Neo4j database: {database}")
 
+        knowledge_graph: KnowledgeGraph = build_empty_knowledge_graph(parsed_nodes, graph_components, database)
+        logger.info(f"[load_yed_graph] Created empty: {knowledge_graph}")
 
+        for raw_sample in raw_samples:
+            full_sample: FullSampleGraph = raw_sample.build_full_sample(knowledge_graph)
+            logger.info(f"[load_yed_graph] Built {full_sample}")
 
-
-
-
+            knowledge_graph.add_sample(full_sample)
 
 
 def main():

@@ -11,6 +11,7 @@ r"""|||||||||||||||||||||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created:  2024-12-19 |||||||||"""
+from typing import FrozenSet
 
 from map.full_sample_graph_class import *
 from map.hidden_node_class import *
@@ -63,7 +64,7 @@ class KnowledgeGraph:
             output_nodes: List[OutputNode],
             root_neo4j_id: str,
             hidden: List[HiddenNode] = None,
-            relations: List[RelationEdge] = None):
+            relations: List[HiddenEdge] = None):
 
         assert metadata is not None, "Metadata should be defined"
         assert input_nodes is not None, "Input should be defined"
@@ -75,33 +76,45 @@ class KnowledgeGraph:
         self.output: List[OutputNode] = output_nodes
         self.root_neo4j_id: str = root_neo4j_id
 
-        self.abstract_nodes: List[AbstractHiddenNode] = []
-        self.concrete_nodes: List[ConcreteHiddenNode] = []
+        self.nodes_cache: Dict[str, HiddenNode] = {} # Dict[neo4j_id, node]
+        self.edges_cache: Dict[FrozenSet[str], HiddenEdge] = {} # Dict[FrozenSet[source_neo4j_id, target_neo4j_id], edge]
 
         for node in hidden if hidden else []:
-            if isinstance(node, AbstractHiddenNode):
-                self.abstract_nodes.append(node)
-            elif isinstance(node, ConcreteHiddenNode):
-                self.concrete_nodes.append(node)
-            else:
-                raise ValueError(f"Unknown hidden node type: {node}, should be either abstract or concrete")
+            assert node.neo4j_id, f"Neo4j id should be defined for hidden node{node}"
+            match node:
+                case n if isinstance(n, AbstractHiddenNode) or isinstance(n, ConcreteHiddenNode):
+                    self.nodes_cache[node.neo4j_id] = n
+                case n:
+                    raise ValueError(f"Unknown hidden node type: {n}, should be either abstract or concrete")
 
-        self.relations: List[RelationEdge] = relations if relations is not None else []
+        for edge in relations if relations else []:
+            assert edge.source.neo4j_id and edge.target.neo4j_id, \
+                f"Source and target nodes Neo4j ids should be defined for edge{edge}"
 
-    def get_abstract_variable_nodes_for_name(self, name: str) -> List[AbstractHiddenNode]:
-        return [node for node in self.abstract_nodes if node.name == name]
+            match edge:
+                case e if isinstance(e, LinkHiddenEdge) or isinstance(e, ThenHiddenEdge):
+                    self.edges_cache[frozenset([edge.source.neo4j_id, edge.target.neo4j_id])] = e
+                case e:
+                    raise ValueError(f"Unknown hidden edge type: {e}, should be either link or then")
 
-    def get_concrete_variable_nodes_for_name(self, name: str) -> List[ConcreteHiddenNode]:
-        return [node for node in self.concrete_nodes if node.name == name]
+    def get_variable_nodes_for_name(self, name: str) -> List[HiddenNode]:
+        return [node for node in self.nodes_cache.values() if node.name == name]
 
     def get_io_nodes_for_name(self, name: str) -> List[IoNode]:
         return [node for node in (self.input + self.output) if node.name == name]
 
-    def get_next_sample_id(self) -> int:
-        return max(self.metadata.sample_data.keys()) + 1 if self.metadata.sample_data else 1
-
     def add_sample(self, sample: FullSampleGraph):
-        pass
+        neo4j_ids_to_load: List[str] = []
+        for value_node in sample.value_nodes:
+
+
+            value_node
+
+            if n.hidden_node:
+                neo4j_ids_to_load.append(n.hidden_node.neo4j_id)
+
+
+        self._load_in_cache([n fo n sample.value_nodes])
 
 
 
@@ -116,3 +129,7 @@ class KnowledgeGraph:
 
     def __repr__(self):
         return self.__str__()
+
+    def _load_in_cache(self, neo4j_ids: List[str]):
+        # Do nit load nodes and edges that are already in cache
+        pass

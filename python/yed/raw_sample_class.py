@@ -14,7 +14,7 @@ r"""|||||||||||||||||||||||||||||||
 from typing import Dict, List, Set
 
 from map.full_sample_graph_class import FullSampleGraph, ValueNode
-from map.hidden_node_class import AbstractHiddenNode
+from map.hidden_node_class import AbstractHiddenNode, HiddenNode, ConcreteHiddenNode
 from map.io_node_class import IoNode
 from map.knowledge_graph_class import KnowledgeGraph
 from yed.parsed_edge_class import ParsedEdge, ParsedEdgeType
@@ -55,29 +55,35 @@ class RawSample:
 
     def build_full_sample(self, knowledge_graph: 'KnowledgeGraph') -> 'FullSampleGraph':
         sample: FullSampleGraph = FullSampleGraph.create_empty(
-            knowledge_graph.get_next_sample_id(),
             self.probability_count,
             self.utility,
+            None,
             self.name,
             self.description)
 
         value_nodes: Dict[str, ValueNode] = {}
 
         for node_id, node in self.sample_nodes.items():
+            if node.node_type in ["A", "C"]:
+                variable_nodes: List[HiddenNode] = knowledge_graph.get_variable_nodes_for_name(node.name)
+
+                assert len(variable_nodes) <= 1, \
+                    f"Expected 0 or 1 abstract variable node for name '{node.name}', found {len(variable_nodes)}"
+            else:
+                variable_nodes = []
+
             match node.node_type:
                 case "A":
-                    variable_nodes: List[AbstractHiddenNode] = (
-                        knowledge_graph.get_abstract_variable_nodes_for_name(node.name))
-
-                    assert len(variable_nodes) <= 1, \
-                        f"Expected 0 or 1 abstract variable node for name '{node.name}', found {len(variable_nodes)}"
+                    for variable_node in variable_nodes:
+                        assert isinstance(variable_node, AbstractHiddenNode), \
+                            f"Expected abstract variable node for name '{node.name}', found {variable_node}"
 
                     value_nodes[node.id] = sample.add_abstract_value_node(
                         variable_nodes[0] if variable_nodes else None,
                         node.name)
 
                 case "C":
-                    match knowledge_graph.get_concrete_variable_nodes_for_name(node.name):
+                    match variable_nodes:
                         case []:
                             io_nodes: List[IoNode] = knowledge_graph.get_io_nodes_for_name(node.variable_name)
 
@@ -91,20 +97,24 @@ class RawSample:
                                 node.name)
 
                         case [variable_node]:
+                            assert isinstance(variable_node, ConcreteHiddenNode), \
+                                f"Expected concrete variable node for name '{node.name}', found {variable_node}"
+
+                            concrete_node: ConcreteHiddenNode = variable_node
                             defined_value_index: int = variable_node.io_node.variable.index_for_value(node.value)
 
-                            assert variable_node.io_node.name == node.variable_name, \
+                            assert concrete_node.io_node.name == node.variable_name, \
                                 (f"Variable name mismatch for node '{node.name}', "
-                                 f"expected {variable_node.io_node.name}, found {node.variable_name}")
+                                 f"expected {concrete_node.io_node.name}, found {node.variable_name}")
 
-                            assert defined_value_index == variable_node.value_index, \
-                                (f"Value index mismatch for node '{node.name}', expected {variable_node.value_index},"
+                            assert defined_value_index == concrete_node.value_index, \
+                                (f"Value index mismatch for node '{node.name}', expected {concrete_node.value_index},"
                                  f" found {defined_value_index} (for vakue '{node.value}')")
 
                             value_nodes[node.id] = sample.add_concrete_value_node(
-                                variable_node.io_node,
+                                concrete_node.io_node,
                                 defined_value_index,
-                                variable_node,
+                                concrete_node,
                                 node.name)
 
                         case nodes:

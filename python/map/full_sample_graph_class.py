@@ -102,17 +102,17 @@ class ThenRelationEdge(RelationEdge):
 
 class SampleData:
     def __init__(self,
-                 sample_id: int,
                  probability_count: int,
-                 utility:  float, name: str | None = None,
+                 utility:  float,
+                 sample_id: int | None = None,
+                 name: str | None = None,
                  description: str | None = None):
-        assert sample_id is not None, "Sample ID should be defined"
         assert probability_count is not None, "Probability count should be defined"
         assert utility is not None, "Utility should be defined"
 
-        self.sample_id: int = sample_id
         self.probability_count: int = probability_count
         self.utility: float = utility
+        self.sample_id: int = sample_id
         self.name: str | None = name
         self.description: str | None = description
 
@@ -130,13 +130,13 @@ class SampleData:
 class FullSampleGraph:
     @staticmethod
     def create_empty(
-            sample_id: int,
             probability_count: int,
             utility: float,
+            sample_id: int| None = None,
             name: str | None = None,
             description: str | None = None) -> 'FullSampleGraph':
 
-        data: SampleData = SampleData(sample_id, probability_count, utility, name, description)
+        data: SampleData = SampleData(probability_count, utility, sample_id, name, description)
         return FullSampleGraph(data, [], [])
 
     def __init__(self, data: SampleData, value_nodes: List[ValueNode], relation_edges: List[RelationEdge]):

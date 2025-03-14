@@ -32,4 +32,4 @@ metals.sbt
 /.worksheet/
 
 # Secrets
-src/main/resources/db.conf
+pe-common/src/main/resources/db.conf

@@ -13,6 +13,7 @@
 // Common settings
 
 ThisBuild / scalaVersion := "3.6.3"
+ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 // Projects settings
 

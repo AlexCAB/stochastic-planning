@@ -12,19 +12,23 @@
 
 //  Versions
 
+val log4catsSlf4jVersion = "2.7.0"
 val pureConfigCoreVersion = "0.17.8"
 val catsCoreVersion = "2.13.0"
-val neo4jJavaDriverVersion = "5.28.2"
+val neo4jJavaDriverVersion = "5.28.3"
 val catsEffectVersion = "3.5.7"
-val scalatestCoreVersion = "3.2.19"
+val specs2CoreVersion = "4.20.9"
 val catsEffectTestingScalatestVersion = "1.6.0"
+val catsEffectCpsVersion = "0.3.0"
 
-// Sub projects settings
+// Subprojects settings
 
 name := "pe-common"
 version := "0.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
+  "org.typelevel" %% "log4cats-slf4j" % log4catsSlf4jVersion,
+
   "com.github.pureconfig" %% "pureconfig-core" % pureConfigCoreVersion,
   "com.github.pureconfig" %% "pureconfig-cats-effect" % pureConfigCoreVersion,
   "com.github.pureconfig" %% "pureconfig-generic-scala3" % pureConfigCoreVersion,
@@ -34,8 +38,8 @@ libraryDependencies ++= Seq(
 
   "org.neo4j.driver" % "neo4j-java-driver" % neo4jJavaDriverVersion,
 
-  "org.scalactic" %% "scalactic" % scalatestCoreVersion % Test,
-  "org.scalatest" %% "scalatest" % scalatestCoreVersion % Test,
+  "org.specs2" %% "specs2-core" % specs2CoreVersion % Test,
 
-  "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingScalatestVersion % Test,
+  "org.typelevel" %% "cats-effect-testing-specs2" % catsEffectTestingScalatestVersion % Test,
+  "org.typelevel" %% "cats-effect-cps" % catsEffectCpsVersion % Test,
 )

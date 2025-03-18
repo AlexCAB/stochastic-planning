@@ -37,7 +37,7 @@ import planning.engine.common.config.Neo4jConnectionConf
   import Neo4jDatabase.*
 
   def readRootNode: F[Node] =
-    c"MATCH (r: ${ROOT_NODE_LABEL}) RETURN r"
+    c"MATCH (r: ROOT) RETURN r"
       .query(ResultMapper.node)
       .list(driver)
       .flatMap {
@@ -47,8 +47,6 @@ import planning.engine.common.config.Neo4jConnectionConf
 
 
 object Neo4jDatabase:
-  val ROOT_NODE_LABEL = "ROOT"
-
   def apply[F[_] : Async](connectionConf: Neo4jConnectionConf, dbName: String): Resource[F, Neo4jDatabase[F]] =
     for
       driver <- GraphDatabase.asyncDriver[F](connectionConf.uri, connectionConf.authToken)

@@ -12,6 +12,8 @@
 
 //  Versions
 
+val slf4jVersion = "2.0.17"
+val logbackVersion = "1.5.18"
 val log4catsSlf4jVersion = "2.7.0"
 val pureConfigCoreVersion = "0.17.8"
 val catsCoreVersion = "2.13.0"
@@ -27,6 +29,9 @@ name := "pe-common"
 version := "0.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
+  "org.slf4j" % "slf4j-api" % slf4jVersion,
+  "ch.qos.logback" % "logback-core" % logbackVersion,
+  "ch.qos.logback" % "logback-classic" % logbackVersion,
   "org.typelevel" %% "log4cats-slf4j" % log4catsSlf4jVersion,
 
   "com.github.pureconfig" %% "pureconfig-core" % pureConfigCoreVersion,

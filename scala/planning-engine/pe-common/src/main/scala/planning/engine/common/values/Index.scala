@@ -8,9 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-15 |||||||||||*/
+| created: 2025-03-18 |||||||||||*/
 
 
-package planning.engine.core.map
+package planning.engine.common.values
 
-class KnowledgeGraph
+final class Index(val value: Long) extends AnyVal
+
+
+object Index:
+  def apply(value: Long): Index = 
+    assert(value >= 0, s"Index must be non-negative: $value")
+    new Index(value)
+    
+  def unapply(index: Index): Option[Long] = Some(index.value)

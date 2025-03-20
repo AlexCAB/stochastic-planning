@@ -13,7 +13,13 @@
 // Common settings
 
 ThisBuild / scalaVersion := "3.6.3"
-ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+ThisBuild / scalacOptions ++= Seq(
+  "-encoding", "utf8",
+  "-unchecked",
+  "-deprecation",
+  "-feature",
+  "-Wunused:imports"
+)
 
 // Projects settings
 

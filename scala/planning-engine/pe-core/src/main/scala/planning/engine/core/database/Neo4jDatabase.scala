@@ -34,7 +34,6 @@ import planning.engine.common.config.Neo4jConnectionConf
  */
 
  class Neo4jDatabase[F[_] : Async](driver: AsyncDriver[F], dbName: String):
-  import Neo4jDatabase.*
 
   def readRootNode: F[Node] =
     c"MATCH (r: ROOT) RETURN r"

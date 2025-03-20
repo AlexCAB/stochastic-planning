@@ -8,16 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-10 |||||||||||*/
-
-//  Versions
+| created: 2025-03-20 |||||||||||*/
 
 
+package planning.engine.common.errors
 
-// Subprojects settings
+import cats.ApplicativeThrow
 
-name := "pe-core"
-version := "0.0.0-SNAPSHOT"
+package object errors
 
-libraryDependencies ++= Seq(
-)
+
+extension (msg: String)
+  inline def assertionError[M[_] : ApplicativeThrow, V]: M[V] =
+    ApplicativeThrow[M].raiseError(AssertionError(msg))
+

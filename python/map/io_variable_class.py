@@ -172,6 +172,6 @@ class ListVariable(IoVariable):
 
     def to_properties(self) -> Dict[str, Any]:
         return {
-            'type': 'list',
+            'type': 'list-str',
             'domain': self.domain
         }

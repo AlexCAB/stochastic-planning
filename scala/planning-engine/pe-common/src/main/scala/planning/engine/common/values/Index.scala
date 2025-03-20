@@ -17,8 +17,4 @@ final class Index(val value: Long) extends AnyVal
 
 
 object Index:
-  def apply(value: Long): Index = 
-    assert(value >= 0, s"Index must be non-negative: $value")
-    new Index(value)
-    
   def unapply(index: Index): Option[Long] = Some(index.value)

@@ -20,7 +20,7 @@ val catsCoreVersion = "2.13.0"
 val neo4jJavaDriverVersion = "5.28.3"
 val neoTypesCatsVersion = "1.2.1"
 val catsEffectVersion = "3.5.7"
-val specs2CoreVersion = "4.20.9"
+val scalatestVersion = "3.2.19"
 val catsEffectTestingScalatestVersion = "1.6.0"
 val catsEffectCpsVersion = "0.3.0"
 
@@ -49,8 +49,7 @@ libraryDependencies ++= Seq(
   "io.github.neotypes" %% "neotypes-cats-data" % neoTypesCatsVersion,
   "io.github.neotypes" %% "neotypes-generic" % neoTypesCatsVersion,
 
-  "org.specs2" %% "specs2-core" % specs2CoreVersion % Test,
-
-  "org.typelevel" %% "cats-effect-testing-specs2" % catsEffectTestingScalatestVersion % Test,
+  "org.scalatest" %% "scalatest-wordspec" % scalatestVersion % Test,
+  "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingScalatestVersion % Test,
   "org.typelevel" %% "cats-effect-cps" % catsEffectCpsVersion % Test,
 )

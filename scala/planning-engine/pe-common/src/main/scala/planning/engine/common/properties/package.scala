@@ -20,8 +20,8 @@ import cats.syntax.all.*
 
 import scala.reflect.Typeable
 
-
 package object properties
+
 
 inline def propsOf[M[_] : Applicative](items: (String, Value)*): M[Map[String, Value]] = items.toMap.pure
 

@@ -21,10 +21,10 @@ import planning.engine.common.properties.*
 import cats.syntax.all.*
 
 
-class BooleanIoVariable[F[_] : ApplicativeThrow](acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
+class BooleanIoVariable[F[_] : ApplicativeThrow](val acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
   override def valueForIndex(index: Index): F[Boolean] = index match
-    case Index(0) if acceptableValues.contains(true) => false.pure
-    case Index(1) if acceptableValues.contains(false) => true.pure
+    case Index(0) if acceptableValues.contains(false) => false.pure
+    case Index(1) if acceptableValues.contains(true) => true.pure
     case _ => s"Invalid index ($index) or not in acceptable values: $acceptableValues".assertionError
 
   override def indexForValue(value: Boolean): F[Index] =
@@ -35,7 +35,7 @@ class BooleanIoVariable[F[_] : ApplicativeThrow](acceptableValues: Set[Boolean])
     "type" -> Value.Str("bool"),
     "domain" -> Value.ListValue(acceptableValues.map(Value.Bool.apply).toList))
 
-  override def toString: String = s"BooleanIoVariable(acceptableValues = $acceptableValues)"
+  override def toString: String = s"BooleanIoVariable(acceptableValues = [${acceptableValues.mkString(", ")}])"
 
 
 object BooleanIoVariable:

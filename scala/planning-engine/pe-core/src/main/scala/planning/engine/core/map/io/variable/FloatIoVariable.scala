@@ -21,7 +21,7 @@ import planning.engine.common.properties.*
 import cats.syntax.all.*
 
 
-class  FloatIoVariable[F[_] : ApplicativeThrow](min: Float, max: Float) extends IoVariable[F, Float]:
+class  FloatIoVariable[F[_] : ApplicativeThrow](val min: Float, val max: Float) extends IoVariable[F, Float]:
   private val scalingConstant = 10000.0
 
   override def valueForIndex(index: Index): F[Float] = index.value / scalingConstant match
@@ -37,7 +37,7 @@ class  FloatIoVariable[F[_] : ApplicativeThrow](min: Float, max: Float) extends 
     "min" -> Value.Decimal(min),
     "max" -> Value.Decimal(max))
 
-  override def toString: String = s"FloatIoVariable($min, $max)"
+  override def toString: String = s"FloatIoVariable(min = $min, min = $max)"
 
 
 object FloatIoVariable:

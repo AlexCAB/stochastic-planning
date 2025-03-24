@@ -21,9 +21,9 @@ import planning.engine.common.properties.*
 import cats.syntax.all.*
 
 
-class ListStrIoVariable[F[_] : ApplicativeThrow](elements: Vector[String]) extends IoVariable[F, String]:
+class ListStrIoVariable[F[_] : ApplicativeThrow](val elements: Vector[String]) extends IoVariable[F, String]:
   override def valueForIndex(index: Index): F[String] =
-    if(elements.size < index.value && elements.isDefinedAt(index.value.toInt)) elements(index.value.toInt).pure
+    if(elements.isDefinedAt(index.value.toInt)) elements(index.value.toInt).pure
     else s"Index $index out of bounds for list of size ${elements.size}".assertionError
 
   override def indexForValue(value: String): F[Index] =
@@ -35,7 +35,7 @@ class ListStrIoVariable[F[_] : ApplicativeThrow](elements: Vector[String]) exten
     "type" -> Value.Str("list-str"),
     "domain" -> Value.ListValue(elements.map(Value.Str.apply).toList))
 
-  override def toString: String = s"ListStrIoVariable($elements)"
+  override def toString: String = s"ListStrIoVariable(elements = [${elements.mkString(", ")}])"
 
 
 object ListStrIoVariable:

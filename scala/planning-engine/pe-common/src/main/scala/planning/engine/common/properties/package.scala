@@ -42,12 +42,12 @@ extension (properties: Map[String, Value])
       case Value.Integer(long) if long <= Int.MaxValue && long >= Int.MinValue => 
         long.toInt match
           case int: V => int.pure
-          case _ => s"Unexpected a int value, for kay: $key".assertionError
+          case _ => s"Unexpected int value, for kay: $key".assertionError
 
       case Value.Decimal(double) if double <= Float.MaxValue && double >= Float.MinValue => 
         double.toFloat match
           case float: V => float.pure
-          case _ => s"Expected a float value, for kay: $key".assertionError
+          case _ => s"Expected float value, for kay: $key".assertionError
 
-      case v => s"Expected a int value, but got: $v".assertionError
+      case v => s"Expected a Integer or Decimal value, but got: $v".assertionError
 

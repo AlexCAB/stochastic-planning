@@ -21,7 +21,7 @@ import planning.engine.common.properties.*
 import cats.syntax.all.*
 
 
-class IntIoVariable[F[_] : ApplicativeThrow](min: Int, max: Int) extends IoVariable[F, Int]:
+class IntIoVariable[F[_] : ApplicativeThrow](val min: Int, val max: Int) extends IoVariable[F, Int]:
   override def valueForIndex(index: Index): F[Int] = index.value match
     case v if v >= min && v <= max => v.toInt.pure
     case v => s"Value $v of index $index not in range: $min to $max".assertionError

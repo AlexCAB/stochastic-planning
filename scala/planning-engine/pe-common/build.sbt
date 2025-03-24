@@ -50,6 +50,7 @@ libraryDependencies ++= Seq(
   "io.github.neotypes" %% "neotypes-generic" % neoTypesCatsVersion,
 
   "org.scalatest" %% "scalatest-wordspec" % scalatestVersion % Test,
+  "org.scalatest" %% "scalatest-mustmatchers" % scalatestVersion % Test,
   "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingScalatestVersion % Test,
   "org.typelevel" %% "cats-effect-cps" % catsEffectCpsVersion % Test,
 )

@@ -36,4 +36,4 @@ class Neo4jConnectionConfSpec extends UnitSpecIO:
 
       Neo4jConnectionConf
         .formConfig[IO](config)
-        .expect(_ === Neo4jConnectionConf("testUser", "testPassword", "neo4j://localhost:7687"))
+        .asserting(_ mustEqual Neo4jConnectionConf("testUser", "testPassword", "neo4j://localhost:7687"))

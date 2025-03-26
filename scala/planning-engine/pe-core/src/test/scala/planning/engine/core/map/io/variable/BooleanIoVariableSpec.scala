@@ -10,14 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-24 |||||||||||*/
 
-
 package planning.engine.core.map.io.variable
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.common.values.Index
-
 
 class BooleanIoVariableSpec extends UnitSpecIO:
 
@@ -65,20 +63,23 @@ class BooleanIoVariableSpec extends UnitSpecIO:
 
   "toProperties" should:
     "return correct properties map" in newCase[CaseData]: data =>
-      data.bothAcceptable
-        .toProperties
-        .logValue
-        .asserting(_ mustEqual Map(
-          "type" -> Value.Str("bool"),
-          "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))))
+      data.bothAcceptable.toProperties.logValue
+        .asserting(
+          _ mustEqual Map(
+            "type" -> Value.Str("bool"),
+            "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+          )
+        )
 
   "fromProperties" should:
     "create BooleanIoVariable from valid properties" in newCase[CaseData]: data =>
-      BooleanIoVariable.fromProperties[IO](data.validProperties)
+      BooleanIoVariable
+        .fromProperties[IO](data.validProperties)
         .logValue
         .asserting(_.acceptableValues mustEqual Set(true, false))
 
     "raise an AssertionError for invalid domain value" in newCase[CaseData]: data =>
-      BooleanIoVariable.fromProperties[IO](data.invalidProperties)
+      BooleanIoVariable
+        .fromProperties[IO](data.invalidProperties)
         .logValue
         .assertThrows[AssertionError]

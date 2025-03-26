@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-22 |||||||||||*/
 
-
 package planning.engine.common.properties
 
 import cats.ApplicativeThrow
@@ -18,7 +17,6 @@ import cats.effect.IO
 
 import neotypes.model.types.Value
 import planning.engine.common.UnitSpecIO
-
 
 class PropertiesExtensionsSpec extends UnitSpecIO:
 
@@ -30,7 +28,7 @@ class PropertiesExtensionsSpec extends UnitSpecIO:
 
     def parseStr(value: Value): IO[String] = value match
       case Value.Str(str) => IO.pure(str)
-      case _ => IO.raiseError(new AssertionError("Expected a string value"))
+      case _              => IO.raiseError(new AssertionError("Expected a string value"))
 
   "getForKey" should:
     "return the parsed value if the key exists" in newCase[CaseData]: data =>

@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-18 |||||||||||*/
 
-
 package planning.engine.core.map.io.variable
 
 import cats.{ApplicativeThrow, MonadThrow}
@@ -28,19 +27,19 @@ trait IoVariable[F[_], T]:
 
 object IoVariable:
 
-  def fromProperties[F[_] : MonadThrow](properties: Map[String, Value]): F[IoVariable[F, ?]] = properties
-    .get("type") match
-      case Some(Value.Str("bool")) => 
+  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IoVariable[F, ?]] =
+    properties.get("type") match
+      case Some(Value.Str("bool")) =>
         BooleanIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
-        
-      case Some(Value.Str("int")) => 
+
+      case Some(Value.Str("int")) =>
         IntIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
-        
-      case Some(Value.Str("float")) => 
+
+      case Some(Value.Str("float")) =>
         FloatIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
-        
-      case Some(Value.Str("list-str")) => 
+
+      case Some(Value.Str("list-str")) =>
         ListStrIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
-      
+
       case Some(t) => s"Invalid variable type: $t".assertionError
-      case None => "Missing 'type' property for variable".assertionError
+      case None    => "Missing 'type' property for variable".assertionError

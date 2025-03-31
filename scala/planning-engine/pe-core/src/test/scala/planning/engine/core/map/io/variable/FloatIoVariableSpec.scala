@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-24 |||||||||||*/
 
-
 package planning.engine.core.map.io.variable
 
 import cats.effect.IO
@@ -26,12 +25,14 @@ class FloatIoVariableSpec extends UnitSpecIO:
     val invalidProperties = Map(
       "type" -> Value.Str("float"),
       "min" -> Value.Decimal(0.0),
-      "max" -> Value.Str("invalid"))
+      "max" -> Value.Str("invalid")
+    )
 
     val validProperties = Map(
       "type" -> Value.Str("float"),
       "min" -> Value.Decimal(0.0),
-      "max" -> Value.Decimal(10.0))
+      "max" -> Value.Decimal(10.0)
+    )
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>
@@ -55,7 +56,8 @@ class FloatIoVariableSpec extends UnitSpecIO:
         .asserting(_ mustEqual Map(
           "type" -> Value.Str("float"),
           "min" -> Value.Decimal(0.0),
-          "max" -> Value.Decimal(10.0)))
+          "max" -> Value.Decimal(10.0)
+        ))
 
   "fromProperties" should:
     "create FloatIoVariable from valid properties" in newCase[CaseData]: data =>

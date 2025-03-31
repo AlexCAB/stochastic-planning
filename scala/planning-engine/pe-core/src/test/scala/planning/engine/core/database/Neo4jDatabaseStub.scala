@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-15 |||||||||||*/
 
-
 package planning.engine.core.database
 
 class Neo4jDatabaseStub

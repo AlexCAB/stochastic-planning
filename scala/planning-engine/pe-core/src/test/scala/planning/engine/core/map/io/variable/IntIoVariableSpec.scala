@@ -10,14 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-24 |||||||||||*/
 
-
 package planning.engine.core.map.io.variable
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.common.values.Index
-
 
 class IntIoVariableSpec extends UnitSpecIO:
 
@@ -27,12 +25,14 @@ class IntIoVariableSpec extends UnitSpecIO:
     val invalidProperties = Map(
       "type" -> Value.Str("int"),
       "min" -> Value.Integer(0),
-      "max" -> Value.Str("invalid"))
+      "max" -> Value.Str("invalid")
+    )
 
     val validProperties = Map(
       "type" -> Value.Str("int"),
       "min" -> Value.Integer(0),
-      "max" -> Value.Integer(10))
+      "max" -> Value.Integer(10)
+    )
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>
@@ -56,14 +56,14 @@ class IntIoVariableSpec extends UnitSpecIO:
         .asserting(_ mustEqual Map(
           "type" -> Value.Str("int"),
           "min" -> Value.Integer(0),
-          "max" -> Value.Integer(10)))
+          "max" -> Value.Integer(10)
+        ))
 
   "fromProperties" should:
     "create IntIoVariable from valid properties" in newCase[CaseData]: data =>
       IntIoVariable.fromProperties[IO](data.validProperties)
         .logValue
-        .asserting(v => (v.min, v.max ) mustEqual (0, 10))
-
+        .asserting(v => (v.min, v.max) mustEqual (0, 10))
 
     "raise an AssertionError for invalid properties" in newCase[CaseData]: data =>
       IntIoVariable.fromProperties[IO](data.invalidProperties)

@@ -18,8 +18,13 @@ ThisBuild / scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
   "-feature",
-  "-Wunused:imports"
+  "-Wunused:imports",
+  "-Xfatal-warnings",
+  "-Wshadow:type-parameter-shadow"
 )
+
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 // Projects settings
 

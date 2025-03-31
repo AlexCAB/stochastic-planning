@@ -10,14 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-10 |||||||||||*/
 
-
 package planning.engine.common.config
 
 import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.Assertion
 import planning.engine.common.UnitSpecIO
-
 
 class Neo4jConnectionConfSpec extends UnitSpecIO:
 

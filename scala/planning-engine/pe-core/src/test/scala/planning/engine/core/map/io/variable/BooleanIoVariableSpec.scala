@@ -26,11 +26,13 @@ class BooleanIoVariableSpec extends UnitSpecIO:
 
     val invalidProperties = Map(
       "type" -> Value.Str("bool"),
-      "domain" -> Value.ListValue(List(Value.Str("invalid"))))
+      "domain" -> Value.ListValue(List(Value.Str("invalid")))
+    )
 
     val validProperties = Map(
       "type" -> Value.Str("bool"),
-      "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false))))
+      "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+    )
 
   "valueForIndex" should:
     "return false for index 0 if false is acceptable or fail otherwise" in newCase[CaseData]: data =>

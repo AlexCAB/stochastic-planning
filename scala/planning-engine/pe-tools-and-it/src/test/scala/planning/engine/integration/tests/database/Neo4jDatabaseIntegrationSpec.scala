@@ -10,10 +10,9 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-15 |||||||||||*/
 
-
 package planning.engine.integration.tests.database
 
-import cats.effect.{IO, Resource, Sync}
+import cats.effect.{IO, Resource}
 import com.typesafe.config.ConfigFactory
 import cats.effect.cps.*
 import neotypes.model.types.Node
@@ -23,8 +22,6 @@ import planning.engine.core.database.Neo4jDatabase
 import planning.engine.integration.tests.IntegrationSpecWithResource
 
 import scala.concurrent.duration.{Duration, DurationInt}
-
-
 
 class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[Neo4jDatabase[IO]]:
   val TEST_DATABASE_NAME = "pacman-5x3-two-ways"
@@ -36,7 +33,8 @@ class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[Neo4jData
         .formConfig[IO](ConfigFactory.load("test_db.conf").getConfig("test_db.neo4j")))
 
       neo4jDatabase <- Neo4jDatabase[IO](config, TEST_DATABASE_NAME)
-    yield neo4jDatabase)
+    yield neo4jDatabase
+  )
 
   "Neo4jDatabase.readRootNode" should:
     "read root node" in: neo4jDatabase =>
@@ -45,4 +43,4 @@ class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[Neo4jData
 
         Logger[IO].info("Root node: " + result).await
 
-        result mustBe a [Node]
+        result mustBe a[Node]

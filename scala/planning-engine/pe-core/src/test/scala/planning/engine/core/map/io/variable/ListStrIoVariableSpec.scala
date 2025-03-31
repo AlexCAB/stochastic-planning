@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-24 |||||||||||*/
 
-
 package planning.engine.core.map.io.variable
 
 import cats.effect.IO
@@ -25,11 +24,13 @@ class ListStrIoVariableSpec extends UnitSpecIO:
 
     val invalidProperties = Map(
       "type" -> Value.Str("list-str"),
-      "domain" -> Value.ListValue(List(Value.Integer(1))))
+      "domain" -> Value.ListValue(List(Value.Integer(1)))
+    )
 
     val validProperties = Map(
       "type" -> Value.Str("list-str"),
-      "domain" -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c"))))
+      "domain" -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+    )
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>

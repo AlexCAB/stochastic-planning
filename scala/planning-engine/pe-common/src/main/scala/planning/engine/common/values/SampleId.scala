@@ -8,8 +8,8 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-18 |||||||||||*/
+| created: 2025-04-07 |||||||||||*/
 
 package planning.engine.common.values
 
-final case class Index(value: Long) extends AnyVal
+final case class SampleId(value: Long) extends AnyVal

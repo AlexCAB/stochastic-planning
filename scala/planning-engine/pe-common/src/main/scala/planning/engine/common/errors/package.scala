@@ -17,4 +17,4 @@ import cats.ApplicativeThrow
 package object errors
 
 extension (msg: String)
-  inline def assertionError[M[_]: ApplicativeThrow, V]: M[V] = ApplicativeThrow[M].raiseError(AssertionError(msg))
+  inline def assertionError[F[_]: ApplicativeThrow, V]: F[V] = ApplicativeThrow[F].raiseError(AssertionError(msg))

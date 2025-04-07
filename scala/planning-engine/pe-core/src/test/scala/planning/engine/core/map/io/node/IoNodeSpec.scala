@@ -16,6 +16,9 @@ import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.core.map.io.variable.{BooleanIoVariable, IntIoVariable}
+import cats.effect.cps.*
+import planning.engine.common.values.Index
+import planning.engine.core.map.hidden.node.ConcreteHiddenNode
 
 class IoNodeSpec extends UnitSpecIO:
 
@@ -48,6 +51,11 @@ class IoNodeSpec extends UnitSpecIO:
       "variable.domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
+    def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
+
+    def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteHiddenNode[IO]] =
+      ConcreteHiddenNode[IO](Index(index), ioNode)
+
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>
       IoNode.fromProperties[IO](data.inputNodeProperties)
@@ -78,15 +86,27 @@ class IoNodeSpec extends UnitSpecIO:
         .logValue
         .assertThrows[AssertionError]
 
+  "addConcreteHiddenNode" should:
+    "add a new hidden node to an empty map" in newCase[CaseData]: data =>
+      async[IO]:
+        val ioNode: IoNode[IO] = data.makeInputBoolNode.await
+        val conNode01: ConcreteHiddenNode[IO] = data.makeConcreteNode(0, ioNode).await
+        val conNode02: ConcreteHiddenNode[IO] = data.makeConcreteNode(0, ioNode).await
+        val conNode11: ConcreteHiddenNode[IO] = data.makeConcreteNode(1, ioNode).await
+
+        val hiddenNodes = ioNode.getAllConcreteNode.logValue.await
+
+        hiddenNodes mustEqual Map(Index(0) -> Vector(conNode01, conNode02), Index(1) -> Vector(conNode11))
+
   "toProperties" should:
     "return correct properties map for InputNode" in newCase[CaseData]: data =>
-      val inputNode = InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
-      inputNode.toProperties
+      InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
+        .flatMap(_.toProperties)
         .logValue
         .asserting(_ mustEqual data.inputNodeProperties)
 
     "return correct properties map for OutputNode" in newCase[CaseData]: data =>
-      val outputNode = OutputNode[IO]("outputNode", IntIoVariable[IO](0, 10))
-      outputNode.toProperties
+      OutputNode[IO]("outputNode", IntIoVariable[IO](0, 10))
+        .flatMap(_.toProperties)
         .logValue
         .asserting(_ mustEqual data.outputNodeProperties)

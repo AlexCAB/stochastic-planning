@@ -8,8 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-18 |||||||||||*/
+| created: 2025-04-07 |||||||||||*/
 
-package planning.engine.common.values
+package planning.engine.core.map.sample
 
-final case class Index(value: Long) extends AnyVal
+import cats.MonadThrow
+import planning.engine.common.values.SampleId
+
+case class SampleData[F[_]: MonadThrow](
+    id: SampleId,
+    probabilityCount: Long,
+    utility: Double,
+    name: Option[String],
+    description: Option[String]
+)

@@ -8,24 +8,16 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-07 |||||||||||*/
+| created: 2025-04-08 |||||||||||*/
 
-package planning.engine.core.map.hidden.state
+package planning.engine.core.map.hidden.state.node
 
 import cats.MonadThrow
 import planning.engine.core.map.hidden.node.HiddenNode
-
-sealed trait NodeState[F[_]: MonadThrow]
-
-case class InitNodeState[F[_]: MonadThrow]() extends NodeState[F]
-
-case class RootNodeSate[F[_]: MonadThrow](children: Vector[SampleState[F]]) extends NodeState
-
-case class LeafNodeSate[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState
+import planning.engine.core.map.hidden.state.edge.EdgeState
 
 case class IntermediateNodeState[F[_]: MonadThrow](
     parents: Vector[HiddenNode[F]],
-    children: Vector[SampleState[F]]
-) extends NodeState
-
-case class RemovedNodeState[F[_]: MonadThrow]() extends NodeState[F]
+    children: Vector[EdgeState[F]]
+) extends NodeState:
+  override def toString: String = s"${parentsToString(parents)} ==> ${childrenToString(children)}"

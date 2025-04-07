@@ -17,7 +17,7 @@ import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.core.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import cats.effect.cps.*
-import planning.engine.common.values.Index
+import planning.engine.common.values.{Index, Name, Neo4jId}
 import planning.engine.core.map.hidden.node.ConcreteHiddenNode
 
 class IoNodeSpec extends UnitSpecIO:
@@ -54,7 +54,7 @@ class IoNodeSpec extends UnitSpecIO:
     def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
 
     def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteHiddenNode[IO]] =
-      ConcreteHiddenNode[IO](Index(index), ioNode)
+      ConcreteHiddenNode[IO](Neo4jId(123), Name(Some("test")), Index(index), ioNode)
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>

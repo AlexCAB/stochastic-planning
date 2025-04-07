@@ -8,16 +8,15 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-05 |||||||||||*/
+| created: 2025-04-08 |||||||||||*/
 
-package planning.engine.core.map.hidden.node
+package planning.engine.core.map.hidden.state.edge
 
 import cats.MonadThrow
-import cats.effect.std.AtomicCell
-import planning.engine.common.values.{Name, Neo4jId}
-import planning.engine.core.map.hidden.state.node.NodeState
+import planning.engine.core.map.hidden.node.HiddenNode
+import planning.engine.core.map.hidden.state.SampleState
 
-trait HiddenNode[F[_]: MonadThrow]:
-  protected val state: AtomicCell[F, NodeState]
-  val neo4jId: Neo4jId
-  val name: Name
+case class ThenEdgeState[F[_]: MonadThrow](
+    target: HiddenNode[F],
+    samples: Vector[SampleState[F]]
+) extends EdgeState[F]

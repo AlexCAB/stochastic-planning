@@ -12,13 +12,12 @@
 
 package planning.engine.core.map.hidden.state
 
-import cats.MonadThrow
 import planning.engine.common.values.Index
 import planning.engine.core.map.sample.SampleData
 
-case class SampleState[F[_]: MonadThrow](
+case class SampleState(
     sourceValue: Index,
     targetValue: Index,
-    sample: SampleData[F]
+    sample: SampleData
 ):
   override def toString: String = s"SampleState($sourceValue -- ${sample.id} --> $targetValue)"

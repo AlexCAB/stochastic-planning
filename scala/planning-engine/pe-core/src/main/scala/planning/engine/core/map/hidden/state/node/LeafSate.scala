@@ -12,4 +12,8 @@
 
 package planning.engine.core.map.hidden.state.node
 
-case object RemovedNodeState extends NodeState
+import cats.MonadThrow
+import planning.engine.core.map.hidden.node.HiddenNode
+
+case class LeafSate[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState:
+  override def toString: String = parentsToString(parents)

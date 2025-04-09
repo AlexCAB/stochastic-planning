@@ -12,10 +12,9 @@
 
 package planning.engine.core.map.sample
 
-import cats.MonadThrow
 import planning.engine.common.values.{Name, SampleId}
 
-case class SampleData[F[_]: MonadThrow](
+case class SampleData(
     id: SampleId,
     probabilityCount: Long,
     utility: Double,

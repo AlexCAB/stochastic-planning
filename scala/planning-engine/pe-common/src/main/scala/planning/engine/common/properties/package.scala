@@ -22,25 +22,28 @@ import scala.reflect.Typeable
 
 package object properties
 
-inline def propsOf[F[_]: Monad](items: (String, Value | F[Value] | F[Map[String, Value]])*): F[Map[String, Value]] =
-  items
-    .map:
-      case (key, value: Value) => Map(key -> value).pure
-      case (key, value: F[?] @unchecked) => value.map:
-          case v: Value => Map(key -> v)
-          case m: Map[String, Value] @unchecked => m.map:
-              case (k, v) => s"$key.$k" -> v
-    .reduce((ma, mb) => ma.flatMap(a => mb.map(b => b ++ a)))
+type ScalaValue = Int | Float | String | Boolean
+type PropertyValue[F[_]] = Value | Option[Value] | F[Value] | F[Map[String, Value]]
+
+inline def propsOf[F[_]: Monad](items: (String, PropertyValue[F])*): F[Map[String, Value]] = items
+  .map:
+    case (key, value: Value)                    => Map(key -> value).pure
+    case (key, value: Option[Value] @unchecked) => value.map(v => Map(key -> v)).getOrElse(Map.empty).pure
+    case (key, value: F[?] @unchecked) => value.map:
+        case v: Value => Map(key -> v)
+        case m: Map[String, Value] @unchecked => m.map:
+            case (k, v) => s"$key.$k" -> v
+  .reduce((ma, mb) => ma.flatMap(a => mb.map(b => b ++ a)))
 
 extension (properties: Map[String, Value])
-  private def validateValue[M[_]: ApplicativeThrow, I, V <: Int | Float | String | Boolean: Typeable](
+  private def validateValue[M[_]: ApplicativeThrow, I, V <: ScalaValue: Typeable](
       in: I,
       key: String
   ): M[V] = in match
     case v: V => v.pure
     case v    => s"Type of value '$v' not match expected, for kay: $key".assertionError
 
-  private def valueFor[M[_]: ApplicativeThrow, V <: (Int | Float | String | Boolean): Typeable](
+  private def valueFor[M[_]: ApplicativeThrow, V <: ScalaValue: Typeable](
       value: Value,
       key: String
   ): M[V] = value match
@@ -58,10 +61,15 @@ extension (properties: Map[String, Value])
     case Value.ListValue(values) => values.map(parse).sequence
     case v                       => s"Expected a list value, but got: $v".assertionError
 
-  inline def getValue[M[_]: ApplicativeThrow, V <: Int | Float | String | Boolean: Typeable](key: String): M[V] =
+  inline def getValue[M[_]: ApplicativeThrow, V <: ScalaValue: Typeable](key: String): M[V] =
     parseValue(key)(v => valueFor(v, key))
 
-  inline def getList[M[_]: ApplicativeThrow, V <: Int | Float | String | Boolean: Typeable](key: String): M[List[V]] =
+  inline def getOptional[M[_]: ApplicativeThrow, V <: ScalaValue: Typeable](key: String): M[Option[V]] =
+    properties.get(key) match
+      case Some(v: Value) => valueFor(v, key).map(_.some)
+      case _              => None.pure
+
+  inline def getList[M[_]: ApplicativeThrow, V <: ScalaValue: Typeable](key: String): M[List[V]] =
     parseList(key)(v => valueFor(v, key))
 
   inline def getProps[M[_]: ApplicativeThrow](key: String): M[Map[String, Value]] =

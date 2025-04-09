@@ -12,12 +12,4 @@
 
 package planning.engine.core.map.hidden.state.node
 
-import cats.MonadThrow
-import planning.engine.core.map.hidden.node.HiddenNode
-import planning.engine.core.map.hidden.state.edge.EdgeState
-
-case class IntermediateNodeState[F[_]: MonadThrow](
-    parents: Vector[HiddenNode[F]],
-    children: Vector[EdgeState[F]]
-) extends NodeState:
-  override def toString: String = s"${parentsToString(parents)} ==> ${childrenToString(children)}"
+case object InitState extends NodeState

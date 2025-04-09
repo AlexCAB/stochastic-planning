@@ -20,10 +20,10 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import cats.effect.std.AtomicCell
 import planning.engine.common.values.Index
-import planning.engine.core.map.hidden.node.ConcreteHiddenNode
+import planning.engine.core.map.hidden.node.ConcreteNode
 import cats.syntax.all.*
 
-type ConcreteNodeMap[F[_]] = Map[Index, Vector[ConcreteHiddenNode[F]]]
+type ConcreteNodeMap[F[_]] = Map[Index, Vector[ConcreteNode[F]]]
 
 trait IoNode[F[_]: MonadThrow]:
   val name: String
@@ -36,7 +36,7 @@ trait IoNode[F[_]: MonadThrow]:
     case _: OutputNode[?] => Value.Str(OutputNode.propertyNodeType).pure
     case n                => s"Unknown node type: ${n.getClass.getSimpleName}".assertionError
 
-  private[core] def addConcreteNode(n: ConcreteHiddenNode[F]): F[ConcreteHiddenNode[F]] = hiddenNodes
+  private[core] def addConcreteNode(n: ConcreteNode[F]): F[ConcreteNode[F]] = hiddenNodes
     .update:
       case ns if ns.contains(n.valueIndex) => ns.updated(n.valueIndex, ns(n.valueIndex) :+ n)
       case ns                              => ns.updated(n.valueIndex, Vector(n))

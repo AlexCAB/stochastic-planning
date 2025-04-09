@@ -12,4 +12,11 @@
 
 package planning.engine.core.map.knowledge.graph
 
-class KnowledgeGraph
+import cats.effect.Async
+import planning.engine.core.map.io.node.{InputNode, OutputNode}
+
+class KnowledgeGraph[F[_]: Async](
+    val metadata: Metadata,
+    val inputNodes: Vector[InputNode[F]],
+    val outputNodes: Vector[OutputNode[F]]
+)

@@ -18,7 +18,7 @@ import neotypes.model.types.Value
 import planning.engine.core.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import cats.effect.cps.*
 import planning.engine.common.values.{Index, Name, Neo4jId}
-import planning.engine.core.map.hidden.node.ConcreteHiddenNode
+import planning.engine.core.map.hidden.node.ConcreteNode
 
 class IoNodeSpec extends UnitSpecIO:
 
@@ -53,8 +53,8 @@ class IoNodeSpec extends UnitSpecIO:
 
     def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
 
-    def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteHiddenNode[IO]] =
-      ConcreteHiddenNode[IO](Neo4jId(123), Name(Some("test")), Index(index), ioNode)
+    def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
+      ConcreteNode[IO](Neo4jId(123), Name(Some("test")), Index(index), ioNode)
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>
@@ -90,9 +90,9 @@ class IoNodeSpec extends UnitSpecIO:
     "add a new hidden node to an empty map" in newCase[CaseData]: data =>
       async[IO]:
         val ioNode: IoNode[IO] = data.makeInputBoolNode.await
-        val conNode01: ConcreteHiddenNode[IO] = data.makeConcreteNode(0, ioNode).await
-        val conNode02: ConcreteHiddenNode[IO] = data.makeConcreteNode(0, ioNode).await
-        val conNode11: ConcreteHiddenNode[IO] = data.makeConcreteNode(1, ioNode).await
+        val conNode01: ConcreteNode[IO] = data.makeConcreteNode(0, ioNode).await
+        val conNode02: ConcreteNode[IO] = data.makeConcreteNode(0, ioNode).await
+        val conNode11: ConcreteNode[IO] = data.makeConcreteNode(1, ioNode).await
 
         val hiddenNodes = ioNode.getAllConcreteNode.logValue.await
 

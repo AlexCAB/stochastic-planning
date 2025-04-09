@@ -39,13 +39,16 @@ class PropertiesSpec extends UnitSpecIO:
     "combine multiple properties" in newCase[CaseData]: data =>
       propsOf[IO](
         "key1" -> Value.Str("value1"),
-        "key2" -> IO.pure(Value.Str("value2")),
-        "key3" -> IO.pure(Map("nestedKey" -> Value.Str("nestedValue")))
+        "key2" -> Some(Value.Str("value2")),
+        "keyNone" -> None,
+        "key3" -> IO.pure(Value.Str("value3")),
+        "key4" -> IO.pure(Map("nestedKey" -> Value.Str("nestedValue")))
       ).logValue
         .asserting(_ mustEqual Map(
           "key1" -> Value.Str("value1"),
           "key2" -> Value.Str("value2"),
-          "key3.nestedKey" -> Value.Str("nestedValue")
+          "key3" -> Value.Str("value3"),
+          "key4.nestedKey" -> Value.Str("nestedValue")
         ))
 
   "parseValue" should:
@@ -115,6 +118,19 @@ class PropertiesSpec extends UnitSpecIO:
         .getValue[IO, Int]("floatKey1")
         .logValue
         .assertThrows[AssertionError]
+
+    "getOptional" should:
+      "return some value for exist key" in newCase[CaseData]: data =>
+        data.properties
+          .getOptional[IO, String]("strKey1")
+          .logValue
+          .asserting(_ must contain("strValue1"))
+
+      "return none for not exist key" in newCase[CaseData]: data =>
+        data.properties
+          .getOptional[IO, String]("not_exist_string_1")
+          .logValue
+          .asserting(_ mustBe empty)
 
     "getList" should:
       "return the correct list for a valid key" in newCase[CaseData]: data =>

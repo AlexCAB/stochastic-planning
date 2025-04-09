@@ -13,7 +13,7 @@
 package planning.engine.core.map.hidden.state.node
 
 import cats.MonadThrow
-import planning.engine.core.map.hidden.node.HiddenNode
+import planning.engine.core.map.hidden.state.edge.EdgeState
 
-case class LeafNodeSate[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState:
-  override def toString: String = parentsToString(parents)
+case class RootSate[F[_]: MonadThrow](children: Vector[EdgeState[F]]) extends NodeState:
+  override def toString: String = childrenToString(children)

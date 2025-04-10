@@ -15,8 +15,7 @@ package planning.engine.core.database
 import cats.effect.Async
 import cats.effect.Resource
 import cats.syntax.all.*
-import neotypes.AsyncDriver
-import neotypes.GraphDatabase
+import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
 import neotypes.cats.effect.implicits.*
 import neotypes.mappers.ResultMapper
 import neotypes.model.types.Node
@@ -34,10 +33,11 @@ import planning.engine.common.config.Neo4jConnectionConf
   */
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String):
+  private val conf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
 
   def readRootNode: F[Node] = c"MATCH (r: ROOT) RETURN r"
     .query(ResultMapper.node)
-    .list(driver)
+    .list(driver, conf)
     .flatMap {
       case head :: Nil => Async[F].pure(head)
       case list        => Async[F].raiseError(new AssertionError(s"Expected exactly one ROOT node, but got: $list"))

@@ -13,33 +13,26 @@
 package planning.engine.integration.tests.database
 
 import cats.effect.{IO, Resource}
-import com.typesafe.config.ConfigFactory
 import cats.effect.cps.*
 import neotypes.model.types.Node
 import org.typelevel.log4cats.Logger
-import planning.engine.common.config.Neo4jConnectionConf
 import planning.engine.core.database.Neo4jDatabase
-import planning.engine.integration.tests.IntegrationSpecWithResource
+import planning.engine.integration.tests.WithItDb.ResourceWithDb
+import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 
 import scala.concurrent.duration.{Duration, DurationInt}
 
-class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[Neo4jDatabase[IO]]:
-  val TEST_DATABASE_NAME = "pacman-5x3-two-ways"
+class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[ResourceWithDb[Neo4jDatabase[IO]]] with WithItDb:
   override val ResourceTimeout: Duration = 10.seconds
 
-  override val resource: Resource[IO, Neo4jDatabase[IO]] = logResource(
-    for
-      config <- Resource.eval(Neo4jConnectionConf
-        .formConfig[IO](ConfigFactory.load("test_db.conf").getConfig("test_db.neo4j")))
-
-      neo4jDatabase <- Neo4jDatabase[IO](config, TEST_DATABASE_NAME)
-    yield neo4jDatabase
+  override val resource: Resource[IO, ResourceWithDb[Neo4jDatabase[IO]]] = logResource(
+    makeDb.map(itDb => ResourceWithDb(new Neo4jDatabase[IO](itDb.driver, itDb.dbName), itDb))
   )
 
   "Neo4jDatabase.readRootNode" should:
     "read root node" in: neo4jDatabase =>
       async[IO]:
-        val result = neo4jDatabase.readRootNode.await
+        val result = neo4jDatabase.resource.readRootNode.await
 
         Logger[IO].info("Root node: " + result).await
 

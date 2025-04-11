@@ -17,23 +17,22 @@ import cats.effect.cps.*
 import neotypes.model.types.Node
 import org.typelevel.log4cats.Logger
 import planning.engine.core.database.Neo4jDatabase
-import planning.engine.integration.tests.WithItDb.ResourceWithDb
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 
 import scala.concurrent.duration.{Duration, DurationInt}
 
-class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[ResourceWithDb[Neo4jDatabase[IO]]] with WithItDb:
-  override val ResourceTimeout: Duration = 10.seconds
+class Neo4jDatabaseIntegrationSpec extends IntegrationSpecWithResource[Neo4jDatabase[IO]] with WithItDb:
+  override val ResourceTimeout: Duration = 60.seconds
 
-  override val resource: Resource[IO, ResourceWithDb[Neo4jDatabase[IO]]] = logResource(
-    makeDb.map(itDb => ResourceWithDb(new Neo4jDatabase[IO](itDb.driver, itDb.dbName), itDb))
-  )
+  override val resource: Resource[IO, Neo4jDatabase[IO]] =
+    for
+      itDb <- makeDb
+      neo4jdb <- Neo4jDatabase[IO](itDb.config, itDb.dbName)
+    yield neo4jdb
 
   "Neo4jDatabase.readRootNode" should:
     "read root node" in: neo4jDatabase =>
       async[IO]:
-        val result = neo4jDatabase.resource.readRootNode.await
-
+        val result = neo4jDatabase.readRootNode.await
         Logger[IO].info("Root node: " + result).await
-
         result mustBe a[Node]

@@ -19,10 +19,11 @@ val pureConfigCoreVersion = "0.17.8"
 val catsCoreVersion = "2.13.0"
 val neo4jJavaDriverVersion = "5.28.3"
 val neoTypesCatsVersion = "1.2.1"
-val catsEffectVersion = "3.5.7"
+val catsEffectVersion = "3.6.1"
 val scalatestVersion = "3.2.19"
 val catsEffectTestingScalatestVersion = "1.6.0"
 val catsEffectCpsVersion = "0.3.0"
+val scalamockVersion = "7.3.1"
 
 // Subprojects settings
 
@@ -53,4 +54,5 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest-mustmatchers" % scalatestVersion % Test,
   "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingScalatestVersion % Test,
   "org.typelevel" %% "cats-effect-cps" % catsEffectCpsVersion % Test,
+  "org.scalamock" %% "scalamock-cats-effect" % scalamockVersion % Test,
 )

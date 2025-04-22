@@ -8,8 +8,10 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-15 |||||||||||*/
+| created: 2025-04-19 |||||||||||*/
 
-package planning.engine.api
+package planning.engine.api.model.maintenance
 
-class RestApiSpec
+import planning.engine.api.model.enums.Status
+
+final case class HealthResponse(status: Status, version: String)

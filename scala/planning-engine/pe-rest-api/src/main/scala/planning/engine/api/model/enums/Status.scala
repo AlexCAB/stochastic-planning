@@ -8,9 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-15 |||||||||||*/
+| created: 2025-04-19 |||||||||||*/
 
+package planning.engine.api.model.enums
 
-package planning.engine.api
+import io.circe.derivation.{Configuration, ConfiguredEnumCodec}
 
-class RestApi
+given Configuration = Configuration.default
+
+enum Status derives ConfiguredEnumCodec:
+  case OK, UNKNOWN, ERROR

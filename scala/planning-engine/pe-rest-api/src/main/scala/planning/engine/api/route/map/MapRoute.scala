@@ -13,26 +13,30 @@
 package planning.engine.api.route.map
 
 import cats.MonadThrow
-import cats.effect.Resource
+import cats.effect.{Concurrent, Resource}
 import org.http4s.HttpRoutes
-import org.http4s.dsl.io.{GET, POST, Root}
-import planning.engine.api.service.maintenance.MaintenanceServiceLike
+import org.http4s.dsl.io.{POST, Root}
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
+import planning.engine.api.model.map.MapDefinitionRequest
+import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
-import io.circe.generic.auto.*
-import org.http4s.circe.*
 
-//TODO ....
+class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F]:
+  import io.circe.generic.auto.*
+  import org.http4s.circe.*
+  import MapDefinitionRequest.*
 
-class MapRoute[F[_]: MonadThrow](service: MapServiceLike[F]) extends Http4sDsl[F]:
-  val mapRoute = HttpRoutes.of[F]:
-    case req @ POST -> Root / "map" / "init" => 
-      service.init(req.as[MapDefinition]).flatMap(info => Ok(info.asJson))
+  val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
+    case req @ POST -> Root / "map" / "init" =>
+      for
+        definition <- req.as[MapDefinitionRequest]
+        info <- service.init(definition)
+        res <- Ok(info.asJson)
+      yield res
 
-    case POST -> Root / "map" / "load" => 
-      service.load.flatMap(info => Ok(info.asJson))
+    case POST -> Root / "map" / "load" => service.load.flatMap(info => Ok(info.asJson))
 
 object MapRoute:
-  def apply[F[_] : MonadThrow](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =
+  def apply[F[_]: Concurrent](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =
     Resource.eval(MonadThrow[F].pure(new MapRoute[F](service)))

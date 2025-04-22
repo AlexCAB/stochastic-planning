@@ -8,19 +8,12 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-10 |||||||||||*/
+| created: 2025-04-23 |||||||||||*/
 
-//  Versions
+package planning.engine.api.model.map
 
-
-
-// Subprojects settings
-
-name := "pe-tools-and-it"
-version := "0.0.0-SNAPSHOT"
-
-
-libraryDependencies ++= Seq(
-
+final case class MapInfoResponse(
+    numInputNodes: Long,
+    numOutputNodes: Long,
+    numHiddenNodes: Long
 )
-

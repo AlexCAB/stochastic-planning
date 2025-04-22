@@ -45,7 +45,7 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[ServiceWithRoute] with A
       val request = Request[IO](method = GET, uri = uri"/maintenance/__health")
 
       async[IO]:
-        route.maintenanceRoute.run(request).value.await match
+        route.endpoints.run(request).value.await match
           case Some(response) =>
             response.status mustEqual Status.Ok
             response.as[HealthResponse].await mustEqual testHealthResponse
@@ -58,7 +58,7 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[ServiceWithRoute] with A
       val request = Request[IO](method = POST, uri = uri"/maintenance/__exit")
 
       async[IO]:
-        route.maintenanceRoute.run(request).value.await match
+        route.endpoints.run(request).value.await match
           case Some(response) =>
             response.status mustEqual Status.Ok
             response.as[String].await mustEqual "Application terminated."

@@ -27,13 +27,13 @@ trait MaintenanceServiceLike[F[_]]:
 class MaintenanceService[F[_]: {Async, Env, LoggerFactory}](latch: CountDownLatch[F]) extends MaintenanceServiceLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
-  def getHealth: F[HealthResponse] =
+  override def getHealth: F[HealthResponse] =
     for
       status <- Async[F].pure(Status.OK) // TODO: Replace with actual health check logic
       version <- Env[F].get("APP_VERSION").map(_.getOrElse("unknown"))
     yield HealthResponse(status, version)
 
-  def exit: F[Unit] =
+  override def exit: F[Unit] =
     for
       _ <- logger.info("'__exit' endpoint called, application will be terminated.")
       _ <- latch.release

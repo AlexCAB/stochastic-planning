@@ -14,16 +14,19 @@ package planning.engine.api
 
 import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits.toSemigroupKOps
 import fs2.io.net.Network
 import org.http4s.{HttpApp, HttpRoutes, Response}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.{Router, Server}
-import org.http4s.server.middleware.{Logger, ErrorHandling}
+import org.http4s.server.middleware.{ErrorHandling, Logger}
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import planning.engine.api.config.ServerConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
+import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
+import planning.engine.api.service.map.MapService
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt
@@ -52,8 +55,16 @@ object Main extends IOApp:
     for
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute(maintenanceService)
+
+      mapService <- MapService[IO]()
+      mapRoute <- MapRoute(mapService)
+
       config <- ServerConf.formConfigPath[IO]("api.server")
-      _ <- buildServer(config, maintenanceRoute.maintenanceRoute)
+      _ <- buildServer(
+        config,
+        maintenanceRoute.endpoints <+>
+          mapRoute.endpoints
+      )
     yield maintenanceService
 
   def run(args: List[String]): IO[ExitCode] = buildApp()

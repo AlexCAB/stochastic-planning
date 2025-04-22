@@ -1,21 +1,27 @@
 {
 	"info": {
-		"_postman_id": "aa1f7771-b688-48fd-9871-9ba391b4d569",
-		"name": "maintenance",
+		"_postman_id": "9a7573f7-7ef8-44d1-8c20-b995f94a6d27",
+		"name": "map",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "30253487"
 	},
 	"item": [
 		{
-			"name": "__health",
+			"name": "init",
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
+				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"test-map\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "localhost:8080/pe/v1/maintenance/__health",
+					"raw": "localhost:8080/pe/v1/map/init",
 					"host": [
 						"localhost"
 					],
@@ -23,23 +29,20 @@
 					"path": [
 						"pe",
 						"v1",
-						"maintenance",
-						"__health"
+						"map",
+						"init"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "__exit",
+			"name": "load",
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/pe/v1/maintenance/__exit",
+					"raw": "localhost:8080/pe/v1/map/load",
 					"host": [
 						"localhost"
 					],
@@ -47,8 +50,8 @@
 					"path": [
 						"pe",
 						"v1",
-						"maintenance",
-						"__exit"
+						"map",
+						"load"
 					]
 				}
 			},

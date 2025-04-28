@@ -14,13 +14,14 @@ package planning.engine.core.map.io.variable
 
 import cats.ApplicativeThrow
 import cats.MonadThrow
-import cats.syntax.all.*
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.properties.*
 import planning.engine.common.values.Index
 
-class BooleanIoVariable[F[_]: MonadThrow](val acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
+import planning.engine.common.properties.*
+import cats.syntax.all.*
+
+final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
   override def valueForIndex(index: Index): F[Boolean] = index match
     case Index(0) if acceptableValues.contains(false) => false.pure
     case Index(1) if acceptableValues.contains(true)  => true.pure

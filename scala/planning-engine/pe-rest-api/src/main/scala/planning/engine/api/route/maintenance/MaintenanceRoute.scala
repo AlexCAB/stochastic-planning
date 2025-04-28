@@ -28,7 +28,6 @@ class MaintenanceRoute[F[_]: MonadThrow](service: MaintenanceServiceLike[F]) ext
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
     case GET -> Root / "maintenance" / "__health" => service.getHealth.flatMap(health => Ok(health.asJson))
-
     case POST -> Root / "maintenance" / "__exit" => service.exit.flatMap(_ => Ok("Application terminated."))
 
 object MaintenanceRoute:

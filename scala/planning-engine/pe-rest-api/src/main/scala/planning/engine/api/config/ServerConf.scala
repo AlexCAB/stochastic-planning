@@ -12,9 +12,9 @@
 
 package planning.engine.api.config
 
-import cats.effect.{Resource, Sync}
+import cats.effect.Sync
 import com.comcast.ip4s.{Host, Port}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import pureconfig.ConfigSource
 import pureconfig.ConfigReader
 import pureconfig.generic.semiauto.*
@@ -28,6 +28,3 @@ object ServerConf:
   def formConfig[F[_]: Sync](conf: Config): F[ServerConf] =
     given configReader: ConfigReader[ServerConf] = deriveReader[ServerConf]
     ConfigSource.fromConfig(conf).loadF[F, ServerConf]()
-
-  def formConfigPath[F[_]: Sync](confPath: String): Resource[F, ServerConf] =
-    Resource.eval(Sync[F].delay(ConfigFactory.load().getConfig(confPath)).flatMap(formConfig))

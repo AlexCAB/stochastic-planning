@@ -8,17 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-27 |||||||||||*/
+| created: 2025-04-08 |||||||||||*/
 
 package planning.engine.common.values
 
-import cats.ApplicativeThrow
-import planning.engine.common.errors.assertionError
-import cats.syntax.all.*
+final case class OpName(value: Option[String]) extends AnyVal:
+  override def toString: String = value.getOrElse("---")
 
-final case class Name(value: String) extends AnyVal
-
-object Name:
-  def fromString[F[_]: ApplicativeThrow](value: String): F[Name] =
-    if value.nonEmpty then Name(value).pure[F]
-    else "Name cannot be empty".assertionError
+object OpName:
+  def fromString(value: String): OpName = OpName(if value.nonEmpty then Option(value) else None)
+  def fromOption(value: Option[String]): OpName = value.map(fromString).getOrElse(OpName(None))
+  def empty: OpName = OpName(None)

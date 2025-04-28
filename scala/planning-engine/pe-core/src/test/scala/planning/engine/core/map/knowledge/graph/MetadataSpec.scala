@@ -15,7 +15,7 @@ package planning.engine.core.map.knowledge.graph
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
-import planning.engine.common.values.Name
+import planning.engine.common.values.{OpDescription, OpName}
 
 class MetadataSpec extends UnitSpecIO:
 
@@ -25,7 +25,7 @@ class MetadataSpec extends UnitSpecIO:
       "description" -> Value.Str("TestDescription")
     )
 
-    val metadata = Metadata(Name(Some("TestName")), Some("TestDescription"))
+    val metadata = Metadata(OpName(Some("TestName")), OpDescription(Some("TestDescription")))
 
   "toProperties" should:
     "return correct properties map for metadata" in newCase[CaseData]: data =>

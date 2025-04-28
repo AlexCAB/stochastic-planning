@@ -25,7 +25,7 @@ final case class Neo4jConnectionConf(user: String, password: String, uri: String
   lazy val authToken: AuthToken = AuthTokens.basic(user, password)
 
 object Neo4jConnectionConf:
-  def formConfig[F[_]: Sync](conf: Config): F[Neo4jConnectionConf] =
+  def formConfig[F[_]: Sync](conf: => Config): F[Neo4jConnectionConf] =
     given configReader: ConfigReader[Neo4jConnectionConf] = deriveReader[Neo4jConnectionConf]
 
     ConfigSource.fromConfig(conf).loadF[F, Neo4jConnectionConf]()

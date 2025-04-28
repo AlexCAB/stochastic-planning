@@ -14,10 +14,10 @@ package planning.engine.core.map.hidden.node
 
 import cats.MonadThrow
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{Name, Neo4jId}
+import planning.engine.common.values.{OpName, Neo4jId}
 import planning.engine.core.map.hidden.state.node.NodeState
 
 trait HiddenNode[F[_]: MonadThrow]:
   protected val state: AtomicCell[F, NodeState]
   val neo4jId: Neo4jId
-  val name: Name
+  val name: OpName

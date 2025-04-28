@@ -18,19 +18,19 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.io.{POST, Root}
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
-import planning.engine.api.model.map.MapDefinitionRequest
+import planning.engine.api.model.map.MapInitRequest
 import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
 
 class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F]:
   import io.circe.generic.auto.*
   import org.http4s.circe.*
-  import MapDefinitionRequest.*
+  import MapInitRequest.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
     case req @ POST -> Root / "map" / "init" =>
       for
-        definition <- req.as[MapDefinitionRequest]
+        definition <- req.as[MapInitRequest]
         info <- service.init(definition)
         res <- Ok(info.asJson)
       yield res

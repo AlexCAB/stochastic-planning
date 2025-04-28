@@ -14,13 +14,14 @@ package planning.engine.core.map.io.variable
 
 import cats.ApplicativeThrow
 import cats.MonadThrow
-import cats.syntax.all.*
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.properties.*
 import planning.engine.common.values.Index
 
-class IntIoVariable[F[_]: MonadThrow](val min: Int, val max: Int) extends IoVariable[F, Int]:
+import planning.engine.common.properties.*
+import cats.syntax.all.*
+
+final case class IntIoVariable[F[_]: MonadThrow](min: Int, max: Int) extends IoVariable[F, Int]:
   override def valueForIndex(index: Index): F[Int] = index.value match
     case v if v >= min && v <= max => v.toInt.pure
     case v                         => s"Value $v of index $index not in range: $min to $max".assertionError

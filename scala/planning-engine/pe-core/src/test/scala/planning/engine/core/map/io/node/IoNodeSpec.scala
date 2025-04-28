@@ -17,7 +17,7 @@ import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.core.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import cats.effect.cps.*
-import planning.engine.common.values.{Index, Name, Neo4jId}
+import planning.engine.common.values.{Index, Name, Neo4jId, OpName}
 import planning.engine.core.map.hidden.node.ConcreteNode
 
 class IoNodeSpec extends UnitSpecIO:
@@ -51,10 +51,13 @@ class IoNodeSpec extends UnitSpecIO:
       "variable.domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
-    def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
+    def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO](
+      Name("inputNode"),
+      BooleanIoVariable[IO](Set(true, false))
+    )
 
     def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
-      ConcreteNode[IO](Neo4jId(123), Name(Some("test")), Index(index), ioNode)
+      ConcreteNode[IO](Neo4jId(123), OpName(Some("test")), Index(index), ioNode)
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>
@@ -62,7 +65,7 @@ class IoNodeSpec extends UnitSpecIO:
         .logValue
         .asserting: node =>
           node mustBe a[InputNode[IO]]
-          node.name mustEqual "inputNode"
+          node.name mustEqual Name("inputNode")
           node.variable mustBe a[BooleanIoVariable[IO]]
           node.variable.asInstanceOf[BooleanIoVariable[IO]].acceptableValues mustEqual Set(true, false)
 
@@ -71,7 +74,7 @@ class IoNodeSpec extends UnitSpecIO:
         .logValue
         .asserting: node =>
           node mustBe a[OutputNode[IO]]
-          node.name mustEqual "outputNode"
+          node.name mustEqual Name("outputNode")
           node.variable mustBe a[IntIoVariable[IO]]
           node.variable.asInstanceOf[IntIoVariable[IO]].min mustEqual 0
           node.variable.asInstanceOf[IntIoVariable[IO]].max mustEqual 10
@@ -100,13 +103,13 @@ class IoNodeSpec extends UnitSpecIO:
 
   "toProperties" should:
     "return correct properties map for InputNode" in newCase[CaseData]: data =>
-      InputNode[IO]("inputNode", BooleanIoVariable[IO](Set(true, false)))
+      InputNode[IO](Name("inputNode"), BooleanIoVariable[IO](Set(true, false)))
         .flatMap(_.toProperties)
         .logValue
         .asserting(_ mustEqual data.inputNodeProperties)
 
     "return correct properties map for OutputNode" in newCase[CaseData]: data =>
-      OutputNode[IO]("outputNode", IntIoVariable[IO](0, 10))
+      OutputNode[IO](Name("outputNode"), IntIoVariable[IO](0, 10))
         .flatMap(_.toProperties)
         .logValue
         .asserting(_ mustEqual data.outputNodeProperties)

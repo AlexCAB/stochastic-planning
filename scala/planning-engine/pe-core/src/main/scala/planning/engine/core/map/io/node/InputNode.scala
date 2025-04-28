@@ -17,15 +17,16 @@ import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
 import planning.engine.core.map.io.variable.IoVariable
 import cats.syntax.all.*
+import planning.engine.common.values.Name
 
 class InputNode[F[_]: MonadThrow](
-    val name: String,
-    val variable: IoVariable[F, ?],
-    protected val hiddenNodes: AtomicCell[F, ConcreteNodeMap[F]]
+    override val name: Name,
+    override val variable: IoVariable[F, ?],
+    override protected val hiddenNodes: AtomicCell[F, ConcreteNodeMap[F]]
 ) extends IoNode[F]
 
 object InputNode:
   val propertyNodeType: String = "input"
 
-  def apply[F[_]: Concurrent](name: String, variable: IoVariable[F, ?]): F[InputNode[F]] =
+  def apply[F[_]: Concurrent](name: Name, variable: IoVariable[F, ?]): F[InputNode[F]] =
     AtomicCell[F].of[ConcreteNodeMap[F]](Map.empty).map(ac => new InputNode[F](name, variable, ac))

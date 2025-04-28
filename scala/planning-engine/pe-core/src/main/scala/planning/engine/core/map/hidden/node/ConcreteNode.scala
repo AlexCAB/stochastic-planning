@@ -15,18 +15,18 @@ package planning.engine.core.map.hidden.node
 import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{Index, Name, Neo4jId}
+import planning.engine.common.values.{Index, OpName, Neo4jId}
 import planning.engine.core.map.hidden.state.node.{InitState, NodeState}
 import planning.engine.core.map.io.node.IoNode
 import cats.syntax.all.*
 
 class ConcreteNode[F[_]: MonadThrow](
-    protected val state: AtomicCell[F, NodeState],
-    val neo4jId: Neo4jId,
-    val name: Name,
-    val valueIndex: Index,
-    value: Any, // Used only for visualisation
-    ioNode: IoNode[F]
+                                      protected val state: AtomicCell[F, NodeState],
+                                      val neo4jId: Neo4jId,
+                                      val name: OpName,
+                                      val valueIndex: Index,
+                                      value: Any, // Used only for visualisation
+                                      ioNode: IoNode[F]
 ) extends HiddenNode[F]:
 
   override def toString: String =
@@ -34,10 +34,10 @@ class ConcreteNode[F[_]: MonadThrow](
 
 object ConcreteNode:
   def apply[F[_]: Concurrent](
-      neo4jId: Neo4jId,
-      name: Name,
-      valueIndex: Index,
-      ioNode: IoNode[F]
+                               neo4jId: Neo4jId,
+                               name: OpName,
+                               valueIndex: Index,
+                               ioNode: IoNode[F]
   ): F[ConcreteNode[F]] =
     for
       value <- ioNode.variable.valueForIndex(valueIndex)

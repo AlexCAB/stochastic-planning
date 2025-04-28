@@ -19,14 +19,14 @@ import planning.engine.core.map.io.variable.IoVariable
 import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.Index
+import planning.engine.common.values.{Index, Name}
 import planning.engine.core.map.hidden.node.ConcreteNode
 import cats.syntax.all.*
 
 type ConcreteNodeMap[F[_]] = Map[Index, Vector[ConcreteNode[F]]]
 
 trait IoNode[F[_]: MonadThrow]:
-  val name: String
+  val name: Name
   val variable: IoVariable[F, ?]
 
   protected val hiddenNodes: AtomicCell[F, ConcreteNodeMap[F]]
@@ -45,7 +45,12 @@ trait IoNode[F[_]: MonadThrow]:
   private[core] def getAllConcreteNode: F[ConcreteNodeMap[F]] = hiddenNodes.get
 
   def toProperties: F[Map[String, Value]] =
-    propsOf("type" -> nodeType, "name" -> Value.Str(name), "variable" -> variable.toProperties)
+    propsOf("type" -> nodeType, "name" -> Value.Str(name.value), "variable" -> variable.toProperties)
+
+  override def equals(obj: Any): Boolean = (obj, this) match
+    case (that: InputNode[?], self: InputNode[?]) => self.name == that.name && self.variable == that.variable
+    case (that: OutputNode[?], self: OutputNode[?]) => self.name == that.name && self.variable == that.variable
+    case _ => false
 
   override def toString: String = s"${this.getClass.getSimpleName}(name = $name, variable = $variable)"
 
@@ -58,10 +63,10 @@ object IoNode:
 
       ioNode <- nodeType match
         case t if t.equalsIgnoreCase(InputNode.propertyNodeType) =>
-          InputNode[F](name, variable).map(_.asInstanceOf[IoNode[F]])
+          InputNode[F](Name(name), variable).map(_.asInstanceOf[IoNode[F]])
 
         case t if t.equalsIgnoreCase(OutputNode.propertyNodeType) =>
-          OutputNode[F](name, variable).map(_.asInstanceOf[IoNode[F]])
+          OutputNode[F](Name(name), variable).map(_.asInstanceOf[IoNode[F]])
 
         case t => s"Unknown node type: $t".assertionError
     yield ioNode

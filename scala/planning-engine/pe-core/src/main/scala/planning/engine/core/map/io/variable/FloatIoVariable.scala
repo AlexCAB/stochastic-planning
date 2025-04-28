@@ -14,13 +14,14 @@ package planning.engine.core.map.io.variable
 
 import cats.ApplicativeThrow
 import cats.MonadThrow
-import cats.syntax.all.*
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.properties.*
 import planning.engine.common.values.Index
 
-class FloatIoVariable[F[_]: MonadThrow](val min: Float, val max: Float) extends IoVariable[F, Float]:
+import planning.engine.common.properties.*
+import cats.syntax.all.*
+
+final case class FloatIoVariable[F[_]: MonadThrow](min: Float, max: Float) extends IoVariable[F, Float]:
   private val scalingConstant = 10000.0
 
   override def valueForIndex(index: Index): F[Float] = index.value / scalingConstant match

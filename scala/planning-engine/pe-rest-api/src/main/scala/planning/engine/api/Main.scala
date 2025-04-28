@@ -22,11 +22,13 @@ import org.http4s.server.{Router, Server}
 import org.http4s.server.middleware.{ErrorHandling, Logger}
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
-import planning.engine.api.config.ServerConf
+import planning.engine.api.config.{MainConf, ServerConf}
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapService
+import planning.engine.core.database.Neo4jDatabase
+import planning.engine.core.map.knowledge.graph.KnowledgeGraphBuilder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt
@@ -53,18 +55,19 @@ object Main extends IOApp:
 
   private def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
+      mainConf <- MainConf.default[IO]
+      database <- Neo4jDatabase[IO](mainConf.db.connection, mainConf.db.name)
+      builder <- KnowledgeGraphBuilder[IO](database)
+
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute(maintenanceService)
 
-      mapService <- MapService[IO]()
+      mapService <- MapService[IO](builder)
       mapRoute <- MapRoute(mapService)
 
-      config <- ServerConf.formConfigPath[IO]("api.server")
-      _ <- buildServer(
-        config,
-        maintenanceRoute.endpoints <+>
-          mapRoute.endpoints
-      )
+      rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints
+
+      _ <- buildServer(mainConf.server, rootRoute)
     yield maintenanceService
 
   def run(args: List[String]): IO[ExitCode] = buildApp()

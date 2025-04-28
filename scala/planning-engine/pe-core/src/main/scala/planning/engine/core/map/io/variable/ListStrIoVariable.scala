@@ -14,13 +14,14 @@ package planning.engine.core.map.io.variable
 
 import cats.ApplicativeThrow
 import cats.MonadThrow
-import cats.syntax.all.*
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.properties.*
 import planning.engine.common.values.Index
 
-class ListStrIoVariable[F[_]: MonadThrow](val elements: Vector[String]) extends IoVariable[F, String]:
+import planning.engine.common.properties.*
+import cats.syntax.all.*
+
+final case  class ListStrIoVariable[F[_]: MonadThrow](elements: Vector[String]) extends IoVariable[F, String]:
   override def valueForIndex(index: Index): F[String] =
     if elements.isDefinedAt(index.value.toInt) then elements(index.value.toInt).pure
     else s"Index $index out of bounds for list of size ${elements.size}".assertionError

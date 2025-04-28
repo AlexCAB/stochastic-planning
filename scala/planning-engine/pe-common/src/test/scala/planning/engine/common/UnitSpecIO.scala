@@ -25,4 +25,7 @@ abstract class UnitSpecIO extends AsyncWordSpecLike with AsyncIOSpec with Matche
   trait Case
 
   def newCase[C <: Case](test: C => IO[Assertion])(implicit m: ClassTag[C]): IO[Assertion] =
-    test(m.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[C])
+    m.runtimeClass.getDeclaredConstructors.toList match
+      case c :: Nil if c.getParameterCount == 0 => test(c.newInstance().asInstanceOf[C])
+      case c :: Nil if c.getParameterCount == 1 => test(c.newInstance(this).asInstanceOf[C])
+      case _ => IO.raiseError(new IllegalArgumentException("Invalid constructor found for test case class"))

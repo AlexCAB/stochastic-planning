@@ -14,7 +14,7 @@ package planning.engine.common
 
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
-import org.scalatest.{Assertion, compatible}
+import org.scalatest.Assertion
 import org.scalatest.wordspec.AsyncWordSpecLike
 import org.scalatest.matchers.must.Matchers
 

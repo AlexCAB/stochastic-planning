@@ -17,9 +17,9 @@ import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.Config
 import pureconfig.ConfigSource
 import pureconfig.ConfigReader
+
 import pureconfig.generic.semiauto.*
 import pureconfig.module.catseffect.syntax.*
-import cats.syntax.all.*
 import planning.engine.api.config.ApiConfigReaders.given
 
 final case class ServerConf(host: Host, port: Port, apiPrefix: String)

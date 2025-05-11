@@ -14,10 +14,10 @@ package planning.engine.api.model.map
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
-import planning.engine.core.map.knowledge.graph.Metadata
 import planning.engine.common.values.*
-import planning.engine.core.map.io.node.*
-import planning.engine.core.map.io.variable.*
+import planning.engine.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
+import planning.engine.map.knowledge.graph.Metadata
 
 class MapInitRequestSpec extends UnitSpecIO:
 

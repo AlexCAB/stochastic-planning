@@ -27,8 +27,8 @@ import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapService
-import planning.engine.core.database.Neo4jDatabase
-import planning.engine.core.map.knowledge.graph.KnowledgeGraphBuilder
+import planning.engine.map.database.Neo4jDatabase
+import planning.engine.map.knowledge.graph.KnowledgeGraphBuilder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt

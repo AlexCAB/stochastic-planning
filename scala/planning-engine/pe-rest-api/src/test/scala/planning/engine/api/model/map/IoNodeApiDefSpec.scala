@@ -23,11 +23,11 @@ class IoNodeApiDefSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
     lazy val booleanIoNode: IoNodeApiDef = BooleanIoNode("boolDef", Set(true, false))
-    lazy val floatIoNode: IoNodeApiDef= FloatIoNode("floatDef", min = -1, max = 1)
-    lazy val intIoNode: IoNodeApiDef= IntIoNode("intDef", min = 0, max = 10)
+    lazy val floatIoNode: IoNodeApiDef = FloatIoNode("floatDef", min = -1, max = 1)
+    lazy val intIoNode: IoNodeApiDef = IntIoNode("intDef", min = 0, max = 10)
     lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode("listStrDef", elements = Vector("a", "b", "c"))
 
-  "IoNodeApiDef" should :
+  "IoNodeApiDef" should:
     "decode and encode BooleanIoNode" in newCase[CaseData]: data =>
       async[IO]:
         val encoded = data.booleanIoNode.asJson
@@ -37,7 +37,7 @@ class IoNodeApiDefSpec extends UnitSpecIO:
         Logger[IO].info(s"Decoded value: $decoded").await
 
         decoded mustEqual data.booleanIoNode
-    
+
     "decode and encode FloatIoNode" in newCase[CaseData]: data =>
       async[IO]:
         val encoded = data.floatIoNode.asJson
@@ -67,5 +67,3 @@ class IoNodeApiDefSpec extends UnitSpecIO:
         Logger[IO].info(s"Decoded value: $decoded").await
 
         decoded mustEqual data.listStrIoNode
-
-

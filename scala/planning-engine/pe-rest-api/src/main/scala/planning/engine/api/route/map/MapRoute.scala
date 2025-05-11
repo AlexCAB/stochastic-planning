@@ -15,7 +15,6 @@ package planning.engine.api.route.map
 import cats.MonadThrow
 import cats.effect.{Concurrent, Resource}
 import org.http4s.HttpRoutes
-import org.http4s.dsl.io.{POST, Root}
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
 import planning.engine.api.model.map.MapInitRequest

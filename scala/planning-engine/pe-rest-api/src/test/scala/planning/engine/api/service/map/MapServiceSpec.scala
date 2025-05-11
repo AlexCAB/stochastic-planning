@@ -15,11 +15,11 @@ package planning.engine.api.service.map
 import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecIO
-import planning.engine.core.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphLke, Metadata}
 import planning.engine.api.model.map.*
 import cats.effect.cps.*
 import org.scalatest.compatible.Assertion
-import planning.engine.core.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphLake, Metadata}
 
 class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
   private val testMapInitRequest = MapInitRequest(
@@ -31,8 +31,8 @@ class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
 
   private val testNumOfHiddenNodes = 5L
 
-  private def makeMockGraph(inNodes: Vector[InputNode[IO]], outNodes: Vector[OutputNode[IO]]): KnowledgeGraphLke[IO] =
-    val mockGraph = mock[KnowledgeGraphLke[IO]]
+  private def makeMockGraph(inNodes: Vector[InputNode[IO]], outNodes: Vector[OutputNode[IO]]): KnowledgeGraphLake[IO] =
+    val mockGraph = mock[KnowledgeGraphLake[IO]]
     (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
     (() => mockGraph.metadata).expects().returns(Metadata.withName(testMapInitRequest.name)).once()
     (() => mockGraph.inputNodes).expects().returns(inNodes).once()

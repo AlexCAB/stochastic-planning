@@ -16,14 +16,13 @@ import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.values.{OpDescription, OpName}
-import planning.engine.core.map.knowledge.graph.KnowledgeGraphLke
-import planning.engine.core.map.knowledge.graph.Metadata
-import planning.engine.core.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.knowledge.graph.{KnowledgeGraphLake, Metadata}
 
 class MapInfoResponseSpec extends UnitSpecIO with AsyncMockFactory:
 
   private class CaseData extends Case:
-    val mockKnowledgeGraph = mock[KnowledgeGraphLke[IO]]
+    val mockKnowledgeGraph = mock[KnowledgeGraphLake[IO]]
     val validMetadata = Metadata(OpName.fromString("TestMap"), OpDescription.empty)
     val validInputNodes = Vector(mock[InputNode[IO]])
     val validOutputNodes = Vector(mock[OutputNode[IO]])

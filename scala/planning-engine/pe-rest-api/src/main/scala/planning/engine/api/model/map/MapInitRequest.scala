@@ -16,12 +16,18 @@ import cats.effect.kernel.Concurrent
 import org.http4s.EntityDecoder
 import org.http4s.circe.jsonOf
 import cats.MonadThrow
-import planning.engine.core.map.knowledge.graph.Metadata
-import planning.engine.core.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.common.errors.assertionError
-import planning.engine.core.map.io.variable.*
 import cats.syntax.all.*
 import planning.engine.common.values.{Name, OpDescription, OpName}
+import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
+import planning.engine.map.io.variable.{
+  BooleanIoVariable,
+  FloatIoVariable,
+  IntIoVariable,
+  IoVariable,
+  ListStrIoVariable
+}
+import planning.engine.map.knowledge.graph.Metadata
 
 final case class MapInitRequest(
     name: Option[String],

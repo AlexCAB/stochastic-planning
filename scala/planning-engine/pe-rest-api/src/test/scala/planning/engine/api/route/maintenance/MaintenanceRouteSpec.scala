@@ -13,7 +13,7 @@
 package planning.engine.api.route.maintenance
 
 import cats.effect.{IO, Resource}
-import org.http4s.{Request, Response, Status}
+import org.http4s.{Request, Status}
 import planning.engine.common.UnitSpecWithResource
 import planning.engine.api.model.maintenance.HealthResponse
 import planning.engine.api.model.enums.Status as HealthStatus
@@ -40,7 +40,7 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[ServiceWithRoute] with A
     "return OK status and health response with version" in: (mockedService, route) =>
       import io.circe.generic.auto.*
       import org.http4s.circe.CirceEntityCodec.*
-      
+
       (() => mockedService.getHealth).expects().returns(IO.pure(testHealthResponse)).once()
       val request = Request[IO](method = GET, uri = uri"/maintenance/__health")
 

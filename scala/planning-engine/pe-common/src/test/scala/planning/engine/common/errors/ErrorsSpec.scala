@@ -12,7 +12,6 @@
 
 package planning.engine.common.errors
 
-import cats.ApplicativeThrow
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 

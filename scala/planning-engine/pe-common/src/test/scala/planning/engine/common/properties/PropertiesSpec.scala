@@ -13,9 +13,11 @@
 package planning.engine.common.properties
 
 import cats.effect.IO
-
 import neotypes.model.types.Value
 import planning.engine.common.UnitSpecIO
+import neotypes.query.QueryArg.Param
+import neotypes.model.query.QueryParam.NullValue
+import neotypes.model.query.QueryParam
 import cats.syntax.all.*
 
 class PropertiesSpec extends UnitSpecIO:
@@ -31,25 +33,62 @@ class PropertiesSpec extends UnitSpecIO:
       "nested.key2" -> Value.Str("nestedValue2")
     )
 
+    val params = Map(
+      "key1" -> "value1".toDbParam,
+      "nested.key" -> "value2".toDbParam
+    )
+
+    def paramsWithPrefix(prefix: String): Map[String, Param] = params.map((k, v) => (s"$prefix.$k", v))
+
     def parseStr(value: Value): IO[String] = value match
       case Value.Str(str) => IO.pure(str)
       case _              => IO.raiseError(new AssertionError("Expected a string value"))
 
-  "propsOf" should:
-    "combine multiple properties" in newCase[CaseData]: data =>
-      propsOf[IO](
-        "key1" -> Value.Str("value1"),
-        "key2" -> Some(Value.Str("value2")),
+  "toDbParam" should:
+    "convert a non-null value to a query parameter" in newCase[CaseData]: data =>
+      ("testValue".toDbParam mustEqual Param(QueryParam("testValue"))).pure
+
+    "convert an integer value to a query parameter" in newCase[CaseData]: data =>
+      (42.toDbParam mustEqual Param(QueryParam(42))).pure
+
+    "convert a null value to NullValue" in newCase[CaseData]: data =>
+      ((null: String).toDbParam mustEqual Param(NullValue)).pure
+
+  "paramsOf" should:
+    "combine multiple properties" in:
+      paramsOf[IO](
+        "key1" -> "value1".toDbParam,
+        "key2" -> Some("value2".toDbParam),
         "keyNone" -> None,
-        "key3" -> IO.pure(Value.Str("value3")),
-        "key4" -> IO.pure(Map("nestedKey" -> Value.Str("nestedValue")))
+        "key3" -> IO.pure("value3".toDbParam),
+        "key4" -> IO.pure(Map("nestedKey" -> "nestedValue".toDbParam))
       ).logValue
         .asserting(_ mustEqual Map(
-          "key1" -> Value.Str("value1"),
-          "key2" -> Value.Str("value2"),
-          "key3" -> Value.Str("value3"),
-          "key4.nestedKey" -> Value.Str("nestedValue")
+          "key1" -> "value1".toDbParam,
+          "key2" -> "value2".toDbParam,
+          "key3" -> "value3".toDbParam,
+          "key4.nestedKey" -> "nestedValue".toDbParam
         ))
+
+  "addKeyPrefix" should:
+    "add the prefix to all keys in the map" in newCase[CaseData]: data =>
+      IO.pure(data.params)
+        .addKeyPrefix("prefix")
+        .logValue
+        .asserting(_ mustEqual data.paramsWithPrefix("prefix"))
+
+  "removeKeyPrefix" should:
+    "remove the prefix from all keys in the map" in newCase[CaseData]: data =>
+      IO.pure(data.paramsWithPrefix("prefix"))
+        .removeKeyPrefix("prefix")
+        .logValue
+        .asserting(_ mustEqual data.params)
+
+    "raise an error if a key does not start with the prefix" in newCase[CaseData]: data =>
+      IO.pure(data.paramsWithPrefix("prefix") + ("invalid_prefix" -> "invalid_value".toDbParam))
+        .removeKeyPrefix("nonexistent")
+        .logValue
+        .assertThrows[AssertionError]
 
   "parseValue" should:
     "return the parsed value if the key exists" in newCase[CaseData]: data =>
@@ -80,15 +119,15 @@ class PropertiesSpec extends UnitSpecIO:
   "getValue" should:
     "return the parsed int value if the key exists and is an int" in newCase[CaseData]: data =>
       data.properties
-        .getValue[IO, Int]("intKey1")
+        .getValue[IO, Long]("intKey1")
         .logValue
-        .asserting(_ mustEqual 42)
+        .asserting(_ mustEqual 42L)
 
     "return the parsed float value if the key exists and is a float" in newCase[CaseData]: data =>
       data.properties
-        .getValue[IO, Float]("floatKey1")
+        .getValue[IO, Double]("floatKey1")
         .logValue
-        .asserting(_ mustEqual 3.14f)
+        .asserting(_ mustEqual 3.14)
 
     "return the parsed String value if the key exists" in newCase[CaseData]: data =>
       data.properties
@@ -104,18 +143,18 @@ class PropertiesSpec extends UnitSpecIO:
 
     "raise an AssertionError if the key exists" in newCase[CaseData]: data =>
       data.properties
-        .getValue[IO, Int]("not_exist")
+        .getValue[IO, Long]("not_exist")
         .logValue
         .assertThrows[AssertionError]
 
     "raise an AssertionError if property type is incorrect" in newCase[CaseData]: data =>
       data.properties
-        .getValue[IO, Float]("intKey1")
+        .getValue[IO, Double]("intKey1")
         .logValue
         .assertThrows[AssertionError]
 
       data.properties
-        .getValue[IO, Int]("floatKey1")
+        .getValue[IO, Long]("floatKey1")
         .logValue
         .assertThrows[AssertionError]
 

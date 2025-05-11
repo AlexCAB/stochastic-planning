@@ -12,9 +12,10 @@
 
 // Common settings
 
-ThisBuild / scalaVersion := "3.6.3"
+ThisBuild / scalaVersion := "3.7.0"
 ThisBuild / scalacOptions ++= Seq(
-  "-encoding", "utf8",
+  "-encoding",
+  "utf8",
   "-unchecked",
   "-deprecation",
   "-feature",
@@ -28,26 +29,34 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 // Projects settings
 
-lazy val common = (project in file("pe-common"))
+lazy val common = project in file("pe-common")
 
-lazy val core = (project in file("pe-core"))
+lazy val map = (project in file("pe-map"))
   .dependsOn(
     common % "compile->compile;test->test"
+  )
+
+lazy val planner = (project in file("pe-planner"))
+  .dependsOn(
+    common % "compile->compile;test->test",
+    map % "compile->compile;test->test"
   )
 
 lazy val api = (project in file("pe-rest-api"))
   .dependsOn(
     common % "compile->compile;test->test",
-    core % "compile->compile;test->test"
+    planner % "compile->compile;test->test",
+    map % "compile->compile;test->test"
   )
 
 lazy val itAndTools = (project in file("pe-tools-and-it"))
   .dependsOn(
     common % "compile->compile;test->test",
-    core % "compile->compile;test->test",
+    map % "compile->compile;test->test",
+    planner % "compile->compile;test->test",
     api % "compile->compile;test->test"
   )
 
 lazy val root = project
   .in(file("."))
-  .aggregate(common, core, api, itAndTools)
+  .aggregate(common, map, api, itAndTools)

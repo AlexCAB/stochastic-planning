@@ -12,4 +12,4 @@
 
 package planning.engine.common.values
 
-final case class SampleId(value: Long) extends AnyVal
+final case class SampleId(value: String) extends AnyVal

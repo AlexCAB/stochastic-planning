@@ -14,8 +14,8 @@ package planning.engine.api.model.map
 
 import cats.effect.Async
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.core.map.knowledge.graph.KnowledgeGraphLke
 import cats.syntax.all.*
+import planning.engine.map.knowledge.graph.KnowledgeGraphLake
 
 final case class MapInfoResponse(
     mapName: Option[String],
@@ -25,7 +25,7 @@ final case class MapInfoResponse(
 )
 
 object MapInfoResponse:
-  def fromKnowledgeGraph[F[_]: {Async, LoggerFactory}](knowledgeGraph: KnowledgeGraphLke[F]): F[MapInfoResponse] =
+  def fromKnowledgeGraph[F[_]: {Async, LoggerFactory}](knowledgeGraph: KnowledgeGraphLake[F]): F[MapInfoResponse] =
     for
       numHiddenNodes <- knowledgeGraph.countHiddenNodes
       mapName = knowledgeGraph.metadata.name.value

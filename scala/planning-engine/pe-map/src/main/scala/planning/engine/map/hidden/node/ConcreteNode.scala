@@ -17,20 +17,20 @@ import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
-import planning.engine.map.hidden.state.node.{InitState, NodeState}
+import planning.engine.map.hidden.state.node.HiddenNodeState
 import planning.engine.map.io.node.IoNode
 import planning.engine.common.properties.*
-import planning.engine.common.values.name.OpName
-import planning.engine.common.values.node.hidden.HnId
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.{HnId, IoIndex}
 
 class ConcreteNode[F[_]: MonadThrow](
-                                      val id: HnId,
-                                      val name: OpName,
-                                      val valueIndex: IoValueIndex,
-                                      state: AtomicCell[F, NodeState],
-                                      value: Any, // Used only for visualisation
-                                      ioNode: IoNode[F]
+    val id: HnId,
+    val name: Option[Name],
+    val valueIndex: IoIndex,
+    state: AtomicCell[F, HiddenNodeState[F]],
+    ioNode: IoNode[F],
+    value: Any // Used only for visualisation
+
 ) extends HiddenNode[F]:
 
   override def toString: String =
@@ -38,22 +38,22 @@ class ConcreteNode[F[_]: MonadThrow](
 
 object ConcreteNode:
   def apply[F[_]: Concurrent](
-                               id: HnId,
-                               name: OpName,
-                               sampleIndex: IoValueIndex,
-                               ioValueIndex: IoValueIndex,
-                               ioNode: IoNode[F]
+      id: HnId,
+      name: Option[Name],
+      ioNode: IoNode[F],
+      ioValueIndex: IoIndex,
+      initState: HiddenNodeState[F]
   ): F[ConcreteNode[F]] =
     for
       value <- ioNode.variable.valueForIndex(ioValueIndex)
-      state <- AtomicCell[F].of[NodeState](InitState)
-      node = new ConcreteNode[F](id, name, ioValueIndex, state, value, ioNode)
+      state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
+      node = new ConcreteNode[F](id, name, ioValueIndex, state, ioNode, value)
       _ <- ioNode.addConcreteNode(node)
     yield node
 
-  def makeParameters[F[_]: Concurrent](id: HnId, name: OpName, ioValueIndex: IoValueIndex): F[Map[String, Param]] =
+  def makeParameters[F[_]: Concurrent](id: HnId, name: Option[Name], ioValueIndex: IoIndex): F[Map[String, Param]] =
     paramsOf(
       PROP_NAME.ID -> id.toDbParam,
-      PROP_NAME.NAME -> name.toDbParam,
+      PROP_NAME.NAME -> name.map(_.toDbParam),
       PROP_NAME.IO_VALUE_INDEX -> ioValueIndex.toDbParam
     )

@@ -8,12 +8,11 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-03-18 |||||||||||*/
 
-package planning.engine.map.hidden.state.node
+package planning.engine.common.values.node
 
-import cats.MonadThrow
-import planning.engine.map.hidden.state.edge.EdgeState
+import planning.engine.common.values.LongVal
 
-case class RootSate[F[_]: MonadThrow](children: Vector[EdgeState[F]]) extends NodeState:
-  override def toString: String = childrenToString(children)
+// IoValueIndex is used to identify the value in IoNode.
+final case class IoIndex(value: Long) extends AnyVal with LongVal

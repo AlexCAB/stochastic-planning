@@ -18,8 +18,7 @@ import org.http4s.circe.jsonOf
 import cats.MonadThrow
 import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
-import planning.engine.common.values.description.OpDescription
-import planning.engine.common.values.name.{Name, OpName}
+import planning.engine.common.values.text.{Name, Description}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{
   BooleanIoVariable,
@@ -49,14 +48,14 @@ final case class MapInitRequest(
   ): F[Vector[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)
-      name <- Name.fromString(definition.name)
+      name <- Name.fromStringValid(definition.name)
       node <- makeNode(name, variable)
     yield node
 
   def toMetadata[F[_]: MonadThrow]: F[Metadata] = Metadata
     .apply(
-      name = OpName.fromOption(name),
-      description = OpDescription.fromOption(description)
+      name = Name.fromOptionString(name),
+      description = Description.fromOptionString(description)
     )
     .pure[F]
 

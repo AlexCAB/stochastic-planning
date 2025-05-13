@@ -15,6 +15,6 @@ package planning.engine.common.values
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
 
-trait LongVal:
+trait LongVal extends Any:
   def value: Long
   def toDbParam: Param = value.toDbParam

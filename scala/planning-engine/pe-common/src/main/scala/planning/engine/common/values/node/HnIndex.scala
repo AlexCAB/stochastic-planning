@@ -8,19 +8,16 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-05-11 |||||||||||*/
+| created: 2025-05-12 |||||||||||*/
 
+package planning.engine.common.values.node
 
-
-package planning.engine.common.values.node.hidden
-
-import neotypes.query.QueryArg.Param
-import planning.engine.common.properties.*
 import planning.engine.common.values.LongVal
 
-// Hidden Node ID is used to identify the hidden node in the graph.
-final case class  HnId(value: Long) extends AnyVal with LongVal:
-  def increase: HnId = HnId(value + 1L)
+// Hidden node index is value (and the index of this value at the same time)
+// of hidden variable (variable represented by hidden node).
+final case class HnIndex(value: Long) extends AnyVal with LongVal:
+  def increase: HnIndex = HnIndex(value + 1L)
 
-object HnId:
-  val init: HnId = HnId(1L)
+object HnIndex:
+  val init: HnIndex = HnIndex(1L)

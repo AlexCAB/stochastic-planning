@@ -18,20 +18,20 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
 final case class ListStrIoVariable[F[_]: MonadThrow](elements: Vector[String]) extends IoVariable[F, String]:
-  override def valueForIndex(index: IoValueIndex): F[String] =
+  override def valueForIndex(index: IoIndex): F[String] =
     if elements.isDefinedAt(index.value.toInt) then elements(index.value.toInt).pure
     else s"Index $index out of bounds for list of size ${elements.size}".assertionError
 
-  override def indexForValue(value: String): F[IoValueIndex] = elements.indexOf(value) match
+  override def indexForValue(value: String): F[IoIndex] = elements.indexOf(value) match
     case -1 => s"Value $value not in list: $elements".assertionError
-    case i  => IoValueIndex(i).pure
+    case i  => IoIndex(i).pure
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.VAR_TYPE -> LIST_STR_TYPE_NAME.toDbParam,
+    PROP_NAME.VAR_TYPE -> PROP_VALUE.LIST_STR_TYPE.toDbParam,
     PROP_NAME.DOMAIN -> elements.toList.toDbParam
   )
 

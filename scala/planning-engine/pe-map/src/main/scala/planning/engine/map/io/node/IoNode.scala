@@ -22,11 +22,11 @@ import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
-import planning.engine.common.values.name.Name
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.IoIndex
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
 
-type ConcreteNodeMap[F[_]] = Map[IoValueIndex, Vector[ConcreteNode[F]]]
+type ConcreteNodeMap[F[_]] = Map[IoIndex, Vector[ConcreteNode[F]]]
 
 trait IoNode[F[_]: MonadThrow]:
   val name: Name

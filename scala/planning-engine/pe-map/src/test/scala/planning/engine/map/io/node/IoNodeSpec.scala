@@ -19,47 +19,55 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.common.properties.QueryParamMapping.*
 import cats.effect.cps.*
-import planning.engine.common.values.name.{Name, OpName}
-import planning.engine.common.values.node.hidden.HnId
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.properties.PROP_NAME
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.node.HnId
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
+import planning.engine.map.hidden.state.node.HiddenNodeState
+import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 
 class IoNodeSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
+    private val `variable.varType` = s"${PROP_NAME.VARIABLE}.${PROP_NAME.VAR_TYPE}"
+    private val `variable.min` = s"${PROP_NAME.VARIABLE}.${PROP_NAME.MIN}"
+    private val `variable.max` = s"${PROP_NAME.VARIABLE}.${PROP_NAME.MAX}"
+    private val `variable.domain` = s"${PROP_NAME.VARIABLE}.${PROP_NAME.DOMAIN}"
+
     val inputNodeProperties = Map(
-      "io_type" -> Value.Str(InputNode.IN_NODE_TYPE),
-      "name" -> Value.Str("inputNode"),
-      "variable.var_type" -> Value.Str("int"),
-      "variable.min" -> Value.Integer(22),
-      "variable.max" -> Value.Integer(33)
+      PROP_NAME.IO_TYPE -> Value.Str(InputNode.IN_NODE_TYPE),
+      PROP_NAME.NAME -> Value.Str("inputNode"),
+      `variable.varType` -> Value.Str(INT_TYPE),
+      `variable.min` -> Value.Integer(22),
+      `variable.max` -> Value.Integer(33)
     )
 
     val inputNodeQueryParams = inputNodeProperties.map:
       case (k, v) => k -> v.toParam
 
     val outputNodeProperties = Map(
-      "io_type" -> Value.Str(OutputNode.OUT_NODE_TYPE),
-      "name" -> Value.Str("outputNode"),
-      "variable.var_type" -> Value.Str("int"),
-      "variable.min" -> Value.Integer(0),
-      "variable.max" -> Value.Integer(10)
+      PROP_NAME.IO_TYPE -> Value.Str(OutputNode.OUT_NODE_TYPE),
+      PROP_NAME.NAME -> Value.Str("outputNode"),
+      `variable.varType` -> Value.Str(INT_TYPE),
+      `variable.min` -> Value.Integer(0),
+      `variable.max` -> Value.Integer(10)
     )
 
     val outputNodeQueryParams = outputNodeProperties.map:
       case (k, v) => k -> v.toParam
 
     val invalidNodeTypeProperties = Map(
-      "io_type" -> Value.Str("unknown"),
-      "name" -> Value.Str("invalidNode"),
-      "variable.var_type" -> Value.Str("bool"),
-      "variable.domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP_NAME.IO_TYPE -> Value.Str("unknown"),
+      PROP_NAME.NAME -> Value.Str("invalidNode"),
+      `variable.varType` -> Value.Str(BOOL_TYPE),
+      `variable.domain` -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
     val missingTypeProperties = Map(
-      "name" -> Value.Str("missingTypeNode"),
-      "variable.var_type" -> Value.Str("bool"),
-      "variable.domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP_NAME.NAME -> Value.Str("missingTypeNode"),
+      `variable.varType` -> Value.Str(BOOL_TYPE),
+      `variable.domain` -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
     val inputDbNode = Node("1", Set(IO_NODE_LABEL), inputNodeProperties)
@@ -71,7 +79,7 @@ class IoNodeSpec extends UnitSpecIO:
     )
 
     def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
-      ConcreteNode[IO](HnId(123), OpName(Some("test")), IoValueIndex(index), ioNode)
+      ConcreteNode[IO](HnId(123), Some(Name("test")), ioNode, IoIndex(index), HiddenNodeState.init[IO])
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>
@@ -115,7 +123,7 @@ class IoNodeSpec extends UnitSpecIO:
 
         val hiddenNodes = ioNode.getAllConcreteNode.logValue.await
 
-        hiddenNodes mustEqual Map(IoValueIndex(0) -> Vector(conNode01, conNode02), IoValueIndex(1) -> Vector(conNode11))
+        hiddenNodes mustEqual Map(IoIndex(0) -> Vector(conNode01, conNode02), IoIndex(1) -> Vector(conNode11))
 
   "toQueryParams" should:
     "return correct properties map for InputNode" in newCase[CaseData]: data =>

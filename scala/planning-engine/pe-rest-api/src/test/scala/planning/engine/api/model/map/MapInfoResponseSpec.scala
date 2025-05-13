@@ -15,8 +15,7 @@ package planning.engine.api.model.map
 import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.values.description.OpDescription
-import planning.engine.common.values.name.OpName
+import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.knowledge.graph.{KnowledgeGraphLake, Metadata}
 
@@ -24,7 +23,7 @@ class MapInfoResponseSpec extends UnitSpecIO with AsyncMockFactory:
 
   private class CaseData extends Case:
     val mockKnowledgeGraph = mock[KnowledgeGraphLake[IO]]
-    val validMetadata = Metadata(OpName.fromString("TestMap"), OpDescription.empty)
+    val validMetadata = Metadata(Name.fromStringOptional("TestMap"), None)
     val validInputNodes = Vector(mock[InputNode[IO]])
     val validOutputNodes = Vector(mock[OutputNode[IO]])
     val testNumOfHiddenNodes = 5L
@@ -39,7 +38,7 @@ class MapInfoResponseSpec extends UnitSpecIO with AsyncMockFactory:
       MapInfoResponse.fromKnowledgeGraph(data.mockKnowledgeGraph)
         .logValue
         .asserting(_ mustEqual MapInfoResponse(
-          data.validMetadata.name.value,
+          data.validMetadata.name.map(_.value),
           data.validInputNodes.size,
           data.validOutputNodes.size,
           data.testNumOfHiddenNodes

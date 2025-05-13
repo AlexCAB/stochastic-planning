@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-11 |||||||||||*/
 
-
-
 package planning.engine.map.knowledge.graph
 
 import cats.effect.IO
@@ -19,7 +17,7 @@ import neotypes.model.types.{Node, Value}
 import planning.engine.common.UnitSpecIO
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 import planning.engine.common.properties.*
-import planning.engine.common.values.node.hidden.HnId
+import planning.engine.common.values.node.HnId
 
 class KnowledgeGraphStateSpec extends UnitSpecIO:
 

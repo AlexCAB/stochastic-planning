@@ -19,7 +19,7 @@ import neotypes.query.QueryArg.Param
 import cats.syntax.all.*
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.node.hidden.HnId
+import planning.engine.common.values.node.HnId
 
 final case class KnowledgeGraphState(nextHiddenNodeId: HnId):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =

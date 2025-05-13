@@ -17,9 +17,10 @@ import neotypes.model.query.QueryParam
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
-import planning.engine.map.io.variable.IoVariable.*
 import planning.engine.common.properties.PROP_NAME
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.values.node.IoIndex
+import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
+
 import scala.jdk.CollectionConverters.*
 
 class BooleanIoVariableSpec extends UnitSpecIO:
@@ -30,43 +31,43 @@ class BooleanIoVariableSpec extends UnitSpecIO:
     val bothAcceptable = BooleanIoVariable[IO](Set(true, false))
 
     val invalidProperties = Map(
-      "var_type" -> Value.Str("bool"),
-      "domain" -> Value.ListValue(List(Value.Str("invalid")))
+      PROP_NAME.VAR_TYPE -> Value.Str(BOOL_TYPE),
+      PROP_NAME.DOMAIN -> Value.ListValue(List(Value.Str("invalid")))
     )
 
     val validProperties = Map(
-      "var_type" -> Value.Str("bool"),
-      "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP_NAME.VAR_TYPE -> Value.Str(BOOL_TYPE),
+      PROP_NAME.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
   "valueForIndex" should:
     "return false for index 0 if false is acceptable or fail otherwise" in newCase[CaseData]: data =>
-      data.falseAcceptable.valueForIndex(IoValueIndex(0)).asserting(_ mustEqual false)
-      data.trueAcceptable.valueForIndex(IoValueIndex(0)).assertThrows[AssertionError]
+      data.falseAcceptable.valueForIndex(IoIndex(0)).asserting(_ mustEqual false)
+      data.trueAcceptable.valueForIndex(IoIndex(0)).assertThrows[AssertionError]
 
     "return true for index 1 if true is acceptable or fail otherwise" in newCase[CaseData]: data =>
-      data.trueAcceptable.valueForIndex(IoValueIndex(1)).asserting(_ mustEqual true)
-      data.falseAcceptable.valueForIndex(IoValueIndex(1)).assertThrows[AssertionError]
+      data.trueAcceptable.valueForIndex(IoIndex(1)).asserting(_ mustEqual true)
+      data.falseAcceptable.valueForIndex(IoIndex(1)).assertThrows[AssertionError]
 
     "return true or false for index 1 or 0" in newCase[CaseData]: data =>
-      data.bothAcceptable.valueForIndex(IoValueIndex(0)).asserting(_ mustEqual false)
-      data.bothAcceptable.valueForIndex(IoValueIndex(1)).asserting(_ mustEqual true)
+      data.bothAcceptable.valueForIndex(IoIndex(0)).asserting(_ mustEqual false)
+      data.bothAcceptable.valueForIndex(IoIndex(1)).asserting(_ mustEqual true)
 
     "raise an AssertionError for invalid index" in newCase[CaseData]: data =>
-      data.trueAcceptable.valueForIndex(IoValueIndex(2)).assertThrows[AssertionError]
+      data.trueAcceptable.valueForIndex(IoIndex(2)).assertThrows[AssertionError]
 
   "indexForValue" should:
     "return Index(0) for false if false is acceptable or fail otherwise" in newCase[CaseData]: data =>
-      data.falseAcceptable.indexForValue(false).asserting(_ mustEqual IoValueIndex(0))
+      data.falseAcceptable.indexForValue(false).asserting(_ mustEqual IoIndex(0))
       data.trueAcceptable.indexForValue(false).assertThrows[AssertionError]
 
     "return Index(1) for true if true is acceptable or fail otherwise" in newCase[CaseData]: data =>
-      data.trueAcceptable.indexForValue(true).asserting(_ mustEqual IoValueIndex(1))
+      data.trueAcceptable.indexForValue(true).asserting(_ mustEqual IoIndex(1))
       data.falseAcceptable.indexForValue(true).assertThrows[AssertionError]
 
     "return Index(0) or Index(1) for false or true" in newCase[CaseData]: data =>
-      data.bothAcceptable.indexForValue(false).asserting(_ mustEqual IoValueIndex(0))
-      data.bothAcceptable.indexForValue(true).asserting(_ mustEqual IoValueIndex(1))
+      data.bothAcceptable.indexForValue(false).asserting(_ mustEqual IoIndex(0))
+      data.bothAcceptable.indexForValue(true).asserting(_ mustEqual IoIndex(1))
 
   "toQueryParams" should:
     "return correct properties map" in newCase[CaseData]: data =>
@@ -77,7 +78,7 @@ class BooleanIoVariableSpec extends UnitSpecIO:
             .param.asInstanceOf[java.util.Iterator[java.lang.Boolean]]
 
           params.size mustEqual 2
-          params.get(PROP_NAME.VAR_TYPE) mustEqual Some(Param(QueryParam(BOOL_TYPE_NAME)))
+          params.get(PROP_NAME.VAR_TYPE) mustEqual Some(Param(QueryParam(BOOL_TYPE)))
           acceptableValues.asScala.toSet mustEqual Set(true, false)
 
   "fromProperties" should:

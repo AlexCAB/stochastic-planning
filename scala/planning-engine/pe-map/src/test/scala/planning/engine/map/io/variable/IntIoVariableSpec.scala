@@ -15,9 +15,10 @@ package planning.engine.map.io.variable
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
-
+import planning.engine.common.properties.PROP_NAME
 import planning.engine.common.properties.QueryParamMapping.*
-import planning.engine.common.values.node.io.IoValueIndex
+import planning.engine.common.values.node.IoIndex
+import planning.engine.map.io.variable.IoVariable.*
 
 class IntIoVariableSpec extends UnitSpecIO:
 
@@ -25,15 +26,15 @@ class IntIoVariableSpec extends UnitSpecIO:
     val variable = IntIoVariable[IO](0, 10)
 
     val invalidProperties = Map(
-      "var_type" -> Value.Str("int"),
-      "min" -> Value.Integer(0),
-      "max" -> Value.Str("invalid")
+      PROP_NAME.VAR_TYPE -> Value.Str(PROP_VALUE.INT_TYPE),
+      PROP_NAME.MIN -> Value.Integer(0),
+      PROP_NAME.MAX -> Value.Str("invalid")
     )
 
     val validProperties = Map(
-      "var_type" -> Value.Str("int"),
-      "min" -> Value.Integer(0),
-      "max" -> Value.Integer(10)
+      PROP_NAME.VAR_TYPE -> Value.Str(PROP_VALUE.INT_TYPE),
+      PROP_NAME.MIN -> Value.Integer(0),
+      PROP_NAME.MAX -> Value.Integer(10)
     )
 
     val validParameters = validProperties.map:
@@ -41,14 +42,14 @@ class IntIoVariableSpec extends UnitSpecIO:
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(IoValueIndex(5)).asserting(_ mustEqual 5)
+      data.variable.valueForIndex(IoIndex(5)).asserting(_ mustEqual 5)
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(IoValueIndex(11)).assertThrows[AssertionError]
+      data.variable.valueForIndex(IoIndex(11)).assertThrows[AssertionError]
 
   "indexForValue" should:
     "return the correct index for a valid value" in newCase[CaseData]: data =>
-      data.variable.indexForValue(5).asserting(_ mustEqual IoValueIndex(5))
+      data.variable.indexForValue(5).asserting(_ mustEqual IoIndex(5))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: data =>
       data.variable.indexForValue(11).assertThrows[AssertionError]

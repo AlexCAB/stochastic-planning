@@ -16,21 +16,21 @@ import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
-import planning.engine.common.values.name.OpName
-import planning.engine.common.values.node.hidden.HnId
-import planning.engine.map.hidden.state.node.{InitState, NodeState}
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.HnId
+import planning.engine.map.hidden.state.node.HiddenNodeState
 
 class AbstractNode[F[_]: MonadThrow](
-                                      val id: HnId,
-                                      val name: OpName,
-                                      state: AtomicCell[F, NodeState]
+    val id: HnId,
+    val name: Option[Name],
+    state: AtomicCell[F, HiddenNodeState[F]]
 ) extends HiddenNode[F]:
 
   override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
 
 object AbstractNode:
-  def apply[F[_]: Concurrent](id: HnId, name: OpName): F[AbstractNode[F]] =
+  def apply[F[_]: Concurrent](id: HnId, name: Option[Name], initState: HiddenNodeState[F]): F[AbstractNode[F]] =
     for
-      state <- AtomicCell[F].of[NodeState](InitState)
+      state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
       node = new AbstractNode[F](id, name, state)
     yield node

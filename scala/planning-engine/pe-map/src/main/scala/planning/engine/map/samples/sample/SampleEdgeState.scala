@@ -12,12 +12,12 @@
 
 package planning.engine.map.samples.sample
 
-import planning.engine.common.values.node.hidden.Index
+import planning.engine.common.values.node.HnIndex
 import planning.engine.map.samples.sample.SampleData
 
 case class SampleEdgeState(
-                            sourceValue: Index,
-                            targetValue: Index,
-                            sample: SampleData
+    sourceValue: HnIndex,
+    targetValue: HnIndex,
+    sample: SampleData
 ):
   override def toString: String = s"SampleEdgeState($sourceValue -- ${sample.id} --> $targetValue)"

@@ -15,7 +15,7 @@ package planning.engine.map.knowledge.graph
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import neotypes.model.types.Node
-import planning.engine.common.values.name.Name
+import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.BooleanIoVariable
 import planning.engine.map.samples.SamplesState
@@ -39,6 +39,6 @@ trait KnowledgeGraphTestData:
   protected lazy val allRootNodeLabels = Set(ROOT_LABEL, SAMPLES_LABEL, IO_NODES_LABEL, IO_NODE_LABEL)
   protected lazy val allIoNodeTypes = Set(InputNode.IN_NODE_TYPE, OutputNode.OUT_NODE_TYPE)
   protected lazy val allIoNodes = Set(boolInNode, boolOutNode)
-  
+
   protected lazy val graphDbData = KnowledgeGraphDbData[IO]
     .apply(testMetadata, Vector(boolInNode), Vector(boolOutNode), emptySamplesState, emptyGraphState)

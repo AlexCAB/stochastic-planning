@@ -103,7 +103,6 @@ object PROP_NAME:
   val VARIABLE = "variable"
   val IO_TYPE = "ioType"
   val ID = "id"
-  val INDEX = "index"
   val NEXT_HIDDEN_NODE_ID = "nextHiddenNodeId"
   val SAMPLES_COUNT = "sampleCount"
   val NEXT_SAMPLES_ID = "nextSampleId"

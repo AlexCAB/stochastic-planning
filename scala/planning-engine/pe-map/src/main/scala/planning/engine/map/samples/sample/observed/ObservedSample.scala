@@ -10,10 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-11 |||||||||||*/
 
-
-
 package planning.engine.map.samples.sample.observed
 
-class ObservedSample {
-
-}
+class ObservedSample {}

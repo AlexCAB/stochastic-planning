@@ -13,9 +13,9 @@
 package planning.engine.map.hidden.node
 
 import cats.MonadThrow
-import planning.engine.common.values.name.OpName
-import planning.engine.common.values.node.hidden.HnId
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.HnId
 
 trait HiddenNode[F[_]: MonadThrow]:
   def id: HnId
-  def name: OpName
+  def name: Option[Name]

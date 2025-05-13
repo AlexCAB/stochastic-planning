@@ -19,9 +19,10 @@ import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.{Samples, SamplesState}
 import cats.syntax.all.*
-import planning.engine.common.values.name.OpName
-import planning.engine.common.values.node.io.IoValueIndex
-import planning.engine.map.hidden.node.{ConcreteNode, AbstractNode}
+import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.IoIndex
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.hidden.state.node.HiddenNodeState
 
 trait KnowledgeGraphLake[F[_]]:
   def metadata: Metadata
@@ -50,16 +51,17 @@ class KnowledgeGraph[F[_]: {Async, LoggerFactory}](
 
   def getState: F[KnowledgeGraphState] = state.get
 
-  def addConcreteNode(name: OpName, ioNode: IoNode[F], valueIndex: IoValueIndex): F[ConcreteNode[F]] = state.evalModify(s =>
-    for
-      params <- ConcreteNode.makeParameters[F](s.nextHiddenNodeId, name, valueIndex)
-      neo4jNode <- database.createConcreteNode(ioNode.name, params)
-      _ <- logger.info(s"Created node: $neo4jNode")
-      concreteNode <- ConcreteNode[F](s.nextHiddenNodeId, name, valueIndex, ioNode)
-    yield (s.withIncreasedId, concreteNode)
-  )
+  def addConcreteNode(name: Option[Name], ioNode: IoNode[F], valueIndex: IoIndex): F[ConcreteNode[F]] =
+    state.evalModify(s =>
+      for
+        params <- ConcreteNode.makeParameters[F](s.nextHiddenNodeId, name, valueIndex)
+        neo4jNode <- database.createConcreteNode(ioNode.name, params)
+        _ <- logger.info(s"Created node: $neo4jNode")
+        concreteNode <- ConcreteNode[F](s.nextHiddenNodeId, name, ioNode, valueIndex, HiddenNodeState.init[F])
+      yield (s.withIncreasedId, concreteNode)
+    )
 
-  def addAbstractNode(name: OpName): F[AbstractNode[F]] = ???
+  def addAbstractNode(name: Name): F[AbstractNode[F]] = ???
 
   def countHiddenNodes: F[Long] = ???
 

@@ -8,12 +8,15 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-05-13 |||||||||||*/
 
-package planning.engine.map.hidden.state.node
 
-import cats.MonadThrow
-import planning.engine.map.hidden.node.HiddenNode
 
-case class LeafState[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState:
-  override def toString: String = parentsToString(parents)
+package planning.engine.common.values
+
+import neotypes.query.QueryArg.Param
+import planning.engine.common.properties.*
+
+trait StringVal extends Any:
+  val value: String
+  def toDbParam: Param = value.toDbParam

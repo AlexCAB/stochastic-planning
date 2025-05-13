@@ -28,7 +28,7 @@ object MapInfoResponse:
   def fromKnowledgeGraph[F[_]: {Async, LoggerFactory}](knowledgeGraph: KnowledgeGraphLake[F]): F[MapInfoResponse] =
     for
       numHiddenNodes <- knowledgeGraph.countHiddenNodes
-      mapName = knowledgeGraph.metadata.name.value
+      mapName = knowledgeGraph.metadata.name.map(_.value)
       numInputNodes = knowledgeGraph.inputNodes.size
       numOutputNodes = knowledgeGraph.outputNodes.size
     yield MapInfoResponse(mapName, numInputNodes, numOutputNodes, numHiddenNodes)

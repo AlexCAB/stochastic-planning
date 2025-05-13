@@ -18,21 +18,21 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.node.io.IoValueIndex
-import planning.engine.map.io.variable.IoVariable.BOOL_TYPE_NAME
+import planning.engine.common.values.node.IoIndex
+import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
 
 final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
-  override def valueForIndex(index: IoValueIndex): F[Boolean] = index match
-    case IoValueIndex(0) if acceptableValues.contains(false) => false.pure
-    case IoValueIndex(1) if acceptableValues.contains(true)  => true.pure
+  override def valueForIndex(index: IoIndex): F[Boolean] = index match
+    case IoIndex(0) if acceptableValues.contains(false) => false.pure
+    case IoIndex(1) if acceptableValues.contains(true)  => true.pure
     case _ => s"Invalid index ($index) or not in acceptable values: $acceptableValues".assertionError
 
-  override def indexForValue(value: Boolean): F[IoValueIndex] =
-    if acceptableValues.contains(value) then IoValueIndex(if value then 1 else 0).pure
+  override def indexForValue(value: Boolean): F[IoIndex] =
+    if acceptableValues.contains(value) then IoIndex(if value then 1 else 0).pure
     else s"Value '$value' not in acceptable values: $acceptableValues".assertionError
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.VAR_TYPE -> BOOL_TYPE_NAME.toDbParam,
+    PROP_NAME.VAR_TYPE -> BOOL_TYPE.toDbParam,
     PROP_NAME.DOMAIN -> acceptableValues.toList.toDbParam
   )
 

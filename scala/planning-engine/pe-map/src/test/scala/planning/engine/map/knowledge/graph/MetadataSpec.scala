@@ -15,31 +15,30 @@ package planning.engine.map.knowledge.graph
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.{Node, Value}
+import planning.engine.common.properties.PROP_NAME
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
-
 import planning.engine.common.properties.QueryParamMapping.*
-import planning.engine.common.values.description.OpDescription
-import planning.engine.common.values.name.OpName
+import planning.engine.common.values.text.{Description, Name}
 
 class MetadataSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
     val metadataProps = Map(
-      "name" -> Value.Str("TestName"),
-      "description" -> Value.Str("TestDescription")
+      PROP_NAME.NAME -> Value.Str("TestName"),
+      PROP_NAME.DESCRIPTION -> Value.Str("TestDescription")
     )
 
     val metadataParams = metadataProps.map:
       case (k, v) => k -> v.toParam
 
-    val metadata = Metadata(OpName(Some("TestName")), OpDescription(Some("TestDescription")))
+    val metadata = Metadata(Some(Name("TestName")), Some(Description("TestDescription")))
 
     val node = Node(
       "1",
       Set(ROOT_LABEL),
       Map(
-        "name" -> Value.Str("TestName"),
-        "description" -> Value.Str("TestDescription")
+        PROP_NAME.NAME -> Value.Str("TestName"),
+        PROP_NAME.DESCRIPTION -> Value.Str("TestDescription")
       )
     )
 

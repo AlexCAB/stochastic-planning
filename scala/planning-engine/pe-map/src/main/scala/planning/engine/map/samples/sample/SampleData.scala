@@ -12,15 +12,15 @@
 
 package planning.engine.map.samples.sample
 
-import planning.engine.common.values.name.OpName
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.sample.SampleId
 
 final case class SampleData(
     id: SampleId,
     probabilityCount: Long,
     utility: Double,
-    name: OpName,
-    description: Option[String]
+    name: Option[Name],
+    description: Option[Description]
 ):
   override def toString: String =
     s"SampleData(id=$id, probabilityCount=$probabilityCount, utility=$utility, name=$name, description=$description)"

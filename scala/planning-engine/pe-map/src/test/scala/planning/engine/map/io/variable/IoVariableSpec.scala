@@ -15,38 +15,40 @@ package planning.engine.map.io.variable
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
+import planning.engine.common.properties.PROP_NAME
+import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 
 class IoVariableSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
     val boolProperties = Map(
-      "var_type" -> Value.Str("bool"),
-      "domain" -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP_NAME.VAR_TYPE -> Value.Str(BOOL_TYPE),
+      PROP_NAME.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
     val intProperties = Map(
-      "var_type" -> Value.Str("int"),
-      "min" -> Value.Integer(0),
-      "max" -> Value.Integer(10)
+      PROP_NAME.VAR_TYPE -> Value.Str(INT_TYPE),
+      PROP_NAME.MIN -> Value.Integer(0),
+      PROP_NAME.MAX -> Value.Integer(10)
     )
 
     val floatProperties = Map(
-      "var_type" -> Value.Str("float"),
-      "min" -> Value.Decimal(0.0),
-      "max" -> Value.Decimal(10.0)
+      PROP_NAME.VAR_TYPE -> Value.Str(FLOAT_TYPE),
+      PROP_NAME.MIN -> Value.Decimal(0.0),
+      PROP_NAME.MAX -> Value.Decimal(10.0)
     )
 
     val listStrProperties = Map(
-      "var_type" -> Value.Str("list-str"),
-      "domain" -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+      PROP_NAME.VAR_TYPE -> Value.Str(LIST_STR_TYPE),
+      PROP_NAME.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
     )
 
     val invalidTypeProperties = Map(
-      "var_type" -> Value.Str("unknown")
+      PROP_NAME.VAR_TYPE -> Value.Str("unknown")
     )
 
     val missingTypeProperties = Map(
-      "domain" -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+      PROP_NAME.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
     )
 
   "fromProperties" should:

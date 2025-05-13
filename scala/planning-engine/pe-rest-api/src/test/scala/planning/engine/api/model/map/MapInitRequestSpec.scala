@@ -15,6 +15,8 @@ package planning.engine.api.model.map
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.values.*
+import planning.engine.common.values.description.OpDescription
+import planning.engine.common.values.name.{Name, OpName}
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
 import planning.engine.map.knowledge.graph.Metadata

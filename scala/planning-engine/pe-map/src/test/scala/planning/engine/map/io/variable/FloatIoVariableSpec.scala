@@ -15,9 +15,9 @@ package planning.engine.map.io.variable
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
-import planning.engine.common.values.IoValueIndex
 
 import planning.engine.common.properties.QueryParamMapping.*
+import planning.engine.common.values.node.io.IoValueIndex
 
 class FloatIoVariableSpec extends UnitSpecIO:
 

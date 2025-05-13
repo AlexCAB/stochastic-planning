@@ -15,11 +15,13 @@ package planning.engine.map.io.node
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.{HiddenNodeId, IoValueIndex, Name, OpName}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.common.properties.QueryParamMapping.*
 import cats.effect.cps.*
+import planning.engine.common.values.name.{Name, OpName}
+import planning.engine.common.values.node.hidden.HnId
+import planning.engine.common.values.node.io.IoValueIndex
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
 
 class IoNodeSpec extends UnitSpecIO:
@@ -69,7 +71,7 @@ class IoNodeSpec extends UnitSpecIO:
     )
 
     def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
-      ConcreteNode[IO](HiddenNodeId(123), OpName(Some("test")), IoValueIndex(index), ioNode)
+      ConcreteNode[IO](HnId(123), OpName(Some("test")), IoValueIndex(index), ioNode)
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>

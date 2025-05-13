@@ -17,12 +17,13 @@ import cats.effect.kernel.Concurrent
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.errors.assertionError
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{IoValueIndex, Name}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
+import planning.engine.common.values.name.Name
+import planning.engine.common.values.node.io.IoValueIndex
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
 
 type ConcreteNodeMap[F[_]] = Map[IoValueIndex, Vector[ConcreteNode[F]]]

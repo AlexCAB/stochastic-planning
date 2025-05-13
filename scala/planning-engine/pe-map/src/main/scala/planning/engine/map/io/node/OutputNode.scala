@@ -16,7 +16,7 @@ import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
-import planning.engine.common.values.Name
+import planning.engine.common.values.name.Name
 import planning.engine.map.io.variable.IoVariable
 
 class OutputNode[F[_]: MonadThrow](

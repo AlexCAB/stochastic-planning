@@ -12,7 +12,7 @@
 
 package planning.engine.map.samples.sample
 
-import planning.engine.common.values.Index
+import planning.engine.common.values.node.hidden.Index
 import planning.engine.map.samples.sample.SampleData
 
 case class SampleEdgeState(

@@ -8,18 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-05-11 |||||||||||*/
+| created: 2025-03-18 |||||||||||*/
 
-
-
-package planning.engine.common.values
+package planning.engine.common.values.node.io
 
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
 
-final case class  HiddenNodeId(value: Long) extends AnyVal:
+// IoValueIndex is used to identify the value in IoNode.
+final case class IoValueIndex(value: Long) extends AnyVal:
   def toDbParam: Param = value.toDbParam
-  def increase: HiddenNodeId = HiddenNodeId(value + 1L)
-
-object HiddenNodeId:
-  val init: HiddenNodeId = HiddenNodeId(1L)

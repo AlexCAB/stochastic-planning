@@ -17,7 +17,7 @@ import neotypes.model.types.{Node, Value}
 import planning.engine.common.UnitSpecIO
 import planning.engine.map.database.Neo4jQueries.SAMPLES_LABEL
 import planning.engine.common.properties.*
-import planning.engine.common.values.SampleId
+import planning.engine.common.values.sample.SampleId
 
 class SamplesStateSpec extends UnitSpecIO:
 

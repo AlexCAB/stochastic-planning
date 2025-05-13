@@ -18,7 +18,7 @@ import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.PROP_NAME
-import planning.engine.common.values.IoValueIndex
+import planning.engine.common.values.node.io.IoValueIndex
 
 trait IoVariable[F[_], T]:
   def valueForIndex(index: IoValueIndex): F[T]

@@ -15,10 +15,10 @@ package planning.engine.map.io.variable
 import cats.MonadThrow
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.IoValueIndex
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
+import planning.engine.common.values.node.io.IoValueIndex
 import planning.engine.map.io.variable.IoVariable.*
 
 final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) extends IoVariable[F, Double]:

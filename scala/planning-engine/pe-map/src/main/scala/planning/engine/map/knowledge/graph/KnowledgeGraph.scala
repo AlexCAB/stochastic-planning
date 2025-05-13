@@ -19,7 +19,8 @@ import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.{Samples, SamplesState}
 import cats.syntax.all.*
-import planning.engine.common.values.{IoValueIndex, OpName}
+import planning.engine.common.values.name.OpName
+import planning.engine.common.values.node.io.IoValueIndex
 import planning.engine.map.hidden.node.{ConcreteNode, AbstractNode}
 
 trait KnowledgeGraphLake[F[_]]:

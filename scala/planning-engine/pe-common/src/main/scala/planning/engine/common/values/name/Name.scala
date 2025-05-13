@@ -10,11 +10,11 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-27 |||||||||||*/
 
-package planning.engine.common.values
+package planning.engine.common.values.name
 
 import cats.ApplicativeThrow
-import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
+import planning.engine.common.errors.assertionError
 
 final case class Name(value: String) extends AnyVal
 

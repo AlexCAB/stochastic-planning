@@ -8,14 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-05 |||||||||||*/
+| created: 2025-05-13 |||||||||||*/
 
-package planning.engine.map.hidden.node
+package planning.engine.common.values
 
-import cats.MonadThrow
-import planning.engine.common.values.name.OpName
-import planning.engine.common.values.node.hidden.HnId
+import neotypes.query.QueryArg.Param
+import planning.engine.common.properties.*
 
-trait HiddenNode[F[_]: MonadThrow]:
-  def id: HnId
-  def name: OpName
+trait LongVal:
+  def value: Long
+  def toDbParam: Param = value.toDbParam

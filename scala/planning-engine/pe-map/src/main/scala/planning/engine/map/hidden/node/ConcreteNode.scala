@@ -15,15 +15,17 @@ package planning.engine.map.hidden.node
 import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{HiddenNodeId, IoValueIndex, OpName}
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.map.hidden.state.node.{InitState, NodeState}
 import planning.engine.map.io.node.IoNode
 import planning.engine.common.properties.*
+import planning.engine.common.values.name.OpName
+import planning.engine.common.values.node.hidden.HnId
+import planning.engine.common.values.node.io.IoValueIndex
 
 class ConcreteNode[F[_]: MonadThrow](
-                                      val id: HiddenNodeId,
+                                      val id: HnId,
                                       val name: OpName,
                                       val valueIndex: IoValueIndex,
                                       state: AtomicCell[F, NodeState],
@@ -36,7 +38,7 @@ class ConcreteNode[F[_]: MonadThrow](
 
 object ConcreteNode:
   def apply[F[_]: Concurrent](
-                               id: HiddenNodeId,
+                               id: HnId,
                                name: OpName,
                                sampleIndex: IoValueIndex,
                                ioValueIndex: IoValueIndex,
@@ -49,7 +51,7 @@ object ConcreteNode:
       _ <- ioNode.addConcreteNode(node)
     yield node
 
-  def makeParameters[F[_]: Concurrent](id: HiddenNodeId, name: OpName, ioValueIndex: IoValueIndex): F[Map[String, Param]] =
+  def makeParameters[F[_]: Concurrent](id: HnId, name: OpName, ioValueIndex: IoValueIndex): F[Map[String, Param]] =
     paramsOf(
       PROP_NAME.ID -> id.toDbParam,
       PROP_NAME.NAME -> name.toDbParam,

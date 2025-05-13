@@ -23,7 +23,7 @@ import planning.engine.map.samples.SamplesState
 import neotypes.cats.effect.implicits.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.Name
+import planning.engine.common.values.name.Name
 import planning.engine.map.database.model.KnowledgeGraphDbData
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for

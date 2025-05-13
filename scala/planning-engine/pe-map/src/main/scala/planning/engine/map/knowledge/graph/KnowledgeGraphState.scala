@@ -14,25 +14,25 @@ package planning.engine.map.knowledge.graph
 
 import cats.MonadThrow
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.HiddenNodeId
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
 import cats.syntax.all.*
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 import planning.engine.common.errors.assertionError
+import planning.engine.common.values.node.hidden.HnId
 
-final case class KnowledgeGraphState(nextHiddenNodeId: HiddenNodeId):
+final case class KnowledgeGraphState(nextHiddenNodeId: HnId):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
     paramsOf(PROP_NAME.NEXT_HIDDEN_NODE_ID -> nextHiddenNodeId.toDbParam)
 
   def withIncreasedId: KnowledgeGraphState = this.copy(nextHiddenNodeId = nextHiddenNodeId.increase)
 
 object KnowledgeGraphState:
-  def empty: KnowledgeGraphState = KnowledgeGraphState(HiddenNodeId.init)
+  def empty: KnowledgeGraphState = KnowledgeGraphState(HnId.init)
 
   def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[KnowledgeGraphState] =
     for
-        nextHiddenNodeId <- props.getValue[F, Long](PROP_NAME.NEXT_HIDDEN_NODE_ID).map(HiddenNodeId.apply)
+        nextHiddenNodeId <- props.getValue[F, Long](PROP_NAME.NEXT_HIDDEN_NODE_ID).map(HnId.apply)
     yield KnowledgeGraphState(nextHiddenNodeId)
 
   def fromNode[F[_]: MonadThrow](node: Node): F[KnowledgeGraphState] = node match

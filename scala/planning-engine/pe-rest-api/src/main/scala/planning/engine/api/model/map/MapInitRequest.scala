@@ -18,7 +18,8 @@ import org.http4s.circe.jsonOf
 import cats.MonadThrow
 import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
-import planning.engine.common.values.{Name, OpDescription, OpName}
+import planning.engine.common.values.description.OpDescription
+import planning.engine.common.values.name.{Name, OpName}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{
   BooleanIoVariable,

@@ -19,13 +19,13 @@ import neotypes.model.types.{Node, Value}
 import planning.engine.common.UnitSpecIO
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 import planning.engine.common.properties.*
-import planning.engine.common.values.HiddenNodeId
+import planning.engine.common.values.node.hidden.HnId
 
 class KnowledgeGraphStateSpec extends UnitSpecIO:
 
   "toQueryParams" should:
     "return a map with correct query parameters for valid state" in:
-      KnowledgeGraphState(HiddenNodeId(10L)).toQueryParams[IO]
+      KnowledgeGraphState(HnId(10L)).toQueryParams[IO]
         .logValue
         .asserting(_ mustEqual Map(PROP_NAME.NEXT_HIDDEN_NODE_ID -> 10L.toDbParam))
 
@@ -34,7 +34,7 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
       KnowledgeGraphState
         .fromProperties[IO](Map(PROP_NAME.NEXT_HIDDEN_NODE_ID -> Value.Integer(10)))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState(HiddenNodeId(10L)))
+        .asserting(_ mustEqual KnowledgeGraphState(HnId(10L)))
 
     "raise an error when required properties are missing" in:
       KnowledgeGraphState.fromProperties[IO](Map.empty)
@@ -46,7 +46,7 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
       KnowledgeGraphState
         .fromNode[IO](Node("1", Set(ROOT_LABEL), Map(PROP_NAME.NEXT_HIDDEN_NODE_ID -> Value.Integer(10))))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState(HiddenNodeId(10L)))
+        .asserting(_ mustEqual KnowledgeGraphState(HnId(10L)))
 
     "raise an error for a node without the root label" in:
       KnowledgeGraphState

@@ -15,7 +15,8 @@ package planning.engine.api.model.map
 import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.values.{OpDescription, OpName}
+import planning.engine.common.values.description.OpDescription
+import planning.engine.common.values.name.OpName
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.knowledge.graph.{KnowledgeGraphLake, Metadata}
 

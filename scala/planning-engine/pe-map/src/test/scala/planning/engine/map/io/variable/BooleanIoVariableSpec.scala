@@ -17,9 +17,9 @@ import neotypes.model.query.QueryParam
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.IoValueIndex
 import planning.engine.map.io.variable.IoVariable.*
 import planning.engine.common.properties.PROP_NAME
+import planning.engine.common.values.node.io.IoValueIndex
 import scala.jdk.CollectionConverters.*
 
 class BooleanIoVariableSpec extends UnitSpecIO:

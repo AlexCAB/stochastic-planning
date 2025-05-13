@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-27 |||||||||||*/
 
-package planning.engine.common.values
+package planning.engine.common.values.description
 
 final case class OpDescription(value: Option[String]) extends AnyVal:
   override def toString: String = value.getOrElse("---")

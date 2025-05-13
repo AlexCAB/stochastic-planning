@@ -14,11 +14,11 @@ package planning.engine.map.samples
 
 import cats.MonadThrow
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.SampleId
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.database.Neo4jQueries.SAMPLES_LABEL
 import planning.engine.map.samples.sample.SampleData
 

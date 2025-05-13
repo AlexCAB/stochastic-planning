@@ -15,7 +15,7 @@ package planning.engine.map.knowledge.graph
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import neotypes.model.types.Node
-import planning.engine.common.values.Name
+import planning.engine.common.values.name.Name
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.BooleanIoVariable
 import planning.engine.map.samples.SamplesState

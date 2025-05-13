@@ -15,10 +15,11 @@ package planning.engine.map.knowledge.graph
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.{OpDescription, OpName}
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 
 import planning.engine.common.properties.QueryParamMapping.*
+import planning.engine.common.values.description.OpDescription
+import planning.engine.common.values.name.OpName
 
 class MetadataSpec extends UnitSpecIO:
 

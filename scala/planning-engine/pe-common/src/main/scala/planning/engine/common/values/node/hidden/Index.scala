@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-12 |||||||||||*/
 
-package planning.engine.common.values
+package planning.engine.common.values.node.hidden
 
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*

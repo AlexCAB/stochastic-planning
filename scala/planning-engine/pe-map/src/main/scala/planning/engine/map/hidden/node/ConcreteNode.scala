@@ -51,9 +51,9 @@ object ConcreteNode:
       _ <- ioNode.addConcreteNode(node)
     yield node
 
-  def makeParameters[F[_]: Concurrent](id: HnId, name: Option[Name], ioValueIndex: IoIndex): F[Map[String, Param]] =
+  def makeDbParams[F[_]: Concurrent](id: HnId, name: Option[Name], ioValueIndex: IoIndex): F[Map[String, Param]] =
     paramsOf(
-      PROP_NAME.ID -> id.toDbParam,
+      PROP_NAME.HN_ID -> id.toDbParam,
       PROP_NAME.NAME -> name.map(_.toDbParam),
-      PROP_NAME.IO_VALUE_INDEX -> ioValueIndex.toDbParam
+      PROP_NAME.IO_INDEX -> ioValueIndex.toDbParam
     )

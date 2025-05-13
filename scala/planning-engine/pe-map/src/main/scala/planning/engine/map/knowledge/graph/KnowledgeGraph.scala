@@ -54,14 +54,21 @@ class KnowledgeGraph[F[_]: {Async, LoggerFactory}](
   def addConcreteNode(name: Option[Name], ioNode: IoNode[F], valueIndex: IoIndex): F[ConcreteNode[F]] =
     state.evalModify(s =>
       for
-        params <- ConcreteNode.makeParameters[F](s.nextHiddenNodeId, name, valueIndex)
-        neo4jNode <- database.createConcreteNode(ioNode.name, params)
-        _ <- logger.info(s"Created node: $neo4jNode")
+        params <- ConcreteNode.makeDbParams[F](s.nextHiddenNodeId, name, valueIndex)
+        neo4jNodes <- database.createConcreteNode(ioNode.name, params)
+        _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
         concreteNode <- ConcreteNode[F](s.nextHiddenNodeId, name, ioNode, valueIndex, HiddenNodeState.init[F])
-      yield (s.withIncreasedId, concreteNode)
+      yield (s.increasedHnId, concreteNode)
     )
 
-  def addAbstractNode(name: Name): F[AbstractNode[F]] = ???
+  def addAbstractNode(name: Option[Name]): F[AbstractNode[F]] = state.evalModify(s =>
+    for
+      params <- AbstractNode.makeDbParams[F](s.nextHiddenNodeId, name)
+      neo4jNode <- database.createAbstractNode(params)
+      _ <- logger.info(s"Created abstract Neo4j node: $neo4jNode")
+      abstractNode <- AbstractNode[F](s.nextHiddenNodeId, name, HiddenNodeState.init[F])
+    yield (s.increasedHnId, abstractNode)
+  )
 
   def countHiddenNodes: F[Long] = ???
 

@@ -19,6 +19,8 @@ import cats.syntax.all.*
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.state.node.HiddenNodeState
+import planning.engine.common.properties.*
+import neotypes.query.QueryArg.Param
 
 class AbstractNode[F[_]: MonadThrow](
     val id: HnId,
@@ -34,3 +36,8 @@ object AbstractNode:
       state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
       node = new AbstractNode[F](id, name, state)
     yield node
+
+  def makeDbParams[F[_]: Concurrent](id: HnId, name: Option[Name]): F[Map[String, Param]] = paramsOf(
+    PROP_NAME.HN_ID -> id.toDbParam,
+    PROP_NAME.NAME -> name.map(_.toDbParam)
+  )

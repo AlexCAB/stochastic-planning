@@ -23,16 +23,16 @@ import planning.engine.common.values.node.HnId
 
 final case class KnowledgeGraphState(nextHiddenNodeId: HnId):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
-    paramsOf(PROP_NAME.NEXT_HIDDEN_NODE_ID -> nextHiddenNodeId.toDbParam)
+    paramsOf(PROP_NAME.NEXT_HN_ID -> nextHiddenNodeId.toDbParam)
 
-  def withIncreasedId: KnowledgeGraphState = this.copy(nextHiddenNodeId = nextHiddenNodeId.increase)
+  def increasedHnId: KnowledgeGraphState = this.copy(nextHiddenNodeId = nextHiddenNodeId.increase)
 
 object KnowledgeGraphState:
   def empty: KnowledgeGraphState = KnowledgeGraphState(HnId.init)
 
   def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[KnowledgeGraphState] =
     for
-        nextHiddenNodeId <- props.getValue[F, Long](PROP_NAME.NEXT_HIDDEN_NODE_ID).map(HnId.apply)
+        nextHiddenNodeId <- props.getValue[F, Long](PROP_NAME.NEXT_HN_ID).map(HnId.apply)
     yield KnowledgeGraphState(nextHiddenNodeId)
 
   def fromNode[F[_]: MonadThrow](node: Node): F[KnowledgeGraphState] = node match

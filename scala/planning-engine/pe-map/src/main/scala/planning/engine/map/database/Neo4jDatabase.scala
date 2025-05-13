@@ -39,7 +39,8 @@ import planning.engine.map.database.model.KnowledgeGraphDbData
 trait Neo4jDatabaseLike[F[_]]:
   def initDatabase(data: KnowledgeGraphDbData[F]): F[Vector[Node]]
   def loadRootNodes: F[KnowledgeGraphDbData[F]]
-  def createConcreteNode(name: Name, params: Map[String, Param]): F[Node]
+  def createConcreteNode(ioNodeName: Name, params: Map[String, Param]): F[List[Node]]
+  def createAbstractNode(params: Map[String, Param]): F[Node]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
   private val conf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
@@ -74,8 +75,11 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
         (inNodes, outNodes) = splitIoNodes(ioNodes)
       yield KnowledgeGraphDbData[F](metadata, inNodes, outNodes, samplesState, graphState)
 
-  override def createConcreteNode(ioNodeName: Name, params: Map[String, Param]): F[Node] = driver
+  override def createConcreteNode(ioNodeName: Name, params: Map[String, Param]): F[List[Node]] = driver
     .transact(conf)(tx => addConcreteNode(ioNodeName.value, params)(tx))
+
+  override def createAbstractNode(params: Map[String, Param]): F[Node] = driver
+    .transact(conf)(tx => addAbstractNode(params)(tx))
 
 object Neo4jDatabase:
   def apply[F[_]: Async](connectionConf: Neo4jConnectionConf, dbName: String): Resource[F, Neo4jDatabase[F]] =

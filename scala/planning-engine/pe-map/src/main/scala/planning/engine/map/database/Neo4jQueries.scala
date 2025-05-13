@@ -61,12 +61,21 @@ trait Neo4jQueries:
       RETURN io_nodes
       """.query(ResultMapper.node).vector(tx)
 
-  def addConcreteNode[F[_]: Async](ioNodeName: String, props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
+  def addConcreteNode[F[_]: Async](
+      ioNodeName: String,
+      props: Map[String, Param]
+  )(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
-      MATCH (io:#${IO_NODE_LABEL} {#${PROP_NAME.IO_TYPE}: $ioNodeName})
+      MATCH (io:#${IO_NODE_LABEL} {#${PROP_NAME.NAME}: $ioNodeName})
       CREATE (concrete: #${CONCRETE_LABEL} ${props.qp}),
-             (concrete)-[:VALUE_EDGE]->(io)
-      RETURN io_node
+             (concrete)-[:IO_VALUE_EDGE]->(io)
+      RETURN [io, concrete]
+      """.query(ResultMapper.list(ResultMapper.node)).single(tx)
+
+  def addAbstractNode[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
+    c"""
+      CREATE (abstract: #${ABSTRACT_LABEL} ${props.qp})
+      RETURN abstract
       """.query(ResultMapper.node).single(tx)
 
 object Neo4jQueries:
@@ -75,3 +84,4 @@ object Neo4jQueries:
   val IO_NODES_LABEL = "IO_NODES"
   val IO_NODE_LABEL = "IO_NODE"
   val CONCRETE_LABEL = "CONCRETE"
+  val ABSTRACT_LABEL = "ABSTRACT"

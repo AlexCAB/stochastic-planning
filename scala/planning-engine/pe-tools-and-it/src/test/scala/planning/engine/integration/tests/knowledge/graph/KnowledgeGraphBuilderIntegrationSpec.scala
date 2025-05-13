@@ -30,7 +30,7 @@ class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[T
       builder <- KnowledgeGraphBuilder[IO](neo4jdb)
     yield (itDb, builder)
 
-  "KnowledgeGraphBuilderIntegrationSpec" should :
+  "KnowledgeGraphBuilder" should :
     "init KnowledgeGraph and load it" in : (_, builder) =>
       async[IO]:
         val createdGraph = builder.init(testMetadata, Vector(boolInNode), Vector(boolOutNode)).logValue.await

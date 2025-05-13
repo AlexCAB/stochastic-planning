@@ -16,32 +16,31 @@ import cats.effect.IO
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.UnitSpecIO
 import planning.engine.map.database.Neo4jQueries.SAMPLES_LABEL
-
 import planning.engine.common.properties.*
+import planning.engine.common.values.SampleId
 
 class SamplesStateSpec extends UnitSpecIO:
 
   "toQueryParams" should:
     "return a map with correct query parameters for valid state" in:
-      SamplesState(5L, 10L, Map.empty).toQueryParams[IO]
+      SamplesState(5L, SampleId(10L), Map.empty).toQueryParams[IO]
         .logValue
         .asserting(_ mustEqual Map(
-          "sampleCount" -> 5L.toDbParam,
-          "nextSampleId" -> 10L.toDbParam
+          PROP_NAME.SAMPLES_COUNT -> 5L.toDbParam,
+          PROP_NAME.NEXT_SAMPLES_ID -> 10L.toDbParam
         ))
 
   "fromProperties" should:
     "create a valid SamplesState from valid properties" in:
       SamplesState
-        .fromProperties[IO](Map(
-          "sampleCount" -> Value.Integer(5),
-          "nextSampleId" -> Value.Integer(10)
-        ))
+        .fromProperties[IO](
+          Map(PROP_NAME.SAMPLES_COUNT -> Value.Integer(5), PROP_NAME.NEXT_SAMPLES_ID -> Value.Integer(10))
+        )
         .logValue
-        .asserting(_ mustEqual SamplesState(5L, 10L, Map.empty))
+        .asserting(_ mustEqual SamplesState(5L, SampleId(10L), Map.empty))
 
     "raise an error when required properties are missing" in:
-      SamplesState.fromProperties[IO](Map("sampleCount" -> Value.Integer(5)))
+      SamplesState.fromProperties[IO](Map(PROP_NAME.SAMPLES_COUNT -> Value.Integer(5)))
         .logValue
         .assertThrows[AssertionError]
 
@@ -50,10 +49,7 @@ class SamplesStateSpec extends UnitSpecIO:
         .fromNode[IO](Node(
           "1",
           Set(SAMPLES_LABEL),
-          Map(
-            "sampleCount" -> Value.Integer(5),
-            "nextSampleId" -> Value.Integer(10)
-          )
+          Map(PROP_NAME.SAMPLES_COUNT -> Value.Integer(5), PROP_NAME.NEXT_SAMPLES_ID -> Value.Integer(10))
         ))
         .logValue
-        .asserting(_ mustEqual SamplesState(5L, 10L, Map.empty))
+        .asserting(_ mustEqual SamplesState(5L, SampleId(10L), Map.empty))

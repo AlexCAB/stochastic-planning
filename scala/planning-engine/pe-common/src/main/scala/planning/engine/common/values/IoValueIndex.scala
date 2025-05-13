@@ -8,12 +8,12 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-03-18 |||||||||||*/
 
-package planning.engine.map.hidden.state.node
+package planning.engine.common.values
 
-import cats.MonadThrow
-import planning.engine.map.hidden.node.HiddenNode
+import neotypes.query.QueryArg.Param
+import planning.engine.common.properties.*
 
-case class LeafSate[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState:
-  override def toString: String = parentsToString(parents)
+final case class IoValueIndex(value: Long) extends AnyVal:
+  def toDbParam: Param = value.toDbParam

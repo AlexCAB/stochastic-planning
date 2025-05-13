@@ -17,16 +17,15 @@ import cats.effect.kernel.Concurrent
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.errors.assertionError
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{Index, Name}
+import planning.engine.common.values.{IoValueIndex, Name}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
-import planning.engine.map.io.node.IoNode.*
 
-type ConcreteNodeMap[F[_]] = Map[Index, Vector[ConcreteNode[F]]]
+type ConcreteNodeMap[F[_]] = Map[IoValueIndex, Vector[ConcreteNode[F]]]
 
 trait IoNode[F[_]: MonadThrow]:
   val name: Name
@@ -48,9 +47,9 @@ trait IoNode[F[_]: MonadThrow]:
   private[map] def getAllConcreteNode: F[ConcreteNodeMap[F]] = hiddenNodes.get
 
   def toQueryParams: F[Map[String, Param]] = paramsOf(
-    IO_TYPE_PROP_NAME -> nodeType.map(t => t.toDbParam),
-    NAME_PROP_NAME -> name.value.toDbParam,
-    VARIABLE_PROP_NAME -> variable.toQueryParams
+    PROP_NAME.IO_TYPE -> nodeType.map(t => t.toDbParam),
+    PROP_NAME.NAME -> name.value.toDbParam,
+    PROP_NAME.VARIABLE -> variable.toQueryParams
   )
 
   override def equals(obj: Any): Boolean = (obj, this) match
@@ -61,15 +60,11 @@ trait IoNode[F[_]: MonadThrow]:
   override def toString: String = s"${this.getClass.getSimpleName}(name = $name, variable = $variable)"
 
 object IoNode:
-  val IO_TYPE_PROP_NAME = "io_type"
-  val NAME_PROP_NAME = "name"
-  val VARIABLE_PROP_NAME = "variable"
-
   def fromProperties[F[_]: Concurrent](properties: Map[String, Value]): F[IoNode[F]] =
     for
-      nodeType <- properties.getValue[F, String](IO_TYPE_PROP_NAME)
-      name <- properties.getValue[F, String](NAME_PROP_NAME)
-      variable <- properties.getProps(VARIABLE_PROP_NAME).flatMap(IoVariable.fromProperties[F])
+      nodeType <- properties.getValue[F, String](PROP_NAME.IO_TYPE)
+      name <- properties.getValue[F, String](PROP_NAME.NAME)
+      variable <- properties.getProps(PROP_NAME.VARIABLE).flatMap(IoVariable.fromProperties[F])
 
       ioNode <- nodeType match
         case t if t.equalsIgnoreCase(InputNode.IN_NODE_TYPE) =>

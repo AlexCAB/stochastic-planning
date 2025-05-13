@@ -16,7 +16,6 @@ import cats.effect.{IO, Resource}
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithResource
 import planning.engine.map.database.Neo4jDatabaseLike
-import planning.engine.map.samples.SamplesState
 
 import cats.effect.cps.*
 
@@ -36,7 +35,7 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
       async[IO]:
 
         mockedDb.initDatabase
-          .expects(testMetadata, Vector(boolInNode), Vector(boolOutNode), emptySamplesState)
+          .expects(graphDbData)
           .returns(IO.pure(Vector(emptyNeo4jNode)))
           .once()
 
@@ -45,6 +44,7 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
         graph.metadata mustEqual testMetadata
         graph.inputNodes mustEqual Vector(boolInNode)
         graph.outputNodes mustEqual Vector(boolOutNode)
+        graph.getState.await mustEqual emptyGraphState
 
   "KnowledgeGraphBuilder.load()" should:
     "load knowledge graph in from database" in: (mockedDb, builder) =>
@@ -52,7 +52,7 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
 
         (() => mockedDb.loadRootNodes)
           .expects()
-          .returns(IO.pure((testMetadata, Vector(boolInNode), Vector(boolOutNode), emptySamplesState)))
+          .returns(IO.pure(graphDbData))
           .once()
 
         val graph: KnowledgeGraphLake[IO] = builder.load.await
@@ -60,3 +60,4 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
         graph.metadata mustEqual testMetadata
         graph.inputNodes mustEqual Vector(boolInNode)
         graph.outputNodes mustEqual Vector(boolOutNode)
+        graph.getState.await mustEqual emptyGraphState

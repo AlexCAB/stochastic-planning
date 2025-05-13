@@ -15,13 +15,13 @@ package planning.engine.integration.tests.database
 import cats.effect.{IO, Resource}
 import cats.effect.cps.*
 import neotypes.model.types.Value
+import planning.engine.common.properties.PROP_NAME
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
 import planning.engine.map.knowledge.graph.{KnowledgeGraphTestData, Metadata}
 import planning.engine.map.samples.SamplesState
 import planning.engine.map.database.Neo4jQueries.*
 import planning.engine.map.io.node.IoNode
-import planning.engine.map.io.node.IoNode.IO_TYPE_PROP_NAME
 
 type TestResource = (WithItDb.ItDb, Neo4jDatabase[IO])
 
@@ -40,9 +40,7 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
       given WithItDb.ItDb = itDb
 
       async[IO]:
-        val createdNods = neo4jdb
-          .initDatabase(testMetadata, Vector(boolInNode), Vector(boolOutNode), emptySamplesState)
-          .logValue.await
+        val createdNods = neo4jdb.initDatabase(graphDbData).logValue.await
 
         createdNods.size mustEqual 5
         createdNods.toSet.flatMap(_.labels).map(_.toUpperCase) mustEqual allRootNodeLabels
@@ -67,7 +65,7 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
           .map(n =>
             n
               .properties
-              .getOrElse(IO_TYPE_PROP_NAME, fail(s"Not found property ${IO_TYPE_PROP_NAME} in $n"))
+              .getOrElse(PROP_NAME.IO_TYPE, fail(s"Not found property ${PROP_NAME.IO_TYPE} in $n"))
           )
           .map:
             case Value.Str(v) => v
@@ -76,9 +74,10 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
 
         ioNodes.map(n => IoNode.fromProperties[IO](n.properties)).sequence.await.toSet mustEqual allIoNodes
 
-        val (gotMetadata, gotInNodes, gotOutNodes, gotSamplesState) = neo4jdb.loadRootNodes.logValue.await
+        val loadData = neo4jdb.loadRootNodes.logValue.await
 
-        gotMetadata mustEqual testMetadata
-        gotInNodes mustEqual Vector(boolInNode)
-        gotOutNodes mustEqual Vector(boolOutNode)
-        gotSamplesState mustEqual emptySamplesState
+        loadData.metadata mustEqual testMetadata
+        loadData.inNodes mustEqual Vector(boolInNode)
+        loadData.outNodes mustEqual Vector(boolOutNode)
+        loadData.samplesState mustEqual emptySamplesState
+        loadData.graphState mustEqual emptyGraphState

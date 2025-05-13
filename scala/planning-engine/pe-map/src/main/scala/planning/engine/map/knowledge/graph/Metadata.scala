@@ -26,13 +26,13 @@ final case class Metadata(
     description: OpDescription
 ):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
-    paramsOf("name" -> name.value.toDbParam, "description" -> description.value.toDbParam)
+    paramsOf(PROP_NAME.NAME -> name.value.toDbParam, PROP_NAME.DESCRIPTION -> description.value.toDbParam)
 
 object Metadata:
   def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[Metadata] =
     for
-      name <- props.getOptional[F, String]("name").map(OpName.apply)
-      description <- props.getOptional[F, String]("description").map(OpDescription.apply)
+      name <- props.getOptional[F, String](PROP_NAME.NAME).map(OpName.apply)
+      description <- props.getOptional[F, String](PROP_NAME.DESCRIPTION).map(OpDescription.apply)
     yield Metadata(name, description)
 
   def withName(name: Option[String]): Metadata = Metadata(OpName.fromOption(name), OpDescription.empty)

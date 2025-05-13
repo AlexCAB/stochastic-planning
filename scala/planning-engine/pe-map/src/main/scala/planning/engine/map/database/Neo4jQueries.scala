@@ -19,6 +19,7 @@ import neotypes.model.query.QueryParam
 import neotypes.model.types.Node
 import neotypes.query.QueryArg.Param
 import neotypes.syntax.all.*
+import planning.engine.common.properties.PROP_NAME
 import planning.engine.map.database.Neo4jQueries.*
 
 trait Neo4jQueries:
@@ -28,22 +29,22 @@ trait Neo4jQueries:
 
   def removeAllNodes[F[_]: Async](tx: AsyncTransaction[F]): F[Unit] = c"MATCH (n) DETACH DELETE n".execute.void(tx)
 
-  def createStaticNodes[F[_]: Async](metadata: Map[String, Param], samplesState: Map[String, Param])(
+  def createStaticNodes[F[_]: Async](rootPrams: Map[String, Param], samplesParams: Map[String, Param])(
       tx: AsyncTransaction[F]
   ): F[Vector[Node]] =
     c"""
-      CREATE (root:#${ROOT_LABEL} ${metadata.qp}),
+      CREATE (root:#${ROOT_LABEL} ${rootPrams.qp}),
              (io:#${IO_NODES_LABEL}),
-             (samples: #${SAMPLES_LABEL} ${samplesState.qp}),
+             (samples: #${SAMPLES_LABEL} ${samplesParams.qp}),
              (root)-[:IO_NODES_EDGE]->(io),
              (root)-[:SAMPLES_EDGE]->(samples)
       RETURN [root, io, samples]
       """.query(ResultMapper.vector(ResultMapper.node)).single(tx)
 
-  def createIoNode[F[_]: Async](properties: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
+  def createIoNode[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
     c"""
       MATCH (io_root:#${IO_NODES_LABEL})
-      CREATE (io_node: #${IO_NODE_LABEL} ${properties.qp}),
+      CREATE (io_node: #${IO_NODE_LABEL} ${props.qp}),
              (io_root)-[:IO_NODE_EDGE]->(io_node)
       RETURN io_node
       """.query(ResultMapper.node).single(tx)
@@ -60,8 +61,17 @@ trait Neo4jQueries:
       RETURN io_nodes
       """.query(ResultMapper.node).vector(tx)
 
+  def addConcreteNode[F[_]: Async](ioNodeName: String, props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
+    c"""
+      MATCH (io:#${IO_NODE_LABEL} {#${PROP_NAME.IO_TYPE}: $ioNodeName})
+      CREATE (concrete: #${CONCRETE_LABEL} ${props.qp}),
+             (concrete)-[:VALUE_EDGE]->(io)
+      RETURN io_node
+      """.query(ResultMapper.node).single(tx)
+
 object Neo4jQueries:
   val ROOT_LABEL = "ROOT"
   val SAMPLES_LABEL = "SAMPLES"
   val IO_NODES_LABEL = "IO_NODES"
   val IO_NODE_LABEL = "IO_NODE"
+  val CONCRETE_LABEL = "CONCRETE"

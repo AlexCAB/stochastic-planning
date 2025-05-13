@@ -17,8 +17,8 @@ import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.samples.sample.SampleEdgeState
 
 trait EdgeState[F[_]: MonadThrow]:
-  val target: HiddenNode[F]
-  val samples: Vector[SampleEdgeState]
+  def target: HiddenNode[F]
+  def samples: Vector[SampleEdgeState]
 
   override def toString: String =
-    s"${this.getClass.getSimpleName}(target=${target.name}:${target.neo4jId}, samples=[${samples.mkString(", ")}])"
+    s"${this.getClass.getSimpleName}(target=${target.name}:${target.id}, samples=[${samples.mkString(", ")}])"

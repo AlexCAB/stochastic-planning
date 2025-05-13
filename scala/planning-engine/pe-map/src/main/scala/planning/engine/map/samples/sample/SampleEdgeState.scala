@@ -16,8 +16,8 @@ import planning.engine.common.values.Index
 import planning.engine.map.samples.sample.SampleData
 
 case class SampleEdgeState(
-    sourceValue: Index,
-    targetValue: Index,
-    sample: SampleData
+                            sourceValue: Index,
+                            targetValue: Index,
+                            sample: SampleData
 ):
   override def toString: String = s"SampleEdgeState($sourceValue -- ${sample.id} --> $targetValue)"

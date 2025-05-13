@@ -18,7 +18,7 @@ import cats.effect.std.AtomicCell
 import planning.engine.map.database.Neo4jDatabaseLike
 import cats.syntax.all.*
 
-class Samples[F[_]: MonadThrow](val state: AtomicCell[F, SamplesState], database: Neo4jDatabaseLike[F]):
+class Samples[F[_]: MonadThrow](state: AtomicCell[F, SamplesState], database: Neo4jDatabaseLike[F]):
   def getState: F[SamplesState] = state.get
 
 object Samples:

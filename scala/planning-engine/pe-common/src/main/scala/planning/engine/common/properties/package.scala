@@ -92,3 +92,19 @@ extension (propsMap: Map[String, Value])
   inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] =
     val keyWithDot = key + "."
     propsMap.filter((k, _) => k.startsWith(keyWithDot)).pure.removeKeyPrefix(key)
+
+object PROP_NAME:
+  val VAR_TYPE = "varType"
+  val DOMAIN = "domain"
+  val MIN = "min"
+  val MAX = "max"
+  val NAME = "name"
+  val DESCRIPTION = "description"
+  val VARIABLE = "variable"
+  val IO_TYPE = "ioType"
+  val ID = "id"
+  val INDEX = "index"
+  val NEXT_HIDDEN_NODE_ID = "nextHiddenNodeId"
+  val SAMPLES_COUNT = "sampleCount"
+  val NEXT_SAMPLES_ID = "nextSampleId"
+  val IO_VALUE_INDEX = "ioValueIndex"

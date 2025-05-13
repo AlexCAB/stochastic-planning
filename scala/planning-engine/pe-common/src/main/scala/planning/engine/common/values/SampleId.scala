@@ -12,4 +12,11 @@
 
 package planning.engine.common.values
 
-final case class SampleId(value: String) extends AnyVal
+import neotypes.query.QueryArg.Param
+import planning.engine.common.properties.*
+
+final case class SampleId(value: Long) extends AnyVal:
+  def toDbParam: Param = value.toDbParam
+
+object SampleId:
+  val init: SampleId = SampleId(1L)

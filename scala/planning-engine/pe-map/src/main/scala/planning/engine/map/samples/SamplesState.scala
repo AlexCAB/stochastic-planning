@@ -24,19 +24,19 @@ import planning.engine.map.samples.sample.SampleData
 
 final case class SamplesState(
     sampleCount: Long,
-    nextSampleId: Long,
+    nextSampleId: SampleId,
     samples: Map[SampleId, SampleData]
 ):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
-    paramsOf("sampleCount" -> sampleCount.toDbParam, "nextSampleId" -> nextSampleId.toDbParam)
+    paramsOf(PROP_NAME.SAMPLES_COUNT -> sampleCount.toDbParam, PROP_NAME.NEXT_SAMPLES_ID -> nextSampleId.toDbParam)
 
 object SamplesState:
-  def empty: SamplesState = SamplesState(0L, 1L, Map.empty)
+  def empty: SamplesState = SamplesState(0L, SampleId.init, Map.empty)
 
   def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[SamplesState] =
     for
-      sampleCount <- props.getValue[F, Long]("sampleCount")
-      nextSampleId <- props.getValue[F, Long]("nextSampleId")
+      sampleCount <- props.getValue[F, Long](PROP_NAME.SAMPLES_COUNT)
+      nextSampleId <- props.getValue[F, Long](PROP_NAME.NEXT_SAMPLES_ID).map(SampleId.apply)
     yield SamplesState(sampleCount, nextSampleId, Map.empty)
 
   def fromNode[F[_]: MonadThrow](node: Node): F[SamplesState] = node match

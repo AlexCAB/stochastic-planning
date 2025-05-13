@@ -15,7 +15,7 @@ package planning.engine.map.io.variable
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
-import planning.engine.common.values.Index
+import planning.engine.common.values.IoValueIndex
 
 import planning.engine.common.properties.QueryParamMapping.*
 
@@ -41,14 +41,14 @@ class FloatIoVariableSpec extends UnitSpecIO:
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(Index(50000)).asserting(_ mustEqual 5.0f)
+      data.variable.valueForIndex(IoValueIndex(50000)).asserting(_ mustEqual 5.0f)
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(Index(110000)).assertThrows[AssertionError]
+      data.variable.valueForIndex(IoValueIndex(110000)).assertThrows[AssertionError]
 
   "indexForValue" should:
     "return the correct index for a valid value" in newCase[CaseData]: data =>
-      data.variable.indexForValue(5.0f).asserting(_ mustEqual Index(50000))
+      data.variable.indexForValue(5.0f).asserting(_ mustEqual IoValueIndex(50000))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: data =>
       data.variable.indexForValue(11.0f).assertThrows[AssertionError]

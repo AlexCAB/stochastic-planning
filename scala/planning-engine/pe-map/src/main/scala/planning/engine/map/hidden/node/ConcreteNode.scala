@@ -15,33 +15,43 @@ package planning.engine.map.hidden.node
 import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.{Index, OpName, Neo4jId}
+import planning.engine.common.values.{HiddenNodeId, IoValueIndex, OpName}
 import cats.syntax.all.*
+import neotypes.query.QueryArg.Param
 import planning.engine.map.hidden.state.node.{InitState, NodeState}
 import planning.engine.map.io.node.IoNode
+import planning.engine.common.properties.*
 
 class ConcreteNode[F[_]: MonadThrow](
-    protected val state: AtomicCell[F, NodeState],
-    val neo4jId: Neo4jId,
-    val name: OpName,
-    val valueIndex: Index,
-    value: Any, // Used only for visualisation
-    ioNode: IoNode[F]
+                                      val id: HiddenNodeId,
+                                      val name: OpName,
+                                      val valueIndex: IoValueIndex,
+                                      state: AtomicCell[F, NodeState],
+                                      value: Any, // Used only for visualisation
+                                      ioNode: IoNode[F]
 ) extends HiddenNode[F]:
 
   override def toString: String =
-    s"ConcreteHiddenNode(neo4jId=$neo4jId, name=$name, valueIndex=$valueIndex, value=$value, ioNode=$ioNode)"
+    s"ConcreteHiddenNode(id=$id, name=$name, valueIndex=$valueIndex, value=$value, ioNode=$ioNode)"
 
 object ConcreteNode:
   def apply[F[_]: Concurrent](
-      neo4jId: Neo4jId,
-      name: OpName,
-      valueIndex: Index,
-      ioNode: IoNode[F]
+                               id: HiddenNodeId,
+                               name: OpName,
+                               sampleIndex: IoValueIndex,
+                               ioValueIndex: IoValueIndex,
+                               ioNode: IoNode[F]
   ): F[ConcreteNode[F]] =
     for
-      value <- ioNode.variable.valueForIndex(valueIndex)
+      value <- ioNode.variable.valueForIndex(ioValueIndex)
       state <- AtomicCell[F].of[NodeState](InitState)
-      node = new ConcreteNode[F](state, neo4jId, name, valueIndex, value, ioNode)
+      node = new ConcreteNode[F](id, name, ioValueIndex, state, value, ioNode)
       _ <- ioNode.addConcreteNode(node)
     yield node
+
+  def makeParameters[F[_]: Concurrent](id: HiddenNodeId, name: OpName, ioValueIndex: IoValueIndex): F[Map[String, Param]] =
+    paramsOf(
+      PROP_NAME.ID -> id.toDbParam,
+      PROP_NAME.NAME -> name.toDbParam,
+      PROP_NAME.IO_VALUE_INDEX -> ioValueIndex.toDbParam
+    )

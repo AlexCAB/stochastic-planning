@@ -17,7 +17,8 @@ import neotypes.model.query.QueryParam
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.Index
+import planning.engine.common.values.IoValueIndex
+import planning.engine.common.properties.PROP_NAME
 import planning.engine.map.io.variable.IoVariable.*
 import scala.jdk.CollectionConverters.*
 
@@ -38,14 +39,14 @@ class ListStrIoVariableSpec extends UnitSpecIO:
 
   "valueForIndex" should:
     "return the correct value for a valid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(Index(1)).asserting(_ mustEqual "b")
+      data.variable.valueForIndex(IoValueIndex(1)).asserting(_ mustEqual "b")
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: data =>
-      data.variable.valueForIndex(Index(3)).assertThrows[AssertionError]
+      data.variable.valueForIndex(IoValueIndex(3)).assertThrows[AssertionError]
 
   "indexForValue" should:
     "return the correct index for a valid value" in newCase[CaseData]: data =>
-      data.variable.indexForValue("b").asserting(_ mustEqual Index(1))
+      data.variable.indexForValue("b").asserting(_ mustEqual IoValueIndex(1))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: data =>
       data.variable.indexForValue("d").assertThrows[AssertionError]
@@ -57,11 +58,11 @@ class ListStrIoVariableSpec extends UnitSpecIO:
         .logValue
         .asserting: params =>
           val acceptableValues = params
-            .getOrElse(DOMAIN_PROP_NAME, fail(s"$DOMAIN_PROP_NAME should be present"))
+            .getOrElse(PROP_NAME.DOMAIN, fail(s"${PROP_NAME.DOMAIN} should be present"))
             .param.asInstanceOf[java.util.Iterator[java.lang.Boolean]]
 
           params.size mustEqual 2
-          params.get(VAR_TYPE_PROP_NAME) mustEqual Some(Param(QueryParam(LIST_STR_TYPE_NAME)))
+          params.get(PROP_NAME.VAR_TYPE) mustEqual Some(Param(QueryParam(LIST_STR_TYPE_NAME)))
           acceptableValues.asScala.toVector mustEqual Vector("a", "b", "c")
 
   "fromProperties" should:

@@ -12,8 +12,12 @@
 
 package planning.engine.common.values
 
+import neotypes.query.QueryArg.Param
+import planning.engine.common.properties.*
+
 final case class OpName(value: Option[String]) extends AnyVal:
   override def toString: String = value.getOrElse("---")
+  def toDbParam: Option[Param] = value.map(_.toDbParam)
 
 object OpName:
   def fromString(value: String): OpName = OpName(if value.nonEmpty then Option(value) else None)

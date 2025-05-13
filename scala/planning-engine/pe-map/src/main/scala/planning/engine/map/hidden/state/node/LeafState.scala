@@ -10,6 +10,10 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-08 |||||||||||*/
 
-package planning.engine.common.values
+package planning.engine.map.hidden.state.node
 
-final case class Neo4jId(value: Long) extends AnyVal
+import cats.MonadThrow
+import planning.engine.map.hidden.node.HiddenNode
+
+case class LeafState[F[_]: MonadThrow](parents: Vector[HiddenNode[F]]) extends NodeState:
+  override def toString: String = parentsToString(parents)

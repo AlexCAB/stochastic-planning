@@ -17,27 +17,22 @@ import cats.syntax.all.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.Index
+import planning.engine.common.properties.PROP_NAME
+import planning.engine.common.values.IoValueIndex
 
 trait IoVariable[F[_], T]:
-  def valueForIndex(index: Index): F[T]
-  def indexForValue(value: T): F[Index]
+  def valueForIndex(index: IoValueIndex): F[T]
+  def indexForValue(value: T): F[IoValueIndex]
   def toQueryParams: F[Map[String, Param]]
 
 object IoVariable:
-
-  val VAR_TYPE_PROP_NAME = "var_type"
-  val DOMAIN_PROP_NAME = "domain"
-  val MIN_PROP_NAME = "min"
-  val MAX_PROP_NAME = "max"
-
   val BOOL_TYPE_NAME = "bool"
   val INT_TYPE_NAME = "int"
   val FLOAT_TYPE_NAME = "float"
   val LIST_STR_TYPE_NAME = "list-str"
 
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IoVariable[F, ?]] =
-    properties.get(VAR_TYPE_PROP_NAME) match
+    properties.get(PROP_NAME.VAR_TYPE) match
       case Some(Value.Str(BOOL_TYPE_NAME)) =>
         BooleanIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
 

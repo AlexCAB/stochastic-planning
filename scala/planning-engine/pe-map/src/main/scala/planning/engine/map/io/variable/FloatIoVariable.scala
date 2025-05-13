@@ -15,7 +15,7 @@ package planning.engine.map.io.variable
 import cats.MonadThrow
 import neotypes.model.types.Value
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.Index
+import planning.engine.common.values.IoValueIndex
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
@@ -24,18 +24,18 @@ import planning.engine.map.io.variable.IoVariable.*
 final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) extends IoVariable[F, Double]:
   private val scalingConstant = 10000.0
 
-  override def valueForIndex(index: Index): F[Double] = index.value / scalingConstant match
+  override def valueForIndex(index: IoValueIndex): F[Double] = index.value / scalingConstant match
     case v if v >= min && v <= max => v.pure
     case v                         => s"Value $v of index $index not in range: $min to $max".assertionError
 
-  override def indexForValue(value: Double): F[Index] = value match
-    case v if v >= min && v <= max => Index((v * scalingConstant).toLong).pure
+  override def indexForValue(value: Double): F[IoValueIndex] = value match
+    case v if v >= min && v <= max => IoValueIndex((v * scalingConstant).toLong).pure
     case v                         => s"Value $v not in range: $min to $max".assertionError
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    VAR_TYPE_PROP_NAME -> "float".toDbParam,
-    MIN_PROP_NAME -> min.toDbParam,
-    MAX_PROP_NAME -> max.toDbParam
+    PROP_NAME.VAR_TYPE -> FLOAT_TYPE_NAME.toDbParam,
+    PROP_NAME.MIN -> min.toDbParam,
+    PROP_NAME.MAX -> max.toDbParam
   )
 
   override def toString: String = s"FloatIoVariable(min = $min, min = $max)"
@@ -43,6 +43,6 @@ final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) ext
 object FloatIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[FloatIoVariable[F]] =
     for
-      min <- properties.getValue[F, Double](MIN_PROP_NAME)
-      max <- properties.getValue[F, Double](MAX_PROP_NAME)
+      min <- properties.getValue[F, Double](PROP_NAME.MIN)
+      max <- properties.getValue[F, Double](PROP_NAME.MAX)
     yield FloatIoVariable(min, max)

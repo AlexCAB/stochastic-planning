@@ -26,7 +26,7 @@ class InputNode[F[_]: MonadThrow](
 ) extends IoNode[F]
 
 object InputNode:
-  val IN_NODE_TYPE: String = "input"
+  val IN_NODE_TYPE = "input"
 
   def apply[F[_]: Concurrent](name: Name, variable: IoVariable[F, ?]): F[InputNode[F]] =
     AtomicCell[F].of[ConcreteNodeMap[F]](Map.empty).map(ac => new InputNode[F](name, variable, ac))

@@ -23,7 +23,7 @@ import planning.engine.common.errors.assertionError
 import planning.engine.map.database.model.KnowledgeGraphDbData
 
 trait KnowledgeGraphBuilderLike[F[_]]:
-  def init(metadata: Metadata, inNodes: Vector[InputNode[F]], outNodes: Vector[OutputNode[F]]): F[KnowledgeGraphLake[F]]
+  def init(metadata: Metadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[KnowledgeGraphLake[F]]
   def load: F[KnowledgeGraphLake[F]]
 
 class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
@@ -31,18 +31,18 @@ class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabas
 
   private val logger = LoggerFactory[F].getLogger
 
-  private def nodesList(nodes: Vector[Node]): String =
+  private def nodesList(nodes: List[Node]): String =
     s"${nodes.map(n => s"${n.labels.mkString(":")}:${n.elementId}").mkString(", ")}"
 
-  private def checkIoNodesNames(inNodes: Vector[InputNode[F]], outNodes: Vector[OutputNode[F]]): F[Unit] =
+  private def checkIoNodesNames(inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit] =
     val ioNames = (inNodes ++ outNodes).map(_.name).groupBy(identity).values
     if ioNames.forall(_.size == 1) then Sync[F].unit
     else s"Input nodes must have unique names, but found duplicates: ${ioNames.filter(_.size > 1)}".assertionError
 
   override def init(
       metadata: Metadata,
-      inNodes: Vector[InputNode[F]],
-      outNodes: Vector[OutputNode[F]]
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]]
   ): F[KnowledgeGraphLake[F]] =
     for
       _ <- checkIoNodesNames(inNodes, outNodes)

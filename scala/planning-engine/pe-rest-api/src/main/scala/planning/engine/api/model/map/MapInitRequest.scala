@@ -32,8 +32,8 @@ import planning.engine.map.knowledge.graph.Metadata
 final case class MapInitRequest(
     name: Option[String],
     description: Option[String],
-    inputNodes: Vector[IoNodeApiDef],
-    outputNodes: Vector[IoNodeApiDef]
+    inputNodes: List[IoNodeApiDef],
+    outputNodes: List[IoNodeApiDef]
 ):
   private def toVariables[F[_]: MonadThrow](definition: IoNodeApiDef): F[IoVariable[F, ?]] = definition match
     case v: BooleanIoNode if v.acceptableValues.nonEmpty => BooleanIoVariable[F](v.acceptableValues).pure
@@ -43,9 +43,9 @@ final case class MapInitRequest(
     case _ => s"Can't convert in/out node definition $definition to variable".assertionError
 
   private def toNode[F[_]: Concurrent, N <: IoNode[F]](
-      definitions: Vector[IoNodeApiDef],
+      definitions: List[IoNodeApiDef],
       makeNode: (Name, IoVariable[F, ?]) => F[N]
-  ): F[Vector[N]] = definitions.traverse: definition =>
+  ): F[List[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)
       name <- Name.fromStringValid(definition.name)
@@ -59,8 +59,8 @@ final case class MapInitRequest(
     )
     .pure[F]
 
-  def toInputNodes[F[_]: Concurrent]: F[Vector[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _))
-  def toOutputNodes[F[_]: Concurrent]: F[Vector[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _))
+  def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _))
+  def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _))
 
 object MapInitRequest:
   import io.circe.generic.auto.*

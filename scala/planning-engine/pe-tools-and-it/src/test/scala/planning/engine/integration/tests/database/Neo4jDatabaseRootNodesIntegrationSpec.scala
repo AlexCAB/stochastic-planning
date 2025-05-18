@@ -23,12 +23,10 @@ import planning.engine.map.samples.SamplesState
 import planning.engine.map.database.Neo4jQueries.*
 import planning.engine.map.io.node.IoNode
 
-type TestResource = (WithItDb.ItDb, Neo4jDatabase[IO])
+class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])] 
+  with WithItDb with KnowledgeGraphTestData:
 
-class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[TestResource] with WithItDb
-    with KnowledgeGraphTestData:
-
-  override val resource: Resource[IO, TestResource] =
+  override val resource: Resource[IO,  (WithItDb.ItDb, Neo4jDatabase[IO])] =
     for
       itDb <- makeDb
       neo4jdb <- Neo4jDatabase[IO](itDb.config, itDb.dbName)
@@ -77,7 +75,7 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
         val loadData = neo4jdb.loadRootNodes.logValue.await
 
         loadData.metadata mustEqual testMetadata
-        loadData.inNodes mustEqual Vector(boolInNode)
-        loadData.outNodes mustEqual Vector(boolOutNode)
+        loadData.inNodes mustEqual List(boolInNode)
+        loadData.outNodes mustEqual List(boolOutNode)
         loadData.samplesState mustEqual emptySamplesState
         loadData.graphState mustEqual emptyGraphState

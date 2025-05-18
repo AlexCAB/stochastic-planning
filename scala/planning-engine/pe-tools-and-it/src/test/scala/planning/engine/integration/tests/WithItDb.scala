@@ -22,7 +22,7 @@ import java.util.UUID
 import scala.concurrent.duration.DurationInt
 import neotypes.cats.effect.implicits.*
 import neotypes.mappers.ResultMapper
-import neotypes.model.types.Node
+import neotypes.model.types.{Node, Value}
 import neotypes.query.DeferredQueryBuilder
 import neotypes.syntax.all.*
 import org.typelevel.log4cats.Logger
@@ -68,6 +68,18 @@ trait WithItDb:
 
     def listNode(implicit db: WithItDb.ItDb): IO[List[Node]] = queryList(ResultMapper.node)
     def singleNode(implicit db: WithItDb.ItDb): IO[Node] = querySingle(ResultMapper.node)
+
+  extension (node: Node)
+    def getProperty(key: String)(implicit db: WithItDb.ItDb): Value =
+      node.properties.getOrElse(key, fail(s"Not found property $key in $node"))
+
+    def getStringProperty(key: String)(implicit db: WithItDb.ItDb): String = node.getProperty(key) match
+      case Value.Str(v) => v
+      case _            => fail(s"Not found String property $key in $node")
+
+    def getLongProperty(key: String)(implicit db: WithItDb.ItDb): Long = node.getProperty(key) match
+      case Value.Integer(v) => v
+      case _                => fail(s"Not found Long property $key in $node")
 
 object WithItDb:
   final case class ItDb(config: Neo4jConnectionConf, driver: AsyncDriver[IO], dbName: String)

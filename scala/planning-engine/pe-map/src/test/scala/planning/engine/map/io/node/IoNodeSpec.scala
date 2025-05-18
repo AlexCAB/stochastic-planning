@@ -19,6 +19,7 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.common.properties.QueryParamMapping.*
 import cats.effect.cps.*
+import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.properties.PROP_NAME
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.IoIndex
@@ -26,8 +27,9 @@ import planning.engine.common.values.node.HnId
 import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
 import planning.engine.map.hidden.state.node.HiddenNodeState
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
+import planning.engine.map.knowledge.graph.KnowledgeGraphInternal
 
-class IoNodeSpec extends UnitSpecIO:
+class IoNodeSpec extends UnitSpecIO with AsyncMockFactory:
 
   private class CaseData extends Case:
     private val `variable.varType` = s"${PROP_NAME.VARIABLE}.${PROP_NAME.VAR_TYPE}"
@@ -72,14 +74,21 @@ class IoNodeSpec extends UnitSpecIO:
 
     val inputDbNode = Node("1", Set(IO_NODE_LABEL), inputNodeProperties)
     val outputDbNode = Node("2", Set(IO_NODE_LABEL), outputNodeProperties)
+    
+    val mockedKnowledgeGraph = mock[KnowledgeGraphInternal[IO]]
 
     def makeInputBoolNode: IO[InputNode[IO]] = InputNode[IO](
       Name("inputNode"),
       BooleanIoVariable[IO](Set(true, false))
     )
 
-    def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
-      ConcreteNode[IO](HnId(123), Some(Name("test")), ioNode, IoIndex(index), HiddenNodeState.init[IO])
+    def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] = ConcreteNode[IO](
+      HnId(123),
+      Some(Name("test")), 
+      ioNode, 
+      IoIndex(index), 
+      HiddenNodeState.init[IO],
+      mockedKnowledgeGraph)
 
   "fromProperties" should:
     "create InputNode from valid input node properties" in newCase[CaseData]: data =>
@@ -123,7 +132,7 @@ class IoNodeSpec extends UnitSpecIO:
 
         val hiddenNodes = ioNode.getAllConcreteNode.logValue.await
 
-        hiddenNodes mustEqual Map(IoIndex(0) -> Vector(conNode01, conNode02), IoIndex(1) -> Vector(conNode11))
+        hiddenNodes mustEqual Map(IoIndex(0) -> List(conNode01, conNode02), IoIndex(1) -> List(conNode11))
 
   "toQueryParams" should:
     "return correct properties map for InputNode" in newCase[CaseData]: data =>

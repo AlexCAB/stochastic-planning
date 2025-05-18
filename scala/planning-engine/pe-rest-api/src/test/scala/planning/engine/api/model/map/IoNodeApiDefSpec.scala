@@ -25,7 +25,7 @@ class IoNodeApiDefSpec extends UnitSpecIO:
     lazy val booleanIoNode: IoNodeApiDef = BooleanIoNode("boolDef", Set(true, false))
     lazy val floatIoNode: IoNodeApiDef = FloatIoNode("floatDef", min = -1, max = 1)
     lazy val intIoNode: IoNodeApiDef = IntIoNode("intDef", min = 0, max = 10)
-    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode("listStrDef", elements = Vector("a", "b", "c"))
+    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode("listStrDef", elements = List("a", "b", "c"))
 
   "IoNodeApiDef" should:
     "decode and encode BooleanIoNode" in newCase[CaseData]: data =>

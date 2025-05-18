@@ -23,7 +23,7 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
 
   "toQueryParams" should:
     "return a map with correct query parameters for valid state" in:
-      KnowledgeGraphState(HnId(10L)).toQueryParams[IO]
+      KnowledgeGraphState[IO](HnId(10L), Map()).toQueryParams
         .logValue
         .asserting(_ mustEqual Map(PROP_NAME.NEXT_HN_ID -> 10L.toDbParam))
 
@@ -32,7 +32,7 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
       KnowledgeGraphState
         .fromProperties[IO](Map(PROP_NAME.NEXT_HN_ID -> Value.Integer(10)))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState(HnId(10L)))
+        .asserting(_ mustEqual KnowledgeGraphState[IO](HnId(10L), Map()))
 
     "raise an error when required properties are missing" in:
       KnowledgeGraphState.fromProperties[IO](Map.empty)
@@ -44,7 +44,7 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
       KnowledgeGraphState
         .fromNode[IO](Node("1", Set(ROOT_LABEL), Map(PROP_NAME.NEXT_HN_ID -> Value.Integer(10))))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState(HnId(10L)))
+        .asserting(_ mustEqual KnowledgeGraphState[IO](HnId(10L), Map()))
 
     "raise an error for a node without the root label" in:
       KnowledgeGraphState

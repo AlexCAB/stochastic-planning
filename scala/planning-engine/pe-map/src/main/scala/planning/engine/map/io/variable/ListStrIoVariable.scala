@@ -21,7 +21,7 @@ import neotypes.query.QueryArg.Param
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-final case class ListStrIoVariable[F[_]: MonadThrow](elements: Vector[String]) extends IoVariable[F, String]:
+final case class ListStrIoVariable[F[_]: MonadThrow](elements: List[String]) extends IoVariable[F, String]:
   override def valueForIndex(index: IoIndex): F[String] =
     if elements.isDefinedAt(index.value.toInt) then elements(index.value.toInt).pure
     else s"Index $index out of bounds for list of size ${elements.size}".assertionError
@@ -39,4 +39,4 @@ final case class ListStrIoVariable[F[_]: MonadThrow](elements: Vector[String]) e
 
 object ListStrIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ListStrIoVariable[F]] =
-    properties.getList[F, String](PROP_NAME.DOMAIN).map(es => ListStrIoVariable(es.toVector))
+    properties.getList[F, String](PROP_NAME.DOMAIN).map(es => ListStrIoVariable(es.toList))

@@ -18,8 +18,8 @@ import planning.engine.map.samples.SamplesState
 
 final case class KnowledgeGraphDbData[F[_]](
     metadata: Metadata,
-    inNodes: Vector[InputNode[F]],
-    outNodes: Vector[OutputNode[F]],
+    inNodes: List[InputNode[F]],
+    outNodes: List[OutputNode[F]],
     samplesState: SamplesState,
-    graphState: KnowledgeGraphState
+    graphState: KnowledgeGraphState[F]
 )

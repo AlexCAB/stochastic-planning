@@ -16,19 +16,43 @@ import cats.MonadThrow
 import planning.engine.common.values.node.HnIndex
 import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.hidden.state.edge.EdgeState
+import planning.engine.common.errors.assertionError
+import planning.engine.map.database.model.extensions.is
+import cats.syntax.all.*
+import neotypes.model.types.{Node, Value}
+import planning.engine.map.database.Neo4jQueries.HN_LABEL
+import planning.engine.common.properties.*
 
 final case class HiddenNodeState[F[_]: MonadThrow](
-    parents: Vector[HiddenNode[F]],
-    children: Vector[EdgeState[F]],
-    nextHnIndex: HnIndex
+    parents: List[HiddenNode[F]],
+    children: List[EdgeState[F]],
+    nextHnIndex: HnIndex,
+    numberOfUsages: Long // Used to cound the number of usages of this node, when decrease to 0, the node is removed
 ):
-  protected def childrenToString(children: Vector[EdgeState[F]]): String =
+  private def childrenToString(children: List[EdgeState[F]]): String =
     s"${this.getClass.getSimpleName}(children=[${children.mkString(", ")}])"
 
-  protected def parentsToString(parents: Vector[HiddenNode[F]]): String =
+  private def parentsToString(parents: List[HiddenNode[F]]): String =
     s"${this.getClass.getSimpleName}(parents=[${parents.mkString(", ")}])"
 
   override def toString: String = s"${parentsToString(parents)} ==> ${childrenToString(children)}"
 
+  private[map] def increaseNumUsages: F[HiddenNodeState[F]] = this.copy(numberOfUsages = numberOfUsages + 1L).pure
+
+  private[map] def decreaseNumUsages: F[(HiddenNodeState[F], Boolean)] = numberOfUsages - 1L match
+    case 0          => (this.copy(numberOfUsages = 0), true).pure
+    case n if n < 0 => s"Seems bug: hidden node with state $this release mode times then allocated".assertionError
+    case n          => (this.copy(numberOfUsages = n), false).pure
+
 object HiddenNodeState:
-  def init[F[_]: MonadThrow]: HiddenNodeState[F] = HiddenNodeState(Vector.empty, Vector.empty, HnIndex.init)
+  def init[F[_]: MonadThrow]: HiddenNodeState[F] = HiddenNodeState(
+    List.empty,
+    List.empty,
+    HnIndex.init,
+    numberOfUsages = 1L
+  )
+
+  def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[HiddenNodeState[F]] =
+    for
+        nextHnIndex <- props.getValue[F, Long](PROP_NAME.NEXT_HN_INEX).map(HnIndex.apply)
+    yield HiddenNodeState(List.empty, List.empty, nextHnIndex, numberOfUsages = 1L)

@@ -18,5 +18,5 @@ import planning.engine.map.samples.sample.SampleEdgeState
 
 case class ThenEdgeState[F[_]: MonadThrow](
     target: HiddenNode[F],
-    samples: Vector[SampleEdgeState]
+    samples: List[SampleEdgeState]
 ) extends EdgeState[F]

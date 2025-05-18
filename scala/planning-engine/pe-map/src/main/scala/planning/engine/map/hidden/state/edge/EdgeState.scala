@@ -18,7 +18,7 @@ import planning.engine.map.samples.sample.SampleEdgeState
 
 trait EdgeState[F[_]: MonadThrow]:
   def target: HiddenNode[F]
-  def samples: Vector[SampleEdgeState]
+  def samples: List[SampleEdgeState]
 
   override def toString: String =
     s"${this.getClass.getSimpleName}(target=${target.name}:${target.id}, samples=[${samples.mkString(", ")}])"

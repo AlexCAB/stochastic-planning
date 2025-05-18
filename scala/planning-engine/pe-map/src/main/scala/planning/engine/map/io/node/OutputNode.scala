@@ -26,7 +26,5 @@ class OutputNode[F[_]: MonadThrow](
 ) extends IoNode[F]
 
 object OutputNode:
-  val OUT_NODE_TYPE: String = "output"
-
   def apply[F[_]: Concurrent](name: Name, variable: IoVariable[F, ?]): F[OutputNode[F]] =
     AtomicCell[F].of[ConcreteNodeMap[F]](Map.empty).map(ac => new OutputNode[F](name, variable, ac))

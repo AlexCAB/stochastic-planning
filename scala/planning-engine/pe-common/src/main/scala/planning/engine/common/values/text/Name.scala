@@ -12,17 +12,8 @@
 
 package planning.engine.common.values.text
 
-import cats.ApplicativeThrow
-import planning.engine.common.values.StringVal
-import planning.engine.common.errors.assertionError
-import cats.syntax.all.*
-
+import planning.engine.common.values.{StringBuilders, StringVal}
 final case class Name(value: String) extends AnyVal with StringVal
 
-object Name:
-  def fromStringOptional(value: String): Option[Name] = if value.nonEmpty then Some(Name(value)) else None
-  def fromOptionString(value: Option[String]): Option[Name] =
-    value.flatMap(v => if v.nonEmpty then Some(Name(v)) else None)
-
-  def fromStringValid[F[_]: ApplicativeThrow](value: String): F[Name] =
-    if value.nonEmpty then Name(value).pure else "Empty name".assertionError
+object Name extends StringBuilders[Name]:
+  protected def makeValue(str: String): Name = Name(str)

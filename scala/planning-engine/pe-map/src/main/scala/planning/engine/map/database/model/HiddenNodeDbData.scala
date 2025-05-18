@@ -8,13 +8,10 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-27 |||||||||||*/
+| created: 2025-05-17 |||||||||||*/
 
-package planning.engine.common.values.text
+package planning.engine.map.database.model
 
-import planning.engine.common.values.{StringBuilders, StringVal}
+import neotypes.model.types.Node
 
-final case class Description(value: String) extends AnyVal with StringVal
-
-object Description extends StringBuilders[Description]:
-  protected def makeValue(str: String): Description = Description(str)
+final case class HiddenNodeDbData(hiddenNode: Node, ioNode: Option[Node])

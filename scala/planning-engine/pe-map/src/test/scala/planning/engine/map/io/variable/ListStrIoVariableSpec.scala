@@ -25,7 +25,7 @@ import scala.jdk.CollectionConverters.*
 class ListStrIoVariableSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
-    val variable = ListStrIoVariable[IO](Vector("a", "b", "c"))
+    val variable = ListStrIoVariable[IO](List("a", "b", "c"))
 
     val invalidProperties = Map(
       PROP_NAME.VAR_TYPE -> Value.Str(PROP_VALUE.LIST_STR_TYPE),
@@ -63,13 +63,13 @@ class ListStrIoVariableSpec extends UnitSpecIO:
 
           params.size mustEqual 2
           params.get(PROP_NAME.VAR_TYPE) mustEqual Some(Param(QueryParam(PROP_VALUE.LIST_STR_TYPE)))
-          acceptableValues.asScala.toVector mustEqual Vector("a", "b", "c")
+          acceptableValues.asScala.toList mustEqual List("a", "b", "c")
 
   "fromProperties" should:
     "create ListStrIoVariable from valid properties" in newCase[CaseData]: data =>
       ListStrIoVariable.fromProperties[IO](data.validProperties)
         .logValue
-        .asserting(_.elements mustEqual Vector("a", "b", "c"))
+        .asserting(_.elements mustEqual List("a", "b", "c"))
 
     "raise an AssertionError for invalid properties" in newCase[CaseData]: data =>
       ListStrIoVariable.fromProperties[IO](data.invalidProperties)

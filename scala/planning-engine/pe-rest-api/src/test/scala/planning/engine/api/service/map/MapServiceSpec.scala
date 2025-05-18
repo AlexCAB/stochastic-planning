@@ -25,13 +25,13 @@ class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
   private val testMapInitRequest = MapInitRequest(
     name = Some("testMapName"),
     description = None,
-    inputNodes = Vector(BooleanIoNode("boolDef", Set(true, false))),
-    outputNodes = Vector(IntIoNode("intDef", min = 0, max = 10))
+    inputNodes = List(BooleanIoNode("boolDef", Set(true, false))),
+    outputNodes = List(IntIoNode("intDef", min = 0, max = 10))
   )
 
   private val testNumOfHiddenNodes = 5L
 
-  private def makeMockGraph(inNodes: Vector[InputNode[IO]], outNodes: Vector[OutputNode[IO]]): KnowledgeGraphLake[IO] =
+  private def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): KnowledgeGraphLake[IO] =
     val mockGraph = mock[KnowledgeGraphLake[IO]]
     (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
     (() => mockGraph.metadata).expects().returns(Metadata.withName(testMapInitRequest.name)).once()
@@ -66,7 +66,7 @@ class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
   "MapService.load()" should:
     "load knowledge graph when none exists" in newService: (mockBuilder, service) =>
       async[IO]:
-        val mockGraph = makeMockGraph(Vector(), Vector())
+        val mockGraph = makeMockGraph(List(), List())
         (() => mockBuilder.load).expects().returns(IO.pure(mockGraph)).once()
         val mapInfo = service.load.await
 

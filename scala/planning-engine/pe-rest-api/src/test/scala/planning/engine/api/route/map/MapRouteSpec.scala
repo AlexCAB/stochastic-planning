@@ -32,13 +32,13 @@ class MapRouteSpec extends UnitSpecWithResource[TestResource] with AsyncMockFact
   private val testMapInitRequest = MapInitRequest(
     name = Some("testMapName"),
     description = Some("testMapDescription"),
-    inputNodes = Vector(
+    inputNodes = List(
       BooleanIoNode("boolDef", Set(true, false)),
       FloatIoNode("floatDef", min = -1, max = 1)
     ),
-    outputNodes = Vector(
+    outputNodes = List(
       IntIoNode("intDef", min = 0, max = 10),
-      ListStrIoNode("listStrDef", elements = Vector("a", "b", "c"))
+      ListStrIoNode("listStrDef", elements = List("a", "b", "c"))
     )
   )
 

@@ -25,13 +25,13 @@ class MapInitRequestSpec extends UnitSpecIO:
     lazy val validRequest = MapInitRequest(
       name = Some("ValidMap"),
       description = Some("A valid map description"),
-      inputNodes = Vector(
+      inputNodes = List(
         BooleanIoNode("inputBoolean", Set(true, false)),
         FloatIoNode("inputFloat", 0.0f, 1.0f)
       ),
-      outputNodes = Vector(
+      outputNodes = List(
         IntIoNode("outputInt", 0, 10),
-        ListStrIoNode("outputListStr", Vector("a", "b", "c"))
+        ListStrIoNode("outputListStr", List("a", "b", "c"))
       )
     )
 
@@ -40,14 +40,14 @@ class MapInitRequestSpec extends UnitSpecIO:
       description = Description.fromStringOptional("A valid map description")
     )
 
-    lazy val expectedInputNodes = Vector(
+    lazy val expectedInputNodes = List(
       InputNode[IO](Name("inputBoolean"), BooleanIoVariable(Set(true, false))),
       InputNode[IO](Name("inputFloat"), FloatIoVariable(0.0f, 1.0f))
     ).sequence.unsafeRunSync()
 
-    lazy val expectedOutputNodes = Vector(
+    lazy val expectedOutputNodes = List(
       OutputNode[IO](Name("outputInt"), IntIoVariable(0, 10)),
-      OutputNode[IO](Name("outputListStr"), ListStrIoVariable(Vector("a", "b", "c")))
+      OutputNode[IO](Name("outputListStr"), ListStrIoVariable(List("a", "b", "c")))
     ).sequence.unsafeRunSync()
 
   "toMetadata" should:

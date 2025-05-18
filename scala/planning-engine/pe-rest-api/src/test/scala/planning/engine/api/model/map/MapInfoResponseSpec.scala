@@ -24,8 +24,8 @@ class MapInfoResponseSpec extends UnitSpecIO with AsyncMockFactory:
   private class CaseData extends Case:
     val mockKnowledgeGraph = mock[KnowledgeGraphLake[IO]]
     val validMetadata = Metadata(Name.fromStringOptional("TestMap"), None)
-    val validInputNodes = Vector(mock[InputNode[IO]])
-    val validOutputNodes = Vector(mock[OutputNode[IO]])
+    val validInputNodes = List(mock[InputNode[IO]])
+    val validOutputNodes = List(mock[OutputNode[IO]])
     val testNumOfHiddenNodes = 5L
 
     (() => mockKnowledgeGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()

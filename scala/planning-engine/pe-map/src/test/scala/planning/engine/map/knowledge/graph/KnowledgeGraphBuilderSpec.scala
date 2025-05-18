@@ -36,14 +36,14 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
 
         mockedDb.initDatabase
           .expects(graphDbData)
-          .returns(IO.pure(Vector(emptyNeo4jNode)))
+          .returns(IO.pure(List(emptyNeo4jNode)))
           .once()
 
-        val graph: KnowledgeGraphLake[IO] = builder.init(testMetadata, Vector(boolInNode), Vector(boolOutNode)).await
+        val graph: KnowledgeGraphLake[IO] = builder.init(testMetadata, List(boolInNode), List(boolOutNode)).await
 
         graph.metadata mustEqual testMetadata
-        graph.inputNodes mustEqual Vector(boolInNode)
-        graph.outputNodes mustEqual Vector(boolOutNode)
+        graph.inputNodes mustEqual List(boolInNode)
+        graph.outputNodes mustEqual List(boolOutNode)
         graph.getState.await mustEqual emptyGraphState
 
   "KnowledgeGraphBuilder.load()" should:
@@ -58,6 +58,6 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
         val graph: KnowledgeGraphLake[IO] = builder.load.await
 
         graph.metadata mustEqual testMetadata
-        graph.inputNodes mustEqual Vector(boolInNode)
-        graph.outputNodes mustEqual Vector(boolOutNode)
+        graph.inputNodes mustEqual List(boolInNode)
+        graph.outputNodes mustEqual List(boolOutNode)
         graph.getState.await mustEqual emptyGraphState

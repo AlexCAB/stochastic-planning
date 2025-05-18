@@ -33,12 +33,12 @@ class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[T
   "KnowledgeGraphBuilder" should:
     "init KnowledgeGraph and load it" in: (_, builder) =>
       async[IO]:
-        val createdGraph = builder.init(testMetadata, Vector(boolInNode), Vector(boolOutNode)).logValue.await
+        val createdGraph = builder.init(testMetadata, List(boolInNode), List(boolOutNode)).logValue.await
         val loadedGraph = builder.load.logValue.await
 
         createdGraph.metadata mustEqual testMetadata
-        createdGraph.inputNodes mustEqual Vector(boolInNode)
-        createdGraph.outputNodes mustEqual Vector(boolOutNode)
+        createdGraph.inputNodes mustEqual List(boolInNode)
+        createdGraph.outputNodes mustEqual List(boolOutNode)
         createdGraph.samples.getState.await mustEqual emptySamplesState
 
         createdGraph.metadata mustEqual loadedGraph.metadata

@@ -8,13 +8,12 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-27 |||||||||||*/
+| created: 2025-05-15 |||||||||||*/
 
-package planning.engine.common.values.text
 
-import planning.engine.common.values.{StringBuilders, StringVal}
 
-final case class Description(value: String) extends AnyVal with StringVal
+package planning.engine.map.hidden.state.node
 
-object Description extends StringBuilders[Description]:
-  protected def makeValue(str: String): Description = Description(str)
+class HiddenNodeStateSpec {
+
+}

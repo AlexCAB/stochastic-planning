@@ -21,13 +21,14 @@ import planning.engine.map.io.variable.BooleanIoVariable
 import planning.engine.map.samples.SamplesState
 import planning.engine.map.database.Neo4jQueries.*
 import planning.engine.map.database.model.KnowledgeGraphDbData
+import planning.engine.map.hidden.state.node.HiddenNodeState
 
 trait KnowledgeGraphTestData:
   self: AsyncIOSpec =>
 
   protected lazy val testMetadata = Metadata("TestMap", "Test description")
   protected lazy val emptySamplesState = SamplesState.empty
-  protected lazy val emptyGraphState = KnowledgeGraphState.empty
+  protected lazy val emptyGraphState = KnowledgeGraphState.empty[IO]
   protected lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 
   protected lazy val boolInNode =
@@ -41,4 +42,7 @@ trait KnowledgeGraphTestData:
   protected lazy val allIoNodes = Set(boolInNode, boolOutNode)
 
   protected lazy val graphDbData = KnowledgeGraphDbData[IO]
-    .apply(testMetadata, Vector(boolInNode), Vector(boolOutNode), emptySamplesState, emptyGraphState)
+    .apply(testMetadata, List(boolInNode), List(boolOutNode), emptySamplesState, emptyGraphState)
+
+  protected lazy val emptyHiddenNodeState = HiddenNodeState.init[IO]
+   

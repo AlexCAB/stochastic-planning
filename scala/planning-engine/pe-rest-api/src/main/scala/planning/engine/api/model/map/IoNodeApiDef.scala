@@ -22,7 +22,7 @@ sealed trait IoNodeApiDef:
 final case class BooleanIoNode(name: String, acceptableValues: Set[Boolean]) extends IoNodeApiDef
 final case class FloatIoNode(name: String, min: Float, max: Float) extends IoNodeApiDef
 final case class IntIoNode(name: String, min: Int, max: Int) extends IoNodeApiDef
-final case class ListStrIoNode(name: String, elements: Vector[String]) extends IoNodeApiDef
+final case class ListStrIoNode(name: String, elements: List[String]) extends IoNodeApiDef
 
 object IoNodeApiDef:
   given Encoder[IoNodeApiDef] = new Encoder[IoNodeApiDef]:

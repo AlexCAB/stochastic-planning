@@ -22,36 +22,43 @@ import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
+import planning.engine.common.values.db.Label
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.IoIndex
-import planning.engine.map.database.Neo4jQueries.IO_NODE_LABEL
+import planning.engine.map.database.Neo4jQueries.{IN_LABEL, IO_LABEL, OUT_LABEL}
+import planning.engine.map.database.model.extensions.is
 
-type ConcreteNodeMap[F[_]] = Map[IoIndex, Vector[ConcreteNode[F]]]
+type ConcreteNodeMap[F[_]] = Map[IoIndex, List[ConcreteNode[F]]]
 
 trait IoNode[F[_]: MonadThrow]:
   val name: Name
   val variable: IoVariable[F, ?]
 
-  protected val hiddenNodes: AtomicCell[F, ConcreteNodeMap[F]]
+  private lazy val thisLabel: F[Label] = this match
+    case _: InputNode[F]  => IN_LABEL.pure
+    case _: OutputNode[F] => OUT_LABEL.pure
+    case _                => s"Unknown node type: $this".assertionError
 
-  private def nodeType: F[String] = this match
-    case _: InputNode[?]  => InputNode.IN_NODE_TYPE.pure
-    case _: OutputNode[?] => OutputNode.OUT_NODE_TYPE.pure
-    case n                => s"Unknown node type: ${n.getClass.getSimpleName}".assertionError
-
-  private[map] def addConcreteNode(n: ConcreteNode[F]): F[ConcreteNode[F]] = hiddenNodes
-    .update:
-      case ns if ns.contains(n.valueIndex) => ns.updated(n.valueIndex, ns(n.valueIndex) :+ n)
-      case ns                              => ns.updated(n.valueIndex, Vector(n))
-    .as(n)
-
-  private[map] def getAllConcreteNode: F[ConcreteNodeMap[F]] = hiddenNodes.get
-
-  def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.IO_TYPE -> nodeType.map(t => t.toDbParam),
+  private lazy val thisParams: F[Map[String, Param]] = paramsOf(
     PROP_NAME.NAME -> name.value.toDbParam,
     PROP_NAME.VARIABLE -> variable.toQueryParams
   )
+
+  protected val hiddenNodes: AtomicCell[F, ConcreteNodeMap[F]]
+
+//  private[map] def addConcreteNode(n: ConcreteNode[F]): F[ConcreteNode[F]] = hiddenNodes
+//    .update:
+//      case ns if ns.contains(n.valueIndex) => ns.updated(n.valueIndex, ns(n.valueIndex) :+ n)
+//      case ns                              => ns.updated(n.valueIndex, List(n))
+//    .as(n)
+
+  private[map] def getAllConcreteNode: F[ConcreteNodeMap[F]] = hiddenNodes.get
+
+  def toQueryParams: F[(Label, Map[String, Param])] =
+    for
+      label <- thisLabel
+      params <- thisParams
+    yield (label, params)
 
   override def equals(obj: Any): Boolean = (obj, this) match
     case (that: InputNode[?], self: InputNode[?])   => self.name == that.name && self.variable == that.variable
@@ -61,22 +68,14 @@ trait IoNode[F[_]: MonadThrow]:
   override def toString: String = s"${this.getClass.getSimpleName}(name = $name, variable = $variable)"
 
 object IoNode:
-  def fromProperties[F[_]: Concurrent](properties: Map[String, Value]): F[IoNode[F]] =
-    for
-      nodeType <- properties.getValue[F, String](PROP_NAME.IO_TYPE)
-      name <- properties.getValue[F, String](PROP_NAME.NAME)
-      variable <- properties.getProps(PROP_NAME.VARIABLE).flatMap(IoVariable.fromProperties[F])
-
-      ioNode <- nodeType match
-        case t if t.equalsIgnoreCase(InputNode.IN_NODE_TYPE) =>
-          InputNode[F](Name(name), variable).map(_.asInstanceOf[IoNode[F]])
-
-        case t if t.equalsIgnoreCase(OutputNode.OUT_NODE_TYPE) =>
-          OutputNode[F](Name(name), variable).map(_.asInstanceOf[IoNode[F]])
-
-        case t => s"Unknown node type: $t".assertionError
-    yield ioNode
-
   def fromNode[F[_]: Concurrent](node: Node): F[IoNode[F]] = node match
-    case Node(_, labels, props) if labels.exists(_.equalsIgnoreCase(IO_NODE_LABEL)) => fromProperties[F](props)
-    case _ => s"Not a IO node, $node".assertionError
+    case n if n.is(IO_LABEL) =>
+      for
+        name <- node.properties.getValue[F, String](PROP_NAME.NAME).flatMap(Name.fromString)
+        variable <- node.properties.getProps(PROP_NAME.VARIABLE).flatMap(IoVariable.fromProperties[F])
+        ioNode <- node match
+          case n if n.is(IN_LABEL)  => InputNode[F](name, variable).map(_.asInstanceOf[IoNode[F]])
+          case n if n.is(OUT_LABEL) => OutputNode[F](name, variable).map(_.asInstanceOf[IoNode[F]])
+          case n                    => s"Unknown node type, node: $n".assertionError
+      yield ioNode
+    case _ => s"Not a IO node: $node".assertionError

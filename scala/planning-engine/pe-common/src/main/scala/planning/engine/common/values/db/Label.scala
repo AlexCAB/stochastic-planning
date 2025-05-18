@@ -8,13 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-27 |||||||||||*/
+| created: 2025-05-15 |||||||||||*/
 
-package planning.engine.common.values.text
+package planning.engine.common.values.db
 
-import planning.engine.common.values.{StringBuilders, StringVal}
+final case class Label(value: String) extends AnyVal:
+  override def equals(obj: Any): Boolean = obj match
+    case that: Label => this.value.equalsIgnoreCase(that.value)
+    case _           => false
 
-final case class Description(value: String) extends AnyVal with StringVal
+  def s: String = value
 
-object Description extends StringBuilders[Description]:
-  protected def makeValue(str: String): Description = Description(str)

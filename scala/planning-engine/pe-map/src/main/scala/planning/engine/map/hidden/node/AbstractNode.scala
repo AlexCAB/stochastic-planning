@@ -27,27 +27,24 @@ import planning.engine.map.knowledge.graph.KnowledgeGraphInternal
 class AbstractNode[F[_]: MonadThrow](
     val id: HnId,
     val name: Option[Name],
-    protected val nodeState: AtomicCell[F, HiddenNodeState[F]],
-   // protected val knowledgeGraph: KnowledgeGraphInternal[F]
+    protected val nodeState: AtomicCell[F, HiddenNodeState[F]]
 ) extends HiddenNode[F]:
-
-  override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
-
-object AbstractNode:
-  def apply[F[_]: Concurrent](
-      id: HnId,
-      name: Option[Name],
-      initState: HiddenNodeState[F],
-     // knowledgeGraph: KnowledgeGraphInternal[F]
-  ): F[AbstractNode[F]] =
-    for
-      state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
-      node = new AbstractNode[F](id, name, state, knowledgeGraph)
-    yield node
-
-  def makeDbParams[F[_]: Concurrent](id: HnId, name: Option[Name]): F[Map[String, Param]] = paramsOf(
+  private[map] override def toDbParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
     PROP_NAME.HN_ID -> id.toDbParam,
     PROP_NAME.NAME -> name.map(_.toDbParam)
   )
 
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[AbstractNode[F]] = ???
+  override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
+
+object AbstractNode:
+  private[map] def apply[F[_]: Concurrent](
+      id: HnId,
+      name: Option[Name],
+      initState: HiddenNodeState[F]
+  ): F[AbstractNode[F]] =
+    for
+      state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
+      node = new AbstractNode[F](id, name, state)
+    yield node
+
+  private[map] def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[AbstractNode[F]] = ???

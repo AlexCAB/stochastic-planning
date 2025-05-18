@@ -28,8 +28,7 @@ type StateNodes[F[_]] = (KnowledgeGraphState[F], List[HiddenNode[F]])
 
 final case class KnowledgeGraphState[F[_]: MonadThrow](
     nextHnIdId: HnId,
-    hnInUse: Map[HnId, HiddenNode[F]],
-    hnCached: Map[HnId, HiddenNode[F]],
+    hiddenNodes: Map[HnId, HiddenNode[F]],
     cacheQueue: Queue[HnId]
 ):
 //  private[map] def chekNextId: F[Unit] =
@@ -40,21 +39,14 @@ final case class KnowledgeGraphState[F[_]: MonadThrow](
   private[map] def toQueryParams: F[Map[String, Param]] = paramsOf(PROP_NAME.NEXT_HN_ID -> nextHnIdId.toDbParam)
 
   private[map] def uncache(id: HnId): F[KnowledgeGraphState[F]] =
-    if cacheQueue.contains(id) && hnCached.contains(id) && !hnInUse.contains(id)
-    then
-      this.copy(
-        hnInUse = hnInUse + (id -> hnCached(id)),
-        hnCached = hnCached - id,
-        cacheQueue = cacheQueue.filter(_ != id)
-      ).pure
-    else
-      (s"Invalid state for uncache operation: $id should be in cacheQueue ($cacheQueue) " +
-        s"and in hnCached ($hnCached) and not be in hnInUse ($hnInUse)").assertionError
-
-  //  def addNewHn(node: HiddenNode[F]): F[KnowledgeGraphState[F]] =
-//    if !hiddenNodes.contains(node.id)
-//    then this.copy(nextHnIdId = nextHnIdId.increase, hiddenNodes = hiddenNodes + (node.id -> node)).pure
-//    else s"Node with id ${node.id} already exists in the list: $hiddenNodes".assertionError
+    if hiddenNodes.contains(id)
+    then this.copy(cacheQueue = cacheQueue.filter(_ != id)).pure
+    else s"Invalid state for uncache operation: $id should be in hiddenNodes ($hiddenNodes)".assertionError
+    
+  private[map] def addNewHn(node: HiddenNode[F]): F[KnowledgeGraphState[F]] =
+    if !hiddenNodes.contains(node.id)
+    then this.copy(nextHnIdId = nextHnIdId.increase, hiddenNodes = hiddenNodes + (node.id -> node)).pure
+    else s"Node with id ${node.id} already exists in the list: $hiddenNodes".assertionError
 //
 //  def removeHn(node: HiddenNode[F]): F[KnowledgeGraphState[F]] =
 //    if !hiddenNodes.contains(node.id)
@@ -80,29 +72,25 @@ final case class KnowledgeGraphState[F[_]: MonadThrow](
       case Nil => loadNotFound(notFound)
           .map(nodes => (state, nodes))
 
-      case id :: tail => hnInUse.get(id) match
-          case Some(inUseNode) => inUseNode
-              .allocate[HiddenNode[F], StateNodes[F]](loop(tail, notFound, state))
-              .map((n, r) => (r._1, n :: r._2))
+      case id :: tail => hiddenNodes.get(id) match
+          case Some(node) => state
+              .uncache(id).flatMap(upState =>
+                node
+                  .allocate[HiddenNode[F], StateNodes[F]](loop(tail, notFound, upState))
+                  .map((n, res) => (res._1, node :: res._2))
+              )
 
-          case None => hnCached.get(id) match
-              case Some(cachedNode) =>
-                for
-                  (n, (st, r)) <- cachedNode.allocate[HiddenNode[F], StateNodes[F]](loop(tail, notFound, state))
-                  nst <- st.uncache(id)
-                yield (nst, n :: r)
-
-              case None => loop(tail, id :: notFound, state)
+          case None => loop(tail, id :: notFound, state)
 
     loop(ids, List(), this)
 
 object KnowledgeGraphState:
-  def empty[F[_]: MonadThrow]: KnowledgeGraphState[F] = KnowledgeGraphState[F](HnId.init, Map(), Map(), Queue())
+  def empty[F[_]: MonadThrow]: KnowledgeGraphState[F] = KnowledgeGraphState[F](HnId.init, Map(), Queue())
 
   def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[KnowledgeGraphState[F]] =
     for
         nextHiddenNodeId <- props.getValue[F, Long](PROP_NAME.NEXT_HN_ID).map(HnId.apply)
-    yield KnowledgeGraphState(nextHiddenNodeId, Map(), Map(), Queue())
+    yield KnowledgeGraphState(nextHiddenNodeId, Map(), Queue())
 
   def fromNode[F[_]: MonadThrow](node: Node): F[KnowledgeGraphState[F]] = node match
     case n if n.is(ROOT_LABEL) => fromProperties[F](n.properties)

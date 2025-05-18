@@ -32,6 +32,8 @@ trait HiddenNode[F[_]]:
   def name: Option[Name]
   protected def nodeState: AtomicCell[F, HiddenNodeState[F]]
 
+  private[map] def toDbParams[F[_] : MonadThrow]: F[Map[String, Param]]
+
   private[map] def allocate[N <: HiddenNode[F], R](block: =>F[R]): F[(N, R)] = nodeState.evalModify(state =>
     for
       nextState <- state.increaseNumUsages
@@ -53,8 +55,8 @@ object HiddenNode:
 //    case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) => (CONCRETE_LABEL, n.properties).pure
 //    case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) => (ABSTRACT_LABEL, n.properties).pure
 //    case _                   => s"Node is not a HiddenNode: $node".assertionError
-  
-  def fromNode[F[_]: MonadThrow](dbData: HiddenNodeDbData): F[HiddenNode[F]] =
+
+  private[map] def fromNode[F[_]: MonadThrow](dbData: HiddenNodeDbData): F[HiddenNode[F]] =
     node match
       case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) => 
         ConcreteNode.fromProperties(n.properties).map(_.asInstanceOf[HiddenNode[F]])

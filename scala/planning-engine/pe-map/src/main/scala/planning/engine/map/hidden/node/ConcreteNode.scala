@@ -31,35 +31,30 @@ class ConcreteNode[F[_]: MonadThrow](
     val ioNode: IoNode[F],
     val valueIndex: IoIndex,
     protected val nodeState: AtomicCell[F, HiddenNodeState[F]],
- //   protected val knowledgeGraph: KnowledgeGraphInternal[F],
     value: Any // Used only for visualisation
 
 ) extends HiddenNode[F]:
+  private[map] override def toDbParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+    PROP_NAME.HN_ID -> id.toDbParam,
+    PROP_NAME.NAME -> name.map(_.toDbParam),
+    PROP_NAME.IO_INDEX -> valueIndex.toDbParam
+  )
 
   override def toString: String =
     s"ConcreteHiddenNode(id=$id, name=$name, valueIndex=$valueIndex, value=$value, ioNode=$ioNode)"
 
 object ConcreteNode:
-  def apply[F[_]: Concurrent](
+  private[map] def apply[F[_]: Concurrent](
       id: HnId,
       name: Option[Name],
       ioNode: IoNode[F],
       ioValueIndex: IoIndex,
-      initState: HiddenNodeState[F],
-    //  knowledgeGraph: KnowledgeGraphInternal[F]
+      initState: HiddenNodeState[F]
   ): F[ConcreteNode[F]] =
     for
       value <- ioNode.variable.valueForIndex(ioValueIndex)
       state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
-      node = new ConcreteNode[F](id, name, ioNode, ioValueIndex, state, knowledgeGraph, value)
-      _ <- ioNode.addConcreteNode(node)
+      node = new ConcreteNode[F](id, name, ioNode, ioValueIndex, state, value)
     yield node
 
-  def makeDbParams[F[_]: Concurrent](id: HnId, name: Option[Name], ioValueIndex: IoIndex): F[Map[String, Param]] =
-    paramsOf(
-      PROP_NAME.HN_ID -> id.toDbParam,
-      PROP_NAME.NAME -> name.map(_.toDbParam),
-      PROP_NAME.IO_INDEX -> ioValueIndex.toDbParam
-    )
-
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ConcreteNode[F]] = ???
+  private[map] def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ConcreteNode[F]] = ???

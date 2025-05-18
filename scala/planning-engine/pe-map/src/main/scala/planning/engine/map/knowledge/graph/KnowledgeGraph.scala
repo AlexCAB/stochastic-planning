@@ -31,8 +31,8 @@ trait KnowledgeGraphLake[F[_]]:
   def outputNodes: List[OutputNode[F]]
   def samples: Samples[F]
   def getState: F[KnowledgeGraphState[F]]
-  def addConcreteNode(name: Option[Name], ioNode: IoNode[F], valueIndex: IoIndex): F[ConcreteNode[F]]
-  def addAbstractNode(name: Option[Name]): F[AbstractNode[F]]
+  def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]]
+  def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]]
   def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
   def countHiddenNodes: F[Long]
 
@@ -53,19 +53,34 @@ class KnowledgeGraph[F[_]: {Async, LoggerFactory}](
   
   override def getState: F[KnowledgeGraphState[F]] = graphState.get
 
-  override def addConcreteNode(params: List[(Option[Name], IoNode[F], IoIndex)]): F[ConcreteNode[F]] =
+  override def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]] =
     graphState.evalModify(state =>
       for
-        _ <- 
+        (nextState, concreteNodes) <- params.foldRight((state, List[ConcreteNode[F]]()).pure): 
+          case ((name, ioNode, valueIndex), buffer) => 
+            for
+                (st, acc) <- buffer
+                node <- ConcreteNode[F](st.nextHnIdId, name, ioNode, valueIndex, HiddenNodeState.init[F])
+                nst <- st.addNewHn(node)
+            yield (nst, node :: acc)
+        dbParams <- concreteNodes.map(n => n.toDbParams.map(p => (n.ioNode.name, p))).sequence
+        neo4jNodes <- database.createConcreteNodes(dbParams)         
+    
+            
+           
+            
+            
+        
         params <- ConcreteNode.makeDbParams(state.nextHnIdId, name, valueIndex)
         neo4jNodes <- database.createConcreteNode(ioNode.name, params)
+        _ <- ioNode.addConcreteNode(node)
         _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
         concreteNode <- ConcreteNode[F](state.nextHnIdId, name, ioNode, valueIndex, HiddenNodeState.init[F], this)
         nextState <- state.addNewHn(concreteNode)
       yield (nextState, concreteNode)
     )
 
-  override def addAbstractNode(params: List[Option[Name]]): F[AbstractNode[F]] = graphState.evalModify(state =>
+  override def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]] = graphState.evalModify(state =>
     for
       _ <- state.chekNextId
       params <- AbstractNode.makeDbParams[F](state.nextHnIdId, name)

@@ -27,18 +27,22 @@ final case class SamplesState(
     nextSampleId: SampleId,
     samples: Map[SampleId, SampleData]
 ):
-  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
+  private[map] def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
     paramsOf(PROP_NAME.SAMPLES_COUNT -> sampleCount.toDbParam, PROP_NAME.NEXT_SAMPLES_ID -> nextSampleId.toDbParam)
 
 object SamplesState:
-  def empty: SamplesState = SamplesState(0L, SampleId.init, Map.empty)
+  private[map] def empty: SamplesState = SamplesState(0L, SampleId.init, Map.empty)
 
-  def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[SamplesState] =
+  private[map] def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[SamplesState] =
     for
       sampleCount <- props.getValue[F, Long](PROP_NAME.SAMPLES_COUNT)
       nextSampleId <- props.getValue[F, Long](PROP_NAME.NEXT_SAMPLES_ID).map(SampleId.apply)
     yield SamplesState(sampleCount, nextSampleId, Map.empty)
 
-  def fromNode[F[_]: MonadThrow](node: Node): F[SamplesState] = node match
-    case Node(_, labels, props) if labels.exists(_.equalsIgnoreCase(SAMPLES_LABEL)) => fromProperties[F](props)
+  private[map] def fromNode[F[_]: MonadThrow](node: Node): F[SamplesState] = node match
+    case n if n.is(SAMPLES_LABEL) =>
+      for
+        sampleCount <- node.getValue[F, Long](PROP_NAME.SAMPLES_COUNT)
+        nextSampleId <- node.getValue[F, Long](PROP_NAME.NEXT_SAMPLES_ID).map(SampleId.apply)
+      yield SamplesState(sampleCount, nextSampleId, Map.empty)
     case _ => s"Not a samples node, $node".assertionError

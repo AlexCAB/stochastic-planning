@@ -17,10 +17,8 @@ import planning.engine.common.values.node.HnIndex
 import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.hidden.state.edge.EdgeState
 import planning.engine.common.errors.assertionError
-import planning.engine.map.database.model.extensions.is
 import cats.syntax.all.*
-import neotypes.model.types.{Node, Value}
-import planning.engine.map.database.Neo4jQueries.HN_LABEL
+import neotypes.model.types.Value
 import planning.engine.common.properties.*
 
 final case class HiddenNodeState[F[_]: MonadThrow](
@@ -45,14 +43,14 @@ final case class HiddenNodeState[F[_]: MonadThrow](
     case n          => (this.copy(numberOfUsages = n), false).pure
 
 object HiddenNodeState:
-  def init[F[_]: MonadThrow]: HiddenNodeState[F] = HiddenNodeState(
+  private[map] def init[F[_]: MonadThrow]: HiddenNodeState[F] = HiddenNodeState(
     List.empty,
     List.empty,
     HnIndex.init,
     numberOfUsages = 1L
   )
 
-  def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[HiddenNodeState[F]] =
+  private[map] def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[HiddenNodeState[F]] =
     for
-        nextHnIndex <- props.getValue[F, Long](PROP_NAME.NEXT_HN_INEX).map(HnIndex.apply)
+        nextHnIndex <- properties.getValue[F, Long](PROP_NAME.NEXT_HN_INEX).map(HnIndex.apply)
     yield HiddenNodeState(List.empty, List.empty, nextHnIndex, numberOfUsages = 1L)

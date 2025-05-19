@@ -20,11 +20,16 @@ import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.samples.SamplesState
 import planning.engine.common.errors.assertionError
-import planning.engine.map.database.model.KnowledgeGraphDbData
 
 trait KnowledgeGraphBuilderLike[F[_]]:
-  def init(metadata: Metadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[KnowledgeGraphLake[F]]
-  def load: F[KnowledgeGraphLake[F]]
+  def init(
+      config: KnowledgeGraphConfig,
+      metadata: Metadata,
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]]
+  ): F[KnowledgeGraphLake[F]]
+
+  def load(config: KnowledgeGraphConfig): F[KnowledgeGraphLake[F]]
 
 class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
     extends KnowledgeGraphBuilderLike[F]:
@@ -40,6 +45,7 @@ class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabas
     else s"Input nodes must have unique names, but found duplicates: ${ioNames.filter(_.size > 1)}".assertionError
 
   override def init(
+      config: KnowledgeGraphConfig,
       metadata: Metadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]]
@@ -49,18 +55,17 @@ class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabas
       samplesState <- Sync[F].pure(SamplesState.empty)
       graphState <- Sync[F].pure(KnowledgeGraphState.empty)
       createdNodes <- database
-        .initDatabase(KnowledgeGraphDbData[F](metadata, inNodes, outNodes, samplesState, graphState))
+        .initDatabase(metadata, inNodes, outNodes, samplesState, graphState)
       _ <- logger.info(s"Created nodes: ${nodesList(createdNodes)}")
-      graph <- KnowledgeGraph[F](metadata, inNodes, outNodes, samplesState, graphState, database)
+      graph <- KnowledgeGraph[F](config, metadata, inNodes, outNodes, samplesState, graphState, database)
     yield graph
 
-  override def load: F[KnowledgeGraphLake[F]] =
+  override def load(config: KnowledgeGraphConfig): F[KnowledgeGraphLake[F]] =
     for
-      data <- database.loadRootNodes
-      _ <- checkIoNodesNames(data.inNodes, data.outNodes)
-      _ <- logger.info(s"Loaded metadata: $data")
-      graph <- KnowledgeGraph[F]
-        .apply(data.metadata, data.inNodes, data.outNodes, data.samplesState, data.graphState, database)
+      (metadata, inNodes, outNodes, samplesState, graphState) <- database.loadRootNodes
+      _ <- checkIoNodesNames(inNodes, outNodes)
+      _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes, samplesState, graphState)}")
+      graph <- KnowledgeGraph[F](config, metadata, inNodes, outNodes, samplesState, graphState, database)
     yield graph
 
 object KnowledgeGraphBuilder:

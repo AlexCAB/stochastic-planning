@@ -23,7 +23,6 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.common.properties.*
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.map.knowledge.graph.KnowledgeGraphInternal
 
 class ConcreteNode[F[_]: MonadThrow](
     val id: HnId,
@@ -34,10 +33,17 @@ class ConcreteNode[F[_]: MonadThrow](
     value: Any // Used only for visualisation
 
 ) extends HiddenNode[F]:
-  private[map] override def toDbParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+
+  private[map] override def init[R](block: => F[R]): F[(HiddenNode[F], R)] =
+    ioNode.addConcreteNode(this, block).map((n, r) => (n.asInstanceOf[HiddenNode[F]], r))
+
+  private[map] override def remove[R](block: => F[R]): F[R] = ioNode.removeConcreteNode(this, block)
+
+  private[map] override def toProperties: F[Map[String, Param]] = paramsOf(
     PROP_NAME.HN_ID -> id.toDbParam,
     PROP_NAME.NAME -> name.map(_.toDbParam),
-    PROP_NAME.IO_INDEX -> valueIndex.toDbParam
+    PROP_NAME.IO_INDEX -> valueIndex.toDbParam,
+    PROP_NAME.NEXT_HN_INEX -> nodeState.get.map(_.nextHnIndex.toDbParam)
   )
 
   override def toString: String =
@@ -48,13 +54,30 @@ object ConcreteNode:
       id: HnId,
       name: Option[Name],
       ioNode: IoNode[F],
-      ioValueIndex: IoIndex,
+      valueIndex: IoIndex,
       initState: HiddenNodeState[F]
   ): F[ConcreteNode[F]] =
     for
-      value <- ioNode.variable.valueForIndex(ioValueIndex)
+      value <- ioNode.variable.valueForIndex(valueIndex)
       state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
-      node = new ConcreteNode[F](id, name, ioNode, ioValueIndex, state, value)
+      node = new ConcreteNode[F](id, name, ioNode, valueIndex, state, value)
     yield node
 
-  private[map] def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ConcreteNode[F]] = ???
+  private[map] def apply[F[_]: Concurrent](
+      id: HnId,
+      name: Option[Name],
+      ioNode: IoNode[F],
+      valueIndex: IoIndex
+  ): F[ConcreteNode[F]] = apply(id, name, ioNode, valueIndex, HiddenNodeState.init[F])
+
+  private[map] def fromProperties[F[_]: Concurrent](
+      properties: Map[String, Value],
+      ioNode: IoNode[F]
+  ): F[ConcreteNode[F]] =
+    for
+      id <- properties.getValue[F, Long](PROP_NAME.HN_ID).map(HnId.apply)
+      name <- properties.getOptional[F, String](PROP_NAME.NAME).map(_.map(Name.apply))
+      valueIndex <- properties.getValue[F, Long](PROP_NAME.IO_INDEX).map(IoIndex.apply)
+      state <- HiddenNodeState.fromProperties(properties)
+      concreteNode <- ConcreteNode(id, name, ioNode, valueIndex, state)
+    yield concreteNode

@@ -62,7 +62,7 @@ object Main extends IOApp:
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute(maintenanceService)
 
-      mapService <- MapService[IO](builder)
+      mapService <- MapService[IO](mainConf.knowledgeGraph, builder)
       mapRoute <- MapRoute(mapService)
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints

@@ -25,8 +25,6 @@ import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
-import planning.engine.map.database.model.{HiddenNodeDbData, KnowledgeGraphDbData}
-import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.common.errors.{assertionError, assertDistinct}
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
@@ -40,13 +38,21 @@ import planning.engine.common.errors.{assertionError, assertDistinct}
   */
 
 type LoadCached[R, F[_]] = (List[HnId], LoadFound[F]) => F[R]
-type LoadFound[F[_]] = List[HnId] => F[List[HiddenNodeDbData]]
+type LoadFound[F[_]] = List[HnId] => F[List[(Node, Option[Node])]]
 
 trait Neo4jDatabaseLike[F[_]]:
-  def initDatabase(data: KnowledgeGraphDbData[F]): F[List[Node]]
-  def loadRootNodes: F[KnowledgeGraphDbData[F]]
-  def createConcreteNode(ioNodeName: Name, params: Map[String, Param]): F[List[Node]]
-  def createAbstractNode(params: Map[String, Param]): F[Node]
+  def initDatabase(
+      metadata: Metadata,
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]],
+      samplesState: SamplesState,
+      graphState: KnowledgeGraphState[F]
+  ): F[List[Node]]
+
+  def loadRootNodes: F[(Metadata, List[InputNode[F]], List[OutputNode[F]], SamplesState, KnowledgeGraphState[F])]
+
+  def createConcreteNodes[R](params: List[(Name, Map[String, Param])], block: => F[Unit]): F[List[Node]]
+  def createAbstractNodes[R](params: List[Map[String, Param]]): F[List[Node]]
   def findHiddenNodesByNames[R](names: List[Name], loadCached: LoadCached[R, F]): F[R]
   def countHiddenNodes: F[Long]
 
@@ -60,36 +66,48 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       case (outNode: OutputNode[F], (inNodes, outNodes)) => (inNodes, outNodes :+ outNode)
       case (node, _)                                     => throw AssertionError(s"Invalid IoNode type: $node")
 
-  override def initDatabase(data: KnowledgeGraphDbData[F]): F[List[Node]] = driver.transact(writeConf): tx =>
+  override def initDatabase(
+      metadata: Metadata,
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]],
+      samplesState: SamplesState,
+      graphState: KnowledgeGraphState[F]
+  ): F[List[Node]] = driver.transact(writeConf): tx =>
     for
-      mtParams <- data.metadata.toQueryParams
-      graphStateParams <- data.graphState.toQueryParams
-      inParams <- data.inNodes.map(_.toQueryParams).sequence
-      outParams <- data.outNodes.map(_.toQueryParams).sequence
-      sampleParams <- data.samplesState.toQueryParams
+      mtParams <- metadata.toQueryParams
+      graphStateParams <- graphState.toQueryParams
+      inParams <- inNodes.map(_.toQueryParams).sequence
+      outParams <- outNodes.map(_.toQueryParams).sequence
+      sampleParams <- samplesState.toQueryParams
       _ <- removeAllNodesQuery(tx)
       staticNodes <- createStaticNodesQuery(mtParams ++ graphStateParams, sampleParams)(tx)
       ioNodes <- (inParams ++ outParams).map((label, params) => createIoNodeQuery(label, params)(tx)).sequence
     yield staticNodes ++ ioNodes
 
-  override def loadRootNodes: F[KnowledgeGraphDbData[F]] = driver.transact(readConf): tx =>
-    for
-      List(rootNode, samplesNode) <- readStaticNodesQuery(tx)
-      metadata <- Metadata.fromNode(rootNode)
-      graphState <- KnowledgeGraphState.fromNode(rootNode)
-      samplesState <- SamplesState.fromNode(samplesNode)
-      rawIoNodes <- readIoNodesQuery(tx)
-      ioNodes <- rawIoNodes.map(n => IoNode.fromNode(n)).sequence
-      (inNodes, outNodes) = splitIoNodes(ioNodes)
-    yield KnowledgeGraphDbData[F](metadata, inNodes, outNodes, samplesState, graphState)
+  override def loadRootNodes
+      : F[(Metadata, List[InputNode[F]], List[OutputNode[F]], SamplesState, KnowledgeGraphState[F])] =
+    driver.transact(readConf): tx =>
+      for
+        List(rootNode, samplesNode) <- readStaticNodesQuery(tx)
+        metadata <- Metadata.fromNode(rootNode)
+        graphState <- KnowledgeGraphState.fromNode(rootNode)
+        samplesState <- SamplesState.fromNode(samplesNode)
+        rawIoNodes <- readIoNodesQuery(tx)
+        ioNodes <- rawIoNodes.map(n => IoNode.fromNode(n)).sequence
+        (inNodes, outNodes) = splitIoNodes(ioNodes)
+      yield (metadata, inNodes, outNodes, samplesState, graphState)
 
-  override def createConcreteNode(ioNodeName: Name, params: Map[String, Param]): F[List[Node]] = driver
-    .transact(writeConf)(tx => addConcreteNodeQuery(ioNodeName.value, params)(tx))
+  override def createConcreteNodes[R](params: List[(Name, Map[String, Param])], block: => F[Unit]): F[List[Node]] =
+    driver.transact(writeConf): tx =>
+      for
+        nodes <- params.map((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx)).sequence
+        _ <- block
+      yield nodes.flatten
 
-  override def createAbstractNode(params: Map[String, Param]): F[Node] = driver
-    .transact(writeConf)(tx => addAbstractNodeQuery(params)(tx))
+  override def createAbstractNodes[R](params: List[Map[String, Param]]): F[List[Node]] =
+    driver.transact(writeConf)(tx => params.map(props => addAbstractNodeQuery(props)(tx)).sequence)
 
-  override def findHiddenNodesByName[R](names: List[Name], loadCached: LoadCached[R, F]): F[R] =
+  override def findHiddenNodesByNames[R](names: List[Name], loadCached: LoadCached[R, F]): F[R] =
     driver.transact(readConf): tx =>
       for
         ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
@@ -99,14 +117,14 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
           notFoundIds =>
             for
               abstractNodes <- findAbstractNodesByIdsQuery[F](notFoundIds.map(_.value))(tx)
-                .map(_.map(n => HiddenNodeDbData(n, ioNode = None)))
+                .map(_.map(n => (n, None)))
               concreteNodes <- findConcreteNodesByIdsQuery[F](notFoundIds.map(_.value))(tx).flatMap(_
                 .map:
-                  case hn :: ion :: Nil => HiddenNodeDbData(hn, Some(ion)).pure
+                  case hn :: ion :: Nil => (hn, Some(ion)).pure
                   case ns               => s"Expected exactly 2 node but got: $ns".assertionError
                 .sequence)
               allNodes = abstractNodes ++ concreteNodes
-              _ <- allNodes.map(_.hiddenNode.elementId).assertDistinct("Hidden node should be distinct")
+              _ <- allNodes.map(_._1.elementId).assertDistinct("Hidden node should be distinct")
             yield allNodes
         )
       yield result

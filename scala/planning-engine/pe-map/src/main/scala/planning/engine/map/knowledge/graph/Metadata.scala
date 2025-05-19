@@ -26,21 +26,14 @@ final case class Metadata(
     name: Option[Name],
     description: Option[Description]
 ):
-  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
+  private[map] def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
     paramsOf(PROP_NAME.NAME -> name.map(_.toDbParam), PROP_NAME.DESCRIPTION -> description.map(_.toDbParam))
 
 object Metadata:
-  def fromProperties[F[_]: MonadThrow](props: Map[String, Value]): F[Metadata] =
-    for
-      name <- props.getOptional[F, String](PROP_NAME.NAME).map(Name.fromOptionString)
-      description <- props.getOptional[F, String](PROP_NAME.DESCRIPTION).map(Description.fromOptionString)
-    yield Metadata(name, description)
-
-  def withName(name: Option[String]): Metadata = Metadata(Name.fromOptionString(name), None)
-
-  def apply(name: String, description: String): Metadata =
-    Metadata(Name.fromStringOptional(name), Description.fromStringOptional(description))
-
-  def fromNode[F[_]: MonadThrow](node: Node): F[Metadata] = node match
-    case Node(_, labels, props) if labels.exists(_.equalsIgnoreCase(ROOT_LABEL)) => fromProperties[F](props)
+  private[map] def fromNode[F[_]: MonadThrow](node: Node): F[Metadata] = node match
+    case n if n.is(ROOT_LABEL) =>
+      for
+        name <- node.getOptional[F, String](PROP_NAME.NAME).flatMap(Name.fromString)
+        description <- node.getOptional[F, String](PROP_NAME.DESCRIPTION).flatMap(Description.fromString)
+      yield Metadata(name, description)
     case _ => s"Not a root node, $node".assertionError

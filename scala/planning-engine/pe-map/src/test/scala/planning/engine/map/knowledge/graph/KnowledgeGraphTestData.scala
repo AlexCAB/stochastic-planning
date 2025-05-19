@@ -20,7 +20,6 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.BooleanIoVariable
 import planning.engine.map.samples.SamplesState
 import planning.engine.map.database.Neo4jQueries.*
-import planning.engine.map.database.model.KnowledgeGraphDbData
 import planning.engine.map.hidden.state.node.HiddenNodeState
 
 trait KnowledgeGraphTestData:

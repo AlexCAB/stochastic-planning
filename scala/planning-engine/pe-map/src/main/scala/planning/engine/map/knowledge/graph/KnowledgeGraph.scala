@@ -20,10 +20,8 @@ import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.{Samples, SamplesState}
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
-import planning.engine.map.hidden.state.node.HiddenNodeState
-import planning.engine.common.errors.assertDistinct
 
 trait KnowledgeGraphLake[F[_]]:
   def metadata: Metadata
@@ -34,61 +32,49 @@ trait KnowledgeGraphLake[F[_]]:
   def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]]
   def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]]
   def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
+  def releaseHiddenNodes(ids: List[HnId]): F[Unit]
   def countHiddenNodes: F[Long]
-
-private[map] trait KnowledgeGraphInternal[F[_]]:
-  def releaseHiddenNode(node: HiddenNode[F]): F[Unit] // Remove the node from the graph cache
 
 class KnowledgeGraph[F[_]: {Async, LoggerFactory}](
     override val metadata: Metadata,
     override val inputNodes: List[InputNode[F]],
     override val outputNodes: List[OutputNode[F]],
     override val samples: Samples[F],
+    config: KnowledgeGraphConfig,
     graphState: AtomicCell[F, KnowledgeGraphState[F]],
     database: Neo4jDatabaseLike[F]
-) extends KnowledgeGraphLake[F] with KnowledgeGraphInternal[F]:
-  (inputNodes ++ outputNodes).map(_.name).assertDistinct("Input nodes must have unique names, but found duplicates")
-  
+) extends KnowledgeGraphLake[F]:
+  private val ioNodes = inputNodes ++ outputNodes
   private val logger = LoggerFactory[F].getLogger
-  
+
+  assert(
+    ioNodes.map(_.name).distinct.size == ioNodes.size,
+    "Input and output nodes must have unique names, ioNodes: $ioNodes"
+  )
+
   override def getState: F[KnowledgeGraphState[F]] = graphState.get
 
   override def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]] =
+    def addConcreteNodeLoop(nodes: List[ConcreteNode[F]]): F[Unit] = nodes match
+      case Nil          => logger.info("All IO nodes updated")
+      case node :: tail => node.init(addConcreteNodeLoop(tail)).map(_.void)
+
     graphState.evalModify(state =>
       for
-        (nextState, concreteNodes) <- params.foldRight((state, List[ConcreteNode[F]]()).pure): 
-          case ((name, ioNode, valueIndex), buffer) => 
-            for
-                (st, acc) <- buffer
-                node <- ConcreteNode[F](st.nextHnIdId, name, ioNode, valueIndex, HiddenNodeState.init[F])
-                nst <- st.addNewHn(node)
-            yield (nst, node :: acc)
-        dbParams <- concreteNodes.map(n => n.toDbParams.map(p => (n.ioNode.name, p))).sequence
-        neo4jNodes <- database.createConcreteNodes(dbParams)         
-    
-            
-           
-            
-            
-        
-        params <- ConcreteNode.makeDbParams(state.nextHnIdId, name, valueIndex)
-        neo4jNodes <- database.createConcreteNode(ioNode.name, params)
-        _ <- ioNode.addConcreteNode(node)
+        (nextState, nodes) <- state.addHiddenNode(params, p => ConcreteNode[F](state.nextHnIdId, p._1, p._2, p._3))
+        dbParams <- nodes.map(n => n.toProperties.map(p => (n.ioNode.name, p))).sequence
+        neo4jNodes <- database.createConcreteNodes(dbParams, addConcreteNodeLoop(nodes))
         _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
-        concreteNode <- ConcreteNode[F](state.nextHnIdId, name, ioNode, valueIndex, HiddenNodeState.init[F], this)
-        nextState <- state.addNewHn(concreteNode)
-      yield (nextState, concreteNode)
+      yield (nextState, nodes)
     )
 
   override def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]] = graphState.evalModify(state =>
     for
-      _ <- state.chekNextId
-      params <- AbstractNode.makeDbParams[F](state.nextHnIdId, name)
-      neo4jNode <- database.createAbstractNode(params)
-      _ <- logger.info(s"Created abstract Neo4j node: $neo4jNode")
-      abstractNode <- AbstractNode[F](state.nextHnIdId, name, HiddenNodeState.init[F], this)
-      nextState <- state.addNewHn(abstractNode)
-    yield (nextState, abstractNode)
+      (nextState, nodes) <- state.addHiddenNode(params, p => AbstractNode[F](state.nextHnIdId, p))
+      dbParams <- nodes.map(n => n.toProperties).sequence
+      neo4jNodes <- database.createAbstractNodes(dbParams)
+      _ <- logger.info(s"Created abstract Neo4j node: $neo4jNodes")
+    yield (nextState, nodes)
   )
 
   override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = graphState.evalModify(state =>
@@ -97,18 +83,26 @@ class KnowledgeGraph[F[_]: {Async, LoggerFactory}](
       (ids, loadFound) =>
         state.findAndAllocateCached(
           ids,
-          notFoundIds => loadFound(notFoundIds).flatMap(_.map(HiddenNode.fromNode).sequence)
+          notFoundIds =>
+            loadFound(notFoundIds).flatMap(_
+              .map(dbData =>
+                IoNode
+                  .findForNode(dbData._2, ioNodes)
+                  .flatMap(ioNode => HiddenNode.fromNode(dbData._1, ioNode))
+              )
+              .sequence)
         )
     )
   )
 
+  override def releaseHiddenNodes(ids: List[HnId]): F[Unit] = graphState
+    .evalUpdate(_.releaseHns(ids, config.maxCacheSize).flatTap(_ => logger.info(s"Released nodes: $ids")))
+
   override def countHiddenNodes: F[Long] = database.countHiddenNodes
 
-  override def releaseHiddenNode(node: HiddenNode[F]): F[Unit] = graphState
-    .evalUpdate(_.removeHn(node).flatTap(_ => logger.info(s"Un-cached node: $node")))
-
 object KnowledgeGraph:
-  def apply[F[_]: {Async, LoggerFactory}](
+  private[map]  def apply[F[_]: {Async, LoggerFactory}](
+      config: KnowledgeGraphConfig,
       metadata: Metadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]],
@@ -119,5 +113,5 @@ object KnowledgeGraph:
     for
       samples <- Samples[F](samplesState, database)
       state <- AtomicCell[F].of[KnowledgeGraphState[F]](initState)
-      graph = new KnowledgeGraph[F](metadata, inNodes, outNodes, samples, state, database)
+      graph = new KnowledgeGraph[F](metadata, inNodes, outNodes, samples, config, state, database)
     yield graph

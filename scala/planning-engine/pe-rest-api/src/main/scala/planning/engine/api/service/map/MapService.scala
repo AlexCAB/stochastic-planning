@@ -15,17 +15,19 @@ package planning.engine.api.service.map
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.model.map.{MapInitRequest, MapInfoResponse}
+import planning.engine.api.model.map.{MapInfoResponse, MapInitRequest}
 import cats.syntax.all.*
-import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphLake}
+import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphConfig, KnowledgeGraphLake}
 
 trait MapServiceLike[F[_]]:
   def init(definition: MapInitRequest): F[MapInfoResponse]
   def load: F[MapInfoResponse]
 
-class MapService[F[_]: {Async,
-  LoggerFactory}](builder: KnowledgeGraphBuilderLike[F], kgCell: AtomicCell[F, Option[KnowledgeGraphLake[F]]])
-    extends MapServiceLike[F]:
+class MapService[F[_]: {Async, LoggerFactory}](
+    config: KnowledgeGraphConfig,
+    builder: KnowledgeGraphBuilderLike[F],
+    kgCell: AtomicCell[F, Option[KnowledgeGraphLake[F]]]
+) extends MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
@@ -43,7 +45,7 @@ class MapService[F[_]: {Async,
         metadata <- definition.toMetadata
         inputNodes <- definition.toInputNodes
         outputNodes <- definition.toOutputNodes
-        knowledgeGraph <- builder.init(metadata, inputNodes, outputNodes)
+        knowledgeGraph <- builder.init(config, metadata, inputNodes, outputNodes)
         info <- MapInfoResponse.fromKnowledgeGraph(knowledgeGraph)
       yield (Some(knowledgeGraph), info)
 
@@ -52,15 +54,17 @@ class MapService[F[_]: {Async,
   override def load: F[MapInfoResponse] = kgCell.evalModify:
     case None =>
       for
-        knowledgeGraph <- builder.load
+        knowledgeGraph <- builder.load(config)
         info <- MapInfoResponse.fromKnowledgeGraph(knowledgeGraph)
       yield (Some(knowledgeGraph), info)
 
     case Some(kg) => initError(kg)
 
 object MapService:
-  def apply[F[_]: {Async, LoggerFactory}](builder: KnowledgeGraphBuilderLike[F]): Resource[F, MapService[F]] =
-    Resource.eval(
-      AtomicCell[F].of[Option[KnowledgeGraphLake[F]]](None)
-        .map(kgCell => new MapService[F](builder, kgCell))
-    )
+  def apply[F[_]: {Async, LoggerFactory}](
+      config: KnowledgeGraphConfig,
+      builder: KnowledgeGraphBuilderLike[F]
+  ): Resource[F, MapService[F]] = Resource.eval(
+    AtomicCell[F].of[Option[KnowledgeGraphLake[F]]](None)
+      .map(kgCell => new MapService[F](config, builder, kgCell))
+  )

@@ -48,16 +48,15 @@ final case class MapInitRequest(
   ): F[List[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)
-      name <- Name.fromStringValid(definition.name)
+      name <- Name.fromString(definition.name)
       node <- makeNode(name, variable)
     yield node
 
-  def toMetadata[F[_]: MonadThrow]: F[Metadata] = Metadata
-    .apply(
-      name = Name.fromOptionString(name),
-      description = Description.fromOptionString(description)
-    )
-    .pure[F]
+  def toMetadata[F[_]: MonadThrow]: F[Metadata] =
+    for
+      name <- Name.fromString(name)
+      description <-Description.fromString(description)
+    yield Metadata(name, description)
 
   def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _))
   def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _))

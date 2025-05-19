@@ -22,16 +22,21 @@ import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.state.node.HiddenNodeState
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
-import planning.engine.map.knowledge.graph.KnowledgeGraphInternal
 
 class AbstractNode[F[_]: MonadThrow](
     val id: HnId,
     val name: Option[Name],
     protected val nodeState: AtomicCell[F, HiddenNodeState[F]]
 ) extends HiddenNode[F]:
-  private[map] override def toDbParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+
+  private[map] override def init[R](block: => F[R]): F[(HiddenNode[F], R)] = block.map(res => (this, res))
+
+  private[map] override def remove[R](block: => F[R]): F[R] = block
+
+  private[map] override def toProperties: F[Map[String, Param]] = paramsOf(
     PROP_NAME.HN_ID -> id.toDbParam,
-    PROP_NAME.NAME -> name.map(_.toDbParam)
+    PROP_NAME.NAME -> name.map(_.toDbParam),
+    PROP_NAME.NEXT_HN_INEX -> nodeState.get.map(_.nextHnIndex.toDbParam)
   )
 
   override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
@@ -47,4 +52,13 @@ object AbstractNode:
       node = new AbstractNode[F](id, name, state)
     yield node
 
-  private[map] def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[AbstractNode[F]] = ???
+  private[map] def apply[F[_]: Concurrent](id: HnId, name: Option[Name]): F[AbstractNode[F]] =
+    apply[F](id, name, HiddenNodeState.init[F])
+
+  private[map] def fromProperties[F[_]: Concurrent](properties: Map[String, Value]): F[AbstractNode[F]] =
+    for
+      id <- properties.getValue[F, Long](PROP_NAME.HN_ID).map(HnId.apply)
+      name <- properties.getOptional[F, String](PROP_NAME.NAME).map(_.map(Name.apply))
+      state <- HiddenNodeState.fromProperties(properties)
+      concreteNode <- AbstractNode(id, name, state)
+    yield concreteNode

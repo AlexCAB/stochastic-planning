@@ -22,7 +22,7 @@ class Samples[F[_]: MonadThrow](state: AtomicCell[F, SamplesState], database: Ne
   def getState: F[SamplesState] = state.get
 
 object Samples:
-  def apply[F[_]: Concurrent](initState: SamplesState, database: Neo4jDatabaseLike[F]): F[Samples[F]] =
+  private[map] def apply[F[_]: Concurrent](initState: SamplesState, database: Neo4jDatabaseLike[F]): F[Samples[F]] =
     for
       state <- AtomicCell[F].of[SamplesState](initState)
       samples = new Samples[F](state, database)

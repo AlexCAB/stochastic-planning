@@ -18,9 +18,9 @@ import neotypes.model.types.Value
 import planning.engine.common.properties.PROP_NAME
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
-import planning.engine.map.knowledge.graph.{KnowledgeGraphTestData, Metadata}
 import planning.engine.map.samples.SamplesState
 import planning.engine.map.database.Neo4jQueries.*
+import planning.engine.map.graph.{KnowledgeGraphTestData, MapMetadata}
 import planning.engine.map.io.node.IoNode
 
 class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])] 
@@ -43,7 +43,7 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
         createdNods.size mustEqual 5
         createdNods.toSet.flatMap(_.labels).map(_.toUpperCase) mustEqual allRootNodeLabels
 
-        Metadata
+        MapMetadata
           .fromNode[IO](c"MATCH (root:#${ROOT_LABEL}) RETURN root".singleNode.await)
           .await mustEqual testMetadata
 

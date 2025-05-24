@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-11 |||||||||||*/
 
-package planning.engine.map.knowledge.graph
+package planning.engine.map.graph
 
 import cats.effect.IO
 import neotypes.model.types.{Node, Value}
@@ -23,31 +23,31 @@ class KnowledgeGraphStateSpec extends UnitSpecIO:
 
   "toQueryParams" should:
     "return a map with correct query parameters for valid state" in:
-      KnowledgeGraphState[IO](HnId(10L), Map()).toQueryParams
+      MapCacheState[IO](HnId(10L), Map()).toQueryParams
         .logValue
         .asserting(_ mustEqual Map(PROP_NAME.NEXT_HN_ID -> 10L.toDbParam))
 
   "fromProperties" should:
     "create a valid KnowledgeGraphState from valid properties" in:
-      KnowledgeGraphState
+      MapCacheState
         .fromProperties[IO](Map(PROP_NAME.NEXT_HN_ID -> Value.Integer(10)))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState[IO](HnId(10L), Map()))
+        .asserting(_ mustEqual MapCacheState[IO](HnId(10L), Map()))
 
     "raise an error when required properties are missing" in:
-      KnowledgeGraphState.fromProperties[IO](Map.empty)
+      MapCacheState.fromProperties[IO](Map.empty)
         .logValue
         .assertThrows[AssertionError]
 
   "fromNode" should:
     "create KnowledgeGraphState from a valid root node" in:
-      KnowledgeGraphState
+      MapCacheState
         .fromNode[IO](Node("1", Set(ROOT_LABEL), Map(PROP_NAME.NEXT_HN_ID -> Value.Integer(10))))
         .logValue
-        .asserting(_ mustEqual KnowledgeGraphState[IO](HnId(10L), Map()))
+        .asserting(_ mustEqual MapCacheState[IO](HnId(10L), Map()))
 
     "raise an error for a node without the root label" in:
-      KnowledgeGraphState
+      MapCacheState
         .fromNode[IO](Node("1", Set("OtherLabel"), Map(PROP_NAME.NEXT_HN_ID -> Value.Integer(10))))
         .logValue
         .assertThrows[AssertionError]

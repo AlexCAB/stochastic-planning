@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-25 |||||||||||*/
 
-package planning.engine.map.knowledge.graph
+package planning.engine.map.graph
 
 import cats.effect.{Async, Resource, Sync}
 import org.typelevel.log4cats.LoggerFactory
@@ -18,21 +18,20 @@ import cats.syntax.all.*
 import neotypes.model.types.Node
 import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, OutputNode}
-import planning.engine.map.samples.SamplesState
 import planning.engine.common.errors.assertionError
 
-trait KnowledgeGraphBuilderLike[F[_]]:
+trait MapBuilderLike[F[_]]:
   def init(
-      config: KnowledgeGraphConfig,
-      metadata: Metadata,
+      config: MapConfig,
+      metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]]
-  ): F[KnowledgeGraphLake[F]]
+  ): F[MapGraphLake[F]]
 
-  def load(config: KnowledgeGraphConfig): F[KnowledgeGraphLake[F]]
+  def load(config: MapConfig): F[MapGraphLake[F]]
 
-class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
-    extends KnowledgeGraphBuilderLike[F]:
+class MapBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
+    extends MapBuilderLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
@@ -45,29 +44,27 @@ class KnowledgeGraphBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabas
     else s"Input nodes must have unique names, but found duplicates: ${ioNames.filter(_.size > 1)}".assertionError
 
   override def init(
-      config: KnowledgeGraphConfig,
-      metadata: Metadata,
+      config: MapConfig,
+      metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]]
-  ): F[KnowledgeGraphLake[F]] =
+  ): F[MapGraphLake[F]] =
     for
       _ <- checkIoNodesNames(inNodes, outNodes)
-      samplesState <- Sync[F].pure(SamplesState.empty)
-      graphState <- Sync[F].pure(KnowledgeGraphState.empty)
-      createdNodes <- database
-        .initDatabase(metadata, inNodes, outNodes, samplesState, graphState)
+      graphState <- MapCacheState.init
+      createdNodes <- database.initDatabase(metadata, inNodes, outNodes)
       _ <- logger.info(s"Created nodes: ${nodesList(createdNodes)}")
-      graph <- KnowledgeGraph[F](config, metadata, inNodes, outNodes, samplesState, graphState, database)
+      graph <- MapGraph[F](config, metadata, inNodes, outNodes, graphState, database)
     yield graph
 
-  override def load(config: KnowledgeGraphConfig): F[KnowledgeGraphLake[F]] =
+  override def load(config: MapConfig): F[MapGraphLake[F]] =
     for
-      (metadata, inNodes, outNodes, samplesState, graphState) <- database.loadRootNodes
+      (metadata, inNodes, outNodes, graphState) <- database.loadRootNodes
       _ <- checkIoNodesNames(inNodes, outNodes)
-      _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes, samplesState, graphState)}")
-      graph <- KnowledgeGraph[F](config, metadata, inNodes, outNodes, samplesState, graphState, database)
+      _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes, graphState)}")
+      graph <- MapGraph[F](config, metadata, inNodes, outNodes, graphState, database)
     yield graph
 
-object KnowledgeGraphBuilder:
-  def apply[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F]): Resource[F, KnowledgeGraphBuilder[F]] =
-    Resource.eval(Sync[F].delay(new KnowledgeGraphBuilder[F](database)))
+object MapBuilder:
+  def apply[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F]): Resource[F, MapBuilder[F]] =
+    Resource.eval(Sync[F].delay(new MapBuilder[F](database)))

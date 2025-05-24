@@ -15,9 +15,9 @@ package planning.engine.api.model.map
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.values.text.{Name, Description}
+import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
-import planning.engine.map.knowledge.graph.Metadata
 
 class MapInitRequestSpec extends UnitSpecIO:
 
@@ -35,7 +35,7 @@ class MapInitRequestSpec extends UnitSpecIO:
       )
     )
 
-    lazy val expectedMetadata = Metadata(
+    lazy val expectedMetadata = MapMetadata(
       name = Name.fromStringOptional("ValidMap"),
       description = Description.fromStringOptional("A valid map description")
     )

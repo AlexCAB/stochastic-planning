@@ -16,7 +16,7 @@ import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.Value
 import planning.engine.common.properties.PROP_NAME
-import planning.engine.common.properties.QueryParamMapping.*
+import planning.engine.common.properties.PropertiesMapping.*
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 

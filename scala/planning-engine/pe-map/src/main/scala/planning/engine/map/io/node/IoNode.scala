@@ -43,6 +43,8 @@ trait IoNode[F[_]: MonadThrow]:
     PROP_NAME.NAME -> name.value.toDbParam,
     PROP_NAME.VARIABLE -> variable.toQueryParams
   )
+  
+  private[map] def getState: F[ConcreteNodeMap[F]] = hiddenNodes.get
 
   private[map] def addConcreteNode[R](n: ConcreteNode[F], block: => F[R]): F[(ConcreteNode[F], R)] =
     hiddenNodes.evalModify(state =>

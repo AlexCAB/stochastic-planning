@@ -10,6 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-15 |||||||||||*/
 
-package planning.engine.map.knowledge.graph
+package planning.engine.map.graph
 
 class KnowledgeGraphSpec

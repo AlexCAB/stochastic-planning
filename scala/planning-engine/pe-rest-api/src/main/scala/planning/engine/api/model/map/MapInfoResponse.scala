@@ -15,7 +15,7 @@ package planning.engine.api.model.map
 import cats.effect.Async
 import org.typelevel.log4cats.LoggerFactory
 import cats.syntax.all.*
-import planning.engine.map.knowledge.graph.KnowledgeGraphLake
+import planning.engine.map.graph.KnowledgeGraphLake
 
 final case class MapInfoResponse(
     mapName: Option[String],

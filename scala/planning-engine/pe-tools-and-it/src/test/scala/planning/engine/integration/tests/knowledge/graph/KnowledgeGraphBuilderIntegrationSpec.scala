@@ -16,9 +16,9 @@ import cats.effect.{IO, Resource}
 import cats.effect.cps.*
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
-import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilder, KnowledgeGraphTestData}
+import planning.engine.map.graph.{MapBuilder, KnowledgeGraphTestData}
 
-type TestResource = (WithItDb.ItDb, KnowledgeGraphBuilder[IO])
+type TestResource = (WithItDb.ItDb, MapBuilder[IO])
 
 class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[TestResource] with WithItDb
     with KnowledgeGraphTestData:
@@ -27,7 +27,7 @@ class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[T
     for
       itDb <- makeDb
       neo4jdb <- Neo4jDatabase[IO](itDb.config, itDb.dbName)
-      builder <- KnowledgeGraphBuilder[IO](neo4jdb)
+      builder <- MapBuilder[IO](neo4jdb)
     yield (itDb, builder)
 
   "KnowledgeGraphBuilder" should:

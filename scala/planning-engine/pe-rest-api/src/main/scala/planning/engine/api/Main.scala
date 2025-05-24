@@ -28,7 +28,7 @@ import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapService
 import planning.engine.map.database.Neo4jDatabase
-import planning.engine.map.knowledge.graph.KnowledgeGraphBuilder
+import planning.engine.map.graph.MapBuilder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt
@@ -57,7 +57,7 @@ object Main extends IOApp:
     for
       mainConf <- MainConf.default[IO]
       database <- Neo4jDatabase[IO](mainConf.db.connection, mainConf.db.name)
-      builder <- KnowledgeGraphBuilder[IO](database)
+      builder <- MapBuilder[IO](database)
 
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute(maintenanceService)

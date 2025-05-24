@@ -16,7 +16,7 @@ import neotypes.model.query.QueryParam
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 
-object QueryParamMapping:
+object PropertiesMapping:
 
   extension (value: Value)
     def toQueryParam: QueryParam = value match

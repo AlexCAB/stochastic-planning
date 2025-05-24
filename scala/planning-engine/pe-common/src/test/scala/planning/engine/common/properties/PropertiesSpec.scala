@@ -44,7 +44,7 @@ class PropertiesSpec extends UnitSpecIO:
       case Value.Str(str) => IO.pure(str)
       case _              => IO.raiseError(new AssertionError("Expected a string value"))
 
-  "toDbParam" should:
+  "T.toDbParam" should:
     "convert a non-null value to a query parameter" in newCase[CaseData]: data =>
       ("testValue".toDbParam mustEqual Param(QueryParam("testValue"))).pure
 
@@ -70,14 +70,14 @@ class PropertiesSpec extends UnitSpecIO:
           "key4.nestedKey" -> "nestedValue".toDbParam
         ))
 
-  "addKeyPrefix" should:
+  "Map[String, Value].addKeyPrefix" should:
     "add the prefix to all keys in the map" in newCase[CaseData]: data =>
       IO.pure(data.params)
         .addKeyPrefix("prefix")
         .logValue
         .asserting(_ mustEqual data.paramsWithPrefix("prefix"))
 
-  "removeKeyPrefix" should:
+  "Map[String, Value].removeKeyPrefix" should:
     "remove the prefix from all keys in the map" in newCase[CaseData]: data =>
       IO.pure(data.paramsWithPrefix("prefix"))
         .removeKeyPrefix("prefix")
@@ -90,20 +90,20 @@ class PropertiesSpec extends UnitSpecIO:
         .logValue
         .assertThrows[AssertionError]
 
-  "parseValue" should:
+  "Map[String, Value].parseValue" should:
     "return the parsed value if the key exists" in newCase[CaseData]: data =>
       data.properties
         .parseValue[IO, String]("strKey1")(data.parseStr)
         .logValue
         .asserting(_ mustEqual "strValue1")
 
-    "raise an AssertionError if the key does not exist" in newCase[CaseData]: data =>
+    "Map[String, Value].raise an AssertionError if the key does not exist" in newCase[CaseData]: data =>
       data.properties
         .parseValue[IO, String]("not_exist")(data.parseStr)
         .logValue
         .assertThrows[AssertionError]
 
-  "parseList" should:
+  "Map[String, Value].parseList" should:
     "return the parsed list if the key exists and is a list" in newCase[CaseData]: data =>
       data.properties
         .parseList[IO, String]("listStrKey1")(data.parseStr)
@@ -116,7 +116,7 @@ class PropertiesSpec extends UnitSpecIO:
         .logValue
         .assertThrows[AssertionError]
 
-  "getValue" should:
+  "Map[String, Value].getValue" should:
     "return the parsed int value if the key exists and is an int" in newCase[CaseData]: data =>
       data.properties
         .getValue[IO, Long]("intKey1")
@@ -158,7 +158,7 @@ class PropertiesSpec extends UnitSpecIO:
         .logValue
         .assertThrows[AssertionError]
 
-    "getOptional" should:
+    "Map[String, Value].getOptional" should:
       "return some value for exist key" in newCase[CaseData]: data =>
         data.properties
           .getOptional[IO, String]("strKey1")
@@ -171,7 +171,7 @@ class PropertiesSpec extends UnitSpecIO:
           .logValue
           .asserting(_ mustBe empty)
 
-    "getList" should:
+    "Map[String, Value].getList" should:
       "return the correct list for a valid key" in newCase[CaseData]: data =>
         data.properties
           .getList[IO, String]("listStrKey1")
@@ -184,7 +184,7 @@ class PropertiesSpec extends UnitSpecIO:
           .logValue
           .assertThrows[AssertionError]
 
-    "getProps" should:
+    "Map[String, Value].getProps" should:
       "return the correct properties map for a valid key" in newCase[CaseData]: data =>
         data.properties
           .getProps[IO]("nested")
@@ -196,3 +196,31 @@ class PropertiesSpec extends UnitSpecIO:
           .getProps[IO]("nonExistentKey")
           .logValue
           .asserting(_ mustEqual Map.empty)
+
+    "Node.getValue" should:
+      "return the correct value for a valid key" in newCase[CaseData]: data =>
+        data.properties
+          .getValue[IO, String]("strKey1")
+          .logValue
+          .asserting(_ mustEqual "strValue1")
+
+    "Node.getOptional" should:
+      "return the correct optional value for a valid key" in newCase[CaseData]: data =>
+        data.properties
+          .getOptional[IO, String]("strKey1")
+          .logValue
+          .asserting(_ must contain("strValue1"))
+
+    "Node.getList" should:
+      "return the correct list for a valid key" in newCase[CaseData]: data =>
+        data.properties
+          .getList[IO, String]("listStrKey1")
+          .logValue
+          .asserting(_ mustEqual List("listStrValue1", "listStrValue2"))
+
+    "Node.getProps" should:
+      "return the correct properties map for a valid key" in newCase[CaseData]: data =>
+        data.properties
+          .getProps[IO]("nested")
+          .logValue
+          .asserting(_ mustEqual Map("key1" -> Value.Str("nestedValue1"), "key2" -> Value.Str("nestedValue2")))

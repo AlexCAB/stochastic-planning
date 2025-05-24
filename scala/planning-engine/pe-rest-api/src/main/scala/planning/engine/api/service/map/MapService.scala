@@ -17,16 +17,16 @@ import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.{MapInfoResponse, MapInitRequest}
 import cats.syntax.all.*
-import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphConfig, KnowledgeGraphLake}
+import planning.engine.map.graph.{MapBuilderLike, MapConfig, KnowledgeGraphLake}
 
 trait MapServiceLike[F[_]]:
   def init(definition: MapInitRequest): F[MapInfoResponse]
   def load: F[MapInfoResponse]
 
 class MapService[F[_]: {Async, LoggerFactory}](
-    config: KnowledgeGraphConfig,
-    builder: KnowledgeGraphBuilderLike[F],
-    kgCell: AtomicCell[F, Option[KnowledgeGraphLake[F]]]
+                                                config: MapConfig,
+                                                builder: MapBuilderLike[F],
+                                                kgCell: AtomicCell[F, Option[KnowledgeGraphLake[F]]]
 ) extends MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
@@ -62,8 +62,8 @@ class MapService[F[_]: {Async, LoggerFactory}](
 
 object MapService:
   def apply[F[_]: {Async, LoggerFactory}](
-      config: KnowledgeGraphConfig,
-      builder: KnowledgeGraphBuilderLike[F]
+                                           config: MapConfig,
+                                           builder: MapBuilderLike[F]
   ): Resource[F, MapService[F]] = Resource.eval(
     AtomicCell[F].of[Option[KnowledgeGraphLake[F]]](None)
       .map(kgCell => new MapService[F](config, builder, kgCell))

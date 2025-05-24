@@ -20,8 +20,8 @@ import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
-import planning.engine.map.knowledge.graph.KnowledgeGraphTestData
 import planning.engine.map.database.Neo4jQueries.*
+import planning.engine.map.graph.KnowledgeGraphTestData
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]

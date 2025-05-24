@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-10 |||||||||||*/
 
-package planning.engine.map.knowledge.graph
+package planning.engine.map.graph
 
 import cats.effect.{IO, Resource}
 import org.scalamock.scalatest.AsyncMockFactory
@@ -19,7 +19,7 @@ import planning.engine.map.database.Neo4jDatabaseLike
 
 import cats.effect.cps.*
 
-type TestResource = (Neo4jDatabaseLike[IO], KnowledgeGraphBuilder[IO])
+type TestResource = (Neo4jDatabaseLike[IO], MapBuilder[IO])
 
 class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with AsyncMockFactory
     with KnowledgeGraphTestData:
@@ -27,7 +27,7 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
   override val resource: Resource[IO, TestResource] =
     for
       mockedDb <- Resource.pure(mock[Neo4jDatabaseLike[IO]])
-      builder <- KnowledgeGraphBuilder[IO](mockedDb)
+      builder <- MapBuilder[IO](mockedDb)
     yield (mockedDb, builder)
 
   "KnowledgeGraphBuilder.init()" should:

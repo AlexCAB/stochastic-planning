@@ -19,6 +19,7 @@ import cats.MonadThrow
 import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
 import planning.engine.common.values.text.{Name, Description}
+import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{
   BooleanIoVariable,
@@ -27,7 +28,6 @@ import planning.engine.map.io.variable.{
   IoVariable,
   ListStrIoVariable
 }
-import planning.engine.map.knowledge.graph.Metadata
 
 final case class MapInitRequest(
     name: Option[String],
@@ -52,11 +52,11 @@ final case class MapInitRequest(
       node <- makeNode(name, variable)
     yield node
 
-  def toMetadata[F[_]: MonadThrow]: F[Metadata] =
+  def toMetadata[F[_]: MonadThrow]: F[MapMetadata] =
     for
       name <- Name.fromString(name)
       description <-Description.fromString(description)
-    yield Metadata(name, description)
+    yield MapMetadata(name, description)
 
   def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _))
   def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _))

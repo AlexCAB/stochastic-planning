@@ -30,13 +30,13 @@ trait Neo4jQueries:
 
   def removeAllNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Unit] = c"MATCH (n) DETACH DELETE n".execute.void(tx)
 
-  def createStaticNodesQuery[F[_]: Async](rootPrams: Map[String, Param], samplesParams: Map[String, Param])(
+  def createStaticNodesQuery[F[_]: Async](rootPrams: Map[String, Param])(
       tx: AsyncTransaction[F]
   ): F[List[Node]] =
     c"""
       CREATE (root: #${ROOT_LABEL.s} ${rootPrams.qp}),
              (io: #${IO_NODES_LABEL.s}),
-             (samples: #${SAMPLES_LABEL.s} ${samplesParams.qp}),
+             (samples: #${SAMPLES_LABEL.s}),
              (root)-[:IO_NODES_EDGE]->(io),
              (root)-[:SAMPLES_EDGE]->(samples)
       RETURN [root, io, samples]
@@ -61,6 +61,16 @@ trait Neo4jQueries:
       MATCH (: #${IO_NODES_LABEL.s})-->(io_nodes:#${IO_LABEL.s})
       RETURN io_nodes
       """.query(ResultMapper.node).list(tx)
+
+    
+
+  def findNextHnIdIdQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
+
+  def findNextSampleIdQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
+
+  def countSamplesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
+
+
 
   def addConcreteNodeQuery[F[_]: Async](
       ioNodeName: String,

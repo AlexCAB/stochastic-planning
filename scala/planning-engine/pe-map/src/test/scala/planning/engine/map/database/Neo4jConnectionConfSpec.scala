@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-10 |||||||||||*/
 
-package planning.engine.common.config
+package planning.engine.map.database
 
 import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
@@ -31,6 +31,6 @@ class Neo4jConnectionConfSpec extends UnitSpecIO:
     "load configuration successfully" in:
       val config: Config = ConfigFactory.parseString(configStr).getConfig("neo4j")
 
-      Neo4jConnectionConf
+      Neo4jConf
         .formConfig[IO](config)
-        .asserting(_ mustEqual Neo4jConnectionConf("testUser", "testPassword", "neo4j://localhost:7687"))
+        .asserting(_ mustEqual Neo4jConf("testUser", "testPassword", "neo4j://localhost:7687"))

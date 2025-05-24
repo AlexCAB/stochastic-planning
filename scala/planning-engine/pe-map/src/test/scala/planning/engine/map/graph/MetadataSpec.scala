@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-10 |||||||||||*/
 
-package planning.engine.map.knowledge.graph
+package planning.engine.map.graph
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.properties.PROP_NAME
 import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
-import planning.engine.common.properties.QueryParamMapping.*
+import planning.engine.common.properties.PropertiesMapping.*
 import planning.engine.common.values.text.{Description, Name}
 
 class MetadataSpec extends UnitSpecIO:
@@ -31,7 +31,7 @@ class MetadataSpec extends UnitSpecIO:
     val metadataParams = metadataProps.map:
       case (k, v) => k -> v.toParam
 
-    val metadata = Metadata(Some(Name("TestName")), Some(Description("TestDescription")))
+    val metadata = MapMetadata(Some(Name("TestName")), Some(Description("TestDescription")))
 
     val node = Node(
       "1",
@@ -50,12 +50,12 @@ class MetadataSpec extends UnitSpecIO:
 
   "fromProperties" should:
     "create metadata from properties" in newCase[CaseData]: data =>
-      Metadata.fromProperties[IO](data.metadataProps)
+      MapMetadata.fromProperties[IO](data.metadataProps)
         .logValue
         .asserting(_ mustEqual data.metadata)
 
     "fromNode should create Metadata from a valid root node" in newCase[CaseData]: data =>
-      Metadata
+      MapMetadata
         .fromNode[IO](data.node)
         .logValue
-        .asserting(_ mustEqual Metadata("TestName", "TestDescription"))
+        .asserting(_ mustEqual MapMetadata("TestName", "TestDescription"))

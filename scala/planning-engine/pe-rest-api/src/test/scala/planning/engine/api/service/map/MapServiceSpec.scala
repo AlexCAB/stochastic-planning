@@ -18,8 +18,8 @@ import planning.engine.common.UnitSpecIO
 import planning.engine.api.model.map.*
 import cats.effect.cps.*
 import org.scalatest.compatible.Assertion
+import planning.engine.map.graph.{MapBuilderLike, KnowledgeGraphLake, MapMetadata}
 import planning.engine.map.io.node.{InputNode, OutputNode}
-import planning.engine.map.knowledge.graph.{KnowledgeGraphBuilderLike, KnowledgeGraphLake, Metadata}
 
 class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
   private val testMapInitRequest = MapInitRequest(
@@ -34,13 +34,13 @@ class MapServiceSpec extends UnitSpecIO with AsyncMockFactory:
   private def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): KnowledgeGraphLake[IO] =
     val mockGraph = mock[KnowledgeGraphLake[IO]]
     (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
-    (() => mockGraph.metadata).expects().returns(Metadata.withName(testMapInitRequest.name)).once()
+    (() => mockGraph.metadata).expects().returns(MapMetadata.withName(testMapInitRequest.name)).once()
     (() => mockGraph.inputNodes).expects().returns(inNodes).once()
     (() => mockGraph.outputNodes).expects().returns(outNodes).once()
     mockGraph
 
-  private def newService(test: (KnowledgeGraphBuilderLike[IO], MapService[IO]) => IO[Assertion]): IO[Assertion] =
-    val mockBuilder = mock[KnowledgeGraphBuilderLike[IO]]
+  private def newService(test: (MapBuilderLike[IO], MapService[IO]) => IO[Assertion]): IO[Assertion] =
+    val mockBuilder = mock[MapBuilderLike[IO]]
     MapService(mockBuilder).use(service => test(mockBuilder, service))
 
   "MapService.init()" should:

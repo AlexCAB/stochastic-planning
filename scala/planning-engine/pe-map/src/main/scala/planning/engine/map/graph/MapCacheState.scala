@@ -29,31 +29,39 @@ import planning.engine.map.samples.sample.SampleData
 
 //type StateNodes[F[_]] = (KnowledgeGraphState[F], List[HiddenNode[F]])
 
+trait MapCacheLike[F[_]]:
+  def nextHnIdId: HnId
+  def nextSampleId: SampleId
+  def sampleCount: Long
+  def toQueryParams: F[Map[String, Param]]
+
 final case class MapCacheState[F[_]: MonadThrow](
     nextHnIdId: HnId,
     hiddenNodes: Map[HnId, HiddenNode[F]],
     nextSampleId: SampleId,
     sampleCount: Long,
     samples: Map[SampleId, SampleData]
-):
+) extends MapCacheLike[F]:
 //  private def addNewHn(node: HiddenNode[F]): F[KnowledgeGraphState[F]] =
 //    if !hiddenNodes.contains(node.id)
 //    then this.copy(nextHnIdId = nextHnIdId.increase, hiddenNodes = hiddenNodes + (node.id -> node)).pure
 //    else s"Node with id ${node.id} already exists in the list: $hiddenNodes".assertionError
 //
-//  private def toCache(nodes: List[HiddenNode[F]], maxSize: Long): F[(KnowledgeGraphState[F], List[HiddenNode[F]])] =
-//    MonadThrow[F].fromTry(Try:
-//      val (nodeToRemove, updatedCache) = nodes.foldRight((List[HiddenNode[F]](), cacheQueue)):
-//        case (node, (toRemove, cache)) if cache.nonEmpty && cache.size > maxSize =>
-//          val (hnId, newCache) = cache.dequeue
-//          (hiddenNodes(hnId) :: toRemove, newCache.appended(node.id))
-//        case (node, (toRemove, cache)) => (toRemove, cache.appended(node.id))
-//      (this.copy(cacheQueue = updatedCache), nodeToRemove))
-//
+  private[map] def toCache(nodes: List[HiddenNode[F]], maxSize: Long): F[MapCacheState[F]] =
+    MonadThrow[F].fromTry(Try:
+      val (nodeToRemove, updatedCache) = nodes.foldRight((List[HiddenNode[F]](), cacheQueue)):
+        case (node, (toRemove, cache)) if cache.nonEmpty && cache.size > maxSize =>
+          val (hnId, newCache) = cache.dequeue
+          (hiddenNodes(hnId) :: toRemove, newCache.appended(node.id))
+        case (node, (toRemove, cache)) => (toRemove, cache.appended(node.id))
+      (this.copy(cacheQueue = updatedCache), nodeToRemove))
+
   private[map] def toQueryParams: F[Map[String, Param]] = paramsOf(
     PROP_NAME.NEXT_HN_ID -> nextHnIdId.toDbParam,
-    PROP_NAME.NEXT_SAMPLES_ID -> nextSampleId.toDbParam
+    PROP_NAME.NEXT_SAMPLES_ID -> nextSampleId.toDbParam,
+    PROP_NAME.SAMPLES_COUNT -> sampleCount.toDbParam,
   )
+  
 
 //
 //  private[map] def unCache(id: HnId): F[KnowledgeGraphState[F]] =

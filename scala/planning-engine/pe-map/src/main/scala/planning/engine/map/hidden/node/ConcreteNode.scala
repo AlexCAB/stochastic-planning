@@ -32,7 +32,7 @@ class ConcreteNode[F[_]: MonadThrow](
     val children: List[EdgeState[F]],
     val nextHnIndex: HnIndex,
     val ioNode: IoNode[F],
-    val valueIndex: IoIndex,
+    val valueIndex: IoIndex
 ) extends HiddenNode[F]:
 
 //  private[map] override def init[R](block: => F[R]): F[(HiddenNode[F], R)] =
@@ -54,21 +54,26 @@ class ConcreteNode[F[_]: MonadThrow](
 
   override def toString: String = s"ConcreteHiddenNode(id=$id, name=$name, valueIndex=$valueIndex, ioNode=$ioNode)"
 
-object ConcreteNode//:
-//  private[map] def apply[F[_]: Concurrent](
-//      id: HnId,
-//      name: Option[Name],
-//      ioNode: IoNode[F],
-//      valueIndex: IoIndex,
-//      initState: HiddenNodeState[F]
-//  ): F[ConcreteNode[F]] =
-//    for
-//      value <- ioNode.variable.valueForIndex(valueIndex)
-//      state <- AtomicCell[F].of[HiddenNodeState[F]](initState)
-//      node = new ConcreteNode[F](id, name, ioNode, valueIndex, state, value)
-//    yield node
+object ConcreteNode:
+  final case class New(name: Option[Name], ioNodeName: Name, valueIndex: IoIndex)
+
+  private[map] def apply[F[_]: Concurrent](
+      id: HnId,
+      name: Option[Name],
+      ioNode: IoNode[F],
+      valueIndex: IoIndex
+  ): F[ConcreteNode[F]] = new ConcreteNode[F](
+    id,
+    name,
+    parents = List.empty,
+    children = List.empty,
+    nextHnIndex = HnIndex.init,
+    ioNode,
+    valueIndex
+  ).pure
+
 //
-//  private[map] def apply[F[_]: Concurrent](
+//  private[map] def apply[F[_]: MonadThrow](
 //      id: HnId,
 //      name: Option[Name],
 //      ioNode: IoNode[F],

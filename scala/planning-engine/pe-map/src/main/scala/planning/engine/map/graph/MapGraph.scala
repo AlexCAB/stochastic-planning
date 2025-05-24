@@ -19,16 +19,19 @@ import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
+import planning.engine.common.errors.assertionError
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
   def inputNodes: List[InputNode[F]]
   def outputNodes: List[OutputNode[F]]
   def getState: F[MapCacheState[F]]
-//  def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]]
-//  def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]]
+  def getIoNode(name: Name): F[IoNode[F]]
+  def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]]
+  def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
+
 //  def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
 //  def releaseHiddenNodes(ids: List[HnId]): F[Unit]
 //  def countHiddenNodes: F[Long]
@@ -42,55 +45,42 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     database: Neo4jDatabaseLike[F]
 ) extends MapGraphLake[F]:
 
-  // TODO Глубокий рефакторинг:
-  // TODO 1. Отказтьс от идеи держать граф в памяти в виде сотояния, вместо этого сделать просто интерфейс
-  // TODO    чтения/записи БД с имутабельными дянными и кешированием результатов чтения.
-  // TODO 2. Кеширование при помощи имутаблульных обьектов (т.е. их обновление выполняется копированием)
-  // TODO    AtomicCell должен быть только в этом классе, остальные должны быть простыми имутабельными.
-  // TODO 3. Разделить интерфейсы чтения и записи, т.е. методы тлько для записи и только для чтения
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-
-  private val ioNodes = inputNodes ++ outputNodes
+  private val ioNodes = (inputNodes ++ outputNodes).map(n => (n.name, n)).toMap
   private val logger = LoggerFactory[F].getLogger
 
   assert(
-    ioNodes.map(_.name).distinct.size == ioNodes.size,
+    ioNodes.size == (inputNodes.size + outputNodes.size),
     "Input and output nodes must have unique names, ioNodes: $ioNodes"
   )
 
+  override def getIoNode(name: Name): F[IoNode[F]] = ioNodes.get(name) match
+    case Some(node) => node.pure
+    case _          => s"Input node with name $name not found".assertionError
+
   override def getState: F[MapCacheState[F]] = graphState.get
 
-//  override def newConcreteNodes(params: List[(Option[Name], IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]] =
-//    def addConcreteNodeLoop(nodes: List[ConcreteNode[F]]): F[Unit] = nodes match
-//      case Nil          => logger.info("All IO nodes updated")
-//      case node :: tail => node.init(addConcreteNodeLoop(tail)).map(_.void)
-//
-//    graphState.evalModify(state =>
-//      for
-//        (nextState, nodes) <- state.addHiddenNode(params, p => ConcreteNode[F](state.nextHnIdId, p._1, p._2, p._3))
-//        dbParams <- nodes.map(n => n.toProperties.map(p => (n.ioNode.name, p))).sequence
-//        neo4jNodes <- database.createConcreteNodes(dbParams, addConcreteNodeLoop(nodes))
-//        _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
-//      yield (nextState, nodes)
-//    )
-//
-//  override def newAbstractNodes(params: List[Option[Name]]): F[List[AbstractNode[F]]] = graphState.evalModify(state =>
-//    for
-//      (nextState, nodes) <- state.addHiddenNode(params, p => AbstractNode[F](state.nextHnIdId, p))
-//      dbParams <- nodes.map(n => n.toProperties).sequence
-//      neo4jNodes <- database.createAbstractNodes(dbParams)
-//      _ <- logger.info(s"Created abstract Neo4j node: $neo4jNodes")
-//    yield (nextState, nodes)
-//  )
-//
+  override def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]] = graphState.evalModify(
+    state =>
+      for
+        nodes <- params
+          .map(p => getIoNode(p.ioNodeName).flatMap(n => ConcreteNode(state.nextHnIdId, p.name, n, p.valueIndex)))
+          .sequence
+        (neo4jNodes, nextState) <- database.createConcreteNodes(nodes, state.toCache(nodes, config.maxCacheSize))
+        _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
+      yield (nextState, nodes)
+  )
+
+  override def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]] =
+
+    graphState.evalModify(state =>
+      for
+        (nextState, nodes) <- state.addHiddenNode(params, p => AbstractNode[F](state.nextHnIdId, p))
+        dbParams <- nodes.map(n => n.toProperties).sequence
+        neo4jNodes <- database.createAbstractNodes(dbParams)
+        _ <- logger.info(s"Created abstract Neo4j node: $neo4jNodes")
+      yield (nextState, nodes)
+    )
+
 //  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = graphState.evalModify(state =>
 //    database.findHiddenNodesByNames(
 //      names,

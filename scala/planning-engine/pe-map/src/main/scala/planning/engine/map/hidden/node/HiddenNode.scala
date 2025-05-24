@@ -13,18 +13,17 @@
 package planning.engine.map.hidden.node
 
 import cats.MonadThrow
-import cats.effect.kernel.Concurrent
-import cats.effect.std.AtomicCell
+//import cats.effect.kernel.Concurrent
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.{HnId, HnIndex}
-import planning.engine.map.hidden.state.node.HiddenNodeState
-import cats.syntax.all.*
-import neotypes.model.types.Node
-import neotypes.query.QueryArg.Param
-import planning.engine.map.database.Neo4jQueries.{ABSTRACT_LABEL, CONCRETE_LABEL, HN_LABEL}
-import planning.engine.common.properties.*
-import planning.engine.common.errors.assertionError
-import planning.engine.map.io.node.IoNode
+//import planning.engine.map.hidden.state.node.HiddenNodeState
+//import cats.syntax.all.*
+//import neotypes.model.types.Node
+//import neotypes.query.QueryArg.Param
+//import planning.engine.map.database.Neo4jQueries.{ABSTRACT_LABEL, CONCRETE_LABEL, HN_LABEL}
+//import planning.engine.common.properties.*
+//import planning.engine.common.errors.assertionError
+//import planning.engine.map.io.node.IoNode
 import planning.engine.map.hidden.state.edge.EdgeState
 
 trait HiddenNode[F[_]: MonadThrow]:

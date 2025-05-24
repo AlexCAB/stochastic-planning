@@ -24,7 +24,8 @@ import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.{assertDistinct, assertionError}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.map.graph.{MapCacheState, MapMetadata}
+import planning.engine.map.graph.{MapCacheLike, MapCacheState, MapMetadata}
+import planning.engine.map.hidden.node.ConcreteNode
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
   * reading and writing data to the database.
@@ -39,6 +40,7 @@ import planning.engine.map.graph.{MapCacheState, MapMetadata}
 trait Neo4jDatabaseLike[F[_]]:
   def initDatabase(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[List[Node]]
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]], MapCacheState[F])]
+  def createConcreteNodes[R <: MapCacheLike[F]](nodes: List[ConcreteNode[F]], block: => F[R]): F[(List[Node], R)]
 
 //  def createConcreteNodes(params: List[(Name, Map[String, Param])], block: => F[Unit]): F[List[Node]]
 //  def createAbstractNodes(params: List[Map[String, Param]]): F[List[Node]]
@@ -51,9 +53,9 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
 
   private def splitIoNodes(ioNodes: List[IoNode[F]]): F[(List[InputNode[F]], List[OutputNode[F]])] =
     ioNodes.foldRight((List[InputNode[F]](), List[OutputNode[F]]()).pure):
-      case (inNode: InputNode[F], buf) => buf.map((inNodes, outNodes) => (inNodes :+ inNode, outNodes))
+      case (inNode: InputNode[F], buf)   => buf.map((inNodes, outNodes) => (inNodes :+ inNode, outNodes))
       case (outNode: OutputNode[F], buf) => buf.map((inNodes, outNodes) => (inNodes, outNodes :+ outNode))
-      case (node, _)            => s"Invalid IoNode type: $node".assertionError
+      case (node, _)                     => s"Invalid IoNode type: $node".assertionError
 
   override def initDatabase(
       metadata: MapMetadata,
@@ -81,14 +83,18 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
         rawIoNodes <- readIoNodesQuery(tx)
         ioNodes <- rawIoNodes.map(n => IoNode.fromNode(n)).sequence
         (inNodes, outNodes) <- splitIoNodes(ioNodes)
-      yield (metadata, inNodes, outNodes,graphState)
+      yield (metadata, inNodes, outNodes, graphState)
 
-//  override def createConcreteNodes(params: List[(Name, Map[String, Param])], block: => F[Unit]): F[List[Node]] =
-//    driver.transact(writeConf): tx =>
-//      for
-//        nodes <- params.map((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx)).sequence
-//        _ <- block
-//      yield nodes.flatten
+  override def createConcreteNodes[R <: MapCacheLike[F]](
+      nodes: List[ConcreteNode[F]],
+      block: => F[R]
+  ): F[(List[Node], R)] = driver.transact(writeConf): tx =>
+    for
+      
+      nodes <- params.map((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx)).sequence
+      _ <- block
+    yield nodes.flatten
+
 //
 //  override def createAbstractNodes(params: List[Map[String, Param]]): F[List[Node]] =
 //    driver.transact(writeConf)(tx => params.map(props => addAbstractNodeQuery(props)(tx)).sequence)

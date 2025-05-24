@@ -48,7 +48,9 @@ class AbstractNode[F[_]: MonadThrow](
 
   override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
 
-object AbstractNode//:
+object AbstractNode:
+  final case class New(name: Option[Name])
+  
 //  private[map] def apply[F[_]: Concurrent](
 //      id: HnId,
 //      name: Option[Name],

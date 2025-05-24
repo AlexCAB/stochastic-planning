@@ -62,7 +62,7 @@ trait Neo4jQueries:
       RETURN io_nodes
       """.query(ResultMapper.node).list(tx)
 
-    
+
 
   def findNextHnIdIdQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
 
@@ -82,6 +82,8 @@ trait Neo4jQueries:
              (concrete)-[:IO_VALUE_EDGE]->(io)
       RETURN [io, concrete]
       """.query(ResultMapper.list(ResultMapper.node)).single(tx)
+      
+    
 
   def addAbstractNodeQuery[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
     c"""

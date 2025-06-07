@@ -12,4 +12,4 @@
 
 package planning.engine.map.samples.sample.observed
 
-class ObservedSample {}
+class ObservedSample

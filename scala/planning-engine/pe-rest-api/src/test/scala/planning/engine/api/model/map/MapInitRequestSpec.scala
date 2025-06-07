@@ -36,8 +36,8 @@ class MapInitRequestSpec extends UnitSpecIO:
     )
 
     lazy val expectedMetadata = MapMetadata(
-      name = Name.fromStringOptional("ValidMap"),
-      description = Description.fromStringOptional("A valid map description")
+      name = Some(Name("ValidMap")),
+      description = Some(Description("A valid map description"))
     )
 
     lazy val expectedInputNodes = List(

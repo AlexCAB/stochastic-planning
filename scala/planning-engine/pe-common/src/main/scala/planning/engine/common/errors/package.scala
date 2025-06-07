@@ -13,7 +13,6 @@
 package planning.engine.common.errors
 
 import cats.ApplicativeThrow
-
 import scala.collection.AbstractSeq
 
 package object errors
@@ -27,3 +26,17 @@ extension [T, C[_] <: AbstractSeq[T]](seq: C[T])
       ApplicativeThrow[F].pure(seq)
     else
       ApplicativeThrow[F].raiseError(AssertionError(msg + s", seq: ${seq.mkString(",")}"))
+
+extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[L], CR[R]))
+  inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
+    if value._1.iterator.size == value._2.iterator.size then
+      ApplicativeThrow[F].pure(value)
+    else
+      ApplicativeThrow[F].raiseError(
+        AssertionError(msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}")
+      )
+
+extension (bool: Boolean)
+  inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    if bool then ApplicativeThrow[F].unit
+    else ApplicativeThrow[F].raiseError(AssertionError(msg))

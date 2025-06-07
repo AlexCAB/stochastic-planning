@@ -16,15 +16,12 @@ import cats.effect.{IO, Resource}
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithResource
 import planning.engine.map.database.Neo4jDatabaseLike
-
 import cats.effect.cps.*
 
-type TestResource = (Neo4jDatabaseLike[IO], MapBuilder[IO])
+class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], MapBuilder[IO])] with AsyncMockFactory
+    with MapGraphTestData:
 
-class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with AsyncMockFactory
-    with KnowledgeGraphTestData:
-
-  override val resource: Resource[IO, TestResource] =
+  override val resource: Resource[IO, (Neo4jDatabaseLike[IO], MapBuilder[IO])] =
     for
       mockedDb <- Resource.pure(mock[Neo4jDatabaseLike[IO]])
       builder <- MapBuilder[IO](mockedDb)
@@ -35,11 +32,13 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
       async[IO]:
 
         mockedDb.initDatabase
-          .expects(graphDbData)
+          .expects(testMetadata, List(boolInNode), List(boolOutNode))
           .returns(IO.pure(List(emptyNeo4jNode)))
           .once()
 
-        val graph: KnowledgeGraphLake[IO] = builder.init(testMetadata, List(boolInNode), List(boolOutNode)).await
+        val graph: MapGraphLake[IO] = builder
+          .init(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
+          .await
 
         graph.metadata mustEqual testMetadata
         graph.inputNodes mustEqual List(boolInNode)
@@ -52,10 +51,10 @@ class KnowledgeGraphBuilderSpec extends UnitSpecWithResource[TestResource] with 
 
         (() => mockedDb.loadRootNodes)
           .expects()
-          .returns(IO.pure(graphDbData))
+          .returns(IO.pure((testMetadata, List(boolInNode), List(boolOutNode), emptyGraphState)))
           .once()
 
-        val graph: KnowledgeGraphLake[IO] = builder.load.await
+        val graph: MapGraphLake[IO] = builder.load(testMapConfig).await
 
         graph.metadata mustEqual testMetadata
         graph.inputNodes mustEqual List(boolInNode)

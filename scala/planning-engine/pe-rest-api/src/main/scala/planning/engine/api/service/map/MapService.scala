@@ -17,7 +17,7 @@ import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.{MapInfoResponse, MapInitRequest}
 import cats.syntax.all.*
-import planning.engine.map.graph.{MapBuilderLike, MapConfig, KnowledgeGraphLake}
+import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake}
 
 trait MapServiceLike[F[_]]:
   def init(definition: MapInitRequest): F[MapInfoResponse]
@@ -26,15 +26,15 @@ trait MapServiceLike[F[_]]:
 class MapService[F[_]: {Async, LoggerFactory}](
                                                 config: MapConfig,
                                                 builder: MapBuilderLike[F],
-                                                kgCell: AtomicCell[F, Option[KnowledgeGraphLake[F]]]
+                                                kgCell: AtomicCell[F, Option[MapGraphLake[F]]]
 ) extends MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
-  private def initError(graph: KnowledgeGraphLake[F]): F[(Option[KnowledgeGraphLake[F]], MapInfoResponse)] =
+  private def initError(graph: MapGraphLake[F]): F[(Option[MapGraphLake[F]], MapInfoResponse)] =
     for
       _ <- logger.error(s"Knowledge graph already initialized, overwriting, $graph")
-      err <- Async[F].raiseError[(Option[KnowledgeGraphLake[F]], MapInfoResponse)](
+      err <- Async[F].raiseError[(Option[MapGraphLake[F]], MapInfoResponse)](
         new AssertionError("Knowledge graph already initialized")
       )
     yield err
@@ -65,6 +65,6 @@ object MapService:
                                            config: MapConfig,
                                            builder: MapBuilderLike[F]
   ): Resource[F, MapService[F]] = Resource.eval(
-    AtomicCell[F].of[Option[KnowledgeGraphLake[F]]](None)
+    AtomicCell[F].of[Option[MapGraphLake[F]]](None)
       .map(kgCell => new MapService[F](config, builder, kgCell))
   )

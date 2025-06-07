@@ -16,7 +16,7 @@ import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
 import planning.engine.common.UnitSpecIO
 
-class Neo4jConnectionConfSpec extends UnitSpecIO:
+class Neo4jConfSpec extends UnitSpecIO:
 
   private val configStr: String =
     """

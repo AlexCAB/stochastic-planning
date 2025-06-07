@@ -20,27 +20,17 @@ import planning.engine.map.database.Neo4jQueries.ROOT_LABEL
 import planning.engine.common.properties.PropertiesMapping.*
 import planning.engine.common.values.text.{Description, Name}
 
-class MetadataSpec extends UnitSpecIO:
+class MapMetadataSpec extends UnitSpecIO:
 
   private class CaseData extends Case:
-    val metadataProps = Map(
+    lazy val metadataProps = Map(
       PROP_NAME.NAME -> Value.Str("TestName"),
       PROP_NAME.DESCRIPTION -> Value.Str("TestDescription")
     )
 
-    val metadataParams = metadataProps.map:
-      case (k, v) => k -> v.toParam
-
-    val metadata = MapMetadata(Some(Name("TestName")), Some(Description("TestDescription")))
-
-    val node = Node(
-      "1",
-      Set(ROOT_LABEL),
-      Map(
-        PROP_NAME.NAME -> Value.Str("TestName"),
-        PROP_NAME.DESCRIPTION -> Value.Str("TestDescription")
-      )
-    )
+    lazy val metadataParams = metadataProps.map((k, v) => k -> v.toParam)
+    lazy val metadata = MapMetadata(Some(Name("TestName")), Some(Description("TestDescription")))
+    lazy val rootNode = Node("1", Set(ROOT_LABEL.s), metadataProps)
 
   "toQueryParam" should:
     "return correct properties map for metadata" in newCase[CaseData]: data =>
@@ -49,13 +39,8 @@ class MetadataSpec extends UnitSpecIO:
         .asserting(_ mustEqual data.metadataParams)
 
   "fromProperties" should:
-    "create metadata from properties" in newCase[CaseData]: data =>
-      MapMetadata.fromProperties[IO](data.metadataProps)
-        .logValue
-        .asserting(_ mustEqual data.metadata)
-
     "fromNode should create Metadata from a valid root node" in newCase[CaseData]: data =>
       MapMetadata
-        .fromNode[IO](data.node)
+        .fromNode[IO](data.rootNode)
         .logValue
-        .asserting(_ mustEqual MapMetadata("TestName", "TestDescription"))
+        .asserting(_ mustEqual data.metadata)

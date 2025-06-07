@@ -15,7 +15,7 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.config.Neo4jConnectionConf
+import planning.engine.map.database.Neo4jConf
 
 class DbConfSpec extends UnitSpecIO:
 
@@ -36,6 +36,6 @@ class DbConfSpec extends UnitSpecIO:
       DbConf.formConfig[IO](data.validConfig)
         .logValue
         .asserting(_ mustEqual DbConf(
-          Neo4jConnectionConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password"),
+          Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password"),
           "testDatabase"
         ))

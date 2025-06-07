@@ -62,15 +62,18 @@ trait Neo4jQueries:
       RETURN io_nodes
       """.query(ResultMapper.node).list(tx)
 
+  def getAndIncrementNextHnIdQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
+    c"""
+      MATCH (root: #${ROOT_LABEL.s})
+      SET root.#${PROP_NAME.NEXT_HN_ID} = root.#${PROP_NAME.NEXT_HN_ID} + $numOfIds
+      RETURN range(root.#${PROP_NAME.NEXT_HN_ID} - $numOfIds, root.#${PROP_NAME.NEXT_HN_ID}, -1)
+      """.query(ResultMapper.list(ResultMapper.long)).single(tx)
 
-
-  def findNextHnIdIdQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
-
-  def findNextSampleIdQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
-
-  def countSamplesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] = ???
-
-
+  def countSamplesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] =
+    c"""
+      MATCH (: #${SAMPLES_LABEL.s})->(sn: #${SAMPLE_LABEL.s})
+      RETURN count(sn)
+      """.query(ResultMapper.long).single(tx)
 
   def addConcreteNodeQuery[F[_]: Async](
       ioNodeName: String,
@@ -82,8 +85,6 @@ trait Neo4jQueries:
              (concrete)-[:IO_VALUE_EDGE]->(io)
       RETURN [io, concrete]
       """.query(ResultMapper.list(ResultMapper.node)).single(tx)
-      
-    
 
   def addAbstractNodeQuery[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
     c"""
@@ -120,6 +121,7 @@ trait Neo4jQueries:
 object Neo4jQueries:
   val ROOT_LABEL = Label("Root")
   val SAMPLES_LABEL = Label("Samples")
+  val SAMPLE_LABEL = Label("Sample")
   val IO_NODES_LABEL = Label("IoNodes")
   val IO_LABEL = Label("Io")
   val IN_LABEL = Label("In")

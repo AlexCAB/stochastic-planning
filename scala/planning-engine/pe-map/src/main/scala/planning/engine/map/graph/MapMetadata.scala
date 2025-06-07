@@ -26,11 +26,11 @@ final case class MapMetadata(
     name: Option[Name],
     description: Option[Description]
 ):
-  private[map] def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
+  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
     paramsOf(PROP_NAME.NAME -> name.map(_.toDbParam), PROP_NAME.DESCRIPTION -> description.map(_.toDbParam))
 
 object MapMetadata:
-  private[map] def fromNode[F[_]: MonadThrow](node: Node): F[MapMetadata] = node match
+  def fromNode[F[_]: MonadThrow](node: Node): F[MapMetadata] = node match
     case n if n.is(ROOT_LABEL) =>
       for
         name <- node.getOptional[F, String](PROP_NAME.NAME).flatMap(Name.fromString)

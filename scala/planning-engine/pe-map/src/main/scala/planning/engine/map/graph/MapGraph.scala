@@ -19,9 +19,9 @@ import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
-import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
+import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
-import planning.engine.common.errors.assertionError
+import planning.engine.common.errors.*
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
@@ -31,10 +31,8 @@ trait MapGraphLake[F[_]]:
   def getIoNode(name: Name): F[IoNode[F]]
   def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]]
   def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
-
-//  def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
-//  def releaseHiddenNodes(ids: List[HnId]): F[Unit]
-//  def countHiddenNodes: F[Long]
+  def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
+  def countHiddenNodes: F[Long]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     override val metadata: MapMetadata,
@@ -59,53 +57,51 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   override def getState: F[MapCacheState[F]] = graphState.get
 
-  override def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]] = graphState.evalModify(
-    state =>
+  override def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]] =
+    def makeNodes(hnIds: List[HnId]): F[List[ConcreteNode[F]]] =
       for
-        nodes <- params
-          .map(p => getIoNode(p.ioNodeName).flatMap(n => ConcreteNode(state.nextHnIdId, p.name, n, p.valueIndex)))
-          .sequence
-        (neo4jNodes, nextState) <- database.createConcreteNodes(nodes, state.toCache(nodes, config.maxCacheSize))
-        _ <- logger.info(s"Created concrete and touched Neo4j node: $neo4jNodes")
-      yield (nextState, nodes)
-  )
-
-  override def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]] =
+        _ <- (params, hnIds).assertSameSize("Seems bug: Concrete node params and hnIds must have the same size")
+        withIoNodes <- params.traverse(p => getIoNode(p.ioNodeName).map(n => (p, n)))
+        nodes <- withIoNodes.zip(hnIds).traverse((ns, id) => ConcreteNode(id, ns._1.name, ns._2, ns._1.valueIndex))
+      yield nodes
 
     graphState.evalModify(state =>
       for
-        (nextState, nodes) <- state.addHiddenNode(params, p => AbstractNode[F](state.nextHnIdId, p))
-        dbParams <- nodes.map(n => n.toProperties).sequence
-        neo4jNodes <- database.createAbstractNodes(dbParams)
-        _ <- logger.info(s"Created abstract Neo4j node: $neo4jNodes")
-      yield (nextState, nodes)
+        (nextState, rawNodes, concreteNodes) <- database
+          .createConcreteNodes(params.size, makeNodes, state.toCache(config.maxCacheSize))
+        _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, concrete nodes: $concreteNodes")
+      yield (nextState, concreteNodes)
     )
 
-//  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = graphState.evalModify(state =>
-//    database.findHiddenNodesByNames(
-//      names,
-//      (ids, loadFound) =>
-//        state.findAndAllocateCached(
-//          ids,
-//          notFoundIds =>
-//            loadFound(notFoundIds).flatMap(_
-//              .map(dbData =>
-//                IoNode
-//                  .findForNode(dbData._2, ioNodes)
-//                  .flatMap(ioNode => HiddenNode.fromNode(dbData._1, ioNode))
-//              )
-//              .sequence)
-//        )
-//    )
-//  )
-//
-//  override def releaseHiddenNodes(ids: List[HnId]): F[Unit] = graphState
-//    .evalUpdate(_.releaseHns(ids, config.maxCacheSize).flatTap(_ => logger.info(s"Released nodes: $ids")))
-//
-//  override def countHiddenNodes: F[Long] = database.countHiddenNodes
+  override def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]] =
+    def makeNodes(hnIds: List[HnId]): F[List[AbstractNode[F]]] =
+      for
+        _ <- (params, hnIds).assertSameSize("Seems bug: Abstract node params and hnIds must have the same size")
+        nodes <- params.zip(hnIds).traverse((p, id) => AbstractNode(id, p.name))
+      yield nodes
+
+    graphState.evalModify(state =>
+      for
+        (nextState, rawNodes, abstractNodes) <- database
+          .createAbstractNodes(params.size, makeNodes, state.toCache(config.maxCacheSize))
+        _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, abstract nodes: $abstractNodes")
+      yield (nextState, abstractNodes)
+    )
+
+  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = graphState.evalModify(state =>
+    database
+      .findHiddenNodesByNames(
+        names,
+        hnIds => state.findAndAllocateCached(hnIds),
+        name => getIoNode(name),
+        (st, nodes) => st.toCache(config.maxCacheSize)(nodes)
+      )
+  )
+
+  override def countHiddenNodes: F[Long] = database.countHiddenNodes
 
 object MapGraph:
-  private[map] def apply[F[_]: {Async, LoggerFactory}](
+  def apply[F[_]: {Async, LoggerFactory}](
       config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],

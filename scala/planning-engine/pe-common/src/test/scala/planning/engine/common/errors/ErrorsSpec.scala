@@ -31,4 +31,30 @@ class ErrorsSpec extends UnitSpecIO:
       val duplicateSeq = List(1, 2, 2, 3, 4)
       duplicateSeq.assertDistinct[IO](
         "Elements are not distinct"
-      ).assertThrowsWithMessage[AssertionError]("Elements are not distinct")
+      ).assertThrowsWithMessage[AssertionError]("Elements are not distinct, seq: 1,2,2,3,4")
+
+  "assertSameSize" should:
+    "return the input tuple when both collections have the same size" in:
+      val left = List(1, 2, 3)
+      val right = Vector("a", "b", "c")
+      (left, right).assertSameSize[IO]("Collections must have the same size")
+        .logValue
+        .asserting(_ mustEqual (left, right))
+
+    "raise an error when collections have different sizes" in:
+      val left = List(1, 2, 3)
+      val right = Vector("a", "b")
+      (left, right).assertSameSize[IO]("Collections must have the same size")
+        .logValue
+        .assertThrows[AssertionError]
+
+  "assertTrue" should:
+    "complete successfully when the condition is true" in:
+      true.assertTrue[IO]("Condition must be true")
+        .logValue
+        .asserting(_ mustEqual (()))
+
+    "raise an error when the condition is false" in:
+      false.assertTrue[IO]("Condition must be true")
+        .logValue
+        .assertThrows[AssertionError]

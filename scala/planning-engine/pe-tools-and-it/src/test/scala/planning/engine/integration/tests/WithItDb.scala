@@ -15,7 +15,7 @@ package planning.engine.integration.tests
 import cats.effect.{IO, Resource}
 import com.typesafe.config.ConfigFactory
 import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
-import planning.engine.common.config.Neo4jConnectionConf
+import planning.engine.map.database.Neo4jConf
 import planning.engine.integration.tests.WithItDb.ItDb
 
 import java.util.UUID
@@ -30,7 +30,7 @@ import org.typelevel.log4cats.Logger
 trait WithItDb:
   self: IntegrationSpecWithResource[?] =>
 
-  private def createDb(config: Neo4jConnectionConf, driver: AsyncDriver[IO], dbName: String): IO[ItDb] =
+  private def createDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: String): IO[ItDb] =
     for
       _ <- c"CREATE DATABASE $dbName".execute.void(driver)
       _ <- c"START DATABASE $dbName".execute.void(driver)
@@ -48,7 +48,7 @@ trait WithItDb:
 
   def makeDb: Resource[IO, ItDb] =
     for
-      config <- Resource.eval(Neo4jConnectionConf
+      config <- Resource.eval(Neo4jConf
         .formConfig[IO](ConfigFactory.load("it_test_db.conf").getConfig("it_test_db.neo4j")))
       dbName = "integration-test-db-" + UUID.randomUUID().toString
       driver <- GraphDatabase.asyncDriver[IO](config.uri, config.authToken)
@@ -82,5 +82,5 @@ trait WithItDb:
       case _                => fail(s"Not found Long property $key in $node")
 
 object WithItDb:
-  final case class ItDb(config: Neo4jConnectionConf, driver: AsyncDriver[IO], dbName: String)
+  final case class ItDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: String)
   final case class ResourceWithDb[R](resource: R, itDb: ItDb)

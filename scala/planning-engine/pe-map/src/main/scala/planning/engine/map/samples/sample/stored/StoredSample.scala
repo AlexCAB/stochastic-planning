@@ -12,4 +12,4 @@
 
 package planning.engine.map.samples.sample.stored
 
-class StoredSample {}
+class StoredSample

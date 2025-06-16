@@ -26,9 +26,7 @@ import io.circe.generic.auto.*
 import org.http4s.circe.CirceEntityCodec.*
 import io.circe.syntax.*
 
-type TestResource = (MapServiceLike[IO], MapRoute[IO])
-
-class MapRouteSpec extends UnitSpecWithResource[TestResource] with AsyncMockFactory:
+class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO])] with AsyncMockFactory:
   private val testMapInitRequest = MapInitRequest(
     name = Some("testMapName"),
     description = Some("testMapDescription"),
@@ -49,7 +47,7 @@ class MapRouteSpec extends UnitSpecWithResource[TestResource] with AsyncMockFact
     numHiddenNodes = 3L
   )
 
-  override val resource: Resource[IO, TestResource] =
+  override val resource: Resource[IO, (MapServiceLike[IO], MapRoute[IO])] =
     for
       mockService <- Resource.pure(mock[MapServiceLike[IO]])
       route <- MapRoute(mockService)
@@ -64,7 +62,9 @@ class MapRouteSpec extends UnitSpecWithResource[TestResource] with AsyncMockFact
         mockService.init.expects(testMapInitRequest).returns(IO.pure(expectedResponse)).once()
 
         val request = Request[IO](Method.POST, uri"/map/init").withEntity(testMapInitRequest)
-        val response = route.endpoints.run(request).value.logValue.await.getOrElse(fail("Expected a response"))
+        val response = route.endpoints.run(request).value
+          .logValue("init")
+          .await.getOrElse(fail("Expected a response"))
 
         response.status mustEqual Status.Ok
         response.as[MapInfoResponse].await mustEqual expectedResponse
@@ -75,7 +75,9 @@ class MapRouteSpec extends UnitSpecWithResource[TestResource] with AsyncMockFact
         (() => mockService.load).expects().returns(IO.pure(expectedResponse)).once()
 
         val request = Request[IO](Method.POST, uri"/map/load")
-        val response = route.endpoints.run(request).value.logValue.await.getOrElse(fail("Expected a response"))
+        val response = route.endpoints.run(request).value
+          .logValue("load")
+          .await.getOrElse(fail("Expected a response"))
 
         response.status mustEqual Status.Ok
         response.as[MapInfoResponse].await mustEqual expectedResponse

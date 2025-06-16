@@ -33,9 +33,9 @@ final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) ext
     case v                         => s"Value $v not in range: $min to $max".assertionError
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.VAR_TYPE -> PROP_VALUE.FLOAT_TYPE.toDbParam,
-    PROP_NAME.MIN -> min.toDbParam,
-    PROP_NAME.MAX -> max.toDbParam
+    PROP.VAR_TYPE -> PROP_VALUE.FLOAT_TYPE.toDbParam,
+    PROP.MIN -> min.toDbParam,
+    PROP.MAX -> max.toDbParam
   )
 
   override def toString: String = s"FloatIoVariable(min = $min, min = $max)"
@@ -43,6 +43,6 @@ final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) ext
 object FloatIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[FloatIoVariable[F]] =
     for
-      min <- properties.getValue[F, Double](PROP_NAME.MIN)
-      max <- properties.getValue[F, Double](PROP_NAME.MAX)
+      min <- properties.getValue[F, Double](PROP.MIN)
+      max <- properties.getValue[F, Double](PROP.MAX)
     yield FloatIoVariable(min, max)

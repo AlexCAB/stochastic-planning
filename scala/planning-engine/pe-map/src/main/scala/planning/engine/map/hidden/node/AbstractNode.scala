@@ -19,20 +19,20 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.HnId
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
-import planning.engine.map.database.Neo4jQueries.{HN_LABEL, ABSTRACT_LABEL}
+import planning.engine.common.values.db.Neo4j.{HN_LABEL, ABSTRACT_LABEL}
 import planning.engine.common.errors.assertionError
 import planning.engine.map.hidden.edge.EdgeState
 
-class AbstractNode[F[_]: MonadThrow](
-    val id: HnId,
-    val name: Option[Name],
-    val parents: List[HiddenNode[F]],
-    val children: List[EdgeState[F]]
+final case class AbstractNode[F[_]: MonadThrow](
+    id: HnId,
+    name: Option[Name],
+    parents: List[HiddenNode[F]],
+    children: List[EdgeState[F]]
 ) extends HiddenNode[F]:
 
   override def toProperties: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.HN_ID -> id.toDbParam,
-    PROP_NAME.NAME -> name.map(_.toDbParam)
+    PROP.HN_ID -> id.toDbParam,
+    PROP.NAME -> name.map(_.toDbParam)
   )
 
   override def equals(that: Any): Boolean = that match
@@ -50,8 +50,8 @@ object AbstractNode:
   def fromNode[F[_]: MonadThrow](node: Node): F[AbstractNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for
-        id <- n.properties.getValue[F, Long](PROP_NAME.HN_ID).map(HnId.apply)
-        name <- n.properties.getOptional[F, String](PROP_NAME.NAME).map(_.map(Name.apply))
+        id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
+        name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
         concreteNode <- AbstractNode(id, name)
       yield concreteNode
     case _ => s"Node is not a hidden abstract node: $node".assertionError

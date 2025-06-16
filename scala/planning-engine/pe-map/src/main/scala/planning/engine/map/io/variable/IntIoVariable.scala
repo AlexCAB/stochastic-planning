@@ -31,9 +31,9 @@ final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends I
     case v                         => s"Value $v not in range: $min to $max".assertionError
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.VAR_TYPE -> PROP_VALUE.INT_TYPE.toDbParam,
-    PROP_NAME.MIN -> min.toDbParam,
-    PROP_NAME.MAX -> max.toDbParam
+    PROP.VAR_TYPE -> PROP_VALUE.INT_TYPE.toDbParam,
+    PROP.MIN -> min.toDbParam,
+    PROP.MAX -> max.toDbParam
   )
 
   override def toString: String = s"IntIoVariable(min = $min, min = $max)"
@@ -41,6 +41,6 @@ final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends I
 object IntIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IntIoVariable[F]] =
     for
-      min <- properties.getValue[F, Long](PROP_NAME.MIN)
-      max <- properties.getValue[F, Long](PROP_NAME.MAX)
+      min <- properties.getValue[F, Long](PROP.MIN)
+      max <- properties.getValue[F, Long](PROP.MAX)
     yield IntIoVariable(min, max)

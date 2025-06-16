@@ -32,7 +32,7 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
       async[IO]:
 
         mockedDb.initDatabase
-          .expects(testMetadata, List(boolInNode), List(boolOutNode))
+          .expects(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
           .returns(IO.pure(List(emptyNeo4jNode)))
           .once()
 

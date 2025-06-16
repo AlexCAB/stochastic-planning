@@ -12,10 +12,16 @@
 
 package planning.engine.common.values.db
 
-final case class Label(value: String) extends AnyVal:
-  override def equals(obj: Any): Boolean = obj match
-    case that: Label => this.value.equalsIgnoreCase(that.value)
-    case _           => false
+object Neo4j:
+  type Label = String
 
-  def s: String = value
-
+  val ROOT_LABEL: Label = "Root"
+  val SAMPLES_LABEL: Label = "Samples"
+  val SAMPLE_LABEL: Label = "Sample"
+  val IO_NODES_LABEL: Label = "IoNodes"
+  val IO_LABEL: Label = "Io"
+  val IN_LABEL: Label = "In"
+  val OUT_LABEL: Label = "Out"
+  val HN_LABEL: Label = "Hn"
+  val CONCRETE_LABEL: Label = "Concrete"
+  val ABSTRACT_LABEL: Label = "Abstract"

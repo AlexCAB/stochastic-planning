@@ -13,13 +13,12 @@
 package planning.engine.api.model.map
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecIO
-import org.typelevel.log4cats.Logger
+import planning.engine.common.UnitSpecWithData
 
 import cats.effect.cps.*
 import io.circe.syntax.*
 
-class IoNodeApiDefSpec extends UnitSpecIO:
+class IoNodeApiDefSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val booleanIoNode: IoNodeApiDef = BooleanIoNode("boolDef", Set(true, false))
@@ -28,42 +27,42 @@ class IoNodeApiDefSpec extends UnitSpecIO:
     lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode("listStrDef", elements = List("a", "b", "c"))
 
   "IoNodeApiDef" should:
-    "decode and encode BooleanIoNode" in newCase[CaseData]: data =>
+    "decode and encode BooleanIoNode" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val encoded = data.booleanIoNode.asJson
-        Logger[IO].info(s"Encoded JSON: $encoded").await
+        logInfo(tn, s"Encoded JSON: $encoded").await
 
         val decoded = IO.fromEither(encoded.as[IoNodeApiDef]).await
-        Logger[IO].info(s"Decoded value: $decoded").await
+        logInfo(tn, s"Decoded value: $decoded").await
 
         decoded mustEqual data.booleanIoNode
 
-    "decode and encode FloatIoNode" in newCase[CaseData]: data =>
+    "decode and encode FloatIoNode" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val encoded = data.floatIoNode.asJson
-        Logger[IO].info(s"Encoded JSON: $encoded").await
+        logInfo(tn, s"Encoded JSON: $encoded").await
 
         val decoded = IO.fromEither(encoded.as[IoNodeApiDef]).await
-        Logger[IO].info(s"Decoded value: $decoded").await
+        logInfo(tn, s"Decoded value: $decoded").await
 
         decoded mustEqual data.floatIoNode
 
-    "decode and encode IntIoNode" in newCase[CaseData]: data =>
+    "decode and encode IntIoNode" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val encoded = data.intIoNode.asJson
-        Logger[IO].info(s"Encoded JSON: $encoded").await
+        logInfo(tn, s"Encoded JSON: $encoded").await
 
         val decoded = IO.fromEither(encoded.as[IoNodeApiDef]).await
-        Logger[IO].info(s"Decoded value: $decoded").await
+        logInfo(tn, s"Decoded value: $decoded").await
 
         decoded mustEqual data.intIoNode
 
-    "decode and encode ListStrIoNode" in newCase[CaseData]: data =>
+    "decode and encode ListStrIoNode" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val encoded = data.listStrIoNode.asJson
-        Logger[IO].info(s"Encoded JSON: $encoded").await
+        logInfo(tn, s"Encoded JSON: $encoded").await
 
         val decoded = IO.fromEither(encoded.as[IoNodeApiDef]).await
-        Logger[IO].info(s"Decoded value: $decoded").await
+        logInfo(tn, s"Decoded value: $decoded").await
 
         decoded mustEqual data.listStrIoNode

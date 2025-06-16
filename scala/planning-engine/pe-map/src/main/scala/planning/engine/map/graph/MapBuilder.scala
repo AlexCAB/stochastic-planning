@@ -52,7 +52,7 @@ class MapBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
     for
       _ <- checkIoNodesNames(inNodes, outNodes)
       graphState <- MapCacheState.init(sampleCount = 0L)
-      createdNodes <- database.initDatabase(metadata, inNodes, outNodes)
+      createdNodes <- database.initDatabase(config, metadata, inNodes, outNodes)
       _ <- logger.info(s"Created nodes: ${nodesList(createdNodes)}")
       graph <- MapGraph[F](config, metadata, inNodes, outNodes, graphState, database)
     yield graph

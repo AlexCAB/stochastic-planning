@@ -13,13 +13,13 @@
 package planning.engine.api.model.map
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecIO
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.text.{Name, Description}
 import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
 
-class MapInitRequestSpec extends UnitSpecIO:
+class MapInitRequestSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val validRequest = MapInitRequest(
@@ -41,29 +41,29 @@ class MapInitRequestSpec extends UnitSpecIO:
     )
 
     lazy val expectedInputNodes = List(
-      InputNode[IO](Name("inputBoolean"), BooleanIoVariable(Set(true, false))),
-      InputNode[IO](Name("inputFloat"), FloatIoVariable(0.0f, 1.0f))
-    ).sequence.unsafeRunSync()
+      InputNode[IO](Name("inputBoolean"), BooleanIoVariable[IO](Set(true, false))),
+      InputNode[IO](Name("inputFloat"), FloatIoVariable[IO](0.0f, 1.0f))
+    )
 
     lazy val expectedOutputNodes = List(
       OutputNode[IO](Name("outputInt"), IntIoVariable(0, 10)),
       OutputNode[IO](Name("outputListStr"), ListStrIoVariable(List("a", "b", "c")))
-    ).sequence.unsafeRunSync()
+    )
 
   "toMetadata" should:
-    "convert valid request to metadata" in newCase[CaseData]: data =>
+    "convert valid request to metadata" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toMetadata[IO]
-        .logValue
+        .logValue(tn)
         .asserting(_ mustEqual data.expectedMetadata)
 
   "toInputNodes" should:
-    "convert valid input nodes to InputNode instances" in newCase[CaseData]: data =>
+    "convert valid input nodes to InputNode instances" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toInputNodes[IO]
-        .logValue
+        .logValue(tn)
         .asserting(_ mustEqual data.expectedInputNodes)
 
   "toOutputNodes" should:
-    "convert valid output nodes to OutputNode instances" in newCase[CaseData]: data =>
+    "convert valid output nodes to OutputNode instances" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toOutputNodes[IO]
-        .logValue
+        .logValue(tn)
         .asserting(_ mustEqual data.expectedOutputNodes)

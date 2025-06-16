@@ -24,9 +24,9 @@ trait MapServiceLike[F[_]]:
   def load: F[MapInfoResponse]
 
 class MapService[F[_]: {Async, LoggerFactory}](
-                                                config: MapConfig,
-                                                builder: MapBuilderLike[F],
-                                                kgCell: AtomicCell[F, Option[MapGraphLake[F]]]
+    config: MapConfig,
+    builder: MapBuilderLike[F],
+    kgCell: AtomicCell[F, Option[MapGraphLake[F]]]
 ) extends MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
@@ -62,8 +62,8 @@ class MapService[F[_]: {Async, LoggerFactory}](
 
 object MapService:
   def apply[F[_]: {Async, LoggerFactory}](
-                                           config: MapConfig,
-                                           builder: MapBuilderLike[F]
+      config: MapConfig,
+      builder: MapBuilderLike[F]
   ): Resource[F, MapService[F]] = Resource.eval(
     AtomicCell[F].of[Option[MapGraphLake[F]]](None)
       .map(kgCell => new MapService[F](config, builder, kgCell))

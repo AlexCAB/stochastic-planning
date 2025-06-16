@@ -55,11 +55,11 @@ final case class MapInitRequest(
   def toMetadata[F[_]: MonadThrow]: F[MapMetadata] =
     for
       name <- Name.fromString(name)
-      description <-Description.fromString(description)
+      description <- Description.fromString(description)
     yield MapMetadata(name, description)
 
-  def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _))
-  def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _))
+  def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _).pure)
+  def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _).pure)
 
 object MapInitRequest:
   import io.circe.generic.auto.*

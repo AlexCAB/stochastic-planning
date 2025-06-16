@@ -15,9 +15,9 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
-import planning.engine.common.UnitSpecIO
+import planning.engine.common.UnitSpecWithData
 
-class ServerConfSpec extends UnitSpecIO:
+class ServerConfSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     val validConfig = ConfigFactory.parseString(
@@ -29,7 +29,7 @@ class ServerConfSpec extends UnitSpecIO:
     )
 
   "formConfig" should:
-    "create ServerConf from valid configuration" in newCase[CaseData]: data =>
+    "create ServerConf from valid configuration" in newCase[CaseData]: (tn, data) =>
       ServerConf.formConfig[IO](data.validConfig)
-        .logValue
+        .logValue(tn)
         .asserting(_ mustEqual ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"))

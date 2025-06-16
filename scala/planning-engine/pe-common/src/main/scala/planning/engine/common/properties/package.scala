@@ -21,7 +21,7 @@ import cats.syntax.all.*
 import neotypes.mappers.ParameterMapper
 import neotypes.model.query.QueryParam.NullValue
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.db.Label
+import planning.engine.common.values.db.Neo4j.Label
 
 package object properties
 
@@ -95,23 +95,19 @@ extension (propsMap: Map[String, Value])
     propsMap.filter((k, _) => k.startsWith(keyWithDot)).pure.removeKeyPrefix(key)
 
 extension (node: Node)
-  inline def is(l: Label): Boolean = node.labels.exists(_.equalsIgnoreCase(l.value))
-  
-  inline def getValue[F[_] : MonadThrow, V <: ScalaValue : Typeable](key: String): F[V] = 
-    node.properties.getValue(key)
-     
+  inline def is(l: Label): Boolean = node.labels.exists(_.equalsIgnoreCase(l))
 
-  inline def getOptional[F[_] : MonadThrow, V <: ScalaValue : Typeable](key: String): F[Option[V]] =
+  inline def getValue[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[V] = node.properties.getValue(key)
+
+  inline def getOptional[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[Option[V]] =
     node.properties.getOptional(key)
-     
 
-  inline def getList[F[_] : MonadThrow, V <: ScalaValue : Typeable](key: String): F[List[V]] =
+  inline def getList[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[List[V]] =
     node.properties.getList(key)
 
-  inline def getProps[F[_] : MonadThrow](key: String): F[Map[String, Value]] =
-    node.properties.getProps(key)
+  inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] = node.properties.getProps(key)
 
-object PROP_NAME:
+object PROP:
   val VAR_TYPE = "varType"
   val DOMAIN = "domain"
   val MIN = "min"

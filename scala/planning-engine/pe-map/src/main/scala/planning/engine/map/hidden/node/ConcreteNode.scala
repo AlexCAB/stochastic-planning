@@ -20,23 +20,23 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.errors.assertionError
-import planning.engine.map.database.Neo4jQueries.{HN_LABEL, CONCRETE_LABEL}
+import planning.engine.common.values.db.Neo4j.{HN_LABEL, CONCRETE_LABEL}
 import planning.engine.common.properties.*
 import planning.engine.map.hidden.edge.EdgeState
 
-class ConcreteNode[F[_]: MonadThrow](
-    val id: HnId,
-    val name: Option[Name],
-    val ioNode: IoNode[F],
-    val valueIndex: IoIndex,
-    val parents: List[HiddenNode[F]],
-    val children: List[EdgeState[F]]
+final case class ConcreteNode[F[_]: MonadThrow](
+    id: HnId,
+    name: Option[Name],
+    ioNode: IoNode[F],
+    valueIndex: IoIndex,
+    parents: List[HiddenNode[F]],
+    children: List[EdgeState[F]]
 ) extends HiddenNode[F]:
 
   override def toProperties: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.HN_ID -> id.toDbParam,
-    PROP_NAME.NAME -> name.map(_.toDbParam),
-    PROP_NAME.IO_INDEX -> valueIndex.toDbParam
+    PROP.HN_ID -> id.toDbParam,
+    PROP.NAME -> name.map(_.toDbParam),
+    PROP.IO_INDEX -> valueIndex.toDbParam
   )
 
   override def equals(that: Any): Boolean = that match
@@ -66,9 +66,9 @@ object ConcreteNode:
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for
-        id <- n.properties.getValue[F, Long](PROP_NAME.HN_ID).map(HnId.apply)
-        name <- n.properties.getOptional[F, String](PROP_NAME.NAME).map(_.map(Name.apply))
-        valueIndex <- n.properties.getValue[F, Long](PROP_NAME.IO_INDEX).map(IoIndex.apply)
+        id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
+        name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
+        valueIndex <- n.getValue[F, Long](PROP.IO_INDEX).map(IoIndex.apply)
         concreteNode <- ConcreteNode(id, name, ioNode, valueIndex)
       yield concreteNode
     case _ => s"Node is not a hidden concrete node: $node".assertionError

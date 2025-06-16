@@ -19,7 +19,6 @@ import org.scalatest.Assertion
 import org.typelevel.log4cats.{Logger, LoggerFactory}
 import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
 import org.scalatest.matchers.must.Matchers
-
 import cats.syntax.all.*
 
 trait SpecLogging:
@@ -39,9 +38,11 @@ trait SpecLogging:
     case Right(value) => Logger[IO].info(s"IO completed successfully: $value").as(value)
     case Left(err)    => Logger[IO].error(err)("IO failed.").flatMap(_ => IO.raiseError(err))
 
+  def logInfo(tn: String, msg: String): IO[Unit] = Logger[IO].info(s"[$tn] $msg")
+
   extension [F[_]: {MonadThrow, Logger}, A](f: F[A])
     def expect(p: A => Boolean)(implicit F: Sync[F]): F[Assertion] = f.asserting(a => assert(p(a)))
 
-    def logValue: F[A] = f.attemptTap:
-      case Left(e)  => Logger[F].info(e)("F.error:")
-      case Right(v) => Logger[F].info(s"F.value($v)")
+    def logValue(testName: String, msg: String = "F"): F[A] = f.attemptTap:
+      case Left(e)  => Logger[F].info(e)(s"[$testName] $msg, error: ")
+      case Right(v) => Logger[F].info(s"[$testName] $msg, value = $v")

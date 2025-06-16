@@ -25,28 +25,35 @@ import neotypes.mappers.ResultMapper
 import neotypes.model.types.{Node, Value}
 import neotypes.query.DeferredQueryBuilder
 import neotypes.syntax.all.*
-import org.typelevel.log4cats.Logger
+import cats.syntax.all.*
+import planning.engine.common.values.node.HnId
+import planning.engine.common.properties.*
 
 trait WithItDb:
   self: IntegrationSpecWithResource[?] =>
+
+  val removeDbAfterTest: Boolean = true
 
   private def createDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: String): IO[ItDb] =
     for
       _ <- c"CREATE DATABASE $dbName".execute.void(driver)
       _ <- c"START DATABASE $dbName".execute.void(driver)
       _ <- IO.sleep(2.second) // Wait for the database to start
-      _ <- Logger[IO].info(s"[WithItDb] Database $dbName created and started.")
+      _ <- logInfo("createDb", s"[WithItDb] Database $dbName created and started.")
     yield ItDb(config, driver, dbName)
 
   private def dropDb(driver: AsyncDriver[IO], dbName: String): IO[Unit] =
-    for
-      _ <- c"STOP DATABASE $dbName".execute.void(driver)
-      _ <- c"DROP DATABASE $dbName DESTROY DATA".execute.void(driver)
-      _ <- Logger[IO].info(s"[WithItDb] Database $dbName stopped and dropped.")
-      _ <- IO.sleep(2.second) // Wait for the database to be dropped
-    yield ()
+    if removeDbAfterTest then
+      for
+        _ <- c"STOP DATABASE $dbName".execute.void(driver)
+        _ <- c"DROP DATABASE $dbName DESTROY DATA".execute.void(driver)
+        _ <- logInfo("dropDb", s"[WithItDb] Database $dbName stopped and dropped.")
+        _ <- IO.sleep(2.second) // Wait for the database to be dropped
+      yield ()
+    else
+      logInfo("dropDb", s"[WithItDb] (!!!) Database $dbName will not be dropped as removeDbAfterTest is set to false.")
 
-  def makeDb: Resource[IO, ItDb] =
+  def makeDb(): Resource[IO, ItDb] =
     for
       config <- Resource.eval(Neo4jConf
         .formConfig[IO](ConfigFactory.load("it_test_db.conf").getConfig("it_test_db.neo4j")))
@@ -56,18 +63,27 @@ trait WithItDb:
     yield itDb
 
   extension (builder: DeferredQueryBuilder)
-    def queryList[T](mapper: ResultMapper[T])(implicit db: WithItDb.ItDb): IO[List[T]] =
-      builder.query(mapper).list(db.driver, TransactionConfig.default.withDatabase(db.dbName)).logValue
+    def queryList[T](mapper: ResultMapper[T])(implicit db: WithItDb.ItDb): IO[List[T]] = builder
+      .query(mapper).list(db.driver, TransactionConfig.default.withDatabase(db.dbName))
+      .flatMap(_.traverseTap(n => logInfo("queryList", s"node = $n")))
+      .logValue("queryList")
 
     def querySingle[T](mapper: ResultMapper[T])(implicit db: WithItDb.ItDb): IO[T] =
       def query = builder.query(mapper)
-      queryList(mapper).logValue.flatMap:
+      queryList(mapper).flatMap:
         case head :: Nil => IO.pure(head)
         case Nil         => IO.raiseError(new AssertionError(s"No result found for query: $query"))
         case res         => IO.raiseError(new AssertionError(s"More then one result found: $res, for query: $query"))
 
     def listNode(implicit db: WithItDb.ItDb): IO[List[Node]] = queryList(ResultMapper.node)
     def singleNode(implicit db: WithItDb.ItDb): IO[Node] = querySingle(ResultMapper.node)
+
+    def listHnIds(implicit db: WithItDb.ItDb): IO[List[HnId]] = queryList(ResultMapper.node)
+      .flatMap(_.traverse(_.getValue[IO, Long](PROP.HN_ID).map(HnId.apply)))
+      .flatTap(ids => logInfo("listHnIds", s"hnIds = $ids"))
+
+    def count(implicit db: WithItDb.ItDb): IO[Long] =
+      builder.querySingle(ResultMapper.long).logValue("countNodes", "count")
 
   extension (node: Node)
     def getProperty(key: String)(implicit db: WithItDb.ItDb): Value =

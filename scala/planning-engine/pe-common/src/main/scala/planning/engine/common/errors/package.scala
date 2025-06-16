@@ -40,3 +40,9 @@ extension (bool: Boolean)
   inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] =
     if bool then ApplicativeThrow[F].unit
     else ApplicativeThrow[F].raiseError(AssertionError(msg))
+
+extension (value: Long)
+  inline def assetAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    if value > 0 then ApplicativeThrow[F].unit
+    else
+      ApplicativeThrow[F].raiseError(AssertionError(msg + s", expecter to be positive not null value, but got: $value"))

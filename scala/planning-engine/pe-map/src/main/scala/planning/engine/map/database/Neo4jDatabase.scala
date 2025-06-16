@@ -21,8 +21,8 @@ import neotypes.cats.effect.implicits.*
 import cats.syntax.all.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
-import planning.engine.common.errors.{assertDistinct, assertionError}
-import planning.engine.map.graph.{MapCacheLike, MapCacheState, MapMetadata}
+import planning.engine.common.errors.*
+import planning.engine.map.graph.{MapCacheLike, MapCacheState, MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
@@ -36,7 +36,13 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
   */
 
 trait Neo4jDatabaseLike[F[_]]:
-  def initDatabase(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[List[Node]]
+  def initDatabase(
+      config: MapConfig,
+      metadata: MapMetadata,
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]]
+  ): F[List[Node]]
+
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]], MapCacheState[F])]
 
   def createConcreteNodes[R <: MapCacheLike[F]](
@@ -65,16 +71,18 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
   private val readConf: TransactionConfig = TransactionConfig.readOnly.withDatabase(dbName)
 
   override def initDatabase(
+      config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]]
   ): F[List[Node]] = driver.transact(writeConf): tx =>
     for
       mtParams <- metadata.toQueryParams
+      confParams <- config.toQueryParams
       inParams <- inNodes.traverse(_.toQueryParams)
       outParams <- outNodes.traverse(_.toQueryParams)
       _ <- removeAllNodesQuery(tx)
-      staticNodes <- createStaticNodesQuery(mtParams)(tx)
+      staticNodes <- createStaticNodesQuery(mtParams ++ confParams)(tx)
       ioNodes <- (inParams ++ outParams).traverse((label, params) => createIoNodeQuery(label, params)(tx))
     yield staticNodes ++ ioNodes
 
@@ -102,6 +110,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       updateCache: List[ConcreteNode[F]] => F[R]
   ): F[(R, List[Node], List[ConcreteNode[F]])] = driver.transact(writeConf): tx =>
     for
+      _ <- numOfNodes.assetAnNumberOf("numOfNodes")
       concreteNodes <- getAndIncrementNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
       params <- concreteNodes.traverse(n => n.toProperties.map(p => (n.ioNode.name, p)))
       rawNodes <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
@@ -114,6 +123,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       updateCache: List[AbstractNode[F]] => F[R]
   ): F[(R, List[Node], List[AbstractNode[F]])] = driver.transact(writeConf): tx =>
     for
+      _ <- numOfNodes.assetAnNumberOf("numOfNodes")
       abstractNodes <- getAndIncrementNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
       params <- abstractNodes.traverse(_.toProperties)
       rawNodes <- params.traverse(props => addAbstractNodeQuery(props)(tx))
@@ -146,7 +156,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(HnId.apply))
       _ <- ids.assertDistinct("Hidden node ids should be distinct")
       (cachedState, cachedNodes) <- loadCached(ids)
-      notFoundIds = cachedNodes.map(_.id).diff(ids).map(_.value)
+      notFoundIds = ids.diff(cachedNodes.map(_.id)).map(_.value)
       abstractNodes <- loadAbstractNodes(notFoundIds)
       concreteNodes <- loadConcreteNodes(notFoundIds)
       allNodes = cachedNodes ++ abstractNodes ++ concreteNodes

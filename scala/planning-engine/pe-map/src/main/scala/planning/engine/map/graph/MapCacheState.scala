@@ -12,9 +12,10 @@
 
 package planning.engine.map.graph
 
-import cats.{MonadThrow, ApplicativeThrow}
+import cats.{ApplicativeThrow, MonadThrow}
 import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.samples.sample.SampleData
+
 import scala.collection.immutable.Queue
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
@@ -34,11 +35,11 @@ final case class MapCacheState[F[_]: MonadThrow](
 ) extends MapCacheLike[F]:
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.SAMPLES_COUNT -> sampleCount.toDbParam
+    PROP.SAMPLES_COUNT -> sampleCount.toDbParam
   )
 
   def toCache(maxSize: Long)(nodes: List[HiddenNode[F]]): F[MapCacheState[F]] =
-    
+
     // TODO should also update relationships in the cache
     def update(node: HiddenNode[F], cached: Map[HnId, HiddenNode[F]], queue: Queue[HnId]) =
       if cached.contains(node.id)
@@ -62,13 +63,12 @@ final case class MapCacheState[F[_]: MonadThrow](
 
     process(nodes).map((newCached, newQueue) => this.copy(hiddenNodes = newCached, hnQueue = newQueue))
 
-  def findAndAllocateCached(ids: List[HnId]): F[(MapCacheState[F], List[HiddenNode[F]])] =
-    ApplicativeThrow[F]
-      .catchNonFatal(ids.foldLeft((hnQueue, List[HiddenNode[F]]())):
-        case ((queue, found), id) => hiddenNodes.get(id) match
-            case Some(node) => (queue.filter(_ != id).enqueue(id), node +: found)
-            case None       => (queue, found))
-      .map((queue, found) => (this.copy(hnQueue = queue), found.reverse))
+  def findAndAllocateCached(ids: List[HnId]): F[(MapCacheState[F], List[HiddenNode[F]])] = ApplicativeThrow[F]
+    .catchNonFatal(ids.foldLeft((hnQueue, List[HiddenNode[F]]())):
+      case ((queue, found), id) => hiddenNodes.get(id) match
+          case Some(node) => (queue.filter(_ != id).enqueue(id), node +: found)
+          case None       => (queue, found))
+    .map((queue, found) => (this.copy(hnQueue = queue), found.reverse))
 
 object MapCacheState:
   def init[F[_]: MonadThrow](sampleCount: Long): F[MapCacheState[F]] = MapCacheState[F](

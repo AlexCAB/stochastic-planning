@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
-import planning.engine.common.properties.PROP_NAME
+import planning.engine.common.properties.PROP
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 
@@ -34,7 +34,7 @@ object IoVariable:
     val LIST_STR_TYPE = "list-str"
 
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IoVariable[F, ?]] =
-    properties.get(PROP_NAME.VAR_TYPE) match
+    properties.get(PROP.VAR_TYPE) match
       case Some(Value.Str(BOOL_TYPE)) =>
         BooleanIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])
 

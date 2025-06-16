@@ -23,7 +23,7 @@ class MaintenanceServiceSpec extends UnitSpecWithResource[MaintenanceService[IO]
   "getHealth" should:
     "return OK status and version when environment variable is set" in: service =>
       service.getHealth
-        .logValue
+        .logValue("getHealth")
         .asserting(_ mustEqual HealthResponse(Status.OK, "test_app_version"))
 
   "awaitShutdown and exit" should:
@@ -34,4 +34,4 @@ class MaintenanceServiceSpec extends UnitSpecWithResource[MaintenanceService[IO]
           _ <- service.awaitShutdown
         yield ()
 
-      shutdown.logValue.asserting(_ mustEqual ())
+      shutdown.logValue("exit").asserting(_ mustEqual ())

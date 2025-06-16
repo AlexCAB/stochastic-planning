@@ -32,12 +32,12 @@ final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boole
     else s"Value '$value' not in acceptable values: $acceptableValues".assertionError
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
-    PROP_NAME.VAR_TYPE -> BOOL_TYPE.toDbParam,
-    PROP_NAME.DOMAIN -> acceptableValues.toList.toDbParam
+    PROP.VAR_TYPE -> BOOL_TYPE.toDbParam,
+    PROP.DOMAIN -> acceptableValues.toList.toDbParam
   )
 
   override def toString: String = s"BooleanIoVariable(acceptableValues = [${acceptableValues.mkString(", ")}])"
 
 object BooleanIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[BooleanIoVariable[F]] =
-    properties.getList[F, Boolean](PROP_NAME.DOMAIN).map(bs => BooleanIoVariable(bs.toSet))
+    properties.getList[F, Boolean](PROP.DOMAIN).map(bs => BooleanIoVariable(bs.toSet))

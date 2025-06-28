@@ -8,18 +8,15 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-05-11 |||||||||||*/
+| created: 2025-06-28 |||||||||||*/
 
 package planning.engine.map.samples.sample.observed
 
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.HnId
-import planning.engine.common.values.text.{Description, Name}
 
-final case class ObservedSample(
-    probabilityCount: Long,
-    utility: Double,
-    name: Option[Name],
-    description: Option[Description],
-    hnIds: Set[HnId],
-    edges: List[ObservedEdge]
+final case class ObservedEdge(
+    source: HnId,
+    target: HnId,
+    edgeType: EdgeType
 )

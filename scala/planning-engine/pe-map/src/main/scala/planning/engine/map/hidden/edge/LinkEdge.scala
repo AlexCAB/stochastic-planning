@@ -14,9 +14,10 @@ package planning.engine.map.hidden.edge
 
 import cats.MonadThrow
 import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.SampleEdgeState
+import planning.engine.map.samples.sample.SampleEdge
 
-case class LinkEdgeState[F[_]: MonadThrow](
+case class LinkEdge[F[_]: MonadThrow](
+    source: HiddenNode[F],
     target: HiddenNode[F],
-    samples: List[SampleEdgeState]
-) extends EdgeState[F]
+    samples: List[SampleEdge]
+) extends HiddenEdge[F]

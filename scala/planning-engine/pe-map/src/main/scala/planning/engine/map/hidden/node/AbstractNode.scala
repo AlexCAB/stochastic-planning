@@ -21,13 +21,10 @@ import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.values.db.Neo4j.{HN_LABEL, ABSTRACT_LABEL}
 import planning.engine.common.errors.assertionError
-import planning.engine.map.hidden.edge.EdgeState
 
 final case class AbstractNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name],
-    parents: List[HiddenNode[F]],
-    children: List[EdgeState[F]]
+    name: Option[Name]
 ) extends HiddenNode[F]:
 
   override def toProperties: F[Map[String, Param]] = paramsOf(
@@ -43,15 +40,12 @@ final case class AbstractNode[F[_]: MonadThrow](
 
 object AbstractNode:
   final case class New(name: Option[Name])
-
-  def apply[F[_]: MonadThrow](id: HnId, name: Option[Name]): F[AbstractNode[F]] =
-    new AbstractNode[F](id, name, parents = List.empty, children = List.empty).pure
-
+  
   def fromNode[F[_]: MonadThrow](node: Node): F[AbstractNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
         name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
-        concreteNode <- AbstractNode(id, name)
+        concreteNode <- AbstractNode(id, name).pure
       yield concreteNode
     case _ => s"Node is not a hidden abstract node: $node".assertionError

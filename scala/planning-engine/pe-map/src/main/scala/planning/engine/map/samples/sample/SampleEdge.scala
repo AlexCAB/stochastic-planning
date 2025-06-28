@@ -15,7 +15,7 @@ package planning.engine.map.samples.sample
 import planning.engine.common.values.node.HnIndex
 import planning.engine.map.samples.sample.SampleData
 
-case class SampleEdgeState(
+case class SampleEdge(
     sourceValue: HnIndex,
     targetValue: HnIndex,
     sample: SampleData

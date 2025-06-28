@@ -22,6 +22,12 @@ import neotypes.query.QueryArg.Param
 import cats.syntax.all.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
+import planning.engine.map.hidden.edge.HiddenEdge
+
+// TODO: This is a basic, temporary implementation of the MapCacheState.
+// TODO: In future, it should be replaced with a more sophisticated cache management system,
+// TODO: to improve performance and memory usage.
+// TODO: Or it can be removed completely to simplify the codebase and make this component stateless.
 
 trait MapCacheLike[F[_]]:
   def sampleCount: Long
@@ -29,6 +35,7 @@ trait MapCacheLike[F[_]]:
 
 final case class MapCacheState[F[_]: MonadThrow](
     hiddenNodes: Map[HnId, HiddenNode[F]],
+    hiddenEdges: Map[HnId, List[HiddenEdge[F]]], // Edges indexed by source node id
     samples: Map[SampleId, SampleData],
     sampleCount: Long,
     hnQueue: Queue[HnId]
@@ -73,6 +80,7 @@ final case class MapCacheState[F[_]: MonadThrow](
 object MapCacheState:
   def init[F[_]: MonadThrow](sampleCount: Long): F[MapCacheState[F]] = MapCacheState[F](
     hiddenNodes = Map.empty,
+    hiddenEdges = Map.empty,
     sampleCount = sampleCount,
     samples = Map.empty,
     hnQueue = Queue.empty

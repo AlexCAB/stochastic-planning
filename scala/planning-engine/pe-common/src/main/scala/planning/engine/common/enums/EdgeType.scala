@@ -8,15 +8,9 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-06-28 |||||||||||*/
 
-package planning.engine.map.hidden.edge
+package planning.engine.common.enums
 
-import cats.MonadThrow
-import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.SampleEdgeState
-
-case class ThenEdgeState[F[_]: MonadThrow](
-    target: HiddenNode[F],
-    samples: List[SampleEdgeState]
-) extends EdgeState[F]
+enum EdgeType:
+  case THEN, LINK

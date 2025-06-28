@@ -22,6 +22,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.common.errors.*
+import planning.engine.map.subgraph.NextNodesMap
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
@@ -33,6 +34,7 @@ trait MapGraphLake[F[_]]:
   def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
   def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
   def countHiddenNodes: F[Long]
+  def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     override val metadata: MapMetadata,
@@ -62,7 +64,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
       for
         _ <- (params, hnIds).assertSameSize("Seems bug: Concrete node params and hnIds must have the same size")
         withIoNodes <- params.traverse(p => getIoNode(p.ioNodeName).map(n => (p, n)))
-        nodes <- withIoNodes.zip(hnIds).traverse((ns, id) => ConcreteNode(id, ns._1.name, ns._2, ns._1.valueIndex))
+        nodes = withIoNodes.zip(hnIds).map((ns, id) => ConcreteNode(id, ns._1.name, ns._2, ns._1.valueIndex))
       yield nodes
 
     graphState.evalModify(state =>
@@ -77,7 +79,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     def makeNodes(hnIds: List[HnId]): F[List[AbstractNode[F]]] =
       for
         _ <- (params, hnIds).assertSameSize("Seems bug: Abstract node params and hnIds must have the same size")
-        nodes <- params.zip(hnIds).traverse((p, id) => AbstractNode(id, p.name))
+        nodes = params.zip(hnIds).map((p, id) => AbstractNode(id, p.name))
       yield nodes
 
     graphState.evalModify(state =>
@@ -99,6 +101,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
   )
 
   override def countHiddenNodes: F[Long] = database.countHiddenNodes
+  
+  override def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]] = ???
 
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](

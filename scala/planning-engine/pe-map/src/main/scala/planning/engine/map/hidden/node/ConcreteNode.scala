@@ -22,15 +22,12 @@ import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.Neo4j.{HN_LABEL, CONCRETE_LABEL}
 import planning.engine.common.properties.*
-import planning.engine.map.hidden.edge.EdgeState
 
 final case class ConcreteNode[F[_]: MonadThrow](
     id: HnId,
     name: Option[Name],
     ioNode: IoNode[F],
-    valueIndex: IoIndex,
-    parents: List[HiddenNode[F]],
-    children: List[EdgeState[F]]
+    valueIndex: IoIndex
 ) extends HiddenNode[F]:
 
   override def toProperties: F[Map[String, Param]] = paramsOf(
@@ -48,27 +45,13 @@ final case class ConcreteNode[F[_]: MonadThrow](
 
 object ConcreteNode:
   final case class New(name: Option[Name], ioNodeName: Name, valueIndex: IoIndex)
-
-  def apply[F[_]: MonadThrow](
-      id: HnId,
-      name: Option[Name],
-      ioNode: IoNode[F],
-      valueIndex: IoIndex
-  ): F[ConcreteNode[F]] = new ConcreteNode[F](
-    id,
-    name,
-    ioNode,
-    valueIndex,
-    parents = List.empty,
-    children = List.empty
-  ).pure
-
+  
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
         name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
         valueIndex <- n.getValue[F, Long](PROP.IO_INDEX).map(IoIndex.apply)
-        concreteNode <- ConcreteNode(id, name, ioNode, valueIndex)
+        concreteNode <- ConcreteNode(id, name, ioNode, valueIndex).pure
       yield concreteNode
     case _ => s"Node is not a hidden concrete node: $node".assertionError

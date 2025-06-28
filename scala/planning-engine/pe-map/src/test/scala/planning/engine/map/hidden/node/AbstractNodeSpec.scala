@@ -27,7 +27,7 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
   private class CaseData extends Case:
     lazy val id = HnId(1234)
     lazy val name = Some(Name("TestNode"))
-    lazy val singleNode = AbstractNode[IO](id, name).unsafeRunSync()
+    lazy val singleNode = AbstractNode[IO](id, name)
 
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
@@ -46,16 +46,12 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
       data.singleNode.pure[IO].logValue(tn).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
-        node.parents mustEqual List()
-        node.children mustEqual List()
 
   "fromNode" should:
     "create AbstractNode from raw node" in newCase[CaseData]: (_, data) =>
       AbstractNode.fromNode[IO](data.rawNode).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
-        node.parents mustEqual List()
-        node.children mustEqual List()
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
@@ -63,9 +59,9 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](data.id, data.name).asserting: node2 =>
+      AbstractNode[IO](data.id, data.name).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](HnId(5678), Some(Name("TestNode2"))).asserting: node2 =>
+      AbstractNode[IO](HnId(5678), Some(Name("TestNode2"))).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false

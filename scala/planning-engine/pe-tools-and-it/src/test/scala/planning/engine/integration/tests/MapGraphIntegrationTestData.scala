@@ -23,6 +23,7 @@ import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
 import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
+import neotypes.model.types
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
   self: AsyncIOSpec & Matchers & SpecLogging =>
@@ -46,25 +47,25 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       concreteNames: List[Option[Name]],
       abstractNames: List[Option[Name]]
   ): IO[TestHiddenNodes] =
-    def makeConcreteNodes = neo4jdb
+    def makeConcreteNodes: IO[(List[types.Node], List[ConcreteNode[IO]])] = neo4jdb
       .createConcreteNodes(
         numOfNodes = concreteNames.size,
         makeNodes = hnIds =>
-          hnIds.zip(concreteNames)
-            .traverse((id, name) => ConcreteNode[IO](id, name, intInNode, IoIndex(id.value + 100L))),
-        updateCache = _ => emptyGraphState.pure
+          hnIds
+            .zip(concreteNames)
+            .map((id, name) => ConcreteNode[IO](id, name, intInNode, IoIndex(id.value + 100L)))
+            .pure[IO]
       )
 
-    def makeAbstractNodes = neo4jdb
+    def makeAbstractNodes: IO[(List[types.Node], List[AbstractNode[IO]])] = neo4jdb
       .createAbstractNodes(
         numOfNodes = abstractNames.size,
-        makeNodes = hnIds => hnIds.zip(abstractNames).traverse((id, name) => AbstractNode[IO](id, name)),
-        updateCache = _ => emptyGraphState.pure
+        makeNodes = hnIds => hnIds.zip(abstractNames).map((id, name) => AbstractNode[IO](id, name)).pure[IO]
       )
 
     for
-      (_, _, concreteNodes) <- makeConcreteNodes.logValue("createTestHiddenNodesInDb", "concreteNodes")
-      (_, _, abstractNodes) <- makeAbstractNodes.logValue("createTestHiddenNodesInDb", "abstractNodes")
+      (_, concreteNodes) <- makeConcreteNodes.logValue("createTestHiddenNodesInDb", "concreteNodes")
+      (_, abstractNodes) <- makeAbstractNodes.logValue("createTestHiddenNodesInDb", "abstractNodes")
     yield TestHiddenNodes(concreteNodes, abstractNodes, concreteNodes ++ abstractNodes)
 
   def loadTestMapGraph(neo4jdb: Neo4jDatabase[IO]): Resource[IO, MapGraph[IO]] =

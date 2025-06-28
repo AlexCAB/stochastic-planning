@@ -26,7 +26,6 @@ trait MapGraphTestData:
 
   lazy val testMapConfig = MapConfig(initNextHnId = 1L, maxCacheSize = 10L)
   lazy val testMetadata = MapMetadata(Some(Name("TestMap")), Some(Description("Test description")))
-  lazy val emptyGraphState = MapCacheState.init[IO](sampleCount = 0L).unsafeRunSync()
   lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 
   lazy val boolInNode = InputNode[IO](Name("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
@@ -39,10 +38,9 @@ trait MapGraphTestData:
 
   lazy val testHnIndex = HnIndex(1L)
 
-  def makeAbstractNode(id: Int): AbstractNode[IO] =
-    AbstractNode[IO](id = HnId(id), name = Some(Name("Test Node"))).unsafeRunSync()
+  def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](id = HnId(id), name = Some(Name("Test Node")))
 
-  def makeConcreteNode(index: Long, ioNode: IoNode[IO]): IO[ConcreteNode[IO]] =
+  def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] =
     ConcreteNode[IO](HnId(123), Some(Name("test")), ioNode, IoIndex(index))
 
   lazy val hiddenNodes: List[AbstractNode[IO]] = (1 to 10).map(i => makeAbstractNode(i)).toList

@@ -51,18 +51,17 @@ class MapBuilder[F[_]: {Async, LoggerFactory}](database: Neo4jDatabaseLike[F])
   ): F[MapGraphLake[F]] =
     for
       _ <- checkIoNodesNames(inNodes, outNodes)
-      graphState <- MapCacheState.init(sampleCount = 0L)
       createdNodes <- database.initDatabase(config, metadata, inNodes, outNodes)
       _ <- logger.info(s"Created nodes: ${nodesList(createdNodes)}")
-      graph <- MapGraph[F](config, metadata, inNodes, outNodes, graphState, database)
+      graph <- MapGraph[F](config, metadata, inNodes, outNodes, database)
     yield graph
 
   override def load(config: MapConfig): F[MapGraphLake[F]] =
     for
-      (metadata, inNodes, outNodes, graphState) <- database.loadRootNodes
+      (metadata, inNodes, outNodes) <- database.loadRootNodes
       _ <- checkIoNodesNames(inNodes, outNodes)
-      _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes, graphState)}")
-      graph <- MapGraph[F](config, metadata, inNodes, outNodes, graphState, database)
+      _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes)}")
+      graph <- MapGraph[F](config, metadata, inNodes, outNodes, database)
     yield graph
 
 object MapBuilder:

@@ -20,6 +20,6 @@ final case class ObservedSample(
     utility: Double,
     name: Option[Name],
     description: Option[Description],
-    hnIds: Set[HnId],
+    hnIds: List[HnId],
     edges: List[ObservedEdge]
 )

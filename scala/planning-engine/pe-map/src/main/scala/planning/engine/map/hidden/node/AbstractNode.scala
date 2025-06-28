@@ -40,7 +40,7 @@ final case class AbstractNode[F[_]: MonadThrow](
 
 object AbstractNode:
   final case class New(name: Option[Name])
-  
+
   def fromNode[F[_]: MonadThrow](node: Node): F[AbstractNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for

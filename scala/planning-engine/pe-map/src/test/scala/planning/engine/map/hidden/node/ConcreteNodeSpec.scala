@@ -31,7 +31,7 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val name = Some(Name("TestNode"))
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
-    lazy val singleNode = ConcreteNode[IO](id, name, intInNode, valueIndex).unsafeRunSync()
+    lazy val singleNode = ConcreteNode[IO](id, name, intInNode, valueIndex)
 
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
@@ -54,8 +54,6 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
         node.name mustEqual data.name
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
-        node.parents mustEqual List()
-        node.children mustEqual List()
 
   "fromNode" should:
     "create ConcreteNode from raw node" in newCase[CaseData]: (_, data) =>
@@ -64,8 +62,6 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
         node.name mustEqual data.name
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
-        node.parents mustEqual List()
-        node.children mustEqual List()
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
@@ -73,9 +69,9 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](data.id, data.name, data.intInNode, data.valueIndex).asserting: node2 =>
+      ConcreteNode[IO](data.id, data.name, data.intInNode, data.valueIndex).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), data.intInNode, IoIndex(2)).asserting: node2 =>
+      ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), data.intInNode, IoIndex(2)).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false

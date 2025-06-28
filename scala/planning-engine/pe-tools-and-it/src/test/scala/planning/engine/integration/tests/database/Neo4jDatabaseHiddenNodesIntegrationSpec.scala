@@ -44,7 +44,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
       given WithItDb.ItDb = itDb
       async[IO]:
         val nextHnId = getNextHnId.await
-        val (state, rawNodes, concreteNodes) = neo4jdb
+        val (rawNodes, concreteNodes) = neo4jdb
           .createConcreteNodes(
             numOfNodes = 3L,
             makeNodes = hnIds =>
@@ -52,22 +52,16 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
                 _ <- logInfo("create concrete nodes in DB", s"hnIds = $hnIds")
                 _ <- IO.delay(hnIds.size mustEqual 3)
                 _ <- IO.delay(hnIds.toSet.size mustEqual 3)
-                nodes <- hnIds.traverse(id =>
+                nodes = hnIds.map(id =>
                   ConcreteNode[IO](id, Some(Name(s"con_${id.value}")), intInNode, IoIndex(id.value + 100L))
                 )
-              yield nodes,
-            updateCache = nodes =>
-              for
-                _ <- nodes.traverse(n => logInfo("create concrete nodes in DB", s"created node = $n"))
-                _ <- IO.delay(nodes.size mustEqual 3)
-              yield emptyGraphState
+              yield nodes
           ).await
 
         val expectedLabels = Set(IO_LABEL, IN_LABEL, HN_LABEL, CONCRETE_LABEL).map(_.toLowerCase)
         val expectedHnIds = (nextHnId until nextHnId + 3L).toList.map(HnId.apply)
         val expectedNames = (nextHnId until nextHnId + 3L).toList.map(i => Some(Name(s"con_$i")))
 
-        state mustEqual emptyGraphState
         rawNodes.size mustEqual 6
         rawNodes.toSet.flatMap(_.labels) mustEqual expectedLabels
         concreteNodes.size mustEqual 3
@@ -94,7 +88,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
       given WithItDb.ItDb = itDb
       async[IO]:
         val nextHnId = getNextHnId.await
-        val (state, rawNodes, abstractNodes) = neo4jdb
+        val (rawNodes, abstractNodes) = neo4jdb
           .createAbstractNodes(
             numOfNodes = 3L,
             makeNodes = hnIds =>
@@ -102,21 +96,13 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
                 _ <- logInfo("create abstract nodes in DB", s"hnIds = $hnIds")
                 _ <- IO.delay(hnIds.size mustEqual 3)
                 _ <- IO.delay(hnIds.toSet.size mustEqual 3)
-                nodes <- hnIds.traverse(id =>
-                  AbstractNode[IO](id, Some(Name(s"abs_${id.value}")))
-                )
-              yield nodes,
-            updateCache = nodes =>
-              for
-                _ <- nodes.traverse(n => logInfo("create abstract nodes in DB", s"created node = $n"))
-                _ <- IO.delay(nodes.size mustEqual 3)
-              yield emptyGraphState
+                nodes = hnIds.map(id => AbstractNode[IO](id, Some(Name(s"abs_${id.value}"))))
+              yield nodes
           ).await
 
         val expectedHnIds = (nextHnId until nextHnId + 3L).toList.map(HnId.apply)
         val expectedNames = (nextHnId until nextHnId + 3L).toList.map(i => Some(Name(s"abs_$i")))
 
-        state mustEqual emptyGraphState
         rawNodes.size mustEqual 3
         rawNodes.toSet.flatMap(_.labels) mustEqual Set(HN_LABEL, ABSTRACT_LABEL).map(_.toLowerCase)
         abstractNodes.size mustEqual 3
@@ -131,32 +117,20 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         val abstractNames = List(Some(Name("find_abs_1")), Some(Name("find_abs_2")), None)
         val nodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
 
-        val (state, foundNodes) = neo4jdb
+        logInfo("find hidden nodes", s" created nodes = $nodes").await
+
+        val foundNodes = neo4jdb
           .findHiddenNodesByNames(
             names = List(concreteNames.head.get, abstractNames.head.get),
-            loadCached = hnIds =>
-              for
-                _ <- logInfo("find hidden nodes", s"loadCached: hnIds = $hnIds")
-                _ <- IO.delay(hnIds.size mustEqual 3)
-                _ <- IO.delay(hnIds.toSet.size mustEqual 3)
-                cachedNodes <- nodes.all.filter(n => n.id == hnIds.head).pure[IO]
-                _ <- logInfo("find hidden nodes", s"loadCached: cachedNodes = $cachedNodes")
-              yield (emptyGraphState, cachedNodes),
             getIoNode = name =>
               for
                 _ <- logInfo("find hidden nodes", s"getIoNode: getIoNode.name = $name")
                 _ <- IO.delay(name mustEqual intInNode.name)
-              yield intInNode,
-            updateCache = (s, ns) =>
-              for
-                _ <- logInfo("find hidden nodes", s"updateCache: state = $s, foundNodes = $ns")
-                _ <- IO.delay(s mustEqual emptyGraphState)
-              yield s
+              yield intInNode
           ).await
 
         foundNodes.traverse(n => logInfo("find hidden nodes", s" found node = $n")).await
 
-        state mustEqual emptyGraphState
         foundNodes.size mustEqual 3
         foundNodes.map(_.name).toSet mustEqual Set(concreteNames.head, abstractNames.head)
 

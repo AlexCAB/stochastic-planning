@@ -70,4 +70,3 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
         loadData._1 mustEqual testMetadata
         loadData._2 mustEqual List(boolInNode)
         loadData._3 mustEqual List(boolOutNode)
-        loadData._4 mustEqual emptyGraphState

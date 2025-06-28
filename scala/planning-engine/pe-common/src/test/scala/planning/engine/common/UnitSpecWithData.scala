@@ -25,11 +25,12 @@ abstract class UnitSpecWithData extends FixtureAsyncWordSpecLike with AsyncIOSpe
   trait Case
   type FixtureParam = OneArgAsyncTest
 
-  def newCase[C <: Case](test: (String, C) => IO[Assertion])(implicit m: ClassTag[C]): FixtureParam => Future[Assertion] =
-    param =>
-      m.runtimeClass.getDeclaredConstructors.toList match
-        case c :: Nil if c.getParameterCount == 0 => test(param.name, c.newInstance().asInstanceOf[C])
-        case c :: Nil if c.getParameterCount == 1 => test(param.name, c.newInstance(this).asInstanceOf[C])
-        case _ => Future.failed(new IllegalArgumentException("Invalid constructor found for test case class"))
+  def newCase[C <: Case](test: (String, C) => IO[Assertion])(implicit
+      m: ClassTag[C]
+  ): FixtureParam => Future[Assertion] = param =>
+    m.runtimeClass.getDeclaredConstructors.toList match
+      case c :: Nil if c.getParameterCount == 0 => test(param.name, c.newInstance().asInstanceOf[C])
+      case c :: Nil if c.getParameterCount == 1 => test(param.name, c.newInstance(this).asInstanceOf[C])
+      case _ => Future.failed(new IllegalArgumentException("Invalid constructor found for test case class"))
 
   override def withFixture(test: OneArgAsyncTest): FutureOutcome = super.withFixture(test.toNoArgAsyncTest(test))

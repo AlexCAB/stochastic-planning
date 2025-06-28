@@ -22,7 +22,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
-import planning.engine.map.graph.{MapCacheLike, MapCacheState, MapConfig, MapMetadata}
+import planning.engine.map.graph.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
@@ -43,26 +43,22 @@ trait Neo4jDatabaseLike[F[_]]:
       outNodes: List[OutputNode[F]]
   ): F[List[Node]]
 
-  def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]], MapCacheState[F])]
+  def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
 
-  def createConcreteNodes[R <: MapCacheLike[F]](
+  def createConcreteNodes(
       numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[ConcreteNode[F]]],
-      updateCache: List[ConcreteNode[F]] => F[R]
-  ): F[(R, List[Node], List[ConcreteNode[F]])]
+      makeNodes: List[HnId] => F[List[ConcreteNode[F]]]
+  ): F[(List[Node], List[ConcreteNode[F]])]
 
-  def createAbstractNodes[R <: MapCacheLike[F]](
+  def createAbstractNodes(
       numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[AbstractNode[F]]],
-      updateCache: List[AbstractNode[F]] => F[R]
-  ): F[(R, List[Node], List[AbstractNode[F]])]
+      makeNodes: List[HnId] => F[List[AbstractNode[F]]]
+  ): F[(List[Node], List[AbstractNode[F]])]
 
-  def findHiddenNodesByNames[R <: MapCacheLike[F]](
+  def findHiddenNodesByNames(
       names: List[Name],
-      loadCached: List[HnId] => F[(R, List[HiddenNode[F]])],
-      getIoNode: Name => F[IoNode[F]],
-      updateCache: (R, List[HiddenNode[F]]) => F[R]
-  ): F[(R, List[HiddenNode[F]])]
+      getIoNode: Name => F[IoNode[F]]
+  ): F[List[HiddenNode[F]]]
 
   def countHiddenNodes: F[Long]
 
@@ -86,7 +82,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       ioNodes <- (inParams ++ outParams).traverse((label, params) => createIoNodeQuery(label, params)(tx))
     yield staticNodes ++ ioNodes
 
-  override def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]], MapCacheState[F])] =
+  override def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])] =
     def splitIoNodes(ioNodes: List[IoNode[F]]): F[(List[InputNode[F]], List[OutputNode[F]])] =
       ioNodes.foldRight((List[InputNode[F]](), List[OutputNode[F]]()).pure):
         case (inNode: InputNode[F], buf)   => buf.map((inNodes, outNodes) => (inNodes :+ inNode, outNodes))
@@ -97,45 +93,37 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       for
         List(rootNode, _) <- readStaticNodesQuery(tx)
         metadata <- MapMetadata.fromNode(rootNode)
-        sampleCount <- countSamplesQuery(tx)
-        graphState <- MapCacheState.init(sampleCount)
         rawIoNodes <- readIoNodesQuery(tx)
         ioNodes <- rawIoNodes.traverse(n => IoNode.fromNode(n))
         (inNodes, outNodes) <- splitIoNodes(ioNodes)
-      yield (metadata, inNodes, outNodes, graphState)
+      yield (metadata, inNodes, outNodes)
 
-  override def createConcreteNodes[R <: MapCacheLike[F]](
+  override def createConcreteNodes(
       numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[ConcreteNode[F]]],
-      updateCache: List[ConcreteNode[F]] => F[R]
-  ): F[(R, List[Node], List[ConcreteNode[F]])] = driver.transact(writeConf): tx =>
+      makeNodes: List[HnId] => F[List[ConcreteNode[F]]]
+  ): F[(List[Node], List[ConcreteNode[F]])] = driver.transact(writeConf): tx =>
     for
       _ <- numOfNodes.assetAnNumberOf("numOfNodes")
       concreteNodes <- getAndIncrementNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
       params <- concreteNodes.traverse(n => n.toProperties.map(p => (n.ioNode.name, p)))
       rawNodes <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
-      newCache <- updateCache(concreteNodes)
-    yield (newCache, rawNodes.flatten, concreteNodes)
+    yield (rawNodes.flatten, concreteNodes)
 
-  override def createAbstractNodes[R <: MapCacheLike[F]](
+  override def createAbstractNodes(
       numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[AbstractNode[F]]],
-      updateCache: List[AbstractNode[F]] => F[R]
-  ): F[(R, List[Node], List[AbstractNode[F]])] = driver.transact(writeConf): tx =>
+      makeNodes: List[HnId] => F[List[AbstractNode[F]]]
+  ): F[(List[Node], List[AbstractNode[F]])] = driver.transact(writeConf): tx =>
     for
       _ <- numOfNodes.assetAnNumberOf("numOfNodes")
       abstractNodes <- getAndIncrementNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
       params <- abstractNodes.traverse(_.toProperties)
       rawNodes <- params.traverse(props => addAbstractNodeQuery(props)(tx))
-      newCache <- updateCache(abstractNodes)
-    yield (newCache, rawNodes, abstractNodes)
+    yield (rawNodes, abstractNodes)
 
-  override def findHiddenNodesByNames[R <: MapCacheLike[F]](
+  override def findHiddenNodesByNames(
       names: List[Name],
-      loadCached: List[HnId] => F[(R, List[HiddenNode[F]])],
-      getIoNode: Name => F[IoNode[F]],
-      updateCache: (R, List[HiddenNode[F]]) => F[R]
-  ): F[(R, List[HiddenNode[F]])] = driver.transact(readConf): tx =>
+      getIoNode: Name => F[IoNode[F]]
+  ): F[List[HiddenNode[F]]] = driver.transact(readConf): tx =>
     def loadAbstractNodes(ids: List[Long]): F[List[AbstractNode[F]]] =
       for
         nodes <- findAbstractNodesByIdsQuery(ids)(tx)
@@ -153,15 +141,12 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       yield concreteNodes
 
     for
-      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(HnId.apply))
+      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
       _ <- ids.assertDistinct("Hidden node ids should be distinct")
-      (cachedState, cachedNodes) <- loadCached(ids)
-      notFoundIds = ids.diff(cachedNodes.map(_.id)).map(_.value)
-      abstractNodes <- loadAbstractNodes(notFoundIds)
-      concreteNodes <- loadConcreteNodes(notFoundIds)
-      allNodes = cachedNodes ++ abstractNodes ++ concreteNodes
-      newCache <- updateCache(cachedState, allNodes)
-    yield (newCache, allNodes)
+      abstractNodes <- loadAbstractNodes(ids)
+      concreteNodes <- loadConcreteNodes(ids)
+      allNodes = abstractNodes ++ concreteNodes
+    yield allNodes
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 

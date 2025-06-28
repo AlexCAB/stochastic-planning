@@ -21,6 +21,5 @@ trait HiddenEdge[F[_]: MonadThrow]:
   def target: HiddenNode[F]
   def samples: List[SampleEdge]
 
-  override def toString: String =
-    s"${this.getClass.getSimpleName}(source=${source.name}:target=${target.name}:" +
-      s"${target.id}, samples=[${samples.mkString(", ")}])"
+  override def toString: String = s"${this.getClass.getSimpleName}(source=${source.name}:target=${target.name}:" +
+    s"${target.id}, samples=[${samples.mkString(", ")}])"

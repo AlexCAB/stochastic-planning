@@ -13,7 +13,6 @@
 package planning.engine.map.graph
 
 import cats.effect.Async
-import cats.effect.std.AtomicCell
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.map.database.Neo4jDatabaseLike
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
@@ -28,7 +27,6 @@ trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
   def inputNodes: List[InputNode[F]]
   def outputNodes: List[OutputNode[F]]
-  def getState: F[MapCacheState[F]]
   def getIoNode(name: Name): F[IoNode[F]]
   def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]]
   def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
@@ -41,7 +39,6 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     override val inputNodes: List[InputNode[F]],
     override val outputNodes: List[OutputNode[F]],
     config: MapConfig,
-    graphState: AtomicCell[F, MapCacheState[F]],
     database: Neo4jDatabaseLike[F]
 ) extends MapGraphLake[F]:
 
@@ -57,8 +54,6 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     case Some(node) => node.pure
     case _          => s"Input node with name $name not found".assertionError
 
-  override def getState: F[MapCacheState[F]] = graphState.get
-
   override def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]] =
     def makeNodes(hnIds: List[HnId]): F[List[ConcreteNode[F]]] =
       for
@@ -67,13 +62,11 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         nodes = withIoNodes.zip(hnIds).map((ns, id) => ConcreteNode(id, ns._1.name, ns._2, ns._1.valueIndex))
       yield nodes
 
-    graphState.evalModify(state =>
-      for
-        (nextState, rawNodes, concreteNodes) <- database
-          .createConcreteNodes(params.size, makeNodes, state.toCache(config.maxCacheSize))
-        _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, concrete nodes: $concreteNodes")
-      yield (nextState, concreteNodes)
-    )
+    for
+      (rawNodes, concreteNodes) <- database
+        .createConcreteNodes(params.size, makeNodes)
+      _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, concrete nodes: $concreteNodes")
+    yield concreteNodes
 
   override def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]] =
     def makeNodes(hnIds: List[HnId]): F[List[AbstractNode[F]]] =
@@ -82,26 +75,20 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         nodes = params.zip(hnIds).map((p, id) => AbstractNode(id, p.name))
       yield nodes
 
-    graphState.evalModify(state =>
-      for
-        (nextState, rawNodes, abstractNodes) <- database
-          .createAbstractNodes(params.size, makeNodes, state.toCache(config.maxCacheSize))
-        _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, abstract nodes: $abstractNodes")
-      yield (nextState, abstractNodes)
+    for
+      (rawNodes, abstractNodes) <- database
+        .createAbstractNodes(params.size, makeNodes)
+      _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, abstract nodes: $abstractNodes")
+    yield abstractNodes
+
+  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = database
+    .findHiddenNodesByNames(
+      names,
+      name => getIoNode(name)
     )
 
-  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = graphState.evalModify(state =>
-    database
-      .findHiddenNodesByNames(
-        names,
-        hnIds => state.findAndAllocateCached(hnIds),
-        name => getIoNode(name),
-        (st, nodes) => st.toCache(config.maxCacheSize)(nodes)
-      )
-  )
-
   override def countHiddenNodes: F[Long] = database.countHiddenNodes
-  
+
   override def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]] = ???
 
 object MapGraph:
@@ -110,10 +97,5 @@ object MapGraph:
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]],
-      initCacheState: MapCacheState[F],
       database: Neo4jDatabaseLike[F]
-  ): F[MapGraph[F]] =
-    for
-      state <- AtomicCell[F].of[MapCacheState[F]](initCacheState)
-      graph = new MapGraph[F](metadata, inNodes, outNodes, config, state, database)
-    yield graph
+  ): F[MapGraph[F]] = new MapGraph[F](metadata, inNodes, outNodes, config, database).pure

@@ -45,7 +45,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
 
 object ConcreteNode:
   final case class New(name: Option[Name], ioNodeName: Name, valueIndex: IoIndex)
-  
+
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for

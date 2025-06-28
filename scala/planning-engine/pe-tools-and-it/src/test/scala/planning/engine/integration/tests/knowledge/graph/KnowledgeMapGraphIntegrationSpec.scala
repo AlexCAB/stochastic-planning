@@ -20,7 +20,6 @@ import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
-import planning.engine.map.graph.MapCacheState
 import neotypes.syntax.all.*
 import planning.engine.common.values.db.Neo4j.*
 
@@ -36,12 +35,6 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
       nodes <- Resource.eval(createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames))
       graph <- loadTestMapGraph(neo4jdb)
     yield TestMapGraph(itDb, neo4jdb, nodes, graph)
-
-  "MapGraph.getState(...)" should:
-    "return MapCacheState" in: res =>
-      async[IO]:
-        val state = res.graph.getState.logValue("return MapCacheState", "state").await
-        state.sampleCount must be >= 0L
 
   "MapGraph.getIoNode(...)" should:
     "return IO node" in: res =>
@@ -70,11 +63,6 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
         createdNodes.map(_.ioNode) mustEqual List(intInNode, boolOutNode, intOutNode)
         createdNodes.map(_.valueIndex) mustEqual newConcreteNodes.map(_.valueIndex)
 
-        val state: MapCacheState[IO] = res.graph.getState.logValue("created concrete node", "state").await
-
-        state.hiddenNodes.keySet must contain allElementsOf createdNodes.map(_.id)
-        state.hnQueue must contain allElementsOf createdNodes.map(_.id)
-
         val dbConcreteNodeIds =
           c"""
             MATCH (cn:#$HN_LABEL:#$CONCRETE_LABEL)-->(:#$IO_LABEL)
@@ -98,11 +86,6 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
 
         createdNodes.size mustEqual 3
         createdNodes.map(_.name) mustEqual newAbstractNodes.map(_.name)
-
-        val state: MapCacheState[IO] = res.graph.getState.logValue("created abstract node", "state").await
-
-        state.hiddenNodes.keySet must contain allElementsOf createdNodes.map(_.id)
-        state.hnQueue must contain allElementsOf createdNodes.map(_.id)
 
         val dbAbstractNodeIds = c"MATCH (an:#$HN_LABEL:#$ABSTRACT_LABEL) RETURN an".listHnIds.await
 

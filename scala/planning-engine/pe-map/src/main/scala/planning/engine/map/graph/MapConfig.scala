@@ -24,9 +24,12 @@ import planning.engine.common.properties.*
 // Config do not stored in the database (unlike MapMetadata), but used to initialize the map graph
 final case class MapConfig(
     initNextHnId: Long,
-    maxCacheSize: Long
+    initSampleCount: Long,
 ):
-  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(PROP.NEXT_HN_ID -> initNextHnId.toDbParam)
+  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+    PROP.NEXT_HN_ID -> initNextHnId.toDbParam,
+    PROP.SAMPLES_COUNT -> initSampleCount.toDbParam
+  )
 
 object MapConfig:
   def formConfig[F[_]: Sync](conf: Config): F[MapConfig] =

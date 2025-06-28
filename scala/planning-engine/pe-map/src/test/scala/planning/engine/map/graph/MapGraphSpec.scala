@@ -28,7 +28,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   private class CaseData extends Case:
     lazy val mockedDb = stub[Neo4jDatabaseLike[IO]]
     lazy val mapGraph: MapGraph[IO] = MapGraph[IO]
-      .apply(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode), mockedDb)
+      .apply(testMetadata, List(boolInNode), List(boolOutNode), mockedDb)
       .unsafeRunSync()
 
   "apply" should:

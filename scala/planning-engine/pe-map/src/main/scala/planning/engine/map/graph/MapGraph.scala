@@ -38,7 +38,6 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     override val metadata: MapMetadata,
     override val inputNodes: List[InputNode[F]],
     override val outputNodes: List[OutputNode[F]],
-    config: MapConfig,
     database: Neo4jDatabaseLike[F]
 ) extends MapGraphLake[F]:
 
@@ -93,9 +92,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](
-      config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]],
       database: Neo4jDatabaseLike[F]
-  ): F[MapGraph[F]] = new MapGraph[F](metadata, inNodes, outNodes, config, database).pure
+  ): F[MapGraph[F]] = new MapGraph[F](metadata, inNodes, outNodes, database).pure

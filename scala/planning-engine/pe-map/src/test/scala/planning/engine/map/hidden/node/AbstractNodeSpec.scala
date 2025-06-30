@@ -19,6 +19,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.HnId
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
+import planning.engine.common.properties.*
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
 
@@ -28,10 +29,12 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val id = HnId(1234)
     lazy val name = Some(Name("TestNode"))
     lazy val singleNode = AbstractNode[IO](id, name)
+    lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
-      PROP.NAME -> name.get.toDbParam
+      PROP.NAME -> name.get.toDbParam,
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
     )
 
     lazy val nodeValues = Map(
@@ -55,7 +58,7 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
-      data.singleNode.toProperties.logValue(tn).asserting(_ mustEqual data.nodeProperties)
+      data.singleNode.toProperties(data.initNextHnIndex).logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>

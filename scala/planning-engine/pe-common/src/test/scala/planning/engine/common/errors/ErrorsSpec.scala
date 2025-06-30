@@ -25,47 +25,51 @@ class ErrorsSpec extends UnitSpecIO:
   "assertDistinct" should:
     "return the same sequence if all elements are distinct" in: _ =>
       val distinctSeq = List(1, 2, 3, 4, 5)
-      distinctSeq.assertDistinct[IO]("Elements are not distinct").asserting(_ mustEqual distinctSeq)
+      List(1, 2, 3, 4, 5).assertDistinct[IO]("Elements are not distinct").asserting(_ mustEqual distinctSeq)
 
     "raise an AssertionError if the sequence contains duplicates" in: _ =>
-      val duplicateSeq = List(1, 2, 2, 3, 4)
-      duplicateSeq.assertDistinct[IO](
+      List(1, 2, 2, 3, 4).assertDistinct[IO](
         "Elements are not distinct"
       ).assertThrowsWithMessage[AssertionError]("Elements are not distinct, seq: 1,2,2,3,4")
 
+  "assertNonEmpty" should:
+    "return the sequence when it is not empty" in: _ =>
+      val seq = List(1, 2, 3)
+      seq.assertNonEmpty[IO]("Sequence is empty").asserting(_ mustEqual seq)
+
+    "raise an error when the sequence is empty" in: _ =>
+      List.empty[Int].assertNonEmpty[IO]("Sequence is empty").assertThrows[AssertionError]
+
   "assertSameSize" should:
-    "return the input tuple when both collections have the same size" in: tn =>
+    "return the input tuple when both collections have the same size" in: _ =>
       val left = List(1, 2, 3)
       val right = Vector("a", "b", "c")
-      (left, right).assertSameSize[IO]("Collections must have the same size")
-        .logValue(tn)
-        .asserting(_ mustEqual (left, right))
+      (left, right).assertSameSize[IO]("Collections must have the same size").asserting(_ mustEqual (left, right))
 
-    "raise an error when collections have different sizes" in: tn =>
+    "raise an error when collections have different sizes" in: _ =>
       val left = List(1, 2, 3)
       val right = Vector("a", "b")
-      (left, right).assertSameSize[IO]("Collections must have the same size")
-        .logValue(tn)
+      (left, right).assertSameSize[IO]("Collections must have the same size").assertThrows[AssertionError]
+
+  "assertSameElems" should:
+    "return the tuple when both collections have the same elements regardless of order" in: _ =>
+      val tuple = (List(1, 2, 3), List(3, 2, 1))
+      tuple.assertSameElems[IO]("Collections do not have the same elements").asserting(_ mustEqual tuple)
+
+    "raise an error when collections have different elements" in: _ =>
+      (List(1, 2, 3), List(4, 5, 6)).assertSameElems[IO]("Collections do not have the same elements")
         .assertThrows[AssertionError]
 
   "assertTrue" should:
-    "complete successfully when the condition is true" in: tn =>
-      true.assertTrue[IO]("Condition must be true")
-        .logValue(tn)
-        .asserting(_ mustEqual (()))
+    "complete successfully when the condition is true" in: _ =>
+      true.assertTrue[IO]("Condition must be true").asserting(_ mustEqual (()))
 
-    "raise an error when the condition is false" in: tn =>
-      false.assertTrue[IO]("Condition must be true")
-        .logValue(tn)
-        .assertThrows[AssertionError]
+    "raise an error when the condition is false" in: _ =>
+      false.assertTrue[IO]("Condition must be true").assertThrows[AssertionError]
 
   "assetAnNumberOf" should:
-    "complete successfully when the condition is true" in: tn =>
-      5L.assetAnNumberOf[IO]("Value is not positive")
-        .logValue(tn)
-        .asserting(_ mustEqual (()))
+    "complete successfully when the condition is true" in: _ =>
+      5L.assetAnNumberOf[IO]("Value is not positive").asserting(_ mustEqual (()))
 
     "raise an error when the condition is false" in: tn =>
-      -1L.assetAnNumberOf[IO]("Value is not positive")
-        .logValue(tn)
-        .assertThrows[AssertionError]
+      -1L.assetAnNumberOf[IO]("Value is not positive").assertThrows[AssertionError]

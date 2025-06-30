@@ -8,15 +8,19 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-06-28 |||||||||||*/
+| created: 2025-06-30 |||||||||||*/
 
 package planning.engine.common.enums
 
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import planning.engine.common.values.db.Neo4j
 
-enum EdgeType:
-  case THEN, LINK
+class EdgeTypeSpec extends AnyWordSpec with Matchers:
 
-  def toLabel: String = this match
-    case THEN => Neo4j.THEN_LABEL
-    case LINK => Neo4j.LINK_LABEL
+  "EdgeType.toLabel" should:
+    "return the correct label for EdgeType.THEN" in:
+      EdgeType.THEN.toLabel mustEqual Neo4j.THEN_LABEL
+
+    "return the correct label for EdgeType.LINK" in:
+      EdgeType.LINK.toLabel mustEqual Neo4j.LINK_LABEL

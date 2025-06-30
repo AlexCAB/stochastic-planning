@@ -55,7 +55,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
                 nodes = hnIds.map(id =>
                   ConcreteNode[IO](id, Some(Name(s"con_${id.value}")), intInNode, IoIndex(id.value + 100L))
                 )
-              yield nodes
+              yield nodes,
+            initNextHnIndex = testMapConfig.initNextHnIndex
           ).await
 
         val expectedLabels = Set(IO_LABEL, IN_LABEL, HN_LABEL, CONCRETE_LABEL).map(_.toLowerCase)
@@ -97,7 +98,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
                 _ <- IO.delay(hnIds.size mustEqual 3)
                 _ <- IO.delay(hnIds.toSet.size mustEqual 3)
                 nodes = hnIds.map(id => AbstractNode[IO](id, Some(Name(s"abs_${id.value}"))))
-              yield nodes
+              yield nodes,
+            initNextHnIndex = testMapConfig.initNextHnIndex
           ).await
 
         val expectedHnIds = (nextHnId until nextHnId + 3L).toList.map(HnId.apply)

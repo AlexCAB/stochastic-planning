@@ -21,6 +21,9 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.common.errors.*
+import planning.engine.common.validation.Validation
+import planning.engine.map.samples.sample.observed.ObservedSample
+import planning.engine.map.samples.sample.stored.StoredSample
 import planning.engine.map.subgraph.NextNodesMap
 
 trait MapGraphLake[F[_]]:
@@ -32,9 +35,11 @@ trait MapGraphLake[F[_]]:
   def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
   def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
   def countHiddenNodes: F[Long]
+  def addObservedSamples(samples: List[ObservedSample]): F[List[StoredSample]]
   def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
+    config: MapConfig,
     override val metadata: MapMetadata,
     override val inputNodes: List[InputNode[F]],
     override val outputNodes: List[OutputNode[F]],
@@ -63,7 +68,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
     for
       (rawNodes, concreteNodes) <- database
-        .createConcreteNodes(params.size, makeNodes)
+        .createConcreteNodes(params.size, makeNodes, config.initNextHnIndex)
       _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, concrete nodes: $concreteNodes")
     yield concreteNodes
 
@@ -76,7 +81,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
     for
       (rawNodes, abstractNodes) <- database
-        .createAbstractNodes(params.size, makeNodes)
+        .createAbstractNodes(params.size, makeNodes, config.initNextHnIndex)
       _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, abstract nodes: $abstractNodes")
     yield abstractNodes
 
@@ -88,12 +93,22 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   override def countHiddenNodes: F[Long] = database.countHiddenNodes
 
+  override def addObservedSamples(observedSamples: List[ObservedSample]): F[List[StoredSample]] =
+    for
+      _ <- observedSamples.assertNonEmpty("Samples must not be empty")
+      _ <- Validation.validateList(observedSamples)
+      (rawNodes, rawEdges, storedSamples) <- database
+        .addObservedSamples(observedSamples, (s, sId, hnIns) => StoredSample.fromObservedSample(s, sId, hnIns))
+      _ <- logger.info(s"Added observed samples, rawNodes: $rawNodes, rawEdges: $rawEdges")
+    yield storedSamples
+
   override def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]] = ???
 
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](
+      config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]],
       database: Neo4jDatabaseLike[F]
-  ): F[MapGraph[F]] = new MapGraph[F](metadata, inNodes, outNodes, database).pure
+  ): F[MapGraph[F]] = new MapGraph[F](config, metadata, inNodes, outNodes, database).pure

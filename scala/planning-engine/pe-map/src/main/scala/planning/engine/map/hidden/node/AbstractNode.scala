@@ -27,9 +27,10 @@ final case class AbstractNode[F[_]: MonadThrow](
     name: Option[Name]
 ) extends HiddenNode[F]:
 
-  override def toProperties: F[Map[String, Param]] = paramsOf(
+  override def toProperties(initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
     PROP.HN_ID -> id.toDbParam,
-    PROP.NAME -> name.map(_.toDbParam)
+    PROP.NAME -> name.map(_.toDbParam),
+    PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
   )
 
   override def equals(that: Any): Boolean = that match

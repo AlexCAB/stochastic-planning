@@ -30,10 +30,11 @@ final case class ConcreteNode[F[_]: MonadThrow](
     valueIndex: IoIndex
 ) extends HiddenNode[F]:
 
-  override def toProperties: F[Map[String, Param]] = paramsOf(
+  override def toProperties(initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
     PROP.HN_ID -> id.toDbParam,
     PROP.NAME -> name.map(_.toDbParam),
-    PROP.IO_INDEX -> valueIndex.toDbParam
+    PROP.IO_INDEX -> valueIndex.toDbParam,
+    PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
   )
 
   override def equals(that: Any): Boolean = that match

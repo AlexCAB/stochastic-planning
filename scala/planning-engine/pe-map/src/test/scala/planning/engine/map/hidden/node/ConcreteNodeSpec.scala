@@ -19,6 +19,7 @@ import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
+import planning.engine.common.properties.*
 import planning.engine.map.io.node.InputNode
 import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
@@ -32,11 +33,13 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
     lazy val singleNode = ConcreteNode[IO](id, name, intInNode, valueIndex)
+    lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.get.toDbParam,
-      PROP.IO_INDEX -> valueIndex.toDbParam
+      PROP.IO_INDEX -> valueIndex.toDbParam,
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
     )
 
     lazy val nodeValues = Map(
@@ -65,7 +68,7 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
-      data.singleNode.toProperties.logValue(tn).asserting(_ mustEqual data.nodeProperties)
+      data.singleNode.toProperties(data.initNextHnIndex).logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>

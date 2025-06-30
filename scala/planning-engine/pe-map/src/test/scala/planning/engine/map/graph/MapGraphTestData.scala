@@ -24,7 +24,14 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 trait MapGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
-  lazy val testMapConfig = MapConfig(initNextHnId = 1L, initSampleCount = 0L)
+  lazy val testMapConfig = MapConfig(
+    initNextHnId = 1L,
+    initNextSampleId = 1L,
+    initSampleCount = 0L,
+    initNextHnIndex = 1L,
+    samplesName = "TestSamples",
+  )
+  
   lazy val testMetadata = MapMetadata(Some(Name("TestMap")), Some(Description("Test description")))
   lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 

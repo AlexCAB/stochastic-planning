@@ -8,16 +8,11 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-06-28 |||||||||||*/
 
-package planning.engine.map.hidden.edge
+package planning.engine.common.validation
 
-import cats.MonadThrow
-import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.stored.SampleEdge
-
-case class LinkEdge[F[_]: MonadThrow](
-    source: HiddenNode[F],
-    target: HiddenNode[F],
-    samples: List[SampleEdge]
-) extends HiddenEdge[F]
+final case class ValidationError(objName: String, errors: List[Throwable]) extends Exception(
+      s"Validation failed for $objName: ${errors.map(_.getMessage).mkString(", ")}",
+      errors.headOption.orNull
+    )

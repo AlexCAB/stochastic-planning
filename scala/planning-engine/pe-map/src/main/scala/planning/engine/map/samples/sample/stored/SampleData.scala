@@ -10,10 +10,10 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-07 |||||||||||*/
 
-package planning.engine.map.samples.sample
+package planning.engine.map.samples.sample.stored
 
-import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.{Description, Name}
 
 final case class SampleData(
     id: SampleId,

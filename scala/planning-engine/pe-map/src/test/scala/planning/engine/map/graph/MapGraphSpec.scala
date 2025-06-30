@@ -28,7 +28,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   private class CaseData extends Case:
     lazy val mockedDb = stub[Neo4jDatabaseLike[IO]]
     lazy val mapGraph: MapGraph[IO] = MapGraph[IO]
-      .apply(testMetadata, List(boolInNode), List(boolOutNode), mockedDb)
+      .apply(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode), mockedDb)
       .unsafeRunSync()
 
   "apply" should:
@@ -55,10 +55,11 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         )
 
         data.mockedDb.createConcreteNodes
-          .when(*, *)
-          .onCall: (numOfNodes, makeNodes) =>
+          .when(*, *, *)
+          .onCall: (numOfNodes, makeNodes, initNextHnIndex) =>
             for
               _ <- IO.delay(numOfNodes mustEqual 2L)
+              _ <- IO.delay(initNextHnIndex mustEqual 1L)
               nodes <- makeNodes((1L to newNodes.size.toLong).toList.map(HnId.apply))
             yield (List.empty, nodes)
           .once()
@@ -81,10 +82,11 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         )
 
         data.mockedDb.createAbstractNodes
-          .when(*, *)
-          .onCall: (numOfNodes, makeNodes) =>
+          .when(*, *, *)
+          .onCall: (numOfNodes, makeNodes, initNextHnIndex) =>
             for
               _ <- IO.delay(numOfNodes mustEqual 2L)
+              _ <- IO.delay(initNextHnIndex mustEqual 1L)
               nodes <- makeNodes((1L to newNodes.size.toLong).toList.map(HnId.apply))
             yield (List.empty, nodes)
           .once()
@@ -110,8 +112,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val createdNodes = newNodes.zip(expectedHnIds).map((n, id) => AbstractNode[IO](id, n.name))
 
         data.mockedDb.createAbstractNodes
-          .when(*, *)
-          .onCall: (numOfNodes, makeNodes) =>
+          .when(*, *, *)
+          .onCall: (numOfNodes, makeNodes, _) =>
             for
                 nodes <- makeNodes((1L to numOfNodes).toList.map(HnId.apply))
             yield (List.empty, nodes)

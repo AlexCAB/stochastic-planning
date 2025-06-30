@@ -16,7 +16,7 @@ import cats.effect.Async
 import neotypes.AsyncTransaction
 import neotypes.mappers.ResultMapper
 import neotypes.model.query.QueryParam
-import neotypes.model.types.Node
+import neotypes.model.types.{Node, Relationship}
 import neotypes.query.{DeferredQuery, ResultType}
 import neotypes.query.QueryArg.Param
 import neotypes.syntax.all.*
@@ -30,29 +30,30 @@ trait Neo4jQueries:
     private def qp: Map[String, QueryParam] = params.view.mapValues(_.param).toMap
 
   extension [T, RT <: ResultType](query: DeferredQuery[T, RT])
-    private def singleNode[F[_]: Async](tx: AsyncTransaction[F]): F[query.RT.AsyncR[T]] = query
+    private def singleResult[F[_]: Async](tx: AsyncTransaction[F]): F[query.RT.AsyncR[T]] = query
       .single(tx)
       .recoverWith(err => Async[F].raiseError(new RuntimeException(s"Failed to execute query: ${query.query}", err)))
 
   def removeAllNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Unit] = c"MATCH (n) DETACH DELETE n".execute.void(tx)
 
-  def createStaticNodesQuery[F[_]: Async](rootPrams: Map[String, Param])(
-      tx: AsyncTransaction[F]
-  ): F[List[Node]] =
+  def createStaticNodesQuery[F[_]: Async](
+      rootPrams: Map[String, Param],
+      samplesParams: Map[String, Param]
+  )(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
       CREATE (root: #$ROOT_LABEL ${rootPrams.qp}),
              (io: #$IO_NODES_LABEL {name: "#$SAMPLES_LABEL"}),
-             (samples: #$SAMPLES_LABEL {name: "#$SAMPLES_LABEL"}),
+             (samples: #$SAMPLES_LABEL ${samplesParams.qp}),
              (root)-[:IO_NODES_EDGE]->(io),
              (root)-[:SAMPLES_EDGE]->(samples)
       RETURN [root, io, samples]
-      """.query(ResultMapper.list(ResultMapper.node)).singleNode(tx)
+      """.query(ResultMapper.list(ResultMapper.node)).singleResult(tx)
 
   def readStaticNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
       MATCH (root: #$ROOT_LABEL)-->(samples: #$SAMPLES_LABEL)
       RETURN [root, samples]
-      """.query(ResultMapper.list(ResultMapper.node)).singleNode(tx)
+      """.query(ResultMapper.list(ResultMapper.node)).singleResult(tx)
 
   def createIoNodeQuery[F[_]: Async](label: Label, props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
     c"""
@@ -60,7 +61,7 @@ trait Neo4jQueries:
       CREATE (io_node: #$IO_LABEL: #$label ${props.qp}),
              (io_root)-[:IO_NODE_EDGE]->(io_node)
       RETURN io_node
-      """.query(ResultMapper.node).singleNode(tx)
+      """.query(ResultMapper.node).singleResult(tx)
 
   def readIoNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
@@ -68,18 +69,18 @@ trait Neo4jQueries:
       RETURN io_nodes
       """.query(ResultMapper.node).list(tx)
 
-  def getAndIncrementNextHnIdQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
+  def getNextHnIdQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
     c"""
       MATCH (root: #$ROOT_LABEL)
       SET root.#${PROP.NEXT_HN_ID} = root.#${PROP.NEXT_HN_ID} + $numOfIds
       RETURN range((root.#${PROP.NEXT_HN_ID} - $numOfIds), root.#${PROP.NEXT_HN_ID} - 1, +1)
-      """.query(ResultMapper.list(ResultMapper.long)).singleNode(tx)
+      """.query(ResultMapper.list(ResultMapper.long)).singleResult(tx)
 
   def countSamplesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] =
     c"""
       MATCH (: #$SAMPLES_LABEL)-->(sn: #$SAMPLE_LABEL)
       RETURN count(sn)
-      """.query(ResultMapper.long).singleNode(tx)
+      """.query(ResultMapper.long).singleResult(tx)
 
   def addConcreteNodeQuery[F[_]: Async](
       ioNodeName: String,
@@ -90,13 +91,13 @@ trait Neo4jQueries:
       CREATE (concrete: #$HN_LABEL: #$CONCRETE_LABEL ${props.qp}),
              (concrete)-[:IO_VALUE_EDGE]->(io)
       RETURN [io, concrete]
-      """.query(ResultMapper.list(ResultMapper.node)).singleNode(tx)
+      """.query(ResultMapper.list(ResultMapper.node)).singleResult(tx)
 
   def addAbstractNodeQuery[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
     c"""
       CREATE (abstract: #$HN_LABEL: #$ABSTRACT_LABEL ${props.qp})
       RETURN abstract
-      """.query(ResultMapper.node).singleNode(tx)
+      """.query(ResultMapper.node).singleResult(tx)
 
   def findHiddenIdsNodesByNamesQuery[F[_]: Async](names: List[String])(tx: AsyncTransaction[F]): F[List[Long]] =
     c"""
@@ -122,4 +123,55 @@ trait Neo4jQueries:
   def countAllHiddenNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] =
     c"""
       MATCH (n: #$HN_LABEL) RETURN count(n)
-      """.query(ResultMapper.long).singleNode(tx)
+      """.query(ResultMapper.long).singleResult(tx)
+
+  def addEdgeIfNotExistQuery[F[_]: Async](
+      sourceId: Long,
+      targetId: Long,
+      label: Label
+  )(tx: AsyncTransaction[F]): F[Unit] =
+    c"""
+      MATCH (source: #$HN_LABEL {#${PROP.HN_ID}: $sourceId}), (target: #$HN_LABEL {#${PROP.HN_ID}: $targetId})
+      MERGE (source)-[:#$HE_LABEL:#$label]->(target)
+      """.execute.void(tx)
+
+  def getNextSamplesQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
+    c"""
+      MATCH (samples: #$SAMPLES_LABEL)
+      SET samples.#${PROP.NEXT_SAMPLES_ID} = samples.#${PROP.NEXT_SAMPLES_ID} + $numOfIds
+      RETURN range((samples.#${PROP.NEXT_SAMPLES_ID} - $numOfIds), samples.#${PROP.NEXT_SAMPLES_ID} - 1, +1)
+      """.query(ResultMapper.list(ResultMapper.long)).singleResult(tx)
+
+  def getNextHnIndexQuery[F[_]: Async](hnId: Long, numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
+    c"""
+      MATCH (hn: #$HN_LABEL {#${PROP.HN_ID}: $hnId})
+      SET hn.#${PROP.NEXT_HN_INDEX} = hn.#${PROP.NEXT_HN_INDEX} + $numOfIds
+      RETURN range((hn.#${PROP.NEXT_HN_INDEX} - $numOfIds), hn.#${PROP.NEXT_HN_INDEX} - 1, +1)
+      """.query(ResultMapper.list(ResultMapper.long)).singleResult(tx)
+
+  def addSampleQuery[F[_]: Async](props: Map[String, Param])(tx: AsyncTransaction[F]): F[Node] =
+    c"""
+      MATCH (samples: #$SAMPLES_LABEL)   
+      CREATE (sample: #$SAMPLE_LABEL ${props.qp}),
+             (samples)-[:SAMPLE_EDGE]->(sample)
+      RETURN sample
+      """.query(ResultMapper.node).singleResult(tx)
+
+  def addSampleEdgeQuery[F[_]: Async](
+      sourceId: Long,
+      targetId: Long,
+      label: Label,
+      propName: String,
+      propValue: List[Long]
+  )(tx: AsyncTransaction[F]): F[Relationship] =
+    c"""
+      MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $sourceId})-[e:#$HE_LABEL:#$label]->(:#$HN_LABEL {#${PROP.HN_ID}: $targetId})
+      SET e.#$propName = $propValue
+      RETURN e
+      """.query(ResultMapper.relationship).singleResult(tx)
+
+  def updateNumberOfSamplesQuery[F[_]: Async](numOfSamples: Long)(tx: AsyncTransaction[F]): F[Unit] =
+    c"""
+      MATCH (samples: #$SAMPLES_LABEL)
+      SET samples.#${PROP.SAMPLES_COUNT} = samples.#${PROP.SAMPLES_COUNT} + $numOfSamples
+      """.execute.void(tx)

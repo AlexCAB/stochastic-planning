@@ -14,7 +14,7 @@ package planning.engine.map.hidden.edge
 
 import cats.MonadThrow
 import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.SampleEdge
+import planning.engine.map.samples.sample.stored.SampleEdge
 
 trait HiddenEdge[F[_]: MonadThrow]:
   def source: HiddenNode[F]

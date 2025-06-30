@@ -19,4 +19,5 @@ final case class ObservedEdge(
     source: HnId,
     target: HnId,
     edgeType: EdgeType
-)
+):
+  override def toString: String = s"ObservedEdge($source --$edgeType-> target=$target)"

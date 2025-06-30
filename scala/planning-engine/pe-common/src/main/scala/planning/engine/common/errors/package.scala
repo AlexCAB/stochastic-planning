@@ -27,6 +27,12 @@ extension [T, C[_] <: AbstractSeq[T]](seq: C[T])
     else
       ApplicativeThrow[F].raiseError(AssertionError(msg + s", seq: ${seq.mkString(",")}"))
 
+  inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
+    if seq.nonEmpty then
+      ApplicativeThrow[F].pure(seq)
+    else
+      ApplicativeThrow[F].raiseError(AssertionError(msg + s", seq: ${seq.mkString(",")}"))
+
 extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[L], CR[R]))
   inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
     if value._1.iterator.size == value._2.iterator.size then
@@ -34,6 +40,16 @@ extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[
     else
       ApplicativeThrow[F].raiseError(
         AssertionError(msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}")
+      )
+
+  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
+    if value._1.iterator.toSet == value._2.iterator.toSet then
+      ApplicativeThrow[F].pure(value)
+    else
+      ApplicativeThrow[F].raiseError(
+        AssertionError(
+          msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
+        )
       )
 
 extension (bool: Boolean)

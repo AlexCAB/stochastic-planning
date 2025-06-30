@@ -54,13 +54,15 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
           hnIds
             .zip(concreteNames)
             .map((id, name) => ConcreteNode[IO](id, name, intInNode, IoIndex(id.value + 100L)))
-            .pure[IO]
+            .pure[IO],
+        initNextHnIndex = testMapConfig.initNextHnIndex
       )
 
     def makeAbstractNodes: IO[(List[types.Node], List[AbstractNode[IO]])] = neo4jdb
       .createAbstractNodes(
         numOfNodes = abstractNames.size,
-        makeNodes = hnIds => hnIds.zip(abstractNames).map((id, name) => AbstractNode[IO](id, name)).pure[IO]
+        makeNodes = hnIds => hnIds.zip(abstractNames).map((id, name) => AbstractNode[IO](id, name)).pure[IO],
+        initNextHnIndex = testMapConfig.initNextHnIndex
       )
 
     for

@@ -19,7 +19,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.edge.*
 import planning.engine.map.hidden.node.*
 import planning.engine.map.io.node.*
-import planning.engine.map.samples.sample.stored.SampleData
+import planning.engine.map.samples.sample.SampleData
 
 final case class SubMap[F[_]: MonadThrow](
     inputNodes: Map[Name, InputNode[F]],

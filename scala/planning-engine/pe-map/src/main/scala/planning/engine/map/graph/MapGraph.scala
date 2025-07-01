@@ -22,8 +22,8 @@ import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.map.samples.sample.observed.ObservedSample
-import planning.engine.map.samples.sample.stored.StoredSample
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.NextNodesMap
 
 trait MapGraphLake[F[_]]:
@@ -31,11 +31,11 @@ trait MapGraphLake[F[_]]:
   def inputNodes: List[InputNode[F]]
   def outputNodes: List[OutputNode[F]]
   def getIoNode(name: Name): F[IoNode[F]]
-  def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]]
-  def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]]
+  def newConcreteNodes(params: ConcreteNode.ListNew): F[List[HnId]]
+  def newAbstractNodes(params: AbstractNode.ListNew): F[List[HnId]]
   def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
   def countHiddenNodes: F[Long]
-  def addObservedSamples(samples: List[ObservedSample]): F[List[StoredSample]]
+  def addObservedSamples(params: Sample.ListNew): F[List[SampleId]]
   def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
@@ -58,32 +58,20 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     case Some(node) => node.pure
     case _          => s"Input node with name $name not found".assertionError
 
-  override def newConcreteNodes(params: List[ConcreteNode.New]): F[List[ConcreteNode[F]]] =
-    def makeNodes(hnIds: List[HnId]): F[List[ConcreteNode[F]]] =
-      for
-        _ <- (params, hnIds).assertSameSize("Seems bug: Concrete node params and hnIds must have the same size")
-        withIoNodes <- params.traverse(p => getIoNode(p.ioNodeName).map(n => (p, n)))
-        nodes = withIoNodes.zip(hnIds).map((ns, id) => ConcreteNode(id, ns._1.name, ns._2, ns._1.valueIndex))
-      yield nodes
-
+  override def newConcreteNodes(params: ConcreteNode.ListNew): F[List[HnId]] =
     for
-      (rawNodes, concreteNodes) <- database
-        .createConcreteNodes(params.size, makeNodes, config.initNextHnIndex)
-      _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, concrete nodes: $concreteNodes")
-    yield concreteNodes
+      _ <- Validation.validateList(params.list)
+      _ <- params.list.traverse(p => getIoNode(p.ioNodeName).map(_.variable.validateIndex(p.valueIndex)))
+      hnIds <- database.createConcreteNodes(config.initNextHnIndex, params.list)
+      _ <- logger.info(s"Created concrete nodes, hnIds $hnIds, for params: $params")
+    yield hnIds
 
-  override def newAbstractNodes(params: List[AbstractNode.New]): F[List[AbstractNode[F]]] =
-    def makeNodes(hnIds: List[HnId]): F[List[AbstractNode[F]]] =
-      for
-        _ <- (params, hnIds).assertSameSize("Seems bug: Abstract node params and hnIds must have the same size")
-        nodes = params.zip(hnIds).map((p, id) => AbstractNode(id, p.name))
-      yield nodes
-
+  override def newAbstractNodes(params: AbstractNode.ListNew): F[List[HnId]] =
     for
-      (rawNodes, abstractNodes) <- database
-        .createAbstractNodes(params.size, makeNodes, config.initNextHnIndex)
-      _ <- logger.info(s"Created and touched Neo4j node: $rawNodes, abstract nodes: $abstractNodes")
-    yield abstractNodes
+      _ <- Validation.validateList(params.list)
+      hnIds <- database.createAbstractNodes(config.initNextHnIndex, params.list)
+      _ <- logger.info(s"Created abstract nodes, hnIds $hnIds, for params: $params")
+    yield hnIds
 
   override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = database
     .findHiddenNodesByNames(
@@ -93,14 +81,12 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   override def countHiddenNodes: F[Long] = database.countHiddenNodes
 
-  override def addObservedSamples(observedSamples: List[ObservedSample]): F[List[StoredSample]] =
+  override def addObservedSamples(params: Sample.ListNew): F[List[SampleId]] =
     for
-      _ <- observedSamples.assertNonEmpty("Samples must not be empty")
-      _ <- Validation.validateList(observedSamples)
-      (rawNodes, rawEdges, storedSamples) <- database
-        .addObservedSamples(observedSamples, (s, sId, hnIns) => StoredSample.fromObservedSample(s, sId, hnIns))
-      _ <- logger.info(s"Added observed samples, rawNodes: $rawNodes, rawEdges: $rawEdges")
-    yield storedSamples
+      _ <- Validation.validateList(params.list)
+      (sampleIds, edgeIds) <- database.createSamples(params)
+      _ <- logger.info(s"Added observed samples, sampleIds = $sampleIds, edgeIds = $edgeIds for params = $params")
+    yield sampleIds
 
   override def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]] = ???
 

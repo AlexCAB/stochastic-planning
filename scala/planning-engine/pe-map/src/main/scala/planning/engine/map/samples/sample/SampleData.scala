@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-07 |||||||||||*/
 
-package planning.engine.map.samples.sample.stored
+package planning.engine.map.samples.sample
 
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}

@@ -15,7 +15,7 @@ package planning.engine.map.database
 import cats.effect.Async
 import cats.effect.Resource
 import neotypes.{AsyncDriver, AsyncTransaction, GraphDatabase, TransactionConfig}
-import neotypes.model.types.{Node, Relationship}
+import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import neotypes.cats.effect.implicits.*
 import cats.syntax.all.*
@@ -25,8 +25,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.graph.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
-import planning.engine.map.samples.sample.observed.{ObservedEdge, ObservedSample}
-import planning.engine.map.samples.sample.stored.{SampleEdge, StoredSample}
+import planning.engine.map.samples.sample.Sample
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
   * reading and writing data to the database.
@@ -49,16 +48,11 @@ trait Neo4jDatabaseLike[F[_]]:
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
 
   def createConcreteNodes(
-      numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[ConcreteNode[F]]],
-      initNextHnIndex: Long
-  ): F[(List[Node], List[ConcreteNode[F]])]
+      initNextHnIndex: Long,
+      params: List[ConcreteNode.New]
+  ): F[List[HnId]]
 
-  def createAbstractNodes(
-      numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[AbstractNode[F]]],
-      initNextHnIndex: Long
-  ): F[(List[Node], List[AbstractNode[F]])]
+  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[List[HnId]]
 
   def findHiddenNodesByNames(
       names: List[Name],
@@ -67,10 +61,7 @@ trait Neo4jDatabaseLike[F[_]]:
 
   def countHiddenNodes: F[Long]
 
-  def addObservedSamples(
-      observedSamples: List[ObservedSample],
-      makeStoredSample: (ObservedSample, SampleId, Map[HnId, HnIndex]) => F[StoredSample]
-  ): F[(List[Node], List[Relationship], List[StoredSample])]
+  def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
   private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
@@ -110,28 +101,24 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       yield (metadata, inNodes, outNodes)
 
   override def createConcreteNodes(
-      numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[ConcreteNode[F]]],
-      initNextHnIndex: Long
-  ): F[(List[Node], List[ConcreteNode[F]])] = driver.transact(writeConf): tx =>
+      initNextHnIndex: Long,
+      params: List[ConcreteNode.New]
+  ): F[List[HnId]] = driver.transact(writeConf): tx =>
     for
-      _ <- numOfNodes.assetAnNumberOf("numOfNodes")
-      concreteNodes <- getNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
-      params <- concreteNodes.traverse(n => n.toProperties(initNextHnIndex).map(p => (n.ioNode.name, p)))
-      rawNodes <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
-    yield (rawNodes.flatten, concreteNodes)
+      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
+      _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
+      params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex).map(p => (n.ioNodeName, p)))
+      createdIds <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
+    yield createdIds.map(HnId.apply)
 
-  override def createAbstractNodes(
-      numOfNodes: Long,
-      makeNodes: List[HnId] => F[List[AbstractNode[F]]],
-      initNextHnIndex: Long
-  ): F[(List[Node], List[AbstractNode[F]])] = driver.transact(writeConf): tx =>
-    for
-      _ <- numOfNodes.assetAnNumberOf("numOfNodes")
-      abstractNodes <- getNextHnIdQuery(numOfNodes)(tx).flatMap(ids => makeNodes(ids.map(HnId.apply)))
-      params <- abstractNodes.traverse(_.toProperties(initNextHnIndex))
-      rawNodes <- params.traverse(props => addAbstractNodeQuery(props)(tx))
-    yield (rawNodes, abstractNodes)
+  override def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[List[HnId]] =
+    driver.transact(writeConf): tx =>
+      for
+        newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
+        _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
+        params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
+        createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
+      yield createdIds.map(HnId.apply)
 
   override def findHiddenNodesByNames(
       names: List[Name],
@@ -163,63 +150,43 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
-  override def addObservedSamples(
-      observedSamples: List[ObservedSample],
-      makeStoredSample: (ObservedSample, SampleId, Map[HnId, HnIndex]) => F[StoredSample]
-  ): F[(List[Node], List[Relationship], List[StoredSample])] =
-    def aggregateEdgesAndNodeIds: F[(List[ObservedEdge], List[HnId])] =
-      (observedSamples.flatMap(_.edges).distinct, observedSamples.flatMap(_.hnIds).distinct).pure
+  override def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])] =
 
-    def makeSampleWithIds(tx: AsyncTransaction[F]): F[List[(SampleId, ObservedSample)]] =
+    def storeSamples(tx: AsyncTransaction[F]): F[List[(SampleId, Sample.New)]] =
       for
-        sampleIds <- getNextSamplesQuery(observedSamples.size)(tx).map(_.map(SampleId.apply))
-        _ <- (sampleIds, observedSamples).assertSameSize("Sample ids and observed samples must have the same size")
-      yield sampleIds.zip(observedSamples)
+        newSampleId <- getNextSamplesQuery(params.list.size)(tx).map(_.map(SampleId.apply))
+        _ <- (newSampleId, params.list).assertSameSize("Sample ids and observed samples must have the same size")
+        params <- newSampleId.zip(params.list).traverse((id, s) => s.toQueryParams(id).map(p => (s, p)))
+        storedSample <- params.traverse((s, p) => addSampleQuery(p)(tx).map(id => (SampleId(id), s)))
+      yield storedSample
 
-    def makeHnIndexies(allNodeIds: List[HnId])(tx: AsyncTransaction[F]): F[Map[HnId, List[HnIndex]]] = allNodeIds
-      .map(id => id -> observedSamples.count(_.hnIds.contains(id)))
-      .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => (id, ins.map(HnIndex.apply))))
+    def makeHnIndexies(tx: AsyncTransaction[F]): F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn
+      .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.map(HnIndex.apply)))
       .map(_.toMap)
 
-    def getHnIndexiesForSample(hnIns: Map[HnId, List[HnIndex]]): F[(Map[HnId, List[HnIndex]], Map[HnId, HnIndex])] =
-      hnIns.foldRight((Map[HnId, List[HnIndex]](), Map[HnId, HnIndex]()).pure):
-        case ((hnId, hnIx :: hnIxs), acc) => acc.map((ixs, ix) => (ixs + (hnId -> hnIxs), ix + (hnId -> hnIx)))
-        case ((hnId, Nil), _)             => s"Incorrect number of HnIndex created for hnId = $hnId".assertionError
-
-    def makeStoredSamples(
-        samples: List[(SampleId, ObservedSample)],
-        hnIns: Map[HnId, List[HnIndex]]
-    ): F[List[StoredSample]] = samples
-      .foldRight((hnIns, List[StoredSample]()).pure):
-        case ((sId, sample), acc) =>
+    def addSampleEdge(
+        samples: List[(SampleId, Sample.New)],
+        hnInsToHnIndex: Map[HnId, List[HnIndex]]
+    )(tx: AsyncTransaction[F]): F[List[String]] = samples
+      .foldRight((hnInsToHnIndex, List[String]()).pure):
+        case ((sampleId, sample), acc) =>
           for
-            (hnIns, sss) <- acc
-            (nHnIns, ixs) <- getHnIndexiesForSample(hnIns)
-            ss <- makeStoredSample(sample, sId, ixs)
-          yield (nHnIns, ss +: sss)
+            (hnIndex, edgeIds) <- acc
+            (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
+            edgesParams <- sample.edges.traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
+            ids <- edgesParams.traverse: (e, p) =>
+              addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)
+          yield (newHnIndex, edgeIds ++ ids)
       .map(_._2)
-
-    def addSampleEdge(edges: Seq[SampleEdge])(tx: AsyncTransaction[F]): F[List[Relationship]] =
-      for
-        edgesParams <- edges
-          .map(e => e -> e.toParams)
-          .map((e, p) => (e.sourceHn.value, e.targetHn.value, e.edgeType.toLabel, p._1, p._2))
-          .pure
-        rawEdges <- edgesParams.traverse:
-          case (sId, tId, label, pn, pv) => addSampleEdgeQuery(sId, tId, label, pn, pv)(tx)
-      yield rawEdges.toList
 
     driver.transact(readConf): tx =>
       for
-        (allEdges, allNodeIds) <- aggregateEdgesAndNodeIds
-        samplesWithIds <- makeSampleWithIds(tx)
-        hnIndexies <- makeHnIndexies(allNodeIds)(tx)
-        storedSamples <- makeStoredSamples(samplesWithIds, hnIndexies)
-        _ <- allEdges.traverse(e => addEdgeIfNotExistQuery(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
-        rawNodes <- storedSamples.traverse(_.toQueryParams.flatMap(p => addSampleQuery(p)(tx)))
-        rawEdges <- addSampleEdge(storedSamples.flatMap(_.edges))(tx)
+        storedSamples <- storeSamples(tx)
+        hnIndexies <- makeHnIndexies(tx)
+        _ <- params.allEdges.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
+        edgeIds <- addSampleEdge(storedSamples, hnIndexies)(tx)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
-      yield (rawNodes, rawEdges, storedSamples)
+      yield (storedSamples.map(_._1), edgeIds)
 
 object Neo4jDatabase:
   def apply[F[_]: Async](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =

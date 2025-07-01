@@ -14,7 +14,7 @@ package planning.engine.map.hidden.edge
 
 import cats.MonadThrow
 import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.stored.SampleEdge
+import planning.engine.map.samples.sample.SampleEdge
 
 case class ThenEdge[F[_]: MonadThrow](
     source: HiddenNode[F],

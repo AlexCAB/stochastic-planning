@@ -20,8 +20,9 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.db.Neo4j.{HN_LABEL, CONCRETE_LABEL}
+import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.properties.*
+import planning.engine.common.validation.Validation
 
 final case class ConcreteNode[F[_]: MonadThrow](
     id: HnId,
@@ -29,13 +30,6 @@ final case class ConcreteNode[F[_]: MonadThrow](
     ioNode: IoNode[F],
     valueIndex: IoIndex
 ) extends HiddenNode[F]:
-
-  override def toProperties(initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
-    PROP.HN_ID -> id.toDbParam,
-    PROP.NAME -> name.map(_.toDbParam),
-    PROP.IO_INDEX -> valueIndex.toDbParam,
-    PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
-  )
 
   override def equals(that: Any): Boolean = that match
     case obj: ConcreteNode[?] =>
@@ -45,7 +39,22 @@ final case class ConcreteNode[F[_]: MonadThrow](
   override def toString: String = s"ConcreteHiddenNode(id=$id, name=$name, valueIndex=$valueIndex, ioNode=$ioNode)"
 
 object ConcreteNode:
-  final case class New(name: Option[Name], ioNodeName: Name, valueIndex: IoIndex)
+  final case class New(name: Option[Name], ioNodeName: Name, valueIndex: IoIndex) extends Validation:
+    lazy val validationName: String = s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)"
+
+    lazy val validationErrors: List[Throwable] = validations(
+      name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
+      ioNodeName.value.nonEmpty -> "IoNode name must not be empty"
+    )
+
+    def toProperties[F[_]: MonadThrow](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
+      PROP.HN_ID -> id.toDbParam,
+      PROP.NAME -> name.map(_.toDbParam),
+      PROP.IO_INDEX -> valueIndex.toDbParam,
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
+    )
+
+  final case class ListNew(list: List[New])
 
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>

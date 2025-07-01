@@ -21,10 +21,12 @@ import planning.engine.common.properties.PROP
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 
-trait IoVariable[F[_], T]:
+trait IoVariable[F[_] : MonadThrow, T]:
   def valueForIndex(index: IoIndex): F[T]
   def indexForValue(value: T): F[IoIndex]
   def toQueryParams: F[Map[String, Param]]
+
+  def validateIndex(index: IoIndex): F[Unit] = valueForIndex(index).void
 
 object IoVariable:
   object PROP_VALUE:

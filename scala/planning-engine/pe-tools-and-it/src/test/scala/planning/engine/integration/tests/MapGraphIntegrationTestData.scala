@@ -16,14 +16,13 @@ import cats.effect.testing.scalatest.AsyncIOSpec
 import cats.effect.{IO, Resource}
 import org.scalatest.matchers.must.Matchers
 import planning.engine.common.SpecLogging
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
 import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
 import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.syntax.all.*
-import neotypes.model.types
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
   self: AsyncIOSpec & Matchers & SpecLogging =>
@@ -47,28 +46,24 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       concreteNames: List[Option[Name]],
       abstractNames: List[Option[Name]]
   ): IO[TestHiddenNodes] =
-    def makeConcreteNodes: IO[(List[types.Node], List[ConcreteNode[IO]])] = neo4jdb
-      .createConcreteNodes(
-        numOfNodes = concreteNames.size,
-        makeNodes = hnIds =>
-          hnIds
-            .zip(concreteNames)
-            .map((id, name) => ConcreteNode[IO](id, name, intInNode, IoIndex(id.value + 100L)))
-            .pure[IO],
-        initNextHnIndex = testMapConfig.initNextHnIndex
-      )
+    def makeConcreteNodes(newNode: ConcreteNode.New): IO[(HnId, ConcreteNode.New)] = neo4jdb
+      .createConcreteNodes(testMapConfig.initNextHnIndex, List(newNode))
+      .map(ln => ln.headOption.getOrElse(fail(s"No concrete node created, for newNode: $newNode")) -> newNode)
 
-    def makeAbstractNodes: IO[(List[types.Node], List[AbstractNode[IO]])] = neo4jdb
-      .createAbstractNodes(
-        numOfNodes = abstractNames.size,
-        makeNodes = hnIds => hnIds.zip(abstractNames).map((id, name) => AbstractNode[IO](id, name)).pure[IO],
-        initNextHnIndex = testMapConfig.initNextHnIndex
-      )
+    def makeAbstractNodes(newNode: AbstractNode.New): IO[(HnId, AbstractNode.New)] = neo4jdb
+      .createAbstractNodes(testMapConfig.initNextHnIndex, List(newNode))
+      .map(ln => ln.headOption.getOrElse(fail(s"No abstract node created, for name: $newNode")) -> newNode)
 
     for
-      (_, concreteNodes) <- makeConcreteNodes.logValue("createTestHiddenNodesInDb", "concreteNodes")
-      (_, abstractNodes) <- makeAbstractNodes.logValue("createTestHiddenNodesInDb", "abstractNodes")
-    yield TestHiddenNodes(concreteNodes, abstractNodes, concreteNodes ++ abstractNodes)
+      concreteNodes <- concreteNames
+        .traverse(name => makeConcreteNodes(ConcreteNode.New(name, intInNode.name, IoIndex(123L))))
+        .map(_.toMap)
+        .logValue("createTestHiddenNodesInDb", "concreteNodes")
+      abstractNodes <- abstractNames
+        .traverse(name => makeAbstractNodes(AbstractNode.New(name)))
+        .map(_.toMap)
+        .logValue("createTestHiddenNodesInDb", "abstractNodes")
+    yield TestHiddenNodes(concreteNodes, abstractNodes, (concreteNodes.keys ++ abstractNodes.keys).toList)
 
   def loadTestMapGraph(neo4jdb: Neo4jDatabase[IO]): Resource[IO, MapGraph[IO]] =
     for
@@ -78,9 +73,9 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
 
 object MapGraphIntegrationTestData:
   final case class TestHiddenNodes(
-      concreteNodes: List[ConcreteNode[IO]],
-      abstractNodes: List[AbstractNode[IO]],
-      all: List[HiddenNode[IO]]
+      concreteNodes: Map[HnId, ConcreteNode.New],
+      abstractNodes: Map[HnId, AbstractNode.New],
+      allNodeIds: List[HnId]
   )
 
   final case class TestMapGraph(

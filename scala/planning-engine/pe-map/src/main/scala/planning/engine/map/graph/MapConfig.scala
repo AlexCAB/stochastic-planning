@@ -33,7 +33,7 @@ final case class MapConfig(
     PROP.NEXT_HN_ID -> initNextHnId.toDbParam
   )
 
-  def toSamplesParams[F[_] : MonadThrow]: F[Map[String, Param]] = paramsOf(
+  def toSamplesParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_SAMPLES_ID -> initNextSampleId.toDbParam,
     PROP.SAMPLES_COUNT -> initSampleCount.toDbParam,
     PROP.NAME -> samplesName.toDbParam

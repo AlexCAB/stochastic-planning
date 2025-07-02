@@ -13,7 +13,6 @@
 package planning.engine.integration.tests.database
 
 import cats.effect.{IO, Resource}
-
 import planning.engine.common.properties.*
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
@@ -23,6 +22,7 @@ import planning.engine.common.values.db.Neo4j.*
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.effect.cps.*
 import cats.syntax.all.*
+import neotypes.model.types.Node
 import neotypes.syntax.all.*
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]
@@ -42,75 +42,74 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
   "Neo4jDatabase.createConcreteNodes(...)" should:
     "create concrete nodes in DB" in: (itDb, neo4jdb) =>
       given WithItDb.ItDb = itDb
+
+      def getHiddenNodes(id: HnId)(implicit db: WithItDb.ItDb): IO[List[Node]] =
+        c"MATCH (cn: #$HN_LABEL: #$CONCRETE_LABEL  {#${PROP.HN_ID}: ${id.value}})-->(io: #$IO_LABEL)RETURN [io, cn]"
+          .listListNode.map(_.flatten)
+
       async[IO]:
         val nextHnId = getNextHnId.await
-        val (rawNodes, concreteNodes) = neo4jdb
-          .createConcreteNodes(
-            numOfNodes = 3L,
-            makeNodes = hnIds =>
-              for
-                _ <- logInfo("create concrete nodes in DB", s"hnIds = $hnIds")
-                _ <- IO.delay(hnIds.size mustEqual 3)
-                _ <- IO.delay(hnIds.toSet.size mustEqual 3)
-                nodes = hnIds.map(id =>
-                  ConcreteNode[IO](id, Some(Name(s"con_${id.value}")), intInNode, IoIndex(id.value + 100L))
-                )
-              yield nodes,
-            initNextHnIndex = testMapConfig.initNextHnIndex
-          ).await
 
-        val expectedLabels = Set(IO_LABEL, IN_LABEL, HN_LABEL, CONCRETE_LABEL).map(_.toLowerCase)
-        val expectedHnIds = (nextHnId until nextHnId + 3L).toList.map(HnId.apply)
-        val expectedNames = (nextHnId until nextHnId + 3L).toList.map(i => Some(Name(s"con_$i")))
+        val newNodes = List(
+          ConcreteNode.New(Some(Name("inputNode")), boolInNode.name, IoIndex(10L)),
+          ConcreteNode.New(Some(Name("outputNode")), boolOutNode.name, IoIndex(20L))
+        )
 
-        rawNodes.size mustEqual 6
+        val concreteNodeIds: List[HnId] = neo4jdb.createConcreteNodes(testMapConfig.initNextHnIndex, newNodes).await
+        val rawNodes: List[Node] = concreteNodeIds.flatMap(id => getHiddenNodes(id).await)
+
+        val expectedLabels = Set(IO_LABEL, IN_LABEL, OUT_LABEL, HN_LABEL, CONCRETE_LABEL).map(_.toLowerCase)
+        val expectedHnIds = (nextHnId until nextHnId + 2L).toList.map(HnId.apply)
+        val expecteIoNodeNames = Set(boolInNode.name.value, boolOutNode.name.value)
+
+        concreteNodeIds.size mustEqual 2
+        concreteNodeIds mustEqual expectedHnIds
+
+        rawNodes.size mustEqual 4
         rawNodes.toSet.flatMap(_.labels) mustEqual expectedLabels
-        concreteNodes.size mustEqual 3
-        concreteNodes.map(_.id) mustEqual expectedHnIds
-        concreteNodes.map(_.name) mustEqual expectedNames
-        concreteNodes.map(_.ioNode).map(_.name).toSet mustEqual Set(Name("intInputNode"))
-        concreteNodes.map(_.valueIndex) mustEqual List(IoIndex(101), IoIndex(102), IoIndex(103))
 
-        val concreteNode = concreteNodes.head
+        val conRawNode = rawNodes.filter(_.is(CONCRETE_LABEL))
+        val ioRawNode = rawNodes.filter(_.is(IO_LABEL))
 
-        val dbConcreteNode =
-          c"""
-            MATCH (cn:#$HN_LABEL:#$CONCRETE_LABEL {#${PROP.NAME}: ${concreteNode.name.get.value}})
-                  -->(:#$IO_LABEL {#${PROP.NAME}: ${intInNode.name.value}})
-            RETURN cn
-            """.singleNode.await
+        conRawNode.size mustEqual 2
+        ioRawNode.size mustEqual 2
 
-        dbConcreteNode.getLongProperty(PROP.HN_ID) mustEqual concreteNode.id.value
-        dbConcreteNode.getLongProperty(PROP.IO_INDEX) mustEqual concreteNode.valueIndex.value
-        getNextHnId.await mustEqual nextHnId + 3L
+        conRawNode.map(_.getLongProperty(PROP.HN_ID)).toSet mustEqual expectedHnIds.map(_.value).toSet
+        conRawNode.map(_.getStringProperty(PROP.NAME)).toSet mustEqual newNodes.map(_.name.get.value).toSet
+        conRawNode.map(_.getLongProperty(PROP.IO_INDEX)).toSet mustEqual newNodes.map(_.valueIndex.value).toSet
+        conRawNode.map(_.getLongProperty(PROP.NEXT_HN_INDEX)).toSet mustEqual Set(testMapConfig.initNextHnIndex)
+        ioRawNode.map(_.getStringProperty(PROP.NAME)).toSet mustEqual expecteIoNodeNames
+
+        getNextHnId.await mustEqual nextHnId + 2L
 
   "Neo4jDatabase.createAbstractNode(...)" should:
     "create abstract node in DB" in: (itDb, neo4jdb) =>
       given WithItDb.ItDb = itDb
+
+      def getHiddenNodes(id: HnId)(implicit db: WithItDb.ItDb): IO[Node] =
+        c"MATCH (node: #$HN_LABEL: #$ABSTRACT_LABEL  {#${PROP.HN_ID}: ${id.value}}) RETURN node".singleNode
+
       async[IO]:
         val nextHnId = getNextHnId.await
-        val (rawNodes, abstractNodes) = neo4jdb
-          .createAbstractNodes(
-            numOfNodes = 3L,
-            makeNodes = hnIds =>
-              for
-                _ <- logInfo("create abstract nodes in DB", s"hnIds = $hnIds")
-                _ <- IO.delay(hnIds.size mustEqual 3)
-                _ <- IO.delay(hnIds.toSet.size mustEqual 3)
-                nodes = hnIds.map(id => AbstractNode[IO](id, Some(Name(s"abs_${id.value}"))))
-              yield nodes,
-            initNextHnIndex = testMapConfig.initNextHnIndex
-          ).await
 
-        val expectedHnIds = (nextHnId until nextHnId + 3L).toList.map(HnId.apply)
-        val expectedNames = (nextHnId until nextHnId + 3L).toList.map(i => Some(Name(s"abs_$i")))
+        val newNodes = List(
+          AbstractNode.New(Some(Name("AbstractNode1"))),
+          AbstractNode.New(Some(Name("AbstractNode2")))
+        )
 
-        rawNodes.size mustEqual 3
+        val abstractNodeIds: List[HnId] = neo4jdb.createAbstractNodes(testMapConfig.initNextHnIndex, newNodes).await
+        val rawNodes: List[Node] = abstractNodeIds.traverse(id => getHiddenNodes(id)).await
+
+        val expectedHnIds = (nextHnId until nextHnId + 2L).toList.map(HnId.apply)
+
+        rawNodes.size mustEqual 2
         rawNodes.toSet.flatMap(_.labels) mustEqual Set(HN_LABEL, ABSTRACT_LABEL).map(_.toLowerCase)
-        abstractNodes.size mustEqual 3
-        abstractNodes.map(_.id) mustEqual expectedHnIds
-        abstractNodes.map(_.name) mustEqual expectedNames
-        getNextHnId.await mustEqual nextHnId + 3L
+
+        abstractNodeIds.size mustEqual 2
+        abstractNodeIds mustEqual expectedHnIds
+        rawNodes.map(_.getLongProperty(PROP.HN_ID)).toSet mustEqual expectedHnIds.map(_.value).toSet
+
+        getNextHnId.await mustEqual nextHnId + 2L
 
   "Neo4jDatabase.findHiddenNodesByNames(...)" should:
     "find hidden nodes" in: (itDb, neo4jdb) =>

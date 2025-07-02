@@ -29,6 +29,7 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val id = HnId(1234)
     lazy val name = Some(Name("TestNode"))
     lazy val singleNode = AbstractNode[IO](id, name)
+    lazy val newNode = AbstractNode.New(name)
     lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
@@ -58,7 +59,8 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
-      data.singleNode.toProperties(data.initNextHnIndex).logValue(tn).asserting(_ mustEqual data.nodeProperties)
+      data.newNode.toProperties[IO](data.id, data.initNextHnIndex)
+        .logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
@@ -68,3 +70,12 @@ class AbstractNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
       AbstractNode[IO](HnId(5678), Some(Name("TestNode2"))).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
+
+  "validationErrors" should:
+    "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
+      data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
+
+    "return error if name is empty" in newCase[CaseData]: (_, data) =>
+      data.newNode.copy(name = Some(Name(""))).validationErrors.pure[IO].asserting: errors =>
+        errors must have size 1
+        errors.head.getMessage mustEqual "Name must not be empty if defined"

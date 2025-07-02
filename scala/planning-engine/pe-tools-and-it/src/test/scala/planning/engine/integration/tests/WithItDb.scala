@@ -76,6 +76,7 @@ trait WithItDb:
         case res         => IO.raiseError(new AssertionError(s"More then one result found: $res, for query: $query"))
 
     def listNode(implicit db: WithItDb.ItDb): IO[List[Node]] = queryList(ResultMapper.node)
+    def listListNode(implicit db: WithItDb.ItDb): IO[List[List[Node]]] = queryList(ResultMapper.list(ResultMapper.node))
     def singleNode(implicit db: WithItDb.ItDb): IO[Node] = querySingle(ResultMapper.node)
 
     def listHnIds(implicit db: WithItDb.ItDb): IO[List[HnId]] = queryList(ResultMapper.node)

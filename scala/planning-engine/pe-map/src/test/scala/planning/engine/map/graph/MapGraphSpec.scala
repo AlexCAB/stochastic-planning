@@ -55,23 +55,20 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         )
 
         data.mockedDb.createConcreteNodes
-          .when(*, *, *)
-          .onCall: (numOfNodes, makeNodes, initNextHnIndex) =>
+          .when(*, *)
+          .onCall: (initNextHnIndex, params) =>
             for
-              _ <- IO.delay(numOfNodes mustEqual 2L)
+              _ <- IO.delay(params.size mustEqual 2L)
               _ <- IO.delay(initNextHnIndex mustEqual 1L)
-              nodes <- makeNodes((1L to newNodes.size.toLong).toList.map(HnId.apply))
-            yield (List.empty, nodes)
+              ids = (1L to params.size.toLong).toList.map(HnId.apply)
+            yield ids
           .once()
 
-        val nodes = data.mapGraph.newConcreteNodes(newNodes).await
+        val nodeIds = data.mapGraph.newConcreteNodes(ConcreteNode.ListNew(newNodes)).await
         val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1))
 
-        nodes.size mustEqual newNodes.size
-        nodes.map(_.id) mustEqual expectedHnIds
-        nodes.map(_.name) mustEqual newNodes.map(_.name)
-        nodes.map(_.ioNode.name) mustEqual List(boolInNode.name, boolOutNode.name)
-        nodes.map(_.valueIndex) mustEqual newNodes.map(_.valueIndex)
+        nodeIds.size mustEqual newNodes.size
+        nodeIds mustEqual expectedHnIds
 
   "newAbstractNodes" should:
     "add abstract nodes" in newCase[CaseData]: (_, data) =>
@@ -82,21 +79,20 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         )
 
         data.mockedDb.createAbstractNodes
-          .when(*, *, *)
-          .onCall: (numOfNodes, makeNodes, initNextHnIndex) =>
+          .when(*, *)
+          .onCall: (initNextHnIndex, params) =>
             for
-              _ <- IO.delay(numOfNodes mustEqual 2L)
+              _ <- IO.delay(params.size mustEqual 2L)
               _ <- IO.delay(initNextHnIndex mustEqual 1L)
-              nodes <- makeNodes((1L to newNodes.size.toLong).toList.map(HnId.apply))
-            yield (List.empty, nodes)
+              ids = (1L to params.size.toLong).toList.map(HnId.apply)
+            yield ids
           .once()
 
-        val nodes = data.mapGraph.newAbstractNodes(newNodes).await
+        val nodeIds = data.mapGraph.newAbstractNodes(AbstractNode.ListNew(newNodes)).await
         val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1))
 
-        nodes.size mustEqual newNodes.size
-        nodes.map(_.id) mustEqual expectedHnIds
-        nodes.map(_.name) mustEqual newNodes.map(_.name)
+        nodeIds.size mustEqual newNodes.size
+        nodeIds mustEqual expectedHnIds
 
   "findHiddenNodesByNames" should:
     "find nodes by name" in newCase[CaseData]: (tn, data) =>
@@ -112,11 +108,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val createdNodes = newNodes.zip(expectedHnIds).map((n, id) => AbstractNode[IO](id, n.name))
 
         data.mockedDb.createAbstractNodes
-          .when(*, *, *)
-          .onCall: (numOfNodes, makeNodes, _) =>
-            for
-                nodes <- makeNodes((1L to numOfNodes).toList.map(HnId.apply))
-            yield (List.empty, nodes)
+          .when(*, *)
+          .onCall((_, params) => (1L to params.size.toLong).toList.map(HnId.apply).pure)
           .once()
 
         data.mockedDb.findHiddenNodesByNames

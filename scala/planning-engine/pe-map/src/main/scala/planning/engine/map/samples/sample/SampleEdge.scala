@@ -40,7 +40,7 @@ object SampleEdge:
     def toQueryParams[F[_]: MonadThrow](sampleId: SampleId, indexies: Map[HnId, HnIndex]): F[(String, List[Long])] =
       def getIndex(hnId: HnId): F[HnIndex] = indexies.get(hnId) match
         case Some(id) => id.pure
-        case _ => s"Missing HnIndex for $hnId in $indexies".assertionError
+        case _        => s"Missing HnIndex for $hnId in $indexies".assertionError
 
       for
         sourceValue <- getIndex(source)

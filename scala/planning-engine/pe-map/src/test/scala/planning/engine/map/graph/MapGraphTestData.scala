@@ -29,9 +29,9 @@ trait MapGraphTestData:
     initNextSampleId = 1L,
     initSampleCount = 0L,
     initNextHnIndex = 1L,
-    samplesName = "TestSamples",
+    samplesName = "TestSamples"
   )
-  
+
   lazy val testMetadata = MapMetadata(Some(Name("TestMap")), Some(Description("Test description")))
   lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 

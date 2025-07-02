@@ -16,7 +16,7 @@ import cats.effect.{IO, Resource}
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
 import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import cats.effect.cps.*
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
@@ -49,19 +49,16 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
     "create new concrete nodes and cache them" in: res =>
       given WithItDb.ItDb = res.itDb
       async[IO]:
-        val newConcreteNodes = List(
+        val newConcreteNodes = ConcreteNode.ListNew(List(
           ConcreteNode.New(Some(Name("test-concrete-1")), intInNode.name, IoIndex(101L)),
           ConcreteNode.New(Some(Name("test-concrete-2")), boolOutNode.name, IoIndex(102L)),
           ConcreteNode.New(None, intOutNode.name, IoIndex(103L))
-        )
+        ))
 
-        val createdNodes: List[ConcreteNode[IO]] = res.graph.newConcreteNodes(newConcreteNodes).await
-        createdNodes.traverse(n => logInfo("created concrete node", s"node = $n")).await
+        val createdNodeIds: List[HnId] = res.graph.newConcreteNodes(newConcreteNodes).await
+        logInfo("created concrete node", s"createdNodeIds = $createdNodeIds").await
 
-        createdNodes.size mustEqual 3
-        createdNodes.map(_.name) mustEqual newConcreteNodes.map(_.name)
-        createdNodes.map(_.ioNode) mustEqual List(intInNode, boolOutNode, intOutNode)
-        createdNodes.map(_.valueIndex) mustEqual newConcreteNodes.map(_.valueIndex)
+        createdNodeIds.size mustEqual 3
 
         val dbConcreteNodeIds =
           c"""
@@ -69,32 +66,31 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
             RETURN cn
             """.listHnIds.await
 
-        dbConcreteNodeIds must contain allElementsOf createdNodes.map(_.id)
+        dbConcreteNodeIds must contain allElementsOf createdNodeIds
 
   "MapGraph.newAbstractNodes(...)" should:
     "create new abstract nodes and cache them" in: res =>
       given WithItDb.ItDb = res.itDb
       async[IO]:
-        val newAbstractNodes = List(
+        val newAbstractNodes = AbstractNode.ListNew(List(
           AbstractNode.New(Some(Name("test-abstract-1"))),
           AbstractNode.New(Some(Name("test-abstract-2"))),
           AbstractNode.New(None)
-        )
+        ))
 
-        val createdNodes: List[AbstractNode[IO]] = res.graph.newAbstractNodes(newAbstractNodes).await
-        createdNodes.traverse(n => logInfo("created abstract node", s"node = $n")).await
+        val createdNodeIds: List[HnId] = res.graph.newAbstractNodes(newAbstractNodes).await
+        logInfo("created abstract node", s"createdNodeIds = $createdNodeIds").await
 
-        createdNodes.size mustEqual 3
-        createdNodes.map(_.name) mustEqual newAbstractNodes.map(_.name)
+        createdNodeIds.size mustEqual 3
 
         val dbAbstractNodeIds = c"MATCH (an:#$HN_LABEL:#$ABSTRACT_LABEL) RETURN an".listHnIds.await
 
-        dbAbstractNodeIds must contain allElementsOf createdNodes.map(_.id)
+        dbAbstractNodeIds must contain allElementsOf createdNodeIds
 
   "MapGraph.findHiddenNodesByNames(...)" should:
     "find nodes by names" in: res =>
       async[IO]:
-        val namesToFind = List(res.nodes.abstractNodes.head.name.get, res.nodes.concreteNodes.head.name.get)
+        val namesToFind = List(res.nodes.abstractNodes.head._2.name.get, res.nodes.concreteNodes.head._2.name.get)
         val foundNodes: List[HiddenNode[IO]] = res.graph.findHiddenNodesByNames(namesToFind).await
 
         foundNodes.traverse(n => logInfo("found hidden node", s"node = $n")).await

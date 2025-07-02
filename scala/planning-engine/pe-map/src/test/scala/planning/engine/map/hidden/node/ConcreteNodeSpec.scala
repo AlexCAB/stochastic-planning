@@ -33,6 +33,7 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
     lazy val singleNode = ConcreteNode[IO](id, name, intInNode, valueIndex)
+    lazy val newNode = ConcreteNode.New(name, intInNode.name, valueIndex)
     lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
@@ -68,7 +69,8 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "toProperties" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
-      data.singleNode.toProperties(data.initNextHnIndex).logValue(tn).asserting(_ mustEqual data.nodeProperties)
+      data.newNode.toProperties[IO](data.id, data.initNextHnIndex)
+        .logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
   "equals" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
@@ -78,3 +80,17 @@ class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
       ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), data.intInNode, IoIndex(2)).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
+
+  "validationErrors" should:
+    "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
+      data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
+
+    "return error if var name is empty" in newCase[CaseData]: (_, data) =>
+      data.newNode.copy(name = Some(Name(""))).validationErrors.pure[IO].asserting: errors =>
+        errors must have size 1
+        errors.head.getMessage mustEqual "Name must not be empty if defined"
+
+    "return error if IO node name is empty" in newCase[CaseData]: (_, data) =>
+      data.newNode.copy(ioNodeName = Name("")).validationErrors.pure[IO].asserting: errors =>
+        errors must have size 1
+        errors.head.getMessage mustEqual "IoNode name must not be empty"

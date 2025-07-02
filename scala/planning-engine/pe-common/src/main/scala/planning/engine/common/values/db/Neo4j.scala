@@ -19,16 +19,15 @@ object Neo4j:
   val SAMPLES_LABEL: Label = "Samples"
   val SAMPLE_LABEL: Label = "Sample"
   val IO_NODES_LABEL: Label = "IoNodes"
-  
+
   val IO_LABEL: Label = "Io"
   val IN_LABEL: Label = "In"
   val OUT_LABEL: Label = "Out"
-  
+
   val HN_LABEL: Label = "Hn"
   val CONCRETE_LABEL: Label = "Concrete"
   val ABSTRACT_LABEL: Label = "Abstract"
-  
+
   val HE_LABEL: Label = "He"
   val LINK_LABEL: Label = "Link"
   val THEN_LABEL: Label = "Then"
-  

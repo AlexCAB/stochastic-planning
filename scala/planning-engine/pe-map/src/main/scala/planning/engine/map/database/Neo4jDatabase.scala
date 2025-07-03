@@ -14,7 +14,7 @@ package planning.engine.map.database
 
 import cats.effect.Async
 import cats.effect.Resource
-import neotypes.{AsyncDriver, AsyncTransaction, GraphDatabase, TransactionConfig}
+import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
 import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import neotypes.cats.effect.implicits.*
@@ -46,21 +46,11 @@ trait Neo4jDatabaseLike[F[_]]:
   ): F[List[Node]]
 
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
-
-  def createConcreteNodes(
-      initNextHnIndex: Long,
-      params: List[ConcreteNode.New]
-  ): F[List[HnId]]
-
+  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[List[HnId]]
   def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[List[HnId]]
-
-  def findHiddenNodesByNames(
-      names: List[Name],
-      getIoNode: Name => F[IoNode[F]]
-  ): F[List[HiddenNode[F]]]
-
+  def findHiddenNodesByNames(names: Set[Name], getIoNode: Name => F[IoNode[F]]): F[Map[Name, Set[HiddenNode[F]]]]
+  def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]]
   def countHiddenNodes: F[Long]
-
   def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
@@ -121,9 +111,9 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       yield createdIds.map(HnId.apply)
 
   override def findHiddenNodesByNames(
-      names: List[Name],
+      names: Set[Name],
       getIoNode: Name => F[IoNode[F]]
-  ): F[List[HiddenNode[F]]] = driver.transact(readConf): tx =>
+  ): F[Map[Name, Set[HiddenNode[F]]]] = driver.transact(readConf): tx =>
     def loadAbstractNodes(ids: List[Long]): F[List[AbstractNode[F]]] =
       for
         nodes <- findAbstractNodesByIdsQuery(ids)(tx)
@@ -140,51 +130,61 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
           .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
       yield concreteNodes
 
+    def buildMap(allNodes: List[HiddenNode[F]]): F[Map[Name, Set[HiddenNode[F]]]] = allNodes
+      .foldRight(List[(Name, HiddenNode[F])]().pure):
+        case (node, acc) if node.name.nonEmpty => acc.map(nl => (node.name.get -> node) +: nl)
+        case (node, _)                         => s"Seems bug, node expected to have name, node = $node".assertionError
+      .map(_.groupBy(_._1).map((name, nodes) => (name, nodes.map(_._2).toSet)))
+
     for
-      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
+      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(_._2))
       _ <- ids.assertDistinct("Hidden node ids should be distinct")
       abstractNodes <- loadAbstractNodes(ids)
       concreteNodes <- loadConcreteNodes(ids)
-      allNodes = abstractNodes ++ concreteNodes
-    yield allNodes
+      nodesMap <- buildMap(abstractNodes ++ concreteNodes)
+    yield nodesMap
+
+  override def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]] = driver.transact(readConf): tx =>
+    for
+        ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
+    yield ids.map(r => Name(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2).toSet).toMap
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
   override def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])] =
-
-    def storeSamples(tx: AsyncTransaction[F]): F[List[(SampleId, Sample.New)]] =
-      for
-        newSampleId <- getNextSamplesQuery(params.list.size)(tx).map(_.map(SampleId.apply))
-        _ <- (newSampleId, params.list).assertSameSize("Sample ids and observed samples must have the same size")
-        params <- newSampleId.zip(params.list).traverse((id, s) => s.toQueryParams(id).map(p => (s, p)))
-        storedSample <- params.traverse((s, p) => addSampleQuery(p)(tx).map(id => (SampleId(id), s)))
-      yield storedSample
-
-    def makeHnIndexies(tx: AsyncTransaction[F]): F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn
-      .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.map(HnIndex.apply)))
-      .map(_.toMap)
-
-    def addSampleEdge(
-        samples: List[(SampleId, Sample.New)],
-        hnInsToHnIndex: Map[HnId, List[HnIndex]]
-    )(tx: AsyncTransaction[F]): F[List[String]] = samples
-      .foldRight((hnInsToHnIndex, List[String]()).pure):
-        case ((sampleId, sample), acc) =>
-          for
-            (hnIndex, edgeIds) <- acc
-            (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
-            edgesParams <- sample.edges.traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
-            ids <- edgesParams.traverse: (e, p) =>
-              addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)
-          yield (newHnIndex, edgeIds ++ ids)
-      .map(_._2)
-
     driver.transact(readConf): tx =>
+      def storeSamples: F[List[(SampleId, Sample.New)]] =
+        for
+          newSampleId <- getNextSamplesQuery(params.list.size)(tx).map(_.map(SampleId.apply))
+          _ <- (newSampleId, params.list).assertSameSize("Sample ids and observed samples must have the same size")
+          params <- newSampleId.zip(params.list).traverse((id, s) => s.toQueryParams(id).map(p => (s, p)))
+          storedSample <- params.traverse((s, p) => addSampleQuery(p)(tx).map(id => (SampleId(id), s)))
+        yield storedSample
+
+      def makeHnIndexies: F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn
+        .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.map(HnIndex.apply)))
+        .map(_.toMap)
+
+      def addSampleEdge(
+          samples: List[(SampleId, Sample.New)],
+          hnInsToHnIndex: Map[HnId, List[HnIndex]]
+      ): F[List[String]] = samples
+        .foldRight((hnInsToHnIndex, List[String]()).pure):
+          case ((sampleId, sample), acc) =>
+            for
+              (hnIndex, edgeIds) <- acc
+              (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
+              edgesParams <- sample.edges.traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
+              ids <- edgesParams.traverse: (e, p) =>
+                addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)
+            yield (newHnIndex, edgeIds ++ ids)
+        .map(_._2)
+
       for
-        storedSamples <- storeSamples(tx)
-        hnIndexies <- makeHnIndexies(tx)
+        storedSamples <- storeSamples
+        hnIndexies <- makeHnIndexies
         _ <- params.allEdges.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
-        edgeIds <- addSampleEdge(storedSamples, hnIndexies)(tx)
+        edgeIds <- addSampleEdge(storedSamples, hnIndexies)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
       yield (storedSamples.map(_._1), edgeIds)
 

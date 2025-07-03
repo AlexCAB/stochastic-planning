@@ -76,7 +76,12 @@ object MapGraphIntegrationTestData:
       concreteNodes: Map[HnId, ConcreteNode.New],
       abstractNodes: Map[HnId, AbstractNode.New],
       allNodeIds: List[HnId]
-  )
+  ):
+    def findHnIdsForName(name: Name): Set[HnId] = concreteNodes
+      .map((i, n) => (i, n.name))
+      .++(abstractNodes.map((i, n) => (i, n.name)))
+      .filter((_, n) => n.contains(name))
+      .keys.toSet
 
   final case class TestMapGraph(
       itDb: WithItDb.ItDb,

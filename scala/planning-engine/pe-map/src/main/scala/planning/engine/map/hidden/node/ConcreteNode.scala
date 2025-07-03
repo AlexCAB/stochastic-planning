@@ -31,11 +31,6 @@ final case class ConcreteNode[F[_]: MonadThrow](
     valueIndex: IoIndex
 ) extends HiddenNode[F]:
 
-  override def equals(that: Any): Boolean = that match
-    case obj: ConcreteNode[?] =>
-      this.id == obj.id && this.name == obj.name && this.ioNode == obj.ioNode && this.valueIndex == obj.valueIndex
-    case _ => false
-
   override def toString: String = s"ConcreteHiddenNode(id=$id, name=$name, valueIndex=$valueIndex, ioNode=$ioNode)"
 
 object ConcreteNode:

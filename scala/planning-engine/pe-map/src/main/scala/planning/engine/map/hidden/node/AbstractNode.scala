@@ -28,10 +28,6 @@ final case class AbstractNode[F[_]: MonadThrow](
     name: Option[Name]
 ) extends HiddenNode[F]:
 
-  override def equals(that: Any): Boolean = that match
-    case obj: AbstractNode[?] => this.id == obj.id && this.name == obj.name
-    case _                    => false
-
   override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
 
 object AbstractNode:

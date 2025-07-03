@@ -19,11 +19,12 @@ import planning.engine.common.values.text.Name
 import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
 import planning.engine.common.values.db.Neo4j.*
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.effect.cps.*
 import cats.syntax.all.*
 import neotypes.model.types.Node
 import neotypes.syntax.all.*
+import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]
     with WithItDb with MapGraphIntegrationTestData:
@@ -112,17 +113,20 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         getNextHnId.await mustEqual nextHnId + 2L
 
   "Neo4jDatabase.findHiddenNodesByNames(...)" should:
-    "find hidden nodes" in: (itDb, neo4jdb) =>
+    "find hidden nodes" in: (_, neo4jdb) =>
       async[IO]:
-        val concreteNames = List(Some(Name("find_con_1")), Some(Name("find_con_1")), Some(Name("find_con_2")), None)
-        val abstractNames = List(Some(Name("find_abs_1")), Some(Name("find_abs_2")), None)
-        val nodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
+        val name1 = Name("find_node_con_1")
+        val name2 = Name("find_node_abs_1")
+        val concreteNames = List(Some(name1), Some(name1), Some(Name("find_node_con_2")), None)
+        val abstractNames = List(Some(name2), Some(Name("find_node_abs_2")), None)
+        val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
+        val expectedHnIds = Map(name1 -> nodes.findHnIdsForName(name1), name2 -> nodes.findHnIdsForName(name2))
 
         logInfo("find hidden nodes", s" created nodes = $nodes").await
 
-        val foundNodes = neo4jdb
+        val foundNodes: Map[Name, Set[HiddenNode[IO]]] = neo4jdb
           .findHiddenNodesByNames(
-            names = List(concreteNames.head.get, abstractNames.head.get),
+            names = Set(name1, name2),
             getIoNode = name =>
               for
                 _ <- logInfo("find hidden nodes", s"getIoNode: getIoNode.name = $name")
@@ -130,10 +134,37 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
               yield intInNode
           ).await
 
-        foundNodes.traverse(n => logInfo("find hidden nodes", s" found node = $n")).await
+        foundNodes.toList
+          .traverse((name, nodes) => logInfo("find hidden nodes", s"found name = $name, nodes = $nodes"))
+          .await
 
-        foundNodes.size mustEqual 3
-        foundNodes.map(_.name).toSet mustEqual Set(concreteNames.head, abstractNames.head)
+        foundNodes.size mustEqual 2
+        foundNodes.keys.toSet mustEqual Set(name1, name2)
+        foundNodes(name1).size mustEqual 2
+        foundNodes(name1).map(_.name).toSet mustEqual Set(Some(name1))
+        foundNodes(name2).size mustEqual 1
+        foundNodes(name2).map(_.name).toSet mustEqual Set(Some(name2))
+        foundNodes.map((name, nodes) => name -> nodes.map(_.id)) mustEqual expectedHnIds
+
+  "Neo4jDatabase.findHnIdsByNames(...)" should:
+    "find hidden nodes IDs" in: (_, neo4jdb) =>
+      async[IO]:
+        val name1 = Name("find_id_con_1")
+        val name2 = Name("find_id_abs_1")
+        val concreteNames = List(Some(name1), Some(name1), Some(Name("find_id_con_2")), None)
+        val abstractNames = List(Some(name2), Some(Name("find_id_abs_2")), None)
+        val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
+        val expectedHnIds = Map(name1 -> nodes.findHnIdsForName(name1), name2 -> nodes.findHnIdsForName(name2))
+
+        logInfo("find hidden nodes IDs", s" created nodes = $nodes").await
+        val foundIds: Map[Name, Set[HnId]] = neo4jdb.findHnIdsByNames(Set(name1, name2)).await
+        logInfo("find hidden nodes", s"foundIds = $foundIds").await
+
+        foundIds.size mustEqual 2
+        foundIds.keys.toSet mustEqual Set(name1, name2)
+        foundIds(name1).size mustEqual 2
+        foundIds(name2).size mustEqual 1
+        foundIds mustEqual expectedHnIds
 
   "Neo4jDatabase.countHiddenNodes(...)" should:
     "count hidden nodes" in: (itDb, neo4jdb) =>

@@ -33,9 +33,10 @@ trait MapGraphLake[F[_]]:
   def getIoNode(name: Name): F[IoNode[F]]
   def newConcreteNodes(params: ConcreteNode.ListNew): F[List[HnId]]
   def newAbstractNodes(params: AbstractNode.ListNew): F[List[HnId]]
-  def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]]
+  def findHiddenNodesByNames(names: Set[Name]): F[Map[Name, Set[HiddenNode[F]]]]
+  def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]]
   def countHiddenNodes: F[Long]
-  def addObservedSamples(params: Sample.ListNew): F[List[SampleId]]
+  def addNewSamples(params: Sample.ListNew): F[List[SampleId]]
   def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
@@ -63,25 +64,35 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
       _ <- Validation.validateList(params.list)
       _ <- params.list.traverse(p => getIoNode(p.ioNodeName).map(_.variable.validateIndex(p.valueIndex)))
       hnIds <- database.createConcreteNodes(config.initNextHnIndex, params.list)
-      _ <- logger.info(s"Created concrete nodes, hnIds $hnIds, for params: $params")
+      _ <- logger.info(s"Created concrete nodes, hnIds = $hnIds, for params = $params")
     yield hnIds
 
   override def newAbstractNodes(params: AbstractNode.ListNew): F[List[HnId]] =
     for
       _ <- Validation.validateList(params.list)
       hnIds <- database.createAbstractNodes(config.initNextHnIndex, params.list)
-      _ <- logger.info(s"Created abstract nodes, hnIds $hnIds, for params: $params")
+      _ <- logger.info(s"Created abstract nodes, hnIds = $hnIds, for params = $params")
     yield hnIds
 
-  override def findHiddenNodesByNames(names: List[Name]): F[List[HiddenNode[F]]] = database
-    .findHiddenNodesByNames(
-      names,
-      name => getIoNode(name)
-    )
+  override def findHiddenNodesByNames(names: Set[Name]): F[Map[Name, Set[HiddenNode[F]]]] =
+    for
+      foundHns <- database.findHiddenNodesByNames(names, name => getIoNode(name))
+      _ <- logger.info(s"Found hidden nodes, foundHns = $foundHns, for names = $names")
+    yield foundHns
 
-  override def countHiddenNodes: F[Long] = database.countHiddenNodes
+  override def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]] =
+    for
+      foundHnIds <- database.findHnIdsByNames(names)
+      _ <- logger.info(s"Found hidden node IDs, foundHnIds = $foundHnIds, for names = $names")
+    yield foundHnIds
 
-  override def addObservedSamples(params: Sample.ListNew): F[List[SampleId]] =
+  override def countHiddenNodes: F[Long] =
+    for
+      count <- database.countHiddenNodes
+      _ <- logger.info(s"Counted total number of hidden nodes, count = $count")
+    yield count
+
+  override def addNewSamples(params: Sample.ListNew): F[List[SampleId]] =
     for
       _ <- Validation.validateList(params.list)
       (sampleIds, edgeIds) <- database.createSamples(params)

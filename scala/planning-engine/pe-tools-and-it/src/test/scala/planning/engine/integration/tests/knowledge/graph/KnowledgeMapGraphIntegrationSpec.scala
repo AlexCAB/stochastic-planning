@@ -90,13 +90,21 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
   "MapGraph.findHiddenNodesByNames(...)" should:
     "find nodes by names" in: res =>
       async[IO]:
-        val namesToFind = List(res.nodes.abstractNodes.head._2.name.get, res.nodes.concreteNodes.head._2.name.get)
-        val foundNodes: List[HiddenNode[IO]] = res.graph.findHiddenNodesByNames(namesToFind).await
+        val nameToFind1 = res.nodes.abstractNodes.head._2.name.get
+        val nameToFind2 = res.nodes.concreteNodes.head._2.name.get
 
-        foundNodes.traverse(n => logInfo("found hidden node", s"node = $n")).await
+        val foundNodes: Map[Name, Set[HiddenNode[IO]]] = res.graph
+          .findHiddenNodesByNames(Set(nameToFind1, nameToFind2))
+          .await
+
+        foundNodes.toList.traverse((name, nodes) => logInfo("found hidden node", s"name = $name, nodes = $nodes")).await
 
         foundNodes.size mustEqual 2
-        foundNodes.map(_.name.getOrElse(fail("node name Should not be empty"))).toSet mustEqual namesToFind.toSet
+        foundNodes.keySet mustEqual Set(nameToFind1, nameToFind2)
+        foundNodes(nameToFind1).size mustEqual 1
+        foundNodes(nameToFind1).head.name must contain(nameToFind1)
+        foundNodes(nameToFind2).size mustEqual 1
+        foundNodes(nameToFind2).head.name must contain(nameToFind2)
 
   "MapGraph.countHiddenNodes(...)" should:
     "count hidden nodes" in: res =>

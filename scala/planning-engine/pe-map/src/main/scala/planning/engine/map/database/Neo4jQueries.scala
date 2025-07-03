@@ -99,12 +99,13 @@ trait Neo4jQueries:
       RETURN abstract.#${PROP.HN_ID}
       """.query(ResultMapper.long).singleResult(tx)
 
-  def findHiddenIdsNodesByNamesQuery[F[_]: Async](names: List[String])(tx: AsyncTransaction[F]): F[List[Long]] =
+  def findHiddenIdsNodesByNamesQuery[F[_]: Async](names: Set[String])(tx: AsyncTransaction[F])
+      : F[List[(String, Long)]] =
     c"""
       MATCH (n: #$HN_LABEL)
       WHERE n.#${PROP.NAME} IN $names
-      RETURN n.#${PROP.HN_ID}
-      """.query(ResultMapper.long).list(tx)
+      RETURN [n.#${PROP.NAME}, n.#${PROP.HN_ID}]
+      """.query(ResultMapper.tuple[String, Long]).list(tx)
 
   def findAbstractNodesByIdsQuery[F[_]: Async](ids: List[Long])(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""

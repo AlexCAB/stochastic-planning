@@ -26,7 +26,7 @@ object Validation:
     if obj.validationErrors.isEmpty then ApplicativeThrow[F].unit
     else ApplicativeThrow[F].raiseError(ValidationError(obj.validationName, obj.validationErrors))
 
-  def validateList[F[_]: ApplicativeThrow](objects: List[Validation]): F[Unit] =
+  def validateList[F[_]: ApplicativeThrow](objects: Iterable[Validation]): F[Unit] =
     val (names, errors) = objects.foldRight(List[String](), List[Throwable]()):
       case (obj, (accNames, accErrors)) =>
         val errors = obj.validationErrors

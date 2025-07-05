@@ -18,7 +18,7 @@ import org.scalatest.matchers.must.Matchers
 import planning.engine.common.SpecLogging
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
-import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
+import planning.engine.integration.tests.MapGraphIntegrationTestData.*
 import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
 import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
@@ -70,6 +70,14 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       builder <- MapBuilder[IO](neo4jdb)
       graph <- Resource.eval(builder.load(testMapConfig))
     yield graph.asInstanceOf[MapGraph[IO]]
+
+  def initHiddenNodesInDb(
+      neo4jdb: Neo4jDatabase[IO],
+      concreteNames: List[Option[Name]],
+      abstractNames: List[Option[Name]]
+  ): Resource[IO, TestHiddenNodes] = Resource.eval(
+    createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
+  )
 
 object MapGraphIntegrationTestData:
   final case class TestHiddenNodes(

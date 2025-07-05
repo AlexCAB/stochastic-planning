@@ -28,6 +28,5 @@ object Neo4j:
   val CONCRETE_LABEL: Label = "Concrete"
   val ABSTRACT_LABEL: Label = "Abstract"
 
-  val HE_LABEL: Label = "He"
   val LINK_LABEL: Label = "Link"
   val THEN_LABEL: Label = "Then"

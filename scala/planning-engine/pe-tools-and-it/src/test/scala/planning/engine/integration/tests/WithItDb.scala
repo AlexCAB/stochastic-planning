@@ -22,7 +22,7 @@ import java.util.UUID
 import scala.concurrent.duration.DurationInt
 import neotypes.cats.effect.implicits.*
 import neotypes.mappers.ResultMapper
-import neotypes.model.types.{Node, Value}
+import neotypes.model.types.{Node, Relationship, Value}
 import neotypes.query.DeferredQueryBuilder
 import neotypes.syntax.all.*
 import cats.syntax.all.*
@@ -78,6 +78,7 @@ trait WithItDb:
     def listNode(implicit db: WithItDb.ItDb): IO[List[Node]] = queryList(ResultMapper.node)
     def listListNode(implicit db: WithItDb.ItDb): IO[List[List[Node]]] = queryList(ResultMapper.list(ResultMapper.node))
     def singleNode(implicit db: WithItDb.ItDb): IO[Node] = querySingle(ResultMapper.node)
+    def singleEdge(implicit db: WithItDb.ItDb): IO[Relationship] = querySingle(ResultMapper.relationship)
 
     def listHnIds(implicit db: WithItDb.ItDb): IO[List[HnId]] = queryList(ResultMapper.node)
       .flatMap(_.traverse(_.getValue[IO, Long](PROP.HN_ID).map(HnId.apply)))
@@ -96,6 +97,10 @@ trait WithItDb:
 
     def getLongProperty(key: String)(implicit db: WithItDb.ItDb): Long = node.getProperty(key) match
       case Value.Integer(v) => v
+      case _                => fail(s"Not found Long property $key in $node")
+
+    def getDoubleProperty(key: String)(implicit db: WithItDb.ItDb): Double = node.getProperty(key) match
+      case Value.Decimal(v) => v
       case _                => fail(s"Not found Long property $key in $node")
 
 object WithItDb:

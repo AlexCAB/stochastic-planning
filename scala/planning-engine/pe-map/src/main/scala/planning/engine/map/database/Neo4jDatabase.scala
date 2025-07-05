@@ -152,16 +152,16 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
   override def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])] =
-    driver.transact(readConf): tx =>
+    driver.transact(writeConf): tx =>
       def storeSamples: F[List[(SampleId, Sample.New)]] =
         for
-          newSampleId <- getNextSamplesQuery(params.list.size)(tx).map(_.map(SampleId.apply))
+          newSampleId <- getNextSampleIdsQuery(params.list.size)(tx).map(_.map(SampleId.apply))
           _ <- (newSampleId, params.list).assertSameSize("Sample ids and observed samples must have the same size")
           params <- newSampleId.zip(params.list).traverse((id, s) => s.toQueryParams(id).map(p => (s, p)))
           storedSample <- params.traverse((s, p) => addSampleQuery(p)(tx).map(id => (SampleId(id), s)))
         yield storedSample
 
-      def makeHnIndexies: F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn
+      def makeHnIndexies: F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn.toSeq
         .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.map(HnIndex.apply)))
         .map(_.toMap)
 
@@ -174,7 +174,8 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
             for
               (hnIndex, edgeIds) <- acc
               (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
-              edgesParams <- sample.edges.traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
+              edgesParams <- sample.edges.toSeq
+                .traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
               ids <- edgesParams.traverse: (e, p) =>
                 addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)
             yield (newHnIndex, edgeIds ++ ids)
@@ -183,7 +184,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       for
         storedSamples <- storeSamples
         hnIndexies <- makeHnIndexies
-        _ <- params.allEdges.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
+        _ <- params.allEdges.toSeq.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
         edgeIds <- addSampleEdge(storedSamples, hnIndexies)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
       yield (storedSamples.map(_._1), edgeIds)

@@ -13,7 +13,7 @@
 package planning.engine.common.properties
 
 import cats.MonadThrow
-import neotypes.model.types.{Node, Value}
+import neotypes.model.types.{Entity, Node, Value}
 import planning.engine.common.errors.assertionError
 
 import scala.reflect.Typeable
@@ -97,15 +97,16 @@ extension (propsMap: Map[String, Value])
 extension (node: Node)
   inline def is(l: Label): Boolean = node.labels.exists(_.equalsIgnoreCase(l))
 
-  inline def getValue[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[V] = node.properties.getValue(key)
+extension (entity: Entity)
+  inline def getValue[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[V] = entity.properties.getValue(key)
 
   inline def getOptional[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[Option[V]] =
-    node.properties.getOptional(key)
+    entity.properties.getOptional(key)
 
   inline def getList[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[List[V]] =
-    node.properties.getList(key)
+    entity.properties.getList(key)
 
-  inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] = node.properties.getProps(key)
+  inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] = entity.properties.getProps(key)
 
 object PROP:
   val VAR_TYPE = "varType"

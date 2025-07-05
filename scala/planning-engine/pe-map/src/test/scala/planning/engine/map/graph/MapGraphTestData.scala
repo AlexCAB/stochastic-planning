@@ -15,11 +15,13 @@ package planning.engine.map.graph
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import neotypes.model.types.Node
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.samples.sample.{Sample, SampleEdge}
 
 trait MapGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -51,3 +53,11 @@ trait MapGraphTestData:
     ConcreteNode[IO](HnId(123), Some(Name("test")), ioNode, IoIndex(index))
 
   lazy val hiddenNodes: List[AbstractNode[IO]] = (1 to 10).map(i => makeAbstractNode(i)).toList
+
+  lazy val newSample: Sample.New = Sample.New(
+    probabilityCount = 10L,
+    utility = 0.5,
+    name = Some(Name("sample-1")),
+    description = Some(Description("This is a test sample")),
+    edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+  )

@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-06-16 |||||||||||*/
 
-package planning.engine.integration.tests.knowledge.graph
+package planning.engine.integration.tests.map.graph
 
 import cats.effect.{IO, Resource}
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
@@ -23,7 +23,7 @@ import cats.syntax.all.*
 import neotypes.syntax.all.*
 import planning.engine.common.values.db.Neo4j.*
 
-class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
+class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
     with WithItDb with MapGraphIntegrationTestData:
 
   override val resource: Resource[IO, TestMapGraph] =
@@ -32,7 +32,7 @@ class KnowledgeMapGraphIntegrationSpec extends IntegrationSpecWithResource[TestM
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
       concreteNames = makeNames("concrete", 3)
       abstractNames = makeNames("abstract", 3)
-      nodes <- Resource.eval(createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames))
+      nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       graph <- loadTestMapGraph(neo4jdb)
     yield TestMapGraph(itDb, neo4jdb, nodes, graph)
 

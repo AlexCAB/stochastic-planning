@@ -13,7 +13,6 @@
 package planning.engine.map.hidden.node
 
 import cats.effect.IO
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
@@ -25,7 +24,7 @@ import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 
-class ConcreteNodeSpec extends UnitSpecWithData with AsyncMockFactory:
+class ConcreteNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234L)

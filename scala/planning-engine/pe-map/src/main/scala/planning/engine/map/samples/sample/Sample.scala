@@ -21,6 +21,7 @@ import cats.syntax.all.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.errors.assertionError
+import planning.engine.common.values.StringVal.toStr
 
 final case class Sample(
     data: SampleData,
@@ -35,18 +36,17 @@ object Sample:
       utility: Double,
       name: Option[Name],
       description: Option[Description],
-      edges: List[SampleEdge.New]
+      edges: Set[SampleEdge.New]
   ) extends Validation:
-    lazy val hnIds: List[HnId] = edges.flatMap(e => List(e.source, e.target)).distinct
+    lazy val hnIds: Set[HnId] = edges.flatMap(e => List(e.source, e.target))
     lazy val validationName: String =
-      s"ObservedSample(name=$name, probabilityCount=$probabilityCount, utility=$utility)"
+      s"Sample(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
 
     lazy val validationErrors: List[Throwable] = validations(
       (probabilityCount > 0) -> "Probability count must be greater than 0",
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
       description.forall(_.value.nonEmpty) -> "Description must not be empty if defined",
-      edges.nonEmpty -> "At least one edge must be provided",
-      (edges.distinct == edges) -> "Edges must be unique by source and target"
+      edges.nonEmpty -> "At least one edge must be provided"
     )
 
     def findHnIndexies[F[_]: MonadThrow](hnInsToHnIndex: Map[HnId, List[HnIndex]])
@@ -67,13 +67,17 @@ object Sample:
     override def toString: String = s"ObservedSample(" +
       s"probabilityCount=$probabilityCount, " +
       s"utility=$utility, " +
-      s"name=$name, " +
-      s"description=$description, " +
+      s"name=${name.toStr}, " +
+      s"description=${description.toStr}, " +
       s"hnIds=[${hnIds.map(_.value).mkString(", ")}], " +
       s"edges=[${edges.map(_.toString).mkString(", ")}])"
 
-  final case class ListNew(list: List[New]):
-    lazy val allEdges: List[SampleEdge.New] = list.flatMap(_.edges).distinct
-    lazy val allHnIds: List[HnId] = allEdges.flatMap(e => List(e.source, e.target)).distinct
+  final case class ListNew(list: Set[New]):
 
-    lazy val numHnIndexPerHn: List[(HnId, Int)] = allHnIds.map(id => id -> list.count(_.hnIds.contains(id)))
+    lazy val allEdges: Set[SampleEdge.New] = list.flatMap(_.edges)
+    lazy val allHnIds: Set[HnId] = allEdges.flatMap(e => List(e.source, e.target))
+
+    lazy val numHnIndexPerHn: Map[HnId, Int] = allHnIds.map(id => id -> list.count(_.hnIds.contains(id))).toMap
+
+  object ListNew:
+    def of(samples: New*): ListNew = ListNew(samples.toSet)

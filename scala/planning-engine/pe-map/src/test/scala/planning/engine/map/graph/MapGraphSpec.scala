@@ -159,7 +159,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "addNewSamples" should:
     "addNewSamples samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val testSample = Sample.ListNew(list = List())
+        val testSample = Sample.ListNew(list = Set())
         val expectedSampleIds = List(SampleId(1), SampleId(2))
 
         data.mockedDb.createSamples

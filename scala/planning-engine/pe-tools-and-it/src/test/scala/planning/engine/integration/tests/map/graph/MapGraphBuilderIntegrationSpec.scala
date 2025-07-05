@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-11 |||||||||||*/
 
-package planning.engine.integration.tests.knowledge.graph
+package planning.engine.integration.tests.map.graph
 
 import cats.effect.{IO, Resource}
 import cats.effect.cps.*
@@ -18,7 +18,7 @@ import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
 import planning.engine.map.graph.{MapBuilder, MapGraphTestData}
 
-class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, MapBuilder[IO])]
+class MapGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, MapBuilder[IO])]
     with WithItDb with MapGraphTestData:
 
   override val resource: Resource[IO, (WithItDb.ItDb, MapBuilder[IO])] =
@@ -28,7 +28,7 @@ class KnowledgeGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(
       builder <- MapBuilder[IO](neo4jdb)
     yield (itDb, builder)
 
-  "KnowledgeGraphBuilder" should:
+  "MapGraphBuilder" should:
     "init KnowledgeGraph and load it" in: (_, builder) =>
       async[IO]:
         val createdGraph = builder

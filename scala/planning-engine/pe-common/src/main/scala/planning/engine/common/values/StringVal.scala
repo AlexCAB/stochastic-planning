@@ -18,3 +18,7 @@ import planning.engine.common.properties.*
 trait StringVal extends Any:
   val value: String
   def toDbParam: Param = value.toDbParam
+
+object StringVal:
+  extension (strVal: Option[StringVal])
+    def toStr: String = strVal.map(_.value).getOrElse("None")

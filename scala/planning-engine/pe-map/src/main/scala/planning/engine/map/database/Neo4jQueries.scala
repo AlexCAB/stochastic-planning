@@ -129,10 +129,10 @@ trait Neo4jQueries:
   def addHiddenEdge[F[_]: Async](sourceId: Long, targetId: Long, label: Label)(tx: AsyncTransaction[F]): F[Unit] =
     c"""
       MATCH (source: #$HN_LABEL {#${PROP.HN_ID}: $sourceId}), (target: #$HN_LABEL {#${PROP.HN_ID}: $targetId})
-      MERGE (source)-[:#$HE_LABEL:#$label]->(target)
+      MERGE (source)-[:#$label]->(target)
       """.execute.void(tx)
 
-  def getNextSamplesQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
+  def getNextSampleIdsQuery[F[_]: Async](numOfIds: Long)(tx: AsyncTransaction[F]): F[List[Long]] =
     c"""
       MATCH (samples: #$SAMPLES_LABEL)
       SET samples.#${PROP.NEXT_SAMPLES_ID} = samples.#${PROP.NEXT_SAMPLES_ID} + $numOfIds
@@ -162,7 +162,7 @@ trait Neo4jQueries:
       propValue: List[Long]
   )(tx: AsyncTransaction[F]): F[String] =
     c"""
-      MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $snId})-[e:#$HE_LABEL:#$label]->(:#$HN_LABEL {#${PROP.HN_ID}: $tnId})
+      MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $snId})-[e:#$label]->(:#$HN_LABEL {#${PROP.HN_ID}: $tnId})
       SET e.#$propName = $propValue
       RETURN elementId(e)
       """.query(ResultMapper.string).singleResult(tx)

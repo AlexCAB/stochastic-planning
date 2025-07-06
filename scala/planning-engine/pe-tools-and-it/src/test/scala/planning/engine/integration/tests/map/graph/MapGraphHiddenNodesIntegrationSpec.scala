@@ -106,7 +106,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         foundNodes(nameToFind2).size mustEqual 1
         foundNodes(nameToFind2).head.name must contain(nameToFind2)
 
-  "MapGraph.countHiddenNodes(...)" should:
+  "MapGraph.countHiddenNodes" should:
     "count hidden nodes" in: res =>
       given WithItDb.ItDb = res.itDb
       async[IO]:

@@ -24,7 +24,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.Sample
-import planning.engine.map.subgraph.NextNodesMap
+import planning.engine.map.subgraph.NextSampleEdgeMap
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
@@ -37,7 +37,8 @@ trait MapGraphLake[F[_]]:
   def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]]
   def countHiddenNodes: F[Long]
   def addNewSamples(params: Sample.ListNew): F[List[SampleId]]
-  def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]]
+  def countSamples: F[Long]
+  def nextSampleEdges(currentNodeId: HnId): F[NextSampleEdgeMap[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
@@ -98,8 +99,14 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
       (sampleIds, edgeIds) <- database.createSamples(params)
       _ <- logger.info(s"Added observed samples, sampleIds = $sampleIds, edgeIds = $edgeIds for params = $params")
     yield sampleIds
+    
+  override def countSamples: F[Long] =
+    for
+      count <- database.countSamples
+      _ <- logger.info(s"Counted total number of samples, count = $count")
+    yield count
 
-  override def nextNodes(currentNodeId: HnId): F[NextNodesMap[F]] = ???
+  override def nextSampleEdges(currentNodeId: HnId): F[NextSampleEdgeMap[F]] = ???
 
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](

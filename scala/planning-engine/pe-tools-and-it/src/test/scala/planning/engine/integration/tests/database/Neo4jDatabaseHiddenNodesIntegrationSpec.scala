@@ -163,7 +163,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         foundIds(name2).size mustEqual 1
         foundIds mustEqual expectedHnIds
 
-  "Neo4jDatabase.countHiddenNodes(...)" should:
+  "Neo4jDatabase.countHiddenNodes" should:
     "count hidden nodes" in: (itDb, neo4jdb) =>
       given WithItDb.ItDb = itDb
       async[IO]:

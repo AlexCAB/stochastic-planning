@@ -26,6 +26,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.graph.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.samples.sample.Sample
+import planning.engine.map.subgraph.NextSampleEdge
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
   * reading and writing data to the database.
@@ -52,6 +53,8 @@ trait Neo4jDatabaseLike[F[_]]:
   def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]]
   def countHiddenNodes: F[Long]
   def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
+  def countSamples: F[Long]
+  def getNextSampleEdge(currentNodeId: HnId): F[Set[NextSampleEdge[F]]]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
   private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
@@ -122,10 +125,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
 
     def loadConcreteNodes(ids: List[Long]): F[List[ConcreteNode[F]]] =
       for
-        nodes <- findConcreteNodesByIdsQuery(ids)(tx)
-        withIoNames <- nodes.traverse:
-          case hn :: ion :: Nil => IoNode.nameFromNode(ion).map(ioName => (hn, ioName))
-          case ns               => s"Expected exactly 2 node but got: $ns".assertionError
+        withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, Name(ioName))))
         concreteNodes <- withIoNames
           .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
       yield concreteNodes
@@ -188,6 +188,11 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
         edgeIds <- addSampleEdge(storedSamples, hnIndexies)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
       yield (storedSamples.map(_._1), edgeIds)
+
+  override def countSamples: F[Long] = driver.transact(readConf)(tx => countSamplesQuery(tx))
+
+  override def getNextSampleEdge(currentNodeId: HnId): F[Set[NextSampleEdge[F]]] = ???
+
 
 object Neo4jDatabase:
   def apply[F[_]: Async](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =

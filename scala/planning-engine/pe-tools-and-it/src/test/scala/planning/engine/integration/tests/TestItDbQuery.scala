@@ -30,6 +30,9 @@ trait TestItDbQuery:
   def getNextSampleId(implicit db: WithItDb.ItDb): IO[Long] =
     c"MATCH (r:#$SAMPLES_LABEL) RETURN r".singleNode.map(_.getLongProperty(PROP.NEXT_SAMPLES_ID))
 
+  def getSampleCount(implicit db: WithItDb.ItDb): IO[Long] =
+    c"MATCH (r:#$SAMPLES_LABEL) RETURN r".singleNode.map(_.getLongProperty(PROP.SAMPLES_COUNT))
+
   def getNextHnIndex(id: HnId)(implicit db: WithItDb.ItDb): IO[Long] =
     c"MATCH (r:#$HN_LABEL {#${PROP.HN_ID}: ${id.value}}) RETURN r"
       .singleNode.map(_.getLongProperty(PROP.NEXT_HN_INDEX))

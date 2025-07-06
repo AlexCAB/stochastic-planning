@@ -16,7 +16,7 @@ import cats.effect.Async
 import neotypes.AsyncTransaction
 import neotypes.mappers.ResultMapper
 import neotypes.model.query.QueryParam
-import neotypes.model.types.Node
+import neotypes.model.types.{Node, Relationship}
 import neotypes.query.{DeferredQuery, ResultType}
 import neotypes.query.QueryArg.Param
 import neotypes.syntax.all.*
@@ -114,12 +114,12 @@ trait Neo4jQueries:
       RETURN n
       """.query(ResultMapper.node).list(tx)
 
-  def findConcreteNodesByIdsQuery[F[_]: Async](ids: List[Long])(tx: AsyncTransaction[F]): F[List[List[Node]]] =
+  def findConcreteNodesByIdsQuery[F[_]: Async](ids: List[Long])(tx: AsyncTransaction[F]): F[List[(Node, String)]] =
     c"""
       MATCH (cn: #$HN_LABEL: #$CONCRETE_LABEL)-->(io: #$IO_LABEL)
       WHERE cn.#${PROP.HN_ID} IN $ids
-      RETURN [cn, io]
-      """.query(ResultMapper.list(ResultMapper.node)).list(tx)
+      RETURN [cn, io.#${PROP.NAME}]
+      """.query(ResultMapper.tuple[Node, String]).list(tx)
 
   def countAllHiddenNodesQuery[F[_]: Async](tx: AsyncTransaction[F]): F[Long] =
     c"""
@@ -172,3 +172,7 @@ trait Neo4jQueries:
       MATCH (samples: #$SAMPLES_LABEL)
       SET samples.#${PROP.SAMPLES_COUNT} = samples.#${PROP.SAMPLES_COUNT} + $numOfSamples
       """.execute.void(tx)
+
+  def getNextEdgesQuery[F[_]: Async](curHdId: Long)(tx: AsyncTransaction[F]): F[List[(Relationship, Long)]] =
+    c"(:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[e]->(t:#$HN_LABEL) RETURN [e, t.#${PROP.HN_ID}]"
+      .query(ResultMapper.tuple[Relationship, Long]).list(tx)

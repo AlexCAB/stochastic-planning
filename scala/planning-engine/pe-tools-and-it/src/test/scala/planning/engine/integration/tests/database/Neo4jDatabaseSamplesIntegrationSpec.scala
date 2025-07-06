@@ -269,3 +269,15 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         checkIndexesRise(init, sampleId = 3, hnIndex1 = 3, hnIndex2 = 3, hnIndex3 = 2).await
         checkSampleNode(init, sampleIds.head).await
+
+  "Neo4jDatabase.countSamples" should :
+    "return total number of samples" in: (itDb, neo4jdb, _) =>
+      given WithItDb.ItDb = itDb
+  
+      async[IO]:
+        val nextSampleId = getNextSampleId.logValue("count samples", "nextSampleId").await
+        val sampleCount = getSampleCount.logValue("count samples", "sampleCount").await
+        val numOfSamples = neo4jdb.countSamples.logValue("count samples", "numOfSamples").await
+        numOfSamples mustEqual (nextSampleId - 1L)
+        numOfSamples mustEqual sampleCount
+  

@@ -32,14 +32,14 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
       .apply(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode), mockedDb)
       .unsafeRunSync()
 
-  "apply" should:
+  "MapGraphSpec.apply(...)" should:
     "crete MapGraph correctly" in newCase[CaseData]: (_, data) =>
       data.mapGraph.pure[IO].asserting: graph =>
         graph.metadata mustEqual testMetadata
         graph.inputNodes mustEqual List(boolInNode)
         graph.outputNodes mustEqual List(boolOutNode)
 
-  "getIoNode" should:
+  "MapGraphSpec.getIoNode(...)" should:
     "get IO node for name" in newCase[CaseData]: (_, data) =>
       data.mapGraph.getIoNode(boolInNode.name).asserting: node =>
         node mustEqual boolInNode
@@ -47,7 +47,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "fail if IO node not found" in newCase[CaseData]: (_, data) =>
       data.mapGraph.getIoNode(Name("not_exist_node")).assertThrows[AssertionError]
 
-  "newConcreteNodes" should:
+  "MapGraphSpec.newConcreteNodes(...)" should:
     "add concrete nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
@@ -71,7 +71,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         nodeIds.size mustEqual newNodes.size
         nodeIds mustEqual expectedHnIds
 
-  "newAbstractNodes" should:
+  "MapGraphSpec.newAbstractNodes(...)" should:
     "add abstract nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
@@ -95,7 +95,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         nodeIds.size mustEqual newNodes.size
         nodeIds mustEqual expectedHnIds
 
-  "findHiddenNodesByNames" should:
+  "MapGraphSpec.findHiddenNodesByNames(...)" should:
     "find nodes by name" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val newNodes = Set(
@@ -131,7 +131,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         foundNodes.map((name, _) => name).toSet mustEqual newNodes.map(_.name.get)
         foundNodes.flatMap((_, ns) => ns.map(_.id)).toSet mustEqual expectedHnIds
 
-  "findHnIdsByNames" should:
+  "MapGraphSpec.findHnIdsByNames(...)" should:
     "find ids by name" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val testHnIdMap = Map(Name("Node1") -> Set(HnId(1)), Name("Node2") -> Set(HnId(2)))
@@ -148,15 +148,15 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val foundIds: Map[Name, Set[HnId]] = data.mapGraph.findHnIdsByNames(testHnIdMap.keySet).await
         foundIds mustEqual testHnIdMap
 
-  "countHiddenNodes" should:
-    "return total number of hidden nodes" in newCase[CaseData]: (tn, data) =>
+  "MapGraphSpec.countHiddenNodes" should:
+    "return total number of hidden nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val testCount: Long = 123
         (() => data.mockedDb.countHiddenNodes).when().returns(testCount.pure[IO]).once()
         val resCount = data.mapGraph.countHiddenNodes.await
         resCount mustEqual testCount
 
-  "addNewSamples" should:
+  "MapGraphSpec.addNewSamples(...)" should:
     "addNewSamples samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val testSample = Sample.ListNew(list = Set())
@@ -173,3 +173,11 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
 
         val resIds: List[SampleId] = data.mapGraph.addNewSamples(testSample).await
         resIds mustEqual expectedSampleIds
+
+  "MapGraphSpec.countSamples" should :
+    "return total number of samples" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        val testCount: Long = 321
+        (() => data.mockedDb.countSamples).when().returns(testCount.pure[IO]).once()
+        val resCount = data.mapGraph.countSamples.await
+        resCount mustEqual testCount

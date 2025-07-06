@@ -77,3 +77,13 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
         (nextHnIndex1 + 3L) mustEqual getNextHnIndex(hnId1).await
         (nextHnIndex2 + 3L) mustEqual getNextHnIndex(hnId2).await
         (nextHnIndex3 + 2L) mustEqual getNextHnIndex(hnId3).await
+
+  "MapGraph.countSamples" should:
+    "return total number of samples" in: res =>
+      given WithItDb.ItDb = res.itDb
+
+      async[IO]:
+        val gotCount: Long = res.graph.countSamples.logValue("count samples", "gotCount").await
+        val testCount = getSampleCount.logValue("count samples", "testCount").await
+
+        gotCount mustEqual testCount

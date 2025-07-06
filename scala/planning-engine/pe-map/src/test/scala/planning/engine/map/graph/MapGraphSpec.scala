@@ -23,6 +23,7 @@ import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.*
 import planning.engine.map.samples.sample.Sample
+import planning.engine.map.subgraph.NextSampleEdgeMap
 
 class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphTestData:
 
@@ -181,3 +182,21 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         (() => data.mockedDb.countSamples).when().returns(testCount.pure[IO]).once()
         val resCount = data.mapGraph.countSamples.await
         resCount mustEqual testCount
+
+  "MapGraphSpec.nextSampleEdges(...)" should :
+    "find and return next sample edges" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val currentNodeId = HnId(123)
+        val expectedEdges = Set(testNextSampleEdge)
+
+        data.mockedDb.getNextSampleEdge
+          .when(*, *)
+          .onCall: (curHnId, _) =>
+            for
+              _ <- IO.delay(curHnId mustEqual currentNodeId)
+              _ <- logInfo(tn, s"Got curHnId = $curHnId")
+            yield expectedEdges
+          .once()
+
+        val result: NextSampleEdgeMap[IO] = data.mapGraph.nextSampleEdges(currentNodeId).await
+        result mustEqual NextSampleEdgeMap(currentNodeId, expectedEdges)

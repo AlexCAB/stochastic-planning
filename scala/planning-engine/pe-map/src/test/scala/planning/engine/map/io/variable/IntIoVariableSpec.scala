@@ -40,28 +40,28 @@ class IntIoVariableSpec extends UnitSpecWithData:
     val validParameters = validProperties.map:
       case (k, v) => k -> v.toParam
 
-  "valueForIndex" should:
+  "IntIoVariable.valueForIndex(...)" should:
     "return the correct value for a valid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(5)).asserting(_ mustEqual 5)
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(11)).assertThrows[AssertionError]
 
-  "indexForValue" should:
+  "IntIoVariable.indexForValue(...)" should:
     "return the correct index for a valid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue(5).asserting(_ mustEqual IoIndex(5))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue(11).assertThrows[AssertionError]
 
-  "toQueryParams" should:
+  "IntIoVariable.toQueryParams" should:
     "return the correct properties map" in newCase[CaseData]: (tn, data) =>
       data.variable
         .toQueryParams
         .logValue(tn)
         .asserting(_ mustEqual data.validParameters)
 
-  "fromProperties" should:
+  "IntIoVariable.fromProperties(...)" should:
     "create IntIoVariable from valid properties" in newCase[CaseData]: (tn, data) =>
       IntIoVariable.fromProperties[IO](data.validProperties)
         .logValue(tn)

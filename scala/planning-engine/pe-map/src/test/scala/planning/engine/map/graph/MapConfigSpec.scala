@@ -40,19 +40,19 @@ class MapConfigSpec extends UnitSpecWithData:
       samplesName = "test-samples"
     )
 
-  "formConfig" should:
+  "MapConfig.formConfig(...)" should:
     "load configuration successfully" in newCase[CaseData]: (_, data) =>
       MapConfig
         .formConfig[IO](ConfigFactory.parseString(data.rawConfig).getConfig("knowledge-graph"))
         .asserting(_ mustEqual data.parsedConfig)
 
-  "toRootParams" should:
+  "MapConfig.toRootParams" should:
     "make root parameters" in newCase[CaseData]: (_, data) =>
       data.parsedConfig.toRootParams[IO].asserting(_ mustEqual Map(
         PROP.NEXT_HN_ID -> data.parsedConfig.initNextHnId.toDbParam
       ))
 
-  "toSamplesParams" should:
+  "MapConfig.toSamplesParams" should:
     "make samples parameters" in newCase[CaseData]: (_, data) =>
       data.parsedConfig.toSamplesParams[IO].asserting(_ mustEqual Map(
         PROP.NEXT_SAMPLES_ID -> data.parsedConfig.initNextSampleId.toDbParam,

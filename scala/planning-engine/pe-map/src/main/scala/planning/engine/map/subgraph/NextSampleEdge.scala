@@ -12,10 +12,14 @@
 
 package planning.engine.map.subgraph
 
+import cats.MonadThrow
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.HnIndex
+import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.HiddenNode
-import planning.engine.map.samples.sample.SampleData
+import planning.engine.map.samples.sample.{SampleData, SampleEdge}
+import planning.engine.common.errors.assertionError
+import cats.syntax.all.*
 
 final case class NextSampleEdge[F[_]](
     sampleData: SampleData,
@@ -24,3 +28,25 @@ final case class NextSampleEdge[F[_]](
     nextValue: HnIndex,
     nextHn: HiddenNode[F]
 )
+
+object NextSampleEdge:
+  def fromSampleEdge[F[_]: MonadThrow](
+      edge: SampleEdge,
+      nextHnId: HnId,
+      sampleDataMap: Map[SampleId, SampleData],
+      hnMap: Map[HnId, HiddenNode[F]]
+  ): F[NextSampleEdge[F]] =
+    for
+      sampleData <- sampleDataMap.get(edge.sampleId) match
+        case Some(data) => data.pure
+        case None       => s"SampleData for sampleId ${edge.sampleId} not found".assertionError
+      nextHn <- hnMap.get(nextHnId) match
+        case Some(hn) => hn.pure
+        case None     => s"HiddenNode for HnId $nextHnId not found".assertionError
+    yield NextSampleEdge(
+      sampleData = sampleData,
+      currentValue = edge.sourceValue,
+      edgeType = edge.edgeType,
+      nextValue = edge.targetValue,
+      nextHn = nextHn
+    )

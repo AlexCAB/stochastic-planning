@@ -20,13 +20,13 @@ import planning.engine.api.model.enums.Status
 class MaintenanceServiceSpec extends UnitSpecWithResource[MaintenanceService[IO]]:
   override val resource: Resource[IO, MaintenanceService[IO]] = MaintenanceService[IO]()
 
-  "getHealth" should:
+  "MaintenanceService.getHealth" should:
     "return OK status and version when environment variable is set" in: service =>
       service.getHealth
         .logValue("getHealth")
         .asserting(_ mustEqual HealthResponse(Status.OK, "test_app_version"))
 
-  "awaitShutdown and exit" should:
+  "MaintenanceService.awaitShutdown and MaintenanceService.exit" should:
     "log the shutdown message after latch is released" in: service =>
       val shutdown =
         for

@@ -176,3 +176,10 @@ trait Neo4jQueries:
   def getNextEdgesQuery[F[_]: Async](curHdId: Long)(tx: AsyncTransaction[F]): F[List[(Relationship, Long)]] =
     c"(:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[e]->(t:#$HN_LABEL) RETURN [e, t.#${PROP.HN_ID}]"
       .query(ResultMapper.tuple[Relationship, Long]).list(tx)
+
+  def getSamplesQuery[F[_]: Async](sampleIds: List[Long])(tx: AsyncTransaction[F]): F[List[Node]] =
+    c"""
+        MATCH (: #$SAMPLES_LABEL)-->(sample: #$SAMPLE_LABEL)
+        WHERE sample.#${PROP.SAMPLE_ID} IN $sampleIds
+        RETURN sample
+        """.query(ResultMapper.node).list(tx)

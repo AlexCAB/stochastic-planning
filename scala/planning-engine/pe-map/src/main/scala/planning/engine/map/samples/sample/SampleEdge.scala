@@ -16,21 +16,18 @@ import cats.MonadThrow
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.errors.assertionError
-import neotypes.model.types.Relationship
+import planning.engine.common.errors.{assertionError, assertSameSize, assertDistinct}
+import neotypes.model.types.{Relationship, Value}
 import cats.syntax.all.*
 import planning.engine.common.properties.*
 
 final case class SampleEdge(
-    sourceHn: HnId,
-    targetHn: HnId,
     sourceValue: HnIndex,
     targetValue: HnIndex,
     edgeType: EdgeType,
     sampleId: SampleId
 ):
-  override def toString: String =
-    s"SampleEdge($sourceHn:$sourceValue -- $sampleId($edgeType) -> $targetHn:$targetValue)"
+  override def toString: String = s"SampleEdge($$sourceValue -- $sampleId($edgeType) -> $targetValue)"
 
 object SampleEdge:
   final case class New(
@@ -53,9 +50,7 @@ object SampleEdge:
 
   def fromEdgeBySampleId[F[_]: MonadThrow](
       edge: Relationship,
-      sampleId: SampleId,
-      sourceHn: HnId,
-      targetHn: HnId
+      sampleId: SampleId
   ): F[SampleEdge] =
     def find: F[(HnIndex, HnIndex)] = edge.getList[F, Long](sampleId.toPropName).flatMap:
       case sv :: tv :: Nil => (HnIndex(sv), HnIndex(tv)).pure
@@ -65,10 +60,32 @@ object SampleEdge:
       (sourceValue, targetValue) <- find
       edgeType <- EdgeType.fromLabel(edge.relationshipType)
     yield SampleEdge(
-      sourceHn = sourceHn,
-      targetHn = targetHn,
       sourceValue = sourceValue,
       targetValue = targetValue,
       edgeType = edgeType,
       sampleId = sampleId
+    )
+
+  def fromEdge[F[_]: MonadThrow](edge: Relationship): F[Set[SampleEdge]] =
+    def parse(sIdStr: String, values: Value): F[(SampleId, (HnIndex, HnIndex))] =
+      for
+        sampleId <- SampleId.fromPropName(sIdStr)
+        (sourceValue, targetValue) <- values match
+          case Value.ListValue(Value.Integer(sv) :: Value.Integer(tv) :: Nil) => (HnIndex(sv), HnIndex(tv)).pure
+          case _ => s"Expected a list of two Long values for sampleId $sampleId, but got: $values".assertionError
+      yield (sampleId, (sourceValue, targetValue))
+
+    for
+      edgeType <- EdgeType.fromLabel(edge.relationshipType)
+      samples <- edge.properties.toList.traverse((sId, values) => parse(sId, values))
+      sampleSet = samples.toSet
+      _ <- (samples, sampleSet).assertSameSize("Fond duplicate sample IDs in edge properties")
+      _ <- samples.map(_._1).assertDistinct("Sample edge can't be included to the same map edge multiple times")
+    yield sampleSet.map((sId, vals) =>
+      SampleEdge(
+        sourceValue = vals._1,
+        targetValue = vals._2,
+        edgeType = edgeType,
+        sampleId = sId
+      )
     )

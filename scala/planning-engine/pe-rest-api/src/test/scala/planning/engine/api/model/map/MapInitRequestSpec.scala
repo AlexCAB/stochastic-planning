@@ -50,19 +50,19 @@ class MapInitRequestSpec extends UnitSpecWithData:
       OutputNode[IO](Name("outputListStr"), ListStrIoVariable(List("a", "b", "c")))
     )
 
-  "toMetadata" should:
+  "MapInitRequest.toMetadata" should:
     "convert valid request to metadata" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toMetadata[IO]
         .logValue(tn)
         .asserting(_ mustEqual data.expectedMetadata)
 
-  "toInputNodes" should:
+  "MapInitRequest.toInputNodes" should:
     "convert valid input nodes to InputNode instances" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toInputNodes[IO]
         .logValue(tn)
         .asserting(_ mustEqual data.expectedInputNodes)
 
-  "toOutputNodes" should:
+  "MapInitRequest.toOutputNodes" should:
     "convert valid output nodes to OutputNode instances" in newCase[CaseData]: (tn, data) =>
       data.validRequest.toOutputNodes[IO]
         .logValue(tn)

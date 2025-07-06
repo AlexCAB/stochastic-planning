@@ -17,11 +17,13 @@ import cats.effect.unsafe.IORuntime
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
+import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
-import planning.engine.map.samples.sample.{Sample, SampleEdge}
+import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
+import planning.engine.map.subgraph.NextSampleEdge
 
 trait MapGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -60,4 +62,22 @@ trait MapGraphTestData:
     name = Some(Name("sample-1")),
     description = Some(Description("This is a test sample")),
     edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+  )
+
+  lazy val testSampleData: SampleData = SampleData(
+    id = SampleId(1),
+    probabilityCount = newSample.probabilityCount,
+    utility = newSample.utility,
+    name = newSample.name,
+    description = newSample.description
+  )
+
+  lazy val testAbstractNode: AbstractNode[IO] = makeAbstractNode(321)
+
+  lazy val testNextSampleEdge: NextSampleEdge[IO] = NextSampleEdge[IO](
+    sampleData = testSampleData,
+    currentValue = testHnIndex,
+    edgeType = EdgeType.LINK,
+    nextValue = testHnIndex,
+    nextHn = testAbstractNode
   )

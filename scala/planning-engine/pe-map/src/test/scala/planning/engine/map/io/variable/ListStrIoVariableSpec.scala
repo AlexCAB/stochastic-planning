@@ -37,21 +37,21 @@ class ListStrIoVariableSpec extends UnitSpecWithData:
       PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
     )
 
-  "valueForIndex" should:
+  "ListStrIoVariable.valueForIndex(...)" should:
     "return the correct value for a valid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(1)).asserting(_ mustEqual "b")
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(3)).assertThrows[AssertionError]
 
-  "indexForValue" should:
+  "ListStrIoVariable.indexForValue(...)" should:
     "return the correct index for a valid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue("b").asserting(_ mustEqual IoIndex(1))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue("d").assertThrows[AssertionError]
 
-  "toQueryParams" should:
+  "ListStrIoVariable.toQueryParams" should:
     "return the correct properties map" in newCase[CaseData]: (tn, data) =>
       data.variable
         .toQueryParams
@@ -65,7 +65,7 @@ class ListStrIoVariableSpec extends UnitSpecWithData:
           params.get(PROP.VAR_TYPE) mustEqual Some(Param(QueryParam(PROP_VALUE.LIST_STR_TYPE)))
           acceptableValues.asScala.toList mustEqual List("a", "b", "c")
 
-  "fromProperties" should:
+  "ListStrIoVariable.fromProperties(...)" should:
     "create ListStrIoVariable from valid properties" in newCase[CaseData]: (tn, data) =>
       ListStrIoVariable.fromProperties[IO](data.validProperties)
         .logValue(tn)

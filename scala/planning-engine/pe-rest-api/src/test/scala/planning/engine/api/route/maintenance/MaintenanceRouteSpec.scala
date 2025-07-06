@@ -24,13 +24,12 @@ import cats.effect.cps.*
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
 
-type ServiceWithRoute = (MaintenanceServiceLike[IO], MaintenanceRoute[IO])
-
-class MaintenanceRouteSpec extends UnitSpecWithResource[ServiceWithRoute] with AsyncMockFactory:
+class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[IO], MaintenanceRoute[IO])]
+    with AsyncMockFactory:
 
   val testHealthResponse: HealthResponse = HealthResponse(HealthStatus.OK, "1.0.0")
 
-  override val resource: Resource[IO, ServiceWithRoute] =
+  override val resource: Resource[IO, (MaintenanceServiceLike[IO], MaintenanceRoute[IO])] =
     for
       service <- Resource.pure(mock[MaintenanceServiceLike[IO]])
       route <- MaintenanceRoute[IO](service)

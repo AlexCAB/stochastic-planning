@@ -14,7 +14,7 @@ package planning.engine.map.database
 
 import cats.effect.Async
 import cats.effect.Resource
-import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
+import neotypes.{AsyncDriver, AsyncTransaction, GraphDatabase, TransactionConfig}
 import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import neotypes.cats.effect.implicits.*
@@ -25,7 +25,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.graph.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
-import planning.engine.map.samples.sample.Sample
+import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge
 
 /** Neo4jDatabase is a class that provides a high-level API to interact with a Neo4j database. It is responsible for
@@ -54,11 +54,27 @@ trait Neo4jDatabaseLike[F[_]]:
   def countHiddenNodes: F[Long]
   def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
   def countSamples: F[Long]
-  def getNextSampleEdge(currentNodeId: HnId): F[Set[NextSampleEdge[F]]]
+  def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[Set[NextSampleEdge[F]]]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
   private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
   private val readConf: TransactionConfig = TransactionConfig.readOnly.withDatabase(dbName)
+
+  private def loadAbstractNodes(ids: List[Long])(tx: AsyncTransaction[F]): F[List[AbstractNode[F]]] =
+    for
+      nodes <- findAbstractNodesByIdsQuery(ids)(tx)
+      abstractNodes <- nodes.traverse(n => AbstractNode.fromNode(n))
+    yield abstractNodes
+
+  private def loadConcreteNodes(
+      ids: List[Long],
+      getIoNode: Name => F[IoNode[F]]
+  )(tx: AsyncTransaction[F]): F[List[ConcreteNode[F]]] =
+    for
+      withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, Name(ioName))))
+      concreteNodes <- withIoNames
+        .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
+    yield concreteNodes
 
   override def initDatabase(
       config: MapConfig,
@@ -117,19 +133,6 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       names: Set[Name],
       getIoNode: Name => F[IoNode[F]]
   ): F[Map[Name, Set[HiddenNode[F]]]] = driver.transact(readConf): tx =>
-    def loadAbstractNodes(ids: List[Long]): F[List[AbstractNode[F]]] =
-      for
-        nodes <- findAbstractNodesByIdsQuery(ids)(tx)
-        abstractNodes <- nodes.traverse(n => AbstractNode.fromNode(n))
-      yield abstractNodes
-
-    def loadConcreteNodes(ids: List[Long]): F[List[ConcreteNode[F]]] =
-      for
-        withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, Name(ioName))))
-        concreteNodes <- withIoNames
-          .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
-      yield concreteNodes
-
     def buildMap(allNodes: List[HiddenNode[F]]): F[Map[Name, Set[HiddenNode[F]]]] = allNodes
       .foldRight(List[(Name, HiddenNode[F])]().pure):
         case (node, acc) if node.name.nonEmpty => acc.map(nl => (node.name.get -> node) +: nl)
@@ -139,8 +142,8 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
     for
       ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(_._2))
       _ <- ids.assertDistinct("Hidden node ids should be distinct")
-      abstractNodes <- loadAbstractNodes(ids)
-      concreteNodes <- loadConcreteNodes(ids)
+      abstractNodes <- loadAbstractNodes(ids)(tx)
+      concreteNodes <- loadConcreteNodes(ids, getIoNode)(tx)
       nodesMap <- buildMap(abstractNodes ++ concreteNodes)
     yield nodesMap
 
@@ -191,8 +194,34 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
 
   override def countSamples: F[Long] = driver.transact(readConf)(tx => countSamplesQuery(tx))
 
-  override def getNextSampleEdge(currentNodeId: HnId): F[Set[NextSampleEdge[F]]] = ???
+  override def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[Set[NextSampleEdge[F]]] =
+    driver.transact(readConf): tx =>
+      def loadSamples(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]] =
+        for
+          rawSamples <- getSamplesQuery(sampleIds.map(_.value))(tx)
+          sampleData <- rawSamples.traverse(node => SampleData.fromNode(node))
+        yield sampleData.map(sd => sd.id -> sd).toMap
 
+      def makeNextEdges(
+          edges: List[(Long, Set[SampleEdge])],
+          sampleDataMap: Map[SampleId, SampleData],
+          hnMap: Map[HnId, HiddenNode[F]]
+      ): F[Set[NextSampleEdge[F]]] = edges.traverse((nId, sampleEdges) =>
+        val hnId = HnId(nId)
+        sampleEdges.toList.traverse(edge => NextSampleEdge.fromSampleEdge(edge, hnId, sampleDataMap, hnMap))
+      ).map(_.flatten.toSet)
+
+      for
+        rawEdges <- getNextEdgesQuery(currentNodeId.value)(tx)
+        sampleEdge <- rawEdges.traverse((edge, nId) => SampleEdge.fromEdge(edge).map(es => (nId, es)))
+        nextHnIds = rawEdges.map(_._2)
+        sampleIds = sampleEdge.flatMap(_._2.map(_.sampleId))
+        abstractNodes <- loadAbstractNodes(nextHnIds)(tx)
+        concreteNodes <- loadConcreteNodes(nextHnIds, getIoNode)(tx)
+        sampleMap <- loadSamples(sampleIds)
+        hnMap = (abstractNodes ++ concreteNodes).map(n => n.id -> n).toMap
+        nextEdges <- makeNextEdges(sampleEdge, sampleMap, hnMap)
+      yield nextEdges
 
 object Neo4jDatabase:
   def apply[F[_]: Async](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =

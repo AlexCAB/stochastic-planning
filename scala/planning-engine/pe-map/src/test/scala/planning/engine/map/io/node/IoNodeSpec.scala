@@ -60,7 +60,7 @@ class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 
     lazy val inputBoolNode = InputNode[IO](Name("inputNode"), BooleanIoVariable[IO](Set(true, false)))
 
-  "fromNode" should:
+  "IoNode.fromNode(...)" should:
     "create InputNode from valid input DB node" in newCase[CaseData]: (tn, data) =>
       IoNode.fromNode[IO](data.inputDbNode).logValue(tn).asserting: node =>
         node mustBe a[InputNode[IO]]
@@ -78,12 +78,12 @@ class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
         node.variable.asInstanceOf[IntIoVariable[IO]].min mustEqual 0
         node.variable.asInstanceOf[IntIoVariable[IO]].max mustEqual 10
 
-  "nameFromNode" should:
+  "IoNode.nameFromNode(...)" should:
     "create InputNode from valid input DB node" in newCase[CaseData]: (tn, data) =>
       IoNode.nameFromNode[IO](data.inputDbNode).logValue(tn).asserting: name =>
         name mustEqual Name("inputNode")
 
-  "toQueryParams" should:
+  "IoNode.toQueryParams" should:
     "return correct properties map for InputNode" in newCase[CaseData]: (tn, data) =>
       InputNode[IO](Name("inputNode"), IntIoVariable[IO](22, 33)).pure[IO]
         .flatMap(_.toQueryParams)
@@ -96,7 +96,7 @@ class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
         .logValue(tn)
         .asserting(_ mustEqual (OUT_LABEL, data.outputNodeQueryParams))
 
-  "equals" should:
+  "IoNode.equals(...)" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
       InputNode[IO](Name("inputNode"), BooleanIoVariable[IO](Set(true, false))).pure[IO]
         .asserting(node2 => data.inputBoolNode.equals(node2) mustEqual true)

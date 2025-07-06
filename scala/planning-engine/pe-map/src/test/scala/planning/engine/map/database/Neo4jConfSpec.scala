@@ -27,7 +27,7 @@ class Neo4jConfSpec extends UnitSpecIO:
       |}
       |""".stripMargin
 
-  "formConfig" should:
+  "Neo4jConf.formConfig(...)" should:
     "load configuration successfully" in: _ =>
       val config: Config = ConfigFactory.parseString(configStr).getConfig("neo4j")
 

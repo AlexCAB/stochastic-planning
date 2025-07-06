@@ -40,28 +40,28 @@ class FloatIoVariableSpec extends UnitSpecWithData:
     val validParameters = validProperties.map:
       case (k, v) => k -> v.toParam
 
-  "valueForIndex" should:
+  "FloatIoVariable.valueForIndex(...)" should:
     "return the correct value for a valid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(50000)).asserting(_ mustEqual 5.0f)
 
     "raise an AssertionError for an invalid index" in newCase[CaseData]: (_, data) =>
       data.variable.valueForIndex(IoIndex(110000)).assertThrows[AssertionError]
 
-  "indexForValue" should:
+  "FloatIoVariable.indexForValue(...)" should:
     "return the correct index for a valid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue(5.0f).asserting(_ mustEqual IoIndex(50000))
 
     "raise an AssertionError for an invalid value" in newCase[CaseData]: (_, data) =>
       data.variable.indexForValue(11.0f).assertThrows[AssertionError]
 
-  "toQueryParams" should:
+  "FloatIoVariable.toQueryParams" should:
     "return the correct properties map" in newCase[CaseData]: (tn, data) =>
       data.variable
         .toQueryParams
         .logValue(tn)
         .asserting(_ mustEqual data.validParameters)
 
-  "fromProperties" should:
+  "FloatIoVariable.fromProperties(...)" should:
     "create FloatIoVariable from valid properties" in newCase[CaseData]: (tn, data) =>
       FloatIoVariable.fromProperties[IO](data.validProperties)
         .logValue(tn)

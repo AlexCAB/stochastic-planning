@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-04 |||||||||||*/
 
-package planning.engine.map.samples
+package planning.engine.map.samples.sample
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
@@ -33,8 +33,6 @@ class SampleEdgeSpec extends UnitSpecWithData:
     )
 
     val expectedEdge = SampleEdge(
-      sourceHn = newEdge.source,
-      targetHn = newEdge.target,
       sourceValue = HnIndex(10),
       targetValue = HnIndex(20),
       edgeType = newEdge.edgeType,
@@ -54,7 +52,7 @@ class SampleEdgeSpec extends UnitSpecWithData:
       )
     )
 
-  "toQueryParams" should:
+  "SampleEdge.toQueryParams(...)" should:
     "return correct query parameters when indices are valid" in newCase[CaseData]: (_, data) =>
       val indices = Map(HnId(1) -> HnIndex(10), HnId(2) -> HnIndex(20))
       data.newEdge.toQueryParams[IO](data.sampleId, indices)
@@ -64,41 +62,41 @@ class SampleEdgeSpec extends UnitSpecWithData:
       val indices = Map(HnId(2) -> HnIndex(20)) // Missing source index
       data.newEdge.toQueryParams[IO](data.sampleId, indices).assertThrows[AssertionError]
 
-  "fromEdgeBySampleId" should:
+  "SampleEdge.fromEdgeBySampleId(...)" should:
     "return a valid SampleEdge when edge properties are correctly mapped" in newCase[CaseData]: (_, data) =>
       SampleEdge
-        .fromEdgeBySampleId[IO](data.rawEdge, data.sampleId, data.expectedEdge.sourceHn, data.expectedEdge.targetHn)
+        .fromEdgeBySampleId[IO](data.rawEdge, data.sampleId)
         .asserting(_ mustEqual data.expectedEdge)
 
-  "raise an error when edge properties list is empty" in newCase[CaseData]: (_, data) =>
-    SampleEdge
-      .fromEdgeBySampleId[IO](
-        data.rawEdge.copy(properties =
-          Map(data.sampleId.toPropName -> Value.ListValue(List(
-            Value.Integer(10L),
-            Value.Integer(20L),
-            Value.Integer(30L)
-          )))
-        ),
-        data.sampleId,
-        data.expectedEdge.sourceHn,
-        data.expectedEdge.targetHn
-      )
-      .assertThrows[AssertionError]
+    "raise an error when edge properties list is empty" in newCase[CaseData]: (_, data) =>
+      SampleEdge
+        .fromEdgeBySampleId[IO](
+          data.rawEdge.copy(properties =
+            Map(data.sampleId.toPropName -> Value.ListValue(List(
+              Value.Integer(10L),
+              Value.Integer(20L),
+              Value.Integer(30L)
+            )))
+          ),
+          data.sampleId
+        ).assertThrows[AssertionError]
 
-  "raise an error when edge properties list has more than two values" in newCase[CaseData]: (_, data) =>
-    SampleEdge
-      .fromEdgeBySampleId[IO](
-        data.rawEdge.copy(properties =
-          Map(
-            "s200" -> Value.ListValue(List(
-              Value.Integer(data.expectedEdge.sourceValue.value),
-              Value.Integer(data.expectedEdge.targetValue.value)
-            ))
-          )
-        ),
-        data.sampleId,
-        data.expectedEdge.sourceHn,
-        data.expectedEdge.targetHn
-      )
-      .assertThrows[AssertionError]
+    "raise an error when edge properties list has more than two values" in newCase[CaseData]: (_, data) =>
+      SampleEdge
+        .fromEdgeBySampleId[IO](
+          data.rawEdge.copy(properties =
+            Map(
+              "s200" -> Value.ListValue(List(
+                Value.Integer(data.expectedEdge.sourceValue.value),
+                Value.Integer(data.expectedEdge.targetValue.value)
+              ))
+            )
+          ),
+          data.sampleId
+        ).assertThrows[AssertionError]
+
+  "SampleEdge.fromEdge(...)" should:
+    "return set of SampleEdge's" in newCase[CaseData]: (tn, data) =>
+      SampleEdge
+        .fromEdge[IO](data.rawEdge).logValue(tn, "fromEdge")
+        .asserting(_ mustEqual Set(data.expectedEdge))

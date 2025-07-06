@@ -77,7 +77,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   override def findHiddenNodesByNames(names: Set[Name]): F[Map[Name, Set[HiddenNode[F]]]] =
     for
-      foundHns <- database.findHiddenNodesByNames(names, name => getIoNode(name))
+      foundHns <- database.findHiddenNodesByNames(names, getIoNode)
       _ <- logger.info(s"Found hidden nodes, foundHns = $foundHns, for names = $names")
     yield foundHns
 
@@ -99,14 +99,18 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
       (sampleIds, edgeIds) <- database.createSamples(params)
       _ <- logger.info(s"Added observed samples, sampleIds = $sampleIds, edgeIds = $edgeIds for params = $params")
     yield sampleIds
-    
+
   override def countSamples: F[Long] =
     for
       count <- database.countSamples
       _ <- logger.info(s"Counted total number of samples, count = $count")
     yield count
 
-  override def nextSampleEdges(currentNodeId: HnId): F[NextSampleEdgeMap[F]] = ???
+  override def nextSampleEdges(currentNodeId: HnId): F[NextSampleEdgeMap[F]] =
+    for
+      edges <- database.getNextSampleEdge(currentNodeId, getIoNode)
+      _ <- logger.info(s"Got next sample edges, edges = $edges")
+    yield NextSampleEdgeMap(currentNodeId, edges)
 
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](

@@ -44,24 +44,24 @@ class AbstractNodeSpec extends UnitSpecWithData:
 
     lazy val rawNode = Node("1", Set(HN_LABEL, ABSTRACT_LABEL), nodeValues)
 
-  "apply" should:
+  "AbstractNode.apply(...)" should:
     "create single AbstractNode with given params" in newCase[CaseData]: (tn, data) =>
       data.singleNode.pure[IO].logValue(tn).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
 
-  "fromNode" should:
+  "AbstractNode.fromNode(...)" should:
     "create AbstractNode from raw node" in newCase[CaseData]: (_, data) =>
       AbstractNode.fromNode[IO](data.rawNode).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
 
-  "toProperties" should:
+  "AbstractNode.toProperties(...)" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
       data.newNode.toProperties[IO](data.id, data.initNextHnIndex)
         .logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
-  "equals" should:
+  "AbstractNode.equals(...)" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
       AbstractNode[IO](data.id, data.name).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual true
@@ -70,7 +70,7 @@ class AbstractNodeSpec extends UnitSpecWithData:
       AbstractNode[IO](HnId(5678), Some(Name("TestNode2"))).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
 
-  "validationErrors" should:
+  "AbstractNode.validationErrors" should:
     "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 

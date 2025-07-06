@@ -32,13 +32,13 @@ class MapMetadataSpec extends UnitSpecWithData:
     lazy val metadata = MapMetadata(Some(Name("TestName")), Some(Description("TestDescription")))
     lazy val rootNode = Node("1", Set(ROOT_LABEL), metadataProps)
 
-  "toQueryParam" should:
+  "MapMetadata.toQueryParam" should:
     "return correct properties map for metadata" in newCase[CaseData]: (tn, data) =>
       data.metadata.toQueryParams[IO]
         .logValue(tn)
         .asserting(_ mustEqual data.metadataParams)
 
-  "fromProperties" should:
+  "MapMetadata.fromProperties(...)" should:
     "fromNode should create Metadata from a valid root node" in newCase[CaseData]: (tn, data) =>
       MapMetadata
         .fromNode[IO](data.rootNode)

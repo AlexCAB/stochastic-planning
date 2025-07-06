@@ -50,7 +50,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
 
     lazy val rawNode = Node("1", Set(HN_LABEL, CONCRETE_LABEL), nodeValues)
 
-  "apply" should:
+  "ConcreteNode.apply(...)" should:
     "create ConcreteNode with given state" in newCase[CaseData]: (tn, data) =>
       data.singleNode.pure[IO].logValue(tn).asserting: node =>
         node.id mustEqual data.id
@@ -58,7 +58,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
 
-  "fromNode" should:
+  "ConcreteNode.fromNode(...)" should:
     "create ConcreteNode from raw node" in newCase[CaseData]: (_, data) =>
       ConcreteNode.fromNode[IO](data.rawNode, data.intInNode).asserting: node =>
         node.id mustEqual data.id
@@ -66,12 +66,12 @@ class ConcreteNodeSpec extends UnitSpecWithData:
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
 
-  "toProperties" should:
+  "ConcreteNode.toProperties(...)" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
       data.newNode.toProperties[IO](data.id, data.initNextHnIndex)
         .logValue(tn).asserting(_ mustEqual data.nodeProperties)
 
-  "equals" should:
+  "ConcreteNode.equals(...)" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
       ConcreteNode[IO](data.id, data.name, data.intInNode, data.valueIndex).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual true
@@ -80,7 +80,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
       ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), data.intInNode, IoIndex(2)).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
 
-  "validationErrors" should:
+  "ConcreteNode.validationErrors" should:
     "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 

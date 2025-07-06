@@ -51,7 +51,7 @@ class IoVariableSpec extends UnitSpecWithData:
       PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
     )
 
-  "fromProperties" should:
+  "IoVariable.fromProperties(...)" should:
     "create BooleanIoVariable from valid bool properties" in newCase[CaseData]: (tn, data) =>
       IoVariable.fromProperties[IO](data.boolProperties)
         .logValue(tn)

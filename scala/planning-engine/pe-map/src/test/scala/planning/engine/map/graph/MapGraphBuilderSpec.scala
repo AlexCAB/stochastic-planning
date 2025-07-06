@@ -27,7 +27,7 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
       builder <- MapBuilder[IO](mockedDb)
     yield (mockedDb, builder)
 
-  "KnowledgeGraphBuilder.init()" should:
+  "KnowledgeGraphBuilder.init(...)" should:
     "create knowledge graph in given database" in: (mockedDb, builder) =>
       async[IO]:
 
@@ -44,7 +44,7 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
         graph.inputNodes mustEqual List(boolInNode)
         graph.outputNodes mustEqual List(boolOutNode)
 
-  "KnowledgeGraphBuilder.load()" should:
+  "KnowledgeGraphBuilder.load(...)" should:
     "load knowledge graph in from database" in: (mockedDb, builder) =>
       async[IO]:
 

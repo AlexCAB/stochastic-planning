@@ -40,7 +40,7 @@ class BooleanIoVariableSpec extends UnitSpecWithData:
       PROP.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
     )
 
-  "valueForIndex" should:
+  "BooleanIoVariable.valueForIndex(...)" should:
     "return false for index 0 if false is acceptable or fail otherwise" in newCase[CaseData]: (_, data) =>
       data.falseAcceptable.valueForIndex(IoIndex(0)).asserting(_ mustEqual false)
       data.trueAcceptable.valueForIndex(IoIndex(0)).assertThrows[AssertionError]
@@ -56,7 +56,7 @@ class BooleanIoVariableSpec extends UnitSpecWithData:
     "raise an AssertionError for invalid index" in newCase[CaseData]: (_, data) =>
       data.trueAcceptable.valueForIndex(IoIndex(2)).assertThrows[AssertionError]
 
-  "indexForValue" should:
+  "BooleanIoVariable.indexForValue(...)" should:
     "return Index(0) for false if false is acceptable or fail otherwise" in newCase[CaseData]: (_, data) =>
       data.falseAcceptable.indexForValue(false).asserting(_ mustEqual IoIndex(0))
       data.trueAcceptable.indexForValue(false).assertThrows[AssertionError]
@@ -69,7 +69,7 @@ class BooleanIoVariableSpec extends UnitSpecWithData:
       data.bothAcceptable.indexForValue(false).asserting(_ mustEqual IoIndex(0))
       data.bothAcceptable.indexForValue(true).asserting(_ mustEqual IoIndex(1))
 
-  "toQueryParams" should:
+  "BooleanIoVariable.toQueryParams" should:
     "return correct properties map" in newCase[CaseData]: (tn, data) =>
       data.bothAcceptable.toQueryParams.logValue(tn)
         .asserting: params =>
@@ -81,7 +81,7 @@ class BooleanIoVariableSpec extends UnitSpecWithData:
           params.get(PROP.VAR_TYPE) mustEqual Some(Param(QueryParam(BOOL_TYPE)))
           acceptableValues.asScala.toSet mustEqual Set(true, false)
 
-  "fromProperties" should:
+  "BooleanIoVariable.fromProperties(...)" should:
     "create BooleanIoVariable from valid properties" in newCase[CaseData]: (tn, data) =>
       BooleanIoVariable
         .fromProperties[IO](data.validProperties)

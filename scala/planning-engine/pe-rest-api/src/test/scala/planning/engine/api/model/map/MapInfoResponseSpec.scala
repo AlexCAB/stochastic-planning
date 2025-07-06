@@ -32,7 +32,7 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
     (() => mockKnowledgeGraph.inputNodes).expects().returns(validInputNodes).once()
     (() => mockKnowledgeGraph.outputNodes).expects().returns(validOutputNodes).once()
 
-  "fromKnowledgeGraph" should:
+  "MapInfoResponse.fromKnowledgeGraph(...)" should:
     "create MapInfoResponse with correct values from a valid knowledge graph" in newCase[CaseData]: (tn, data) =>
       MapInfoResponse.fromKnowledgeGraph(data.mockKnowledgeGraph)
         .logValue(tn)
@@ -42,5 +42,3 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
           data.validOutputNodes.size,
           data.testNumOfHiddenNodes
         ))
-
-//

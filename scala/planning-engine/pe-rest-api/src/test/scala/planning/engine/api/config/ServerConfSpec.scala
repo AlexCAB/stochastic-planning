@@ -28,7 +28,7 @@ class ServerConfSpec extends UnitSpecWithData:
         |""".stripMargin
     )
 
-  "formConfig" should:
+  "ServerConf.formConfig(...)" should:
     "create ServerConf from valid configuration" in newCase[CaseData]: (tn, data) =>
       ServerConf.formConfig[IO](data.validConfig)
         .logValue(tn)

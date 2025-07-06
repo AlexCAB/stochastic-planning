@@ -31,7 +31,7 @@ class DbConfSpec extends UnitSpecWithData:
         |""".stripMargin
     )
 
-  "formConfig" should:
+  "DbConf.formConfig(...)" should:
     "create DbConf from valid configuration" in newCase[CaseData]: (tn, data) =>
       DbConf.formConfig[IO](data.validConfig)
         .logValue(tn)

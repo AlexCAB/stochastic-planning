@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-04 |||||||||||*/
 
-package planning.engine.map.samples
+package planning.engine.map.samples.sample
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData

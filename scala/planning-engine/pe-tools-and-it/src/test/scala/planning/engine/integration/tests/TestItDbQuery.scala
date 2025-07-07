@@ -23,10 +23,10 @@ import planning.engine.common.enums.EdgeType
 
 trait TestItDbQuery:
   self: WithItDb =>
-  
+
   def getNextHnId(implicit db: WithItDb.ItDb): IO[Long] =
     c"MATCH (r:#$ROOT_LABEL) RETURN r".singleNode.map(_.getLongProperty(PROP.NEXT_HN_ID))
-    
+
   def getNextSampleId(implicit db: WithItDb.ItDb): IO[Long] =
     c"MATCH (r:#$SAMPLES_LABEL) RETURN r".singleNode.map(_.getLongProperty(PROP.NEXT_SAMPLES_ID))
 

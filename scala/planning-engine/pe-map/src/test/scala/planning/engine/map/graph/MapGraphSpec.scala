@@ -175,7 +175,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val resIds: List[SampleId] = data.mapGraph.addNewSamples(testSample).await
         resIds mustEqual expectedSampleIds
 
-  "MapGraphSpec.countSamples" should :
+  "MapGraphSpec.countSamples" should:
     "return total number of samples" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val testCount: Long = 321
@@ -183,7 +183,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val resCount = data.mapGraph.countSamples.await
         resCount mustEqual testCount
 
-  "MapGraphSpec.nextSampleEdges(...)" should :
+  "MapGraphSpec.nextSampleEdges(...)" should:
     "find and return next sample edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val currentNodeId = HnId(123)

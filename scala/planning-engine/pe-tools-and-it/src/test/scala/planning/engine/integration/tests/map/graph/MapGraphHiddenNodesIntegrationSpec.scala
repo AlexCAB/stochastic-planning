@@ -34,7 +34,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
       abstractNames = makeNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       graph <- loadTestMapGraph(neo4jdb)
-    yield TestMapGraph(itDb, neo4jdb, nodes, graph)
+    yield TestMapGraph(itDb, neo4jdb, nodes, List(), List(), graph)
 
   "MapGraph.getIoNode(...)" should:
     "return IO node" in: res =>

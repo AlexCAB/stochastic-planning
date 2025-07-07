@@ -23,6 +23,9 @@ import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
 import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.syntax.all.*
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.io.node.IoNode
+import planning.engine.map.samples.sample.Sample
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
   self: AsyncIOSpec & Matchers & SpecLogging =>
@@ -63,7 +66,12 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
         .traverse(name => makeAbstractNodes(AbstractNode.New(name)))
         .map(_.toMap)
         .logValue("createTestHiddenNodesInDb", "abstractNodes")
-    yield TestHiddenNodes(concreteNodes, abstractNodes, (concreteNodes.keys ++ abstractNodes.keys).toList)
+    yield TestHiddenNodes(
+      concreteNodes,
+      abstractNodes,
+      allNodeIds = (concreteNodes.keys ++ abstractNodes.keys).toList,
+      ioNodeMap = Map(intInNode.name -> intInNode)
+    )
 
   def loadTestMapGraph(neo4jdb: Neo4jDatabase[IO]): Resource[IO, MapGraph[IO]] =
     for
@@ -79,11 +87,16 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
     createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
   )
 
-object MapGraphIntegrationTestData:
+  def initSampleInDb(neo4jdb: Neo4jDatabase[IO], params: Sample.ListNew): Resource[IO, List[SampleId]] = Resource.eval(
+    neo4jdb.createSamples(params).logValue("initSampleInDb", "created samples").map(_._1)
+  )
+
+object MapGraphIntegrationTestData extends Matchers:
   final case class TestHiddenNodes(
       concreteNodes: Map[HnId, ConcreteNode.New],
       abstractNodes: Map[HnId, AbstractNode.New],
-      allNodeIds: List[HnId]
+      allNodeIds: List[HnId],
+      ioNodeMap: Map[Name, IoNode[IO]]
   ):
     def findHnIdsForName(name: Name): Set[HnId] = concreteNodes
       .map((i, n) => (i, n.name))
@@ -91,9 +104,15 @@ object MapGraphIntegrationTestData:
       .filter((_, n) => n.contains(name))
       .keys.toSet
 
+    def getIoNode(name: Name): IO[IoNode[IO]] = ioNodeMap
+      .getOrElse(name, fail(s"IO Node with name $name not found in $ioNodeMap"))
+      .pure[IO]
+
   final case class TestMapGraph(
       itDb: WithItDb.ItDb,
       neo4jdb: Neo4jDatabase[IO],
       nodes: TestHiddenNodes,
+      samplesHnIds: List[HnId],
+      sampleIds: List[SampleId],
       graph: MapGraph[IO]
   )

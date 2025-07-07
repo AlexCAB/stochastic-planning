@@ -64,7 +64,7 @@ object Sample:
       PROP.DESCRIPTION -> description.map(_.toDbParam)
     )
 
-    override def toString: String = s"ObservedSample(" +
+    override def toString: String = s"Sample.New(" +
       s"probabilityCount=$probabilityCount, " +
       s"utility=$utility, " +
       s"name=${name.toStr}, " +

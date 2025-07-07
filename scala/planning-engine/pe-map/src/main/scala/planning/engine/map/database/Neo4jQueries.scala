@@ -174,7 +174,7 @@ trait Neo4jQueries:
       """.execute.void(tx)
 
   def getNextEdgesQuery[F[_]: Async](curHdId: Long)(tx: AsyncTransaction[F]): F[List[(Relationship, Long)]] =
-    c"(:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[e]->(t:#$HN_LABEL) RETURN [e, t.#${PROP.HN_ID}]"
+    c"MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[e]->(t:#$HN_LABEL) RETURN [e, t.#${PROP.HN_ID}]"
       .query(ResultMapper.tuple[Relationship, Long]).list(tx)
 
   def getSamplesQuery[F[_]: Async](sampleIds: List[Long])(tx: AsyncTransaction[F]): F[List[Node]] =

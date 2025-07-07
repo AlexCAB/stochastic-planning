@@ -81,3 +81,23 @@ trait MapGraphTestData:
     nextValue = testHnIndex,
     nextHn = testAbstractNode
   )
+
+  def makeFourNewSamples(hnId1: HnId, hnId2: HnId, hnId3: HnId): Sample.ListNew = Sample.ListNew.of(
+    newSample.copy(name = Some(Name("loop-sample-1")), edges = Set(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
+    newSample.copy(name = Some(Name("one-edge-sample-1")), edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
+    newSample.copy(
+      name = Some(Name("two-edge-sample-1")),
+      edges = Set(
+        SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
+        SampleEdge.New(hnId2, hnId3, EdgeType.LINK)
+      )
+    ),
+    newSample.copy(
+      name = Some(Name("three-edge-sample-1")),
+      edges = Set(
+        SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
+        SampleEdge.New(hnId2, hnId3, EdgeType.LINK),
+        SampleEdge.New(hnId3, hnId1, EdgeType.THEN)
+      )
+    )
+  )

@@ -21,19 +21,24 @@ import cats.effect.cps.*
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.properties.PROP
+import planning.engine.map.subgraph.NextSampleEdgeMap
 
 class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
     with WithItDb with TestItDbQuery with MapGraphIntegrationTestData:
 
-  override val resource: Resource[IO, TestMapGraph] =
+  override val resource: Resource[IO, TestMapGraph] = logResource(
     for
       itDb <- makeDb()
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
       concreteNames = makeNames("concrete", 3)
       abstractNames = makeNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
+      samplesHnIds = List(nodes.allNodeIds(1), nodes.allNodeIds(3), nodes.allNodeIds(5))
+      newSamples = makeFourNewSamples(samplesHnIds.head, samplesHnIds(1), samplesHnIds(2))
+      sampleIds <- initSampleInDb(neo4jdb, newSamples)
       graph <- loadTestMapGraph(neo4jdb)
-    yield TestMapGraph(itDb, neo4jdb, nodes, graph)
+    yield TestMapGraph(itDb, neo4jdb, nodes, samplesHnIds, sampleIds, graph)
+  )
 
   "MapGraph.createSamples(...)" should:
     "create multiple samples" in: data =>
@@ -81,9 +86,17 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
   "MapGraph.countSamples" should:
     "return total number of samples" in: res =>
       given WithItDb.ItDb = res.itDb
-
       async[IO]:
         val gotCount: Long = res.graph.countSamples.logValue("count samples", "gotCount").await
         val testCount = getSampleCount.logValue("count samples", "testCount").await
 
         gotCount mustEqual testCount
+
+  "MapGraph.nextSampleEdges" should:
+    "return next sample edges" in: res =>
+      async[IO]:
+        val result: NextSampleEdgeMap[IO] = res.graph
+          .nextSampleEdges(res.samplesHnIds.head).logValue("next sample edges", "nextSampleEdges").await
+
+        result.currentNodeId mustEqual res.samplesHnIds.head
+        (result.sampleEdges.map(_.sampleData.id) & res.sampleIds.toSet) mustEqual res.sampleIds.toSet

@@ -22,6 +22,7 @@ import org.scalatest.compatible.Assertion
 import planning.engine.common.values.text.Name
 import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake, MapMetadata}
 import planning.engine.map.io.node.{InputNode, OutputNode}
+import planning.engine.api.model.map.payload.*
 
 class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory:
 
@@ -29,10 +30,10 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory:
     val testNumOfHiddenNodes = 5L
 
     val testMapInitRequest = MapInitRequest(
-      name = Some("testMapName"),
+      name = Some(Name("testMapName")),
       description = None,
-      inputNodes = List(BooleanIoNode("boolDef", Set(true, false))),
-      outputNodes = List(IntIoNode("intDef", min = 0, max = 10))
+      inputNodes = List(BooleanIoNode(Name("boolDef"), Set(true, false))),
+      outputNodes = List(IntIoNode(Name("intDef"), min = 0, max = 10))
     )
 
     val testConfig: MapConfig = MapConfig(
@@ -49,7 +50,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory:
     def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): MapGraphLake[IO] =
       val mockGraph = mock[MapGraphLake[IO]]
       (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
-      (() => mockGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name.map(Name.apply), None)).once()
+      (() => mockGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name, None)).once()
       (() => mockGraph.inputNodes).expects().returns(inNodes).once()
       (() => mockGraph.outputNodes).expects().returns(outNodes).once()
       mockGraph

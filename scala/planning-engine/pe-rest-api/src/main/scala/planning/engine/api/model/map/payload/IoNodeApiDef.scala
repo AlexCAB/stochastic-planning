@@ -10,19 +10,22 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-27 |||||||||||*/
 
-package planning.engine.api.model.map
+package planning.engine.api.model.map.payload
 
-import io.circe.{Decoder, Encoder, HCursor, Json}
-import io.circe.syntax.*
 import io.circe.generic.auto.*
+import io.circe.syntax.*
+import io.circe.{Decoder, Encoder, HCursor, Json}
+import planning.engine.api.model.map.*
+import planning.engine.common.values.text.Name
+import planning.engine.api.model.values.*
 
 sealed trait IoNodeApiDef:
-  val name: String
+  val name: Name
 
-final case class BooleanIoNode(name: String, acceptableValues: Set[Boolean]) extends IoNodeApiDef
-final case class FloatIoNode(name: String, min: Float, max: Float) extends IoNodeApiDef
-final case class IntIoNode(name: String, min: Int, max: Int) extends IoNodeApiDef
-final case class ListStrIoNode(name: String, elements: List[String]) extends IoNodeApiDef
+final case class BooleanIoNode(name: Name, acceptableValues: Set[Boolean]) extends IoNodeApiDef
+final case class FloatIoNode(name: Name, min: Float, max: Float) extends IoNodeApiDef
+final case class IntIoNode(name: Name, min: Int, max: Int) extends IoNodeApiDef
+final case class ListStrIoNode(name: Name, elements: List[String]) extends IoNodeApiDef
 
 object IoNodeApiDef:
   given Encoder[IoNodeApiDef] = new Encoder[IoNodeApiDef]:

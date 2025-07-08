@@ -10,21 +10,21 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-28 |||||||||||*/
 
-package planning.engine.api.model.map
+package planning.engine.api.model.map.payload
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
-
 import cats.effect.cps.*
 import io.circe.syntax.*
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.values.text.Name
 
 class IoNodeApiDefSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val booleanIoNode: IoNodeApiDef = BooleanIoNode("boolDef", Set(true, false))
-    lazy val floatIoNode: IoNodeApiDef = FloatIoNode("floatDef", min = -1, max = 1)
-    lazy val intIoNode: IoNodeApiDef = IntIoNode("intDef", min = 0, max = 10)
-    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode("listStrDef", elements = List("a", "b", "c"))
+    lazy val booleanIoNode: IoNodeApiDef = BooleanIoNode(Name("boolDef"), Set(true, false))
+    lazy val floatIoNode: IoNodeApiDef = FloatIoNode(Name("floatDef"), min = -1, max = 1)
+    lazy val intIoNode: IoNodeApiDef = IntIoNode(Name("intDef"), min = 0, max = 10)
+    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNode(Name("listStrDef"), elements = List("a", "b", "c"))
 
   "IoNodeApiDef" should:
     "decode and encode BooleanIoNode" in newCase[CaseData]: (tn, data) =>

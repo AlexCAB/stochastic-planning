@@ -37,7 +37,7 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
       MapInfoResponse.fromKnowledgeGraph(data.mockKnowledgeGraph)
         .logValue(tn)
         .asserting(_ mustEqual MapInfoResponse(
-          data.validMetadata.name.map(_.value),
+          data.validMetadata.name,
           data.validInputNodes.size,
           data.validOutputNodes.size,
           data.testNumOfHiddenNodes

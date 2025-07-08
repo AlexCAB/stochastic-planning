@@ -58,7 +58,7 @@ object SampleEdge:
 
     for
       (sourceValue, targetValue) <- find
-      edgeType <- EdgeType.fromLabel(edge.relationshipType)
+      edgeType <- EdgeType.fromLabel(edge.relationshipType).fold(_.assertionError, _.pure)
     yield SampleEdge(
       sourceValue = sourceValue,
       targetValue = targetValue,
@@ -76,7 +76,7 @@ object SampleEdge:
       yield (sampleId, (sourceValue, targetValue))
 
     for
-      edgeType <- EdgeType.fromLabel(edge.relationshipType)
+      edgeType <- EdgeType.fromLabel(edge.relationshipType).fold(_.assertionError, _.pure)
       samples <- edge.properties.toList.traverse((sId, values) => parse(sId, values))
       sampleSet = samples.toSet
       _ <- (samples, sampleSet).assertSameSize("Fond duplicate sample IDs in edge properties")

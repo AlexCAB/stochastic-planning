@@ -15,13 +15,15 @@ package planning.engine.api.service.map
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.model.map.{MapInfoResponse, MapInitRequest}
+import planning.engine.api.model.map.*
 import cats.syntax.all.*
 import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake}
+import planning.engine.common.errors.assertionError
 
 trait MapServiceLike[F[_]]:
   def init(definition: MapInitRequest): F[MapInfoResponse]
   def load: F[MapInfoResponse]
+  def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse]
 
 class MapService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
@@ -34,9 +36,7 @@ class MapService[F[_]: {Async, LoggerFactory}](
   private def initError(graph: MapGraphLake[F]): F[(Option[MapGraphLake[F]], MapInfoResponse)] =
     for
       _ <- logger.error(s"Knowledge graph already initialized, overwriting, $graph")
-      err <- Async[F].raiseError[(Option[MapGraphLake[F]], MapInfoResponse)](
-        new AssertionError("Knowledge graph already initialized")
-      )
+      err <- "Knowledge graph already initialized".assertionError[F, (Option[MapGraphLake[F]], MapInfoResponse)]
     yield err
 
   override def init(definition: MapInitRequest): F[MapInfoResponse] = kgCell.evalModify:
@@ -59,6 +59,8 @@ class MapService[F[_]: {Async, LoggerFactory}](
       yield (Some(knowledgeGraph), info)
 
     case Some(kg) => initError(kg)
+
+  override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = ???
 
 object MapService:
   def apply[F[_]: {Async, LoggerFactory}](

@@ -18,20 +18,16 @@ import org.http4s.circe.jsonOf
 import cats.MonadThrow
 import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
-import planning.engine.common.values.text.{Name, Description}
+import planning.engine.api.model.map.payload.*
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import planning.engine.map.io.variable.{
-  BooleanIoVariable,
-  FloatIoVariable,
-  IntIoVariable,
-  IoVariable,
-  ListStrIoVariable
-}
+import planning.engine.map.io.variable.*
+import planning.engine.api.model.values.*
 
 final case class MapInitRequest(
-    name: Option[String],
-    description: Option[String],
+    name: Option[Name],
+    description: Option[Description],
     inputNodes: List[IoNodeApiDef],
     outputNodes: List[IoNodeApiDef]
 ):
@@ -48,16 +44,10 @@ final case class MapInitRequest(
   ): F[List[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)
-      name <- Name.fromString(definition.name)
-      node <- makeNode(name, variable)
+      node <- makeNode(definition.name, variable)
     yield node
 
-  def toMetadata[F[_]: MonadThrow]: F[MapMetadata] =
-    for
-      name <- Name.fromString(name)
-      description <- Description.fromString(description)
-    yield MapMetadata(name, description)
-
+  def toMetadata[F[_]: MonadThrow]: F[MapMetadata] = MapMetadata(name, description).pure
   def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _).pure)
   def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _).pure)
 

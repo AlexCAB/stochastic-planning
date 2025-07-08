@@ -17,9 +17,10 @@ import cats.effect.{Concurrent, Resource}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
-import planning.engine.api.model.map.MapInitRequest
+import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest}
 import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
+import planning.engine.api.model.values.*
 
 class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F]:
   import io.circe.generic.auto.*
@@ -35,6 +36,13 @@ class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F
       yield res
 
     case POST -> Root / "map" / "load" => service.load.flatMap(info => Ok(info.asJson))
+
+    case req @ POST -> Root / "map" / "samples" =>
+      for
+        definition <- req.as[MapAddSamplesRequest]
+        result <- service.addSamples(definition)
+        res <- Ok(result.asJson)
+      yield res
 
 object MapRoute:
   def apply[F[_]: Concurrent](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =

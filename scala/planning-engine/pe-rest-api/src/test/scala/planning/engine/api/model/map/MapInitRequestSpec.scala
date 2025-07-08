@@ -13,8 +13,9 @@
 package planning.engine.api.model.map
 
 import cats.effect.IO
+import planning.engine.api.model.map.payload.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.{Name, Description}
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
@@ -23,15 +24,15 @@ class MapInitRequestSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val validRequest = MapInitRequest(
-      name = Some("ValidMap"),
-      description = Some("A valid map description"),
+      name = Some(Name("ValidMap")),
+      description = Some(Description("A valid map description")),
       inputNodes = List(
-        BooleanIoNode("inputBoolean", Set(true, false)),
-        FloatIoNode("inputFloat", 0.0f, 1.0f)
+        BooleanIoNode(Name("inputBoolean"), Set(true, false)),
+        FloatIoNode(Name("inputFloat"), 0.0f, 1.0f)
       ),
       outputNodes = List(
-        IntIoNode("outputInt", 0, 10),
-        ListStrIoNode("outputListStr", List("a", "b", "c"))
+        IntIoNode(Name("outputInt"), 0, 10),
+        ListStrIoNode(Name("outputListStr"), List("a", "b", "c"))
       )
     )
 

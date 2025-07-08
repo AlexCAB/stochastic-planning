@@ -18,25 +18,27 @@ import org.scalamock.scalatest.AsyncMockFactory
 import org.typelevel.log4cats.Logger
 import planning.engine.api.service.map.MapServiceLike
 import planning.engine.common.UnitSpecWithResource
-
 import planning.engine.api.model.map.*
 import cats.effect.cps.*
 import org.http4s.implicits.*
 import io.circe.generic.auto.*
 import org.http4s.circe.CirceEntityCodec.*
 import io.circe.syntax.*
+import planning.engine.api.model.map.payload.*
+import planning.engine.common.values.text.{Name, Description}
+import planning.engine.api.model.values.*
 
 class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO])] with AsyncMockFactory:
   private val testMapInitRequest = MapInitRequest(
-    name = Some("testMapName"),
-    description = Some("testMapDescription"),
+    name = Some(Name("testMapName")),
+    description = Some(Description("testMapDescription")),
     inputNodes = List(
-      BooleanIoNode("boolDef", Set(true, false)),
-      FloatIoNode("floatDef", min = -1, max = 1)
+      BooleanIoNode(Name("boolDef"), Set(true, false)),
+      FloatIoNode(Name("floatDef"), min = -1, max = 1)
     ),
     outputNodes = List(
-      IntIoNode("intDef", min = 0, max = 10),
-      ListStrIoNode("listStrDef", elements = List("a", "b", "c"))
+      IntIoNode(Name("intDef"), min = 0, max = 10),
+      ListStrIoNode(Name("listStrDef"), elements = List("a", "b", "c"))
     )
   )
 

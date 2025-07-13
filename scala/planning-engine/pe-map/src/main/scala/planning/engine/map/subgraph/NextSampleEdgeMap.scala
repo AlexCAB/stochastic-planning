@@ -16,5 +16,5 @@ import planning.engine.common.values.node.HnId
 
 final case class NextSampleEdgeMap[F[_]](
     currentNodeId: HnId,
-    sampleEdges: Set[NextSampleEdge[F]]
+    sampleEdges: List[NextSampleEdge[F]]
 )

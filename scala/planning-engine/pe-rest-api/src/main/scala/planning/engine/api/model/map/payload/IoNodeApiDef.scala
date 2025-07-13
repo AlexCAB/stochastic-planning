@@ -12,12 +12,10 @@
 
 package planning.engine.api.model.map.payload
 
-import io.circe.generic.auto.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import planning.engine.api.model.map.*
 import planning.engine.common.values.text.Name
-import planning.engine.api.model.values.*
 
 sealed trait IoNodeApiDef:
   val name: Name
@@ -28,6 +26,9 @@ final case class IntIoNode(name: Name, min: Int, max: Int) extends IoNodeApiDef
 final case class ListStrIoNode(name: Name, elements: List[String]) extends IoNodeApiDef
 
 object IoNodeApiDef:
+  import io.circe.generic.auto.*
+  import planning.engine.api.model.values.*
+
   given Encoder[IoNodeApiDef] = new Encoder[IoNodeApiDef]:
     final def apply(data: IoNodeApiDef): Json = data match
       case bool: BooleanIoNode    => Json.obj("type" -> Json.fromString("BooleanIoNode"), "data" -> bool.asJson)

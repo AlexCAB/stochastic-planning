@@ -33,12 +33,12 @@ class SampleSpec extends UnitSpecWithData:
       utility = 0.5,
       name = Some(Name("SampleName")),
       description = Some(Description("SampleDescription")),
-      edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+      edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
     )
 
   "New.hnIds" should:
     "distinct list ofHnId" in newCase[CaseData]: (_, data) =>
-      data.newSample.hnIds.pure[IO].asserting(_ mustEqual Set(HnId(1), HnId(2), HnId(3)))
+      data.newSample.hnIds.pure[IO].asserting(_ mustEqual List(HnId(1), HnId(2), HnId(3)))
 
   "New.validationName" should:
     "return validation name" in newCase[CaseData]: (tn, data) =>
@@ -54,7 +54,7 @@ class SampleSpec extends UnitSpecWithData:
         probabilityCount = 0, // Invalid count
         name = Some(Name("")), // Empty name
         description = Some(Description("")), // Empty description
-        edges = Set() // No edges
+        edges = List() // No edges
       )
 
       invalidSample.validationErrors.pure[IO].logValue(tn, "validationErrors").asserting(_.size mustEqual 4)
@@ -65,19 +65,21 @@ class SampleSpec extends UnitSpecWithData:
         val indicesMap = Map(
           HnId(1) -> List(HnIndex(10), HnIndex(11)),
           HnId(2) -> List(HnIndex(20), HnIndex(21)),
-          HnId(3) -> List(HnIndex(30))
+          HnId(3) -> List(HnIndex(30)),
+          HnId(4) -> List(HnIndex(40)) // Not used in this sample
         )
 
-        val (indices, newIndicesMap): (Map[HnId, List[HnIndex]], Map[HnId, HnIndex]) = data
+        val (newIndicesMap, indices): (Map[HnId, List[HnIndex]], Map[HnId, HnIndex]) = data
           .newSample.findHnIndexies[IO](indicesMap).logValue(tn, "validationName").await
 
-        indices mustEqual Map(
+        newIndicesMap mustEqual Map(
           HnId(1) -> List(HnIndex(11)),
           HnId(2) -> List(HnIndex(21)),
-          HnId(3) -> List()
+          HnId(3) -> List(),
+          HnId(4) -> List(HnIndex(40))
         )
 
-        newIndicesMap mustEqual Map(
+        indices mustEqual Map(
           HnId(1) -> HnIndex(10),
           HnId(2) -> HnIndex(20),
           HnId(3) -> HnIndex(30)
@@ -91,6 +93,17 @@ class SampleSpec extends UnitSpecWithData:
       val indicesMap = Map(HnId(1) -> List(HnIndex(10)), HnId(2) -> List(HnIndex(20)), HnId(3) -> List())
       data.newSample.findHnIndexies[IO](indicesMap).logValue(tn, "validationName").assertThrows[AssertionError]
 
+  "New.toSampleData" should:
+    "return SampleData with correct values" in newCase[CaseData]: (tn, data) =>
+      data.newSample.toSampleData(data.sampleId).pure[IO].logValue(tn, "toSampleData")
+        .asserting(_ mustEqual SampleData(
+          id = data.sampleId,
+          probabilityCount = data.newSample.probabilityCount,
+          utility = data.newSample.utility,
+          name = data.newSample.name,
+          description = data.newSample.description
+        ))
+
   "New.toQueryParams" should:
     "return correct parameters when all fields are valid" in newCase[CaseData]: (tn, data) =>
       data.newSample.toQueryParams[IO](data.sampleId).logValue(tn, "toQueryParams")
@@ -103,16 +116,16 @@ class SampleSpec extends UnitSpecWithData:
         ))
 
   "New.toQueryParams" should:
-    "return correct aggrigate values" in newCase[CaseData]: (tn, data) =>
+    "return correct aggregate values" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val newSample2 = data.newSample.copy(edges = Set(SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)))
-        val newSamples = Sample.ListNew(Set(data.newSample, newSample2))
+        val newSample2 = data.newSample.copy(edges = List(SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)))
+        val newSamples = Sample.ListNew.of(data.newSample, newSample2)
 
-        newSamples.allEdges mustEqual Set(
+        newSamples.allEdges mustEqual List(
           SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK),
           SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK),
           SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)
         )
 
-        newSamples.allHnIds mustEqual Set(HnId(1), HnId(2), HnId(3), HnId(4))
+        newSamples.allHnIds mustEqual List(HnId(1), HnId(2), HnId(3), HnId(4))
         newSamples.numHnIndexPerHn mustEqual Map(HnId(1) -> 1, HnId(2) -> 1, HnId(3) -> 2, HnId(4) -> 1)

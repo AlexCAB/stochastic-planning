@@ -23,6 +23,7 @@ import planning.engine.api.service.maintenance.MaintenanceServiceLike
 import cats.effect.cps.*
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
+import org.http4s.circe.CirceEntityCodec.*
 
 class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[IO], MaintenanceRoute[IO])]
     with AsyncMockFactory:
@@ -37,9 +38,6 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[
 
   "GET /maintenance/__health" should:
     "return OK status and health response with version" in: (mockedService, route) =>
-      import io.circe.generic.auto.*
-      import org.http4s.circe.CirceEntityCodec.*
-
       (() => mockedService.getHealth).expects().returns(IO.pure(testHealthResponse)).once()
       val request = Request[IO](method = GET, uri = uri"/maintenance/__health")
 

@@ -16,11 +16,12 @@ import cats.effect.{IO, Resource}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
 import planning.engine.integration.tests.*
-import planning.engine.map.samples.sample.{Sample, SampleEdge}
+import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import cats.effect.cps.*
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.properties.PROP
+import planning.engine.common.values.text.Name
 import planning.engine.map.subgraph.NextSampleEdgeMap
 
 class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
@@ -34,10 +35,11 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
       abstractNames = makeNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       samplesHnIds = List(nodes.allNodeIds(1), nodes.allNodeIds(3), nodes.allNodeIds(5))
-      newSamples = makeFourNewSamples(samplesHnIds.head, samplesHnIds(1), samplesHnIds(2))
-      sampleIds <- initSampleInDb(neo4jdb, newSamples)
+      namedSamples = makeFourNewSamples(samplesHnIds.head, samplesHnIds(1), samplesHnIds(2))
+      noNameSamples = makeTwoNoNameNewSamples(samplesHnIds.head, samplesHnIds(1))
+      samples <- initSampleInDb(neo4jdb, namedSamples.appendAll(noNameSamples))
       graph <- loadTestMapGraph(neo4jdb)
-    yield TestMapGraph(itDb, neo4jdb, nodes, samplesHnIds, sampleIds, graph)
+    yield TestMapGraph(itDb, neo4jdb, nodes, samples, graph)
   )
 
   "MapGraph.createSamples(...)" should:
@@ -55,10 +57,10 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
         val nextHnIndex3: Long = getNextHnIndex(hnId3).logValue("multiple samples", "nextHnIndex3").await
 
         val params = Sample.ListNew.of(
-          newSample.copy(edges = Set(SampleEdge.New(hnId1, hnId2, thenEdge))),
-          newSample.copy(edges = Set(SampleEdge.New(hnId1, hnId2, thenEdge), SampleEdge.New(hnId2, hnId3, linkEdge))),
+          newSample.copy(edges = List(SampleEdge.New(hnId1, hnId2, thenEdge))),
+          newSample.copy(edges = List(SampleEdge.New(hnId1, hnId2, thenEdge), SampleEdge.New(hnId2, hnId3, linkEdge))),
           newSample.copy(edges =
-            Set(
+            List(
               SampleEdge.New(hnId1, hnId2, thenEdge),
               SampleEdge.New(hnId2, hnId3, linkEdge),
               SampleEdge.New(hnId3, hnId1, thenEdge)
@@ -95,8 +97,35 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
   "MapGraph.nextSampleEdges" should:
     "return next sample edges" in: res =>
       async[IO]:
+        val testHnId = res.samples.allHnIds.head
         val result: NextSampleEdgeMap[IO] = res.graph
-          .nextSampleEdges(res.samplesHnIds.head).logValue("next sample edges", "nextSampleEdges").await
+          .nextSampleEdges(testHnId).logValue("next sample edges", "result").await
 
-        result.currentNodeId mustEqual res.samplesHnIds.head
-        (result.sampleEdges.map(_.sampleData.id) & res.sampleIds.toSet) mustEqual res.sampleIds.toSet
+        val testSampleIds = res.samples.samples.values
+          .filter(_.edges.exists(_.source.hnId == testHnId))
+          .map(_.data.id)
+          .toSet
+
+        val gotSampleIds = result.sampleEdges
+          .map(_.sampleData.id)
+          .filter(id => testSampleIds.contains(id))
+          .toSet
+
+        result.currentNodeId mustEqual testHnId
+        gotSampleIds mustEqual testSampleIds
+
+  "MapGraph.getSampleNames" should:
+    "return get sample names" in: res =>
+      async[IO]:
+        val result: Map[SampleId, Option[Name]] = res.graph
+          .getSampleNames(res.samples.allSampleIds.toList).logValue("get sample names", "result").await
+
+        result mustEqual res.samples.samples.view.mapValues(_.data.name).toMap
+
+  "MapGraph.getSampleNames" should:
+    "return get sample data" in: res =>
+      async[IO]:
+        val result: Map[SampleId, SampleData] = res.graph
+          .getSamplesData(res.samples.allSampleIds.toList).logValue("get sample names", "result").await
+
+        result mustEqual res.samples.samples.view.mapValues(_.data).toMap

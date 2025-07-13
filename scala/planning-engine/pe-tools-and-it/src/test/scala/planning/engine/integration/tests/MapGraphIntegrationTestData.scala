@@ -51,11 +51,11 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
   ): IO[TestHiddenNodes] =
     def makeConcreteNodes(newNode: ConcreteNode.New): IO[(HnId, ConcreteNode.New)] = neo4jdb
       .createConcreteNodes(testMapConfig.initNextHnIndex, List(newNode))
-      .map(ln => ln.headOption.getOrElse(fail(s"No concrete node created, for newNode: $newNode")) -> newNode)
+      .map(ln => ln.headOption.getOrElse(fail(s"No concrete node created, for newNode: $newNode"))._1 -> newNode)
 
     def makeAbstractNodes(newNode: AbstractNode.New): IO[(HnId, AbstractNode.New)] = neo4jdb
       .createAbstractNodes(testMapConfig.initNextHnIndex, List(newNode))
-      .map(ln => ln.headOption.getOrElse(fail(s"No abstract node created, for name: $newNode")) -> newNode)
+      .map(ln => ln.headOption.getOrElse(fail(s"No abstract node created, for name: $newNode"))._1 -> newNode)
 
     for
       concreteNodes <- concreteNames
@@ -67,8 +67,8 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
         .map(_.toMap)
         .logValue("createTestHiddenNodesInDb", "abstractNodes")
     yield TestHiddenNodes(
-      concreteNodes,
-      abstractNodes,
+      concreteNodes = concreteNodes,
+      abstractNodes = abstractNodes,
       allNodeIds = (concreteNodes.keys ++ abstractNodes.keys).toList,
       ioNodeMap = Map(intInNode.name -> intInNode)
     )
@@ -87,9 +87,20 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
     createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
   )
 
-  def initSampleInDb(neo4jdb: Neo4jDatabase[IO], params: Sample.ListNew): Resource[IO, List[SampleId]] = Resource.eval(
-    neo4jdb.createSamples(params).logValue("initSampleInDb", "created samples").map(_._1)
-  )
+  def initSampleInDb(neo4jdb: Neo4jDatabase[IO], params: Sample.ListNew): Resource[IO, TestSamples] = Resource.eval:
+    for
+      (sampleIds, _) <- neo4jdb.createSamples(params).logValue("initSampleInDb", "sampleIds")
+      samples <- neo4jdb.getSamples(sampleIds)
+
+      sortedSamples = samples.values.toList.sortBy(_.data.id.value)
+      _ <- logInfo("initSampleInDb", s"Created samples:\n${sortedSamples.mkString("\n")}")
+      _ = samples.keySet mustEqual sampleIds.toSet
+      _ = samples.map(_._2.data.id).toSet mustEqual sampleIds.toSet
+    yield TestSamples(
+      allHnIds = params.list.flatMap(_.edges).toSet.flatMap(e => Set(e.source, e.target)),
+      allSampleIds = sampleIds.toSet,
+      samples = samples
+    )
 
 object MapGraphIntegrationTestData extends Matchers:
   final case class TestHiddenNodes(
@@ -108,11 +119,19 @@ object MapGraphIntegrationTestData extends Matchers:
       .getOrElse(name, fail(s"IO Node with name $name not found in $ioNodeMap"))
       .pure[IO]
 
+  final case class TestSamples(
+      allHnIds: Set[HnId],
+      allSampleIds: Set[SampleId],
+      samples: Map[SampleId, Sample]
+  )
+
+  object TestSamples:
+    def empty: TestSamples = TestSamples(Set.empty, Set.empty, Map.empty)
+
   final case class TestMapGraph(
       itDb: WithItDb.ItDb,
       neo4jdb: Neo4jDatabase[IO],
       nodes: TestHiddenNodes,
-      samplesHnIds: List[HnId],
-      sampleIds: List[SampleId],
+      samples: TestSamples,
       graph: MapGraph[IO]
   )

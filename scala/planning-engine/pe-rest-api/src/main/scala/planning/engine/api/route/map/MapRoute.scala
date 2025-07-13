@@ -20,11 +20,10 @@ import io.circe.syntax.EncoderOps
 import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest}
 import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
-import planning.engine.api.model.values.*
+import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.circe.*
 
 class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F]:
-  import io.circe.generic.auto.*
-  import org.http4s.circe.*
   import MapInitRequest.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:

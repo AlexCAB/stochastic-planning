@@ -27,8 +27,12 @@ final case class Sample(
     data: SampleData,
     edges: List[SampleEdge]
 ):
-  override def toString: String =
-    s"Sample(id = ${data.id}, name = ${data.name}, count=${data.probabilityCount}, utility=${data.utility}"
+  override def toString: String = "Sample(" +
+    s"id=${data.id.value}, " +
+    s"name=${data.name.toStr}, " +
+    s"count=${data.probabilityCount}, " +
+    s"utility=${data.utility}, " +
+    s"edges=[${edges.map(_.toString).mkString(", ")}])"
 
 object Sample:
   final case class New(
@@ -36,9 +40,10 @@ object Sample:
       utility: Double,
       name: Option[Name],
       description: Option[Description],
-      edges: Set[SampleEdge.New]
+      edges: List[SampleEdge.New]
   ) extends Validation:
-    lazy val hnIds: Set[HnId] = edges.flatMap(e => List(e.source, e.target))
+    lazy val hnIds: List[HnId] = edges.flatMap(e => List(e.source, e.target)).distinct
+
     lazy val validationName: String =
       s"Sample(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
 
@@ -55,6 +60,7 @@ object Sample:
         case (hnId, acc) => hnInsToHnIndex.get(hnId) match
             case Some(inx :: hnIxs) => acc.map((ixs, ix) => (ixs + (hnId -> hnIxs), ix + (hnId -> inx)))
             case _ => s"Missing HnIndex for hnId = $hnId, in hnInsToHnIndex = $hnInsToHnIndex".assertionError
+      .map((ixs, ix) => (ixs ++ hnInsToHnIndex.filterNot((id, _) => hnIds.contains(id)), ix))
 
     def toQueryParams[F[_]: MonadThrow](sampleId: SampleId): F[Map[String, Param]] = paramsOf(
       PROP.SAMPLE_ID -> sampleId.toDbParam,
@@ -62,6 +68,14 @@ object Sample:
       PROP.UTILITY -> utility.toDbParam,
       PROP.NAME -> name.map(_.toDbParam),
       PROP.DESCRIPTION -> description.map(_.toDbParam)
+    )
+
+    def toSampleData(id: SampleId): SampleData = SampleData(
+      id = id,
+      probabilityCount = probabilityCount,
+      utility = utility,
+      name = name,
+      description = description
     )
 
     override def toString: String = s"Sample.New(" +
@@ -72,12 +86,12 @@ object Sample:
       s"hnIds=[${hnIds.map(_.value).mkString(", ")}], " +
       s"edges=[${edges.map(_.toString).mkString(", ")}])"
 
-  final case class ListNew(list: Set[New]):
-
-    lazy val allEdges: Set[SampleEdge.New] = list.flatMap(_.edges)
-    lazy val allHnIds: Set[HnId] = allEdges.flatMap(e => List(e.source, e.target))
-
+  final case class ListNew(list: List[New]):
+    lazy val allEdges: List[SampleEdge.New] = list.flatMap(_.edges).distinct
+    lazy val allHnIds: List[HnId] = allEdges.flatMap(e => List(e.source, e.target)).distinct
     lazy val numHnIndexPerHn: Map[HnId, Int] = allHnIds.map(id => id -> list.count(_.hnIds.contains(id))).toMap
 
+    def appendAll(samples: ListNew): ListNew = ListNew(list ++ samples.list)
+
   object ListNew:
-    def of(samples: New*): ListNew = ListNew(samples.toSet)
+    def of(samples: New*): ListNew = ListNew(samples.toList)

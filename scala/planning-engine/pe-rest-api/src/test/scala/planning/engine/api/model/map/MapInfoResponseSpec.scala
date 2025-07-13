@@ -25,12 +25,12 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
     val validMetadata = MapMetadata(Some(Name("TestMap")), None)
     val validInputNodes = List(boolInNode)
     val validOutputNodes = List(boolOutNode)
+    val ioNodes = validInputNodes.map(n => n.name -> n).++(validOutputNodes.map(n => n.name -> n)).toMap
     val testNumOfHiddenNodes = 5L
 
     (() => mockKnowledgeGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
     (() => mockKnowledgeGraph.metadata).expects().returns(validMetadata).once()
-    (() => mockKnowledgeGraph.inputNodes).expects().returns(validInputNodes).once()
-    (() => mockKnowledgeGraph.outputNodes).expects().returns(validOutputNodes).once()
+    (() => mockKnowledgeGraph.ioNodes).expects().returns(ioNodes).twice()
 
   "MapInfoResponse.fromKnowledgeGraph(...)" should:
     "create MapInfoResponse with correct values from a valid knowledge graph" in newCase[CaseData]: (tn, data) =>

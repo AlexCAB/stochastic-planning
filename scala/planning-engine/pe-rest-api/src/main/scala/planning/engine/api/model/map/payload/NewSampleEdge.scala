@@ -12,13 +12,9 @@
 
 package planning.engine.api.model.map.payload
 
-import cats.effect.kernel.Concurrent
-import org.http4s.EntityDecoder
-import org.http4s.circe.jsonOf
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.text.Name
-import planning.engine.api.model.values.* 
-import planning.engine.api.model.enums.*
+import io.circe.{Encoder, Decoder}
 
 final case class NewSampleEdge(
     sourceHnName: Name,
@@ -27,6 +23,9 @@ final case class NewSampleEdge(
 )
 
 object NewSampleEdge:
-  import io.circe.generic.auto.*
+  import io.circe.generic.semiauto.*
+  import planning.engine.api.model.values.*
+  import planning.engine.api.model.enums.*
 
-  implicit def decoder[F[_]: Concurrent]: EntityDecoder[F, NewSampleEdge] = jsonOf[F, NewSampleEdge]
+  implicit val decoder: Decoder[NewSampleEdge] = deriveDecoder[NewSampleEdge]
+  implicit val encoder: Encoder[NewSampleEdge] = deriveEncoder[NewSampleEdge]

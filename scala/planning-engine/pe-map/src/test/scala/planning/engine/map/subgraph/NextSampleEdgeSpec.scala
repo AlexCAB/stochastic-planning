@@ -26,23 +26,24 @@ class NextSampleEdgeSpec extends UnitSpecWithData with MapGraphTestData:
   private class CaseData extends Case:
     val sampleDataMap: Map[SampleId, SampleData] = Map(testSampleData.id -> testSampleData)
     val hnMap: Map[HnId, HiddenNode[IO]] = hiddenNodes.map(hn => hn.id -> hn).toMap
-    val nextHnId: HnId = hnMap.keys.head
+    val currentHnId: HnId = hiddenNodes(1).id
+    val nextHnId: HnId = hiddenNodes(2).id
 
     val testEdge = SampleEdge(
-      sourceValue = HnIndex(10),
-      targetValue = HnIndex(20),
+      source = SampleEdge.End(currentHnId, HnIndex(10)),
+      target = SampleEdge.End(nextHnId, HnIndex(20)),
       edgeType = EdgeType.THEN,
       sampleId = testSampleData.id
     )
 
   "NextSampleEdge.fromSampleEdge(...)" should:
     "build NextSampleEdge from SampleEdge" in newCase[CaseData]: (tn, data) =>
-      NextSampleEdge.fromSampleEdge(data.testEdge, data.nextHnId, data.sampleDataMap, data.hnMap)
+      NextSampleEdge.fromSampleEdge(data.testEdge, data.sampleDataMap, data.hnMap)
         .logValue(tn, "NextSampleEdge.fromSampleEdge")
         .asserting { nextEdge =>
           nextEdge.sampleData mustEqual data.sampleDataMap(data.testEdge.sampleId)
-          nextEdge.currentValue mustEqual data.testEdge.sourceValue
+          nextEdge.currentValue mustEqual data.testEdge.source.value
           nextEdge.edgeType mustEqual data.testEdge.edgeType
-          nextEdge.nextValue mustEqual data.testEdge.targetValue
+          nextEdge.nextValue mustEqual data.testEdge.target.value
           nextEdge.nextHn.id mustEqual data.nextHnId
         }

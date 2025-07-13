@@ -18,12 +18,13 @@ import org.http4s.HttpRoutes
 import planning.engine.api.service.maintenance.MaintenanceServiceLike
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
-
 import cats.syntax.all.*
+import planning.engine.api.model.maintenance.HealthResponse
+import org.http4s.circe.*
+import org.http4s.circe.CirceEntityCodec.*
 
 class MaintenanceRoute[F[_]: MonadThrow](service: MaintenanceServiceLike[F]) extends Http4sDsl[F]:
-  import io.circe.generic.auto.*
-  import org.http4s.circe.*
+  import HealthResponse.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
     case GET -> Root / "maintenance" / "__health" => service.getHealth.flatMap(health => Ok(health.asJson))

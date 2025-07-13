@@ -40,6 +40,19 @@ class ErrorsSpec extends UnitSpecIO:
     "raise an error when the sequence is empty" in: _ =>
       List.empty[Int].assertNonEmpty[IO]("Sequence is empty").assertThrows[AssertionError]
 
+  "assertUniform" should:
+    "return the sequence when all elements are the same" in: _ =>
+      val seq = List(1, 1, 1)
+      seq.assertUniform[IO]("Elements are not uniform").asserting(_ mustEqual seq)
+
+    "return the sequence when it is empty" in: _ =>
+      val seq = List.empty[Int]
+      seq.assertUniform[IO]("Elements are not uniform").asserting(_ mustEqual seq)
+
+    "raise an error when elements are not the same" in: _ =>
+      val seq = List(1, 2, 1)
+      seq.assertUniform[IO]("Elements are not uniform").assertThrows[AssertionError]
+
   "assertSameSize" should:
     "return the input tuple when both collections have the same size" in: _ =>
       val left = List(1, 2, 3)

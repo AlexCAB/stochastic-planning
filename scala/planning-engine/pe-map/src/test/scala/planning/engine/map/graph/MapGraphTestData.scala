@@ -42,6 +42,8 @@ trait MapGraphTestData:
   lazy val boolInNode = InputNode[IO](Name("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
   lazy val boolOutNode = OutputNode[IO](Name("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
 
+  lazy val boolIoNodes = Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)
+
   lazy val intInNode = InputNode[IO](Name("intInputNode"), IntIoVariable[IO](0, 10000))
   lazy val intOutNode = OutputNode[IO](Name("intOutputNode"), IntIoVariable[IO](-10000, 10000))
 
@@ -61,7 +63,7 @@ trait MapGraphTestData:
     utility = 0.5,
     name = Some(Name("sample-1")),
     description = Some(Description("This is a test sample")),
-    edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+    edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
   )
 
   lazy val testSampleData: SampleData = SampleData(
@@ -71,6 +73,15 @@ trait MapGraphTestData:
     name = newSample.name,
     description = newSample.description
   )
+
+  lazy val testSampleEdges: List[SampleEdge] = List(SampleEdge(
+    source = SampleEdge.End(HnId(1), HnIndex(10)),
+    target = SampleEdge.End(HnId(2), HnIndex(20)),
+    edgeType = EdgeType.LINK,
+    sampleId = testSampleData.id
+  ))
+
+  lazy val testSample: Sample = Sample(data = testSampleData, edges = testSampleEdges)
 
   lazy val testAbstractNode: AbstractNode[IO] = makeAbstractNode(321)
 
@@ -83,21 +94,26 @@ trait MapGraphTestData:
   )
 
   def makeFourNewSamples(hnId1: HnId, hnId2: HnId, hnId3: HnId): Sample.ListNew = Sample.ListNew.of(
-    newSample.copy(name = Some(Name("loop-sample-1")), edges = Set(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
-    newSample.copy(name = Some(Name("one-edge-sample-1")), edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
+    newSample.copy(name = Some(Name("loop-sample-1")), edges = List(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
+    newSample.copy(name = Some(Name("one-edge-sample-1")), edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
     newSample.copy(
       name = Some(Name("two-edge-sample-1")),
-      edges = Set(
+      edges = List(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK)
       )
     ),
     newSample.copy(
       name = Some(Name("three-edge-sample-1")),
-      edges = Set(
+      edges = List(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK),
         SampleEdge.New(hnId3, hnId1, EdgeType.THEN)
       )
     )
+  )
+
+  def makeTwoNoNameNewSamples(hnId1: HnId, hnId2: HnId): Sample.ListNew = Sample.ListNew.of(
+    newSample.copy(name = None, edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
+    newSample.copy(name = None, edges = List(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
   )

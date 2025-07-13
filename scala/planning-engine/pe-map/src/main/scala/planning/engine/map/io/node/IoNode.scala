@@ -20,10 +20,11 @@ import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
+import planning.engine.common.validation.Validation
 import planning.engine.common.values.text.Name
-import planning.engine.common.values.db.Neo4j.{Label, IN_LABEL, IO_LABEL, OUT_LABEL}
+import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, Label, OUT_LABEL}
 
-trait IoNode[F[_]: MonadThrow]:
+trait IoNode[F[_]: MonadThrow] extends Validation:
   val name: Name
   val variable: IoVariable[F, ?]
 
@@ -36,6 +37,9 @@ trait IoNode[F[_]: MonadThrow]:
     PROP.NAME -> name.value.toDbParam,
     PROP.VARIABLE -> variable.toQueryParams
   )
+
+  lazy val validationName = s"IoNode(type = $thisLabel, name = $name, variable = $variable)"
+  lazy val validationErrors = validations(name.value.nonEmpty -> "Name must not be empty")
 
   def toQueryParams: F[(Label, Map[String, Param])] =
     for

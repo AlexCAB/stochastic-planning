@@ -41,8 +41,7 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
           .await
 
         graph.metadata mustEqual testMetadata
-        graph.inputNodes mustEqual List(boolInNode)
-        graph.outputNodes mustEqual List(boolOutNode)
+        graph.ioNodes mustEqual Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)
 
   "KnowledgeGraphBuilder.load(...)" should:
     "load knowledge graph in from database" in: (mockedDb, builder) =>
@@ -56,5 +55,4 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
         val graph: MapGraphLake[IO] = builder.load(testMapConfig).await
 
         graph.metadata mustEqual testMetadata
-        graph.inputNodes mustEqual List(boolInNode)
-        graph.outputNodes mustEqual List(boolOutNode)
+        graph.ioNodes mustEqual Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)

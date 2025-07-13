@@ -13,5 +13,12 @@
 package planning.engine.api.model.maintenance
 
 import planning.engine.api.model.enums.Status
+import io.circe.{Encoder, Decoder}
 
 final case class HealthResponse(status: Status, version: String)
+
+object HealthResponse:
+  import io.circe.generic.semiauto.*
+
+  implicit val decoder: Decoder[HealthResponse] = deriveDecoder[HealthResponse]
+  implicit val encoder: Encoder[HealthResponse] = deriveEncoder[HealthResponse]

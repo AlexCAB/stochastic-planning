@@ -32,11 +32,11 @@ final case class ListStrIoVariable[F[_]: MonadThrow](elements: List[String]) ext
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
     PROP.VAR_TYPE -> PROP_VALUE.LIST_STR_TYPE.toDbParam,
-    PROP.DOMAIN -> elements.toList.toDbParam
+    PROP.DOMAIN -> elements.toDbParam
   )
 
   override def toString: String = s"ListStrIoVariable(elements = [${elements.mkString(", ")}])"
 
 object ListStrIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ListStrIoVariable[F]] =
-    properties.getList[F, String](PROP.DOMAIN).map(es => ListStrIoVariable(es.toList))
+    properties.getList[F, String](PROP.DOMAIN).map(es => ListStrIoVariable(es))

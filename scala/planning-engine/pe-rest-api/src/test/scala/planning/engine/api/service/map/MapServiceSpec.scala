@@ -48,11 +48,11 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory:
     val service = MapService(testConfig, mockBuilder).use(_.pure).unsafeRunSync()
 
     def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): MapGraphLake[IO] =
+      val ioNodes = (inNodes ++ outNodes).map(node => node.name -> node).toMap
       val mockGraph = mock[MapGraphLake[IO]]
       (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
       (() => mockGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name, None)).once()
-      (() => mockGraph.inputNodes).expects().returns(inNodes).once()
-      (() => mockGraph.outputNodes).expects().returns(outNodes).once()
+      (() => mockGraph.ioNodes).expects().returns(ioNodes).twice()
       mockGraph
 
   "MapService.init()" should:

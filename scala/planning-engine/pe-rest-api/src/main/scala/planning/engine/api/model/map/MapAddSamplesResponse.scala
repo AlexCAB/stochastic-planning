@@ -12,17 +12,20 @@
 
 package planning.engine.api.model.map
 
-import cats.effect.kernel.Concurrent
-import org.http4s.EntityDecoder
-import org.http4s.circe.jsonOf
 import planning.engine.api.model.map.payload.ShortSampleData
-import planning.engine.api.model.values.*
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
+import io.circe.{Encoder, Decoder}
 
 final case class MapAddSamplesResponse(
     addedSamples: List[ShortSampleData]
 )
 
 object MapAddSamplesResponse:
-  import io.circe.generic.auto.*
+  import io.circe.generic.semiauto.*
 
-  implicit def decoder[F[_]: Concurrent]: EntityDecoder[F, MapAddSamplesResponse] = jsonOf[F, MapAddSamplesResponse]
+  implicit val decoder: Decoder[MapAddSamplesResponse] = deriveDecoder[MapAddSamplesResponse]
+  implicit val encoder: Encoder[MapAddSamplesResponse] = deriveEncoder[MapAddSamplesResponse]
+
+  def fromSampleNames(sampleNames: Map[SampleId, Option[Name]]): MapAddSamplesResponse =
+    MapAddSamplesResponse(sampleNames.map((id, name) => ShortSampleData(id, name)).toList)

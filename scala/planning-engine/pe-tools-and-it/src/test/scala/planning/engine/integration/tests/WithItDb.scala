@@ -88,18 +88,17 @@ trait WithItDb:
       builder.querySingle(ResultMapper.long).logValue("countNodes", "count")
 
   extension (node: Node)
-    def getProperty(key: String)(implicit db: WithItDb.ItDb): Value =
-      node.properties.getOrElse(key, fail(s"Not found property $key in $node"))
+    def getProperty(key: String): Value = node.properties.getOrElse(key, fail(s"Not found property $key in $node"))
 
-    def getStringProperty(key: String)(implicit db: WithItDb.ItDb): String = node.getProperty(key) match
+    def getStringProperty(key: String): String = node.getProperty(key) match
       case Value.Str(v) => v
       case _            => fail(s"Not found String property $key in $node")
 
-    def getLongProperty(key: String)(implicit db: WithItDb.ItDb): Long = node.getProperty(key) match
+    def getLongProperty(key: String): Long = node.getProperty(key) match
       case Value.Integer(v) => v
       case _                => fail(s"Not found Long property $key in $node")
 
-    def getDoubleProperty(key: String)(implicit db: WithItDb.ItDb): Double = node.getProperty(key) match
+    def getDoubleProperty(key: String): Double = node.getProperty(key) match
       case Value.Decimal(v) => v
       case _                => fail(s"Not found Long property $key in $node")
 

@@ -12,9 +12,6 @@
 
 package planning.engine.api.model.map
 
-import cats.effect.kernel.Concurrent
-import org.http4s.EntityDecoder
-import org.http4s.circe.jsonOf
 import cats.MonadThrow
 import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
@@ -22,8 +19,8 @@ import planning.engine.api.model.map.payload.*
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
+import io.circe.{Encoder, Decoder}
 import planning.engine.map.io.variable.*
-import planning.engine.api.model.values.*
 
 final case class MapInitRequest(
     name: Option[Name],
@@ -38,7 +35,7 @@ final case class MapInitRequest(
     case v: ListStrIoNode if v.elements.nonEmpty         => ListStrIoVariable[F](v.elements).pure
     case _ => s"Can't convert in/out node definition $definition to variable".assertionError
 
-  private def toNode[F[_]: Concurrent, N <: IoNode[F]](
+  private def toNode[F[_]: MonadThrow, N <: IoNode[F]](
       definitions: List[IoNodeApiDef],
       makeNode: (Name, IoVariable[F, ?]) => F[N]
   ): F[List[N]] = definitions.traverse: definition =>
@@ -48,10 +45,12 @@ final case class MapInitRequest(
     yield node
 
   def toMetadata[F[_]: MonadThrow]: F[MapMetadata] = MapMetadata(name, description).pure
-  def toInputNodes[F[_]: Concurrent]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _).pure)
-  def toOutputNodes[F[_]: Concurrent]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _).pure)
+  def toInputNodes[F[_]: MonadThrow]: F[List[InputNode[F]]] = toNode(inputNodes, InputNode[F](_, _).pure)
+  def toOutputNodes[F[_]: MonadThrow]: F[List[OutputNode[F]]] = toNode(outputNodes, OutputNode[F](_, _).pure)
 
 object MapInitRequest:
-  import io.circe.generic.auto.*
+  import io.circe.generic.semiauto.*
+  import planning.engine.api.model.values.*
 
-  implicit def decoder[F[_]: Concurrent]: EntityDecoder[F, MapInitRequest] = jsonOf[F, MapInitRequest]
+  implicit val decoder: Decoder[MapInitRequest] = deriveDecoder[MapInitRequest]
+  implicit val encoder: Encoder[MapInitRequest] = deriveEncoder[MapInitRequest]

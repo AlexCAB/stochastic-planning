@@ -13,7 +13,7 @@
 package planning.engine.integration.tests.map.graph
 
 import cats.effect.{IO, Resource}
-import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
+import planning.engine.integration.tests.MapGraphIntegrationTestData.{TestMapGraph, TestSamples}
 import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import cats.effect.cps.*
 import planning.engine.common.values.node.{HnId, IoIndex}
@@ -34,7 +34,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
       abstractNames = makeNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       graph <- loadTestMapGraph(neo4jdb)
-    yield TestMapGraph(itDb, neo4jdb, nodes, List(), List(), graph)
+    yield TestMapGraph(itDb, neo4jdb, nodes, TestSamples.empty, graph)
 
   "MapGraph.getIoNode(...)" should:
     "return IO node" in: res =>
@@ -55,7 +55,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
           ConcreteNode.New(None, intOutNode.name, IoIndex(103L))
         ))
 
-        val createdNodeIds: List[HnId] = res.graph.newConcreteNodes(newConcreteNodes).await
+        val createdNodeIds: List[HnId] = res.graph.newConcreteNodes(newConcreteNodes).await.keys.toList
         logInfo("created concrete node", s"createdNodeIds = $createdNodeIds").await
 
         createdNodeIds.size mustEqual 3
@@ -78,7 +78,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
           AbstractNode.New(None)
         ))
 
-        val createdNodeIds: List[HnId] = res.graph.newAbstractNodes(newAbstractNodes).await
+        val createdNodeIds: List[HnId] = res.graph.newAbstractNodes(newAbstractNodes).await.keys.toList
         logInfo("created abstract node", s"createdNodeIds = $createdNodeIds").await
 
         createdNodeIds.size mustEqual 3
@@ -93,11 +93,12 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         val nameToFind1 = res.nodes.abstractNodes.head._2.name.get
         val nameToFind2 = res.nodes.concreteNodes.head._2.name.get
 
-        val foundNodes: Map[Name, Set[HiddenNode[IO]]] = res.graph
-          .findHiddenNodesByNames(Set(nameToFind1, nameToFind2))
+        val foundNodes: Map[Name, List[HiddenNode[IO]]] = res.graph
+          .findHiddenNodesByNames(List(nameToFind1, nameToFind2))
           .await
 
-        foundNodes.toList.traverse((name, nodes) => logInfo("found hidden node", s"name = $name, nodes = $nodes")).await
+        foundNodes.toList
+          .traverse((name, nodes) => logInfo("found hidden node", s"name = $name, nodes = $nodes")).await
 
         foundNodes.size mustEqual 2
         foundNodes.keySet mustEqual Set(nameToFind1, nameToFind2)

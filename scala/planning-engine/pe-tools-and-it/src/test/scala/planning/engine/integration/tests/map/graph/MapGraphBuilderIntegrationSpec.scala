@@ -38,9 +38,7 @@ class MapGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithIt
         val loadedGraph = builder.load(testMapConfig).logValue("loaded graph").await
 
         createdGraph.metadata mustEqual testMetadata
-        createdGraph.inputNodes mustEqual List(boolInNode)
-        createdGraph.outputNodes mustEqual List(boolOutNode)
+        createdGraph.ioNodes mustEqual boolIoNodes
 
         createdGraph.metadata mustEqual loadedGraph.metadata
-        createdGraph.inputNodes mustEqual loadedGraph.inputNodes
-        createdGraph.outputNodes mustEqual loadedGraph.outputNodes
+        createdGraph.ioNodes mustEqual loadedGraph.ioNodes

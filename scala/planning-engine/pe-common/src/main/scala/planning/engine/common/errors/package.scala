@@ -13,52 +13,44 @@
 package planning.engine.common.errors
 
 import cats.ApplicativeThrow
-import scala.collection.AbstractSeq
+
+import scala.collection.Seq
 
 package object errors
+
+private def predicateAssert[F[_]: ApplicativeThrow, V](p: Boolean, v: V, msg: String): F[V] =
+  if p then ApplicativeThrow[F].pure(v)
+  else ApplicativeThrow[F].raiseError(AssertionError(msg))
 
 extension (msg: String)
   inline def assertionError[F[_]: ApplicativeThrow, V]: F[V] = ApplicativeThrow[F].raiseError(AssertionError(msg))
 
-extension [T, C[_] <: AbstractSeq[T]](seq: C[T])
+extension [T, C[_] <: Seq[T]](seq: C[T])
   inline def assertDistinct[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    if seq.distinct.size == seq.size then
-      ApplicativeThrow[F].pure(seq)
-    else
-      ApplicativeThrow[F].raiseError(AssertionError(msg + s", seq: ${seq.mkString(",")}"))
+    predicateAssert(seq.distinct.size == seq.size, seq, msg + s", seq: ${seq.mkString(",")}")
 
   inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    if seq.nonEmpty then
-      ApplicativeThrow[F].pure(seq)
-    else
-      ApplicativeThrow[F].raiseError(AssertionError(msg + s", seq: ${seq.mkString(",")}"))
+    predicateAssert(seq.nonEmpty, seq, msg + s", seq: ${seq.mkString(",")}")
+
+  inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
+    predicateAssert(seq.isEmpty || (seq.distinct.size == 1), seq, msg + s", seq: ${seq.mkString(",")}")
 
 extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[L], CR[R]))
-  inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
-    if value._1.iterator.size == value._2.iterator.size then
-      ApplicativeThrow[F].pure(value)
-    else
-      ApplicativeThrow[F].raiseError(
-        AssertionError(msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}")
-      )
+  inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] = predicateAssert(
+    value._1.iterator.size == value._2.iterator.size,
+    value,
+    msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}"
+  )
 
-  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
-    if value._1.iterator.toSet == value._2.iterator.toSet then
-      ApplicativeThrow[F].pure(value)
-    else
-      ApplicativeThrow[F].raiseError(
-        AssertionError(
-          msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
-        )
-      )
+  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] = predicateAssert(
+    value._1.iterator.toSet == value._2.iterator.toSet,
+    value,
+    msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
+  )
 
 extension (bool: Boolean)
-  inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] =
-    if bool then ApplicativeThrow[F].unit
-    else ApplicativeThrow[F].raiseError(AssertionError(msg))
+  inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(bool, (), msg)
 
 extension (value: Long)
   inline def assetAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
-    if value > 0 then ApplicativeThrow[F].unit
-    else
-      ApplicativeThrow[F].raiseError(AssertionError(msg + s", expecter to be positive not null value, but got: $value"))
+    predicateAssert(value >= 0, (), msg + s", expecter to be a number not null value, but got: $value")

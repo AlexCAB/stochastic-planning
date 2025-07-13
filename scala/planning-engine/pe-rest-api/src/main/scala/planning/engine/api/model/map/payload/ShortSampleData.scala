@@ -12,12 +12,9 @@
 
 package planning.engine.api.model.map.payload
 
-import cats.effect.kernel.Concurrent
-import org.http4s.EntityDecoder
-import org.http4s.circe.jsonOf
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import planning.engine.api.model.values.*
+import io.circe.{Encoder, Decoder}
 
 final case class ShortSampleData(
     id: SampleId,
@@ -25,6 +22,8 @@ final case class ShortSampleData(
 )
 
 object ShortSampleData:
-  import io.circe.generic.auto.*
+  import io.circe.generic.semiauto.*
+  import planning.engine.api.model.values.*
 
-  implicit def decoder[F[_]: Concurrent]: EntityDecoder[F, ShortSampleData] = jsonOf[F, ShortSampleData]
+  implicit val decoder: Decoder[ShortSampleData] = deriveDecoder[ShortSampleData]
+  implicit val encoder: Encoder[ShortSampleData] = deriveEncoder[ShortSampleData]

@@ -47,14 +47,17 @@ trait Neo4jDatabaseLike[F[_]]:
   ): F[List[Node]]
 
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
-  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[List[HnId]]
-  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[List[HnId]]
-  def findHiddenNodesByNames(names: Set[Name], getIoNode: Name => F[IoNode[F]]): F[Map[Name, Set[HiddenNode[F]]]]
-  def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]]
+  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[HnId, Option[Name]]]
+  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[Name]]]
+  def findHiddenNodesByNames(names: List[Name], getIoNode: Name => F[IoNode[F]]): F[Map[Name, List[HiddenNode[F]]]]
+  def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]]
   def countHiddenNodes: F[Long]
   def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
   def countSamples: F[Long]
-  def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[Set[NextSampleEdge[F]]]
+  def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[List[NextSampleEdge[F]]]
+  def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
+  def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
+  def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
   private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
@@ -112,32 +115,34 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
   override def createConcreteNodes(
       initNextHnIndex: Long,
       params: List[ConcreteNode.New]
-  ): F[List[HnId]] = driver.transact(writeConf): tx =>
+  ): F[Map[HnId, Option[Name]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
       _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex).map(p => (n.ioNodeName, p)))
       createdIds <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
-    yield createdIds.map(HnId.apply)
+      _ <- createdIds.map(_._1).assertDistinct("Concrete node ids should be distinct")
+    yield createdIds.map((id, name) => HnId(id) -> name.map(Name.apply)).toMap
 
-  override def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[List[HnId]] =
+  override def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[Name]]] =
     driver.transact(writeConf): tx =>
       for
         newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
         _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
         params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
         createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
-      yield createdIds.map(HnId.apply)
+        _ <- createdIds.map(_._1).assertDistinct("Abstract node ids should be distinct")
+      yield createdIds.map((id, name) => HnId(id) -> name.map(Name.apply)).toMap
 
   override def findHiddenNodesByNames(
-      names: Set[Name],
+      names: List[Name],
       getIoNode: Name => F[IoNode[F]]
-  ): F[Map[Name, Set[HiddenNode[F]]]] = driver.transact(readConf): tx =>
-    def buildMap(allNodes: List[HiddenNode[F]]): F[Map[Name, Set[HiddenNode[F]]]] = allNodes
+  ): F[Map[Name, List[HiddenNode[F]]]] = driver.transact(readConf): tx =>
+    def buildMap(allNodes: List[HiddenNode[F]]): F[Map[Name, List[HiddenNode[F]]]] = allNodes
       .foldRight(List[(Name, HiddenNode[F])]().pure):
         case (node, acc) if node.name.nonEmpty => acc.map(nl => (node.name.get -> node) +: nl)
         case (node, _)                         => s"Seems bug, node expected to have name, node = $node".assertionError
-      .map(_.groupBy(_._1).map((name, nodes) => (name, nodes.map(_._2).toSet)))
+      .map(_.groupBy(_._1).map((name, nodes) => (name, nodes.map(_._2))))
 
     for
       ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(_._2))
@@ -147,10 +152,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       nodesMap <- buildMap(abstractNodes ++ concreteNodes)
     yield nodesMap
 
-  override def findHnIdsByNames(names: Set[Name]): F[Map[Name, Set[HnId]]] = driver.transact(readConf): tx =>
+  override def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]] = driver.transact(readConf): tx =>
     for
         ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
-    yield ids.map(r => Name(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2).toSet).toMap
+    yield ids.map(r => Name(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
@@ -165,7 +170,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
         yield storedSample
 
       def makeHnIndexies: F[Map[HnId, List[HnIndex]]] = params.numHnIndexPerHn.toSeq
-        .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.map(HnIndex.apply)))
+        .traverse((id, c) => getNextHnIndexQuery(id.value, c)(tx).map(ins => id -> ins.reverse.map(HnIndex.apply)))
         .map(_.toMap)
 
       def addSampleEdge(
@@ -187,14 +192,14 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       for
         storedSamples <- storeSamples
         hnIndexies <- makeHnIndexies
-        _ <- params.allEdges.toSeq.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
+        _ <- params.allEdges.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
         edgeIds <- addSampleEdge(storedSamples, hnIndexies)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
       yield (storedSamples.map(_._1), edgeIds)
 
   override def countSamples: F[Long] = driver.transact(readConf)(tx => countSamplesQuery(tx))
 
-  override def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[Set[NextSampleEdge[F]]] =
+  override def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[List[NextSampleEdge[F]]] =
     driver.transact(readConf): tx =>
       def loadSamples(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]] =
         for
@@ -202,26 +207,44 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
           sampleData <- rawSamples.traverse(node => SampleData.fromNode(node))
         yield sampleData.map(sd => sd.id -> sd).toMap
 
-      def makeNextEdges(
-          edges: List[(Long, Set[SampleEdge])],
-          sampleDataMap: Map[SampleId, SampleData],
-          hnMap: Map[HnId, HiddenNode[F]]
-      ): F[Set[NextSampleEdge[F]]] = edges.traverse((nId, sampleEdges) =>
-        val hnId = HnId(nId)
-        sampleEdges.toList.traverse(edge => NextSampleEdge.fromSampleEdge(edge, hnId, sampleDataMap, hnMap))
-      ).map(_.flatten.toSet)
-
       for
         rawEdges <- getNextEdgesQuery(currentNodeId.value)(tx)
-        sampleEdge <- rawEdges.traverse((edge, nId) => SampleEdge.fromEdge(edge).map(es => (nId, es)))
+        sampleEdges <- rawEdges.flatTraverse((edge, nId) => SampleEdge.fromEdge(currentNodeId, HnId(nId), edge))
         nextHnIds = rawEdges.map(_._2)
-        sampleIds = sampleEdge.flatMap(_._2.map(_.sampleId))
+        sampleIds = sampleEdges.map(_.sampleId)
         abstractNodes <- loadAbstractNodes(nextHnIds)(tx)
         concreteNodes <- loadConcreteNodes(nextHnIds, getIoNode)(tx)
         sampleMap <- loadSamples(sampleIds)
         hnMap = (abstractNodes ++ concreteNodes).map(n => n.id -> n).toMap
-        nextEdges <- makeNextEdges(sampleEdge, sampleMap, hnMap)
+        nextEdges <- sampleEdges.traverse(e => NextSampleEdge.fromSampleEdge(e, sampleMap, hnMap))
       yield nextEdges
+
+  override def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]] = driver
+    .transact(readConf): tx =>
+      for
+        rawNames <- getSampleNamesQuery(sampleIds.map(_.value))(tx)
+        _ <- rawNames.map(_._1).assertDistinct("Sample Ids should be distinct")
+      yield rawNames.map((id, name) => SampleId(id) -> name.map(Name.apply)).toMap
+
+  override def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]] = driver
+    .transact(readConf): tx =>
+      for
+        rawNodes <- getSamplesQuery(sampleIds.map(_.value))(tx)
+        samples <- rawNodes.traverse(node => SampleData.fromNode(node))
+        _ <- samples.map(_.id).assertDistinct("Sample Ids should be distinct")
+      yield samples.map(sd => sd.id -> sd).toMap
+
+  override def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]] = driver
+    .transact(readConf): tx =>
+      for
+        rawNodes <- getSamplesQuery(sampleIds.map(_.value))(tx)
+        sampleDataMap <- rawNodes.traverse(node => SampleData.fromNode(node)).map(_.map(sd => sd.id -> sd).toMap)
+        _ <- (sampleIds, sampleDataMap.keys).assertSameElems("Not for all sample the data were found")
+        rawEdges <- getSampleEdgesQuery(sampleIds.map(_.toPropName))(tx).map(_.map((s, e, t) => (HnId(s), e, HnId(t))))
+        edges <- sampleIds.traverse(sId => SampleEdge.fromEdgesBySampleId(rawEdges, sId).map(e => sId -> e))
+        edgesMap = edges.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap
+        _ <- (sampleIds, edgesMap.keys).assertSameElems("Not for all sample the edges were found")
+      yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
 
 object Neo4jDatabase:
   def apply[F[_]: Async](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =

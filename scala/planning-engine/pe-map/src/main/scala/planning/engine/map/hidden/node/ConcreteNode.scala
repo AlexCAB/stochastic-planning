@@ -51,6 +51,9 @@ object ConcreteNode:
 
   final case class ListNew(list: List[New])
 
+  object ListNew:
+    def of(elems: New*): ListNew = ListNew(elems.toList)
+
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for

@@ -18,6 +18,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.{Description, Name}
+import cats.effect.cps.*
 
 class MapAddSamplesRequestSpec extends UnitSpecWithData:
 
@@ -46,6 +47,30 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData:
     )
 
     lazy val testRequest: MapAddSamplesRequest = MapAddSamplesRequest(samples = List(testNewSampleData))
+
+  "MapAddSamplesRequest.hnNames" should:
+    "list all hidden node names" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        data.testRequest.hnNames mustEqual List(data.testConcreteNodeDef.name, data.testAbstractNodeDef.name)
+
+  "MapAddSamplesRequest.listNewNotFoundHn" should:
+    "return empty lists when all hidden nodes are found" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        val foundHnNames = Set(data.testConcreteNodeDef.name, data.testAbstractNodeDef.name)
+        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(foundHnNames)
+
+        concreteList.list mustBe empty
+        abstractList.list mustBe empty
+
+    "return lists of new hidden nodes when some are not found" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(Set())
+
+        concreteList.list.size mustEqual 1
+        concreteList.list.head mustEqual data.testConcreteNodeDef.toNew
+
+        abstractList.list.size mustEqual 1
+        abstractList.list.head mustEqual data.testAbstractNodeDef.toNew
 
   "MapAddSamplesRequest.toSampleNewList(...)" should:
     "convert to new samples" in newCase[CaseData]: (_, data) =>

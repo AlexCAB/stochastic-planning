@@ -158,4 +158,5 @@ object MapGraph:
       _ <- Validation.validateList(outNodes)
       ioNodes = (inNodes ++ outNodes).map(n => n.name -> n)
       _ <- ioNodes.map(_._1).assertDistinct("Input and output nodes names must have unique names")
+      _ <- LoggerFactory[F].getLogger.info(s"MapGraph built, connected to database: $database")
     yield new MapGraph[F](config, metadata, ioNodes.toMap, database)

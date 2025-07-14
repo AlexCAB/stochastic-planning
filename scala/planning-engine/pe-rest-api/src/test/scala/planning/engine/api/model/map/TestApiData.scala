@@ -17,8 +17,17 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.map.graph.MapConfig
 
 trait TestApiData:
+  lazy val testConfig: MapConfig = MapConfig(
+    initNextHnId = 100L,
+    initNextSampleId = 200L,
+    initSampleCount = 300L,
+    initNextHnIndex = 400L,
+    samplesName = "samples"
+  )
+
   lazy val testMapInitRequest = MapInitRequest(
     name = Some(Name("testMapName")),
     description = Some(Description("testMapDescription")),
@@ -38,12 +47,12 @@ trait TestApiData:
     testMapInitRequest.outputNodes.size,
     numHiddenNodes = 3L
   )
-  
+
   lazy val testConNodeDef1 = ConcreteNodeDef(Name("conHn1"), Name("ioNode1"), IoIndex(0))
   lazy val testConNodeDef2 = ConcreteNodeDef(Name("conHn2"), Name("ioNode2"), IoIndex(1))
   lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"))
   lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"))
-  
+
   lazy val testMapAddSamplesRequest = MapAddSamplesRequest(
     samples = List(
       NewSampleData(

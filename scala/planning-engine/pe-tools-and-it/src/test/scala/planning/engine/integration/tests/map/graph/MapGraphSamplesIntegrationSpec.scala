@@ -122,10 +122,18 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
 
         result mustEqual res.samples.samples.view.mapValues(_.data.name).toMap
 
-  "MapGraph.getSampleNames" should:
+  "MapGraph.getSamplesData" should:
     "return get sample data" in: res =>
       async[IO]:
         val result: Map[SampleId, SampleData] = res.graph
-          .getSamplesData(res.samples.allSampleIds.toList).logValue("get sample names", "result").await
+          .getSamplesData(res.samples.allSampleIds.toList).logValue("get sample data", "result").await
 
         result mustEqual res.samples.samples.view.mapValues(_.data).toMap
+
+  "MapGraph.getSamples" should:
+    "return get samples" in: res =>
+      async[IO]:
+        val result: Map[SampleId, Sample] = res.graph
+          .getSamples(res.samples.allSampleIds.toList).logValue("get samples", "result").await
+
+        result mustEqual res.samples.samples

@@ -381,7 +381,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
         expectedSampleNames mustEqual gotSampleNames
 
   "Neo4jDatabase.getSamplesData(...)" should:
-    "return sample data" in: (itDb, neo4jdb, nodes) =>
+    "return sample data" in: (_, neo4jdb, nodes) =>
       async[IO]:
         val sampleMap: Map[SampleId, Sample.New] = addFourNamedSamples(nodes.allNodeIds, neo4jdb)
 
@@ -395,19 +395,18 @@ class Neo4jDatabaseSamplesIntegrationSpec
         expectedSampleData mustEqual gotSampleData
 
   "Neo4jDatabase.getSamples(...)" should:
-    "return samples for it IDs" in: (itDb, neo4jdb, nodes) =>
+    "return samples for it IDs" in: (_, neo4jdb, nodes) =>
       async[IO]:
-        val testSampls: Map[SampleId, Sample.New] = addFourNamedSamples(nodes.allNodeIds, neo4jdb)
+        val testSamples: Map[SampleId, Sample.New] = addFourNamedSamples(nodes.allNodeIds, neo4jdb)
 
-        val gotSampls: Map[SampleId, Sample] = neo4jdb
-          .getSamples(testSampls.keys.toList).logValue("get samples", "gotSampls").await
+        val gotSamples: Map[SampleId, Sample] = neo4jdb
+          .getSamples(testSamples.keys.toList).logValue("get samples", "gotSamples").await
 
-        testSampls.size mustEqual gotSampls.size
-        testSampls.keySet mustEqual gotSampls.keySet
+        testSamples.keySet mustEqual gotSamples.keySet
 
-        testSampls.keySet.foreach: id =>
-          val testSample = testSampls(id)
-          val gotSample = gotSampls(id)
+        testSamples.keySet.foreach: id =>
+          val testSample = testSamples(id)
+          val gotSample = gotSamples(id)
 
           testSample.probabilityCount mustEqual gotSample.data.probabilityCount
           testSample.utility mustEqual gotSample.data.utility

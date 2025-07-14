@@ -39,14 +39,14 @@ object HiddenNodeDef:
 
   given Encoder[HiddenNodeDef] = new Encoder[HiddenNodeDef]:
     final def apply(data: HiddenNodeDef): Json = data match
-      case con: ConcreteNodeDef => Json.obj("type" -> Json.fromString("ConcreteNodeDef"), "data" -> con.asJson)
-      case abs: AbstractNodeDef => Json.obj("type" -> Json.fromString("AbstractNodeDef"), "data" -> abs.asJson)
+      case con: ConcreteNodeDef => Json.obj("type" -> Json.fromString("ConcreteNode"), "data" -> con.asJson)
+      case abs: AbstractNodeDef => Json.obj("type" -> Json.fromString("AbstractNode"), "data" -> abs.asJson)
 
   given Decoder[HiddenNodeDef] = new Decoder[HiddenNodeDef]:
     final def apply(c: HCursor): Decoder.Result[HiddenNodeDef] =
       for
         tpe <- c.downField("type").as[String]
         data <- tpe match
-          case "ConcreteNodeDef" => c.downField("data").as[ConcreteNodeDef]
-          case "AbstractNodeDef" => c.downField("data").as[AbstractNodeDef]
+          case "ConcreteNode" => c.downField("data").as[ConcreteNodeDef]
+          case "AbstractNode" => c.downField("data").as[AbstractNodeDef]
       yield data

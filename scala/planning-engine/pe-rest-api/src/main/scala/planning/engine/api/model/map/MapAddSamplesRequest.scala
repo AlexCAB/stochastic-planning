@@ -25,7 +25,7 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 final case class MapAddSamplesRequest(
     samples: List[NewSampleData]
 ):
-  val hnNames: List[Name] = samples.flatMap(_.hiddenNodes.map(_.name)).distinct
+  lazy val hnNames: List[Name] = samples.flatMap(_.hiddenNodes.map(_.name)).distinct
 
   def listNewNotFoundHn(foundHnNames: Set[Name]): (ConcreteNode.ListNew, AbstractNode.ListNew) =
     val hns = samples.flatMap(_.hiddenNodes).filterNot(hn => foundHnNames.contains(hn.name))

@@ -19,6 +19,7 @@ import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import neotypes.cats.effect.implicits.*
 import cats.syntax.all.*
+import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
@@ -46,6 +47,7 @@ trait Neo4jDatabaseLike[F[_]]:
       outNodes: List[OutputNode[F]]
   ): F[List[Node]]
 
+  def checkConnection: F[Long]
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
   def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[HnId, Option[Name]]]
   def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[Name]]]
@@ -78,6 +80,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       concreteNodes <- withIoNames
         .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
     yield concreteNodes
+
+  override def toString: String = s"Neo4jDatabase(dbName = $dbName)"
+
+  override def checkConnection: F[Long] = driver.transact(readConf)(tx => checkConnectionQuery(tx))
 
   override def initDatabase(
       config: MapConfig,
@@ -247,7 +253,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
 
 object Neo4jDatabase:
-  def apply[F[_]: Async](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =
+  def apply[F[_]: {Async, LoggerFactory}](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =
     for
-        driver <- GraphDatabase.asyncDriver[F](connectionConf.uri, connectionConf.authToken)
-    yield new Neo4jDatabase[F](driver, dbName)
+      driver <- GraphDatabase.asyncDriver[F](connectionConf.uri, connectionConf.authToken)
+      db = new Neo4jDatabase[F](driver, dbName)
+      numOfNodes <- Resource.eval(db.checkConnection)
+      _ <- Resource.eval(LoggerFactory[F].getLogger.info(s"Initialized $db, total number of nodes: $numOfNodes"))
+    yield db

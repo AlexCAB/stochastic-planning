@@ -32,6 +32,11 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
     yield (itDb, neo4jdb)
 
   "Neo4jDatabase" should:
+    "check connection" in: (_, neo4jdb) =>
+      async[IO]:
+        val numOfNodes: Long = neo4jdb.checkConnection.logValue("check connection").await
+        numOfNodes must be >= 0L
+
     "create root nodes" in: (itDb, neo4jdb) =>
       import neotypes.syntax.all.*
       given WithItDb.ItDb = itDb

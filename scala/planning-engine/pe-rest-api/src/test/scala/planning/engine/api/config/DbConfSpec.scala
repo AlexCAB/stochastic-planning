@@ -27,7 +27,6 @@ class DbConfSpec extends UnitSpecWithData:
         |  user = "neo4j"
         |  password = "password"
         |}
-        |name = "testDatabase"
         |""".stripMargin
     )
 
@@ -35,7 +34,4 @@ class DbConfSpec extends UnitSpecWithData:
     "create DbConf from valid configuration" in newCase[CaseData]: (tn, data) =>
       DbConf.formConfig[IO](data.validConfig)
         .logValue(tn)
-        .asserting(_ mustEqual DbConf(
-          Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password"),
-          "testDatabase"
-        ))
+        .asserting(_ mustEqual DbConf(Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password")))

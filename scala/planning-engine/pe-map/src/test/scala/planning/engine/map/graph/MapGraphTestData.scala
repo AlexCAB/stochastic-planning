@@ -16,6 +16,7 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
@@ -27,6 +28,8 @@ import planning.engine.map.subgraph.NextSampleEdge
 
 trait MapGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
+
+  lazy val testDbName = DbName("test-map-db")
 
   lazy val testMapConfig = MapConfig(
     initNextHnId = 1L,

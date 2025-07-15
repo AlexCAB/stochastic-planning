@@ -17,19 +17,23 @@ import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithResource
 import planning.engine.map.database.Neo4jDatabaseLike
 import cats.effect.cps.*
+import planning.engine.common.values.db.DbName
 
-class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], MapBuilder[IO])] with AsyncMockFactory
-    with MapGraphTestData:
+class MapGraphBuilderSpec
+    extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], DbName => IO[Neo4jDatabaseLike[IO]], MapBuilder[IO])]
+    with AsyncMockFactory with MapGraphTestData:
 
-  override val resource: Resource[IO, (Neo4jDatabaseLike[IO], MapBuilder[IO])] =
+  override val resource: Resource[IO, (Neo4jDatabaseLike[IO], DbName => IO[Neo4jDatabaseLike[IO]], MapBuilder[IO])] =
     for
       mockedDb <- Resource.pure(mock[Neo4jDatabaseLike[IO]])
-      builder <- MapBuilder[IO](mockedDb)
-    yield (mockedDb, builder)
+      mockedMakeDb <- Resource.pure(mock[DbName => IO[Neo4jDatabaseLike[IO]]])
+      builder <- Resource.pure(new MapBuilder[IO](mockedMakeDb))
+    yield (mockedDb, mockedMakeDb, builder)
 
-  "KnowledgeGraphBuilder.init(...)" should:
-    "create knowledge graph in given database" in: (mockedDb, builder) =>
+  "MapGraphBuilder.init(...)" should:
+    "create map graph in given database" in: (mockedDb, mockedMakeDb, builder) =>
       async[IO]:
+        mockedMakeDb.apply.expects(testDbName).returns(IO.pure(mockedDb)).once()
 
         mockedDb.initDatabase
           .expects(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
@@ -37,22 +41,24 @@ class MapGraphBuilderSpec extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], M
           .once()
 
         val graph: MapGraphLake[IO] = builder
-          .init(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
+          .init(testDbName, testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
           .await
 
         graph.metadata mustEqual testMetadata
         graph.ioNodes mustEqual Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)
 
-  "KnowledgeGraphBuilder.load(...)" should:
-    "load knowledge graph in from database" in: (mockedDb, builder) =>
+  "MapGraphBuilder.load(...)" should:
+    "load map graph in from database" in: (mockedDb, mockedMakeDb, builder) =>
       async[IO]:
+        mockedMakeDb.apply.expects(testDbName).returns(IO.pure(mockedDb)).once()
 
         (() => mockedDb.loadRootNodes)
           .expects()
           .returns(IO.pure((testMetadata, List(boolInNode), List(boolOutNode))))
           .once()
+        println(s"Loaded graph")
 
-        val graph: MapGraphLake[IO] = builder.load(testMapConfig).await
+        val graph: MapGraphLake[IO] = builder.load(testDbName, testMapConfig).logValue("load", "graph").await
 
         graph.metadata mustEqual testMetadata
         graph.ioNodes mustEqual Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)

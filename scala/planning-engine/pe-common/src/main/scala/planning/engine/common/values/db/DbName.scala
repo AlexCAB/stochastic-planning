@@ -8,13 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-08 |||||||||||*/
+| created: 2025-07-15 |||||||||||*/
 
-package planning.engine.common.values.text
+package planning.engine.common.values.db
 
 import planning.engine.common.values.{StringBuilders, StringVal}
 
-final case class Name(value: String) extends AnyVal with StringVal
+final case class DbName(value: String) extends AnyVal with StringVal
 
-object Name extends StringBuilders[Name]:
-  protected def makeValue(str: String): Name = Name(str)
+object DbName extends StringBuilders[DbName]:
+  protected def makeValue(str: String): DbName = DbName(str)

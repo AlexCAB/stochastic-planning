@@ -18,54 +18,64 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
 import cats.syntax.all.*
 import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake}
-import planning.engine.common.errors.{assertSameElems, assertionError, assertDistinct}
+import planning.engine.common.errors.{assertDistinct, assertSameElems, assertionError}
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 
 trait MapServiceLike[F[_]]:
-  def init(definition: MapInitRequest): F[MapInfoResponse]
-  def load: F[MapInfoResponse]
+  def init(request: MapInitRequest): F[MapInfoResponse]
+  def load(request: MapLoadRequest): F[MapInfoResponse]
   def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse]
 
 class MapService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
-    mgState: AtomicCell[F, Option[MapGraphLake[F]]]
+    mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]]
 ) extends MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
-  private def initError(graph: MapGraphLake[F]): F[(Option[MapGraphLake[F]], MapInfoResponse)] =
+  private def initError(
+      graph: MapGraphLake[F],
+      dbName: DbName
+  ): F[(Option[(MapGraphLake[F], DbName)], MapInfoResponse)] =
     for
-      _ <- logger.error(s"Knowledge graph already initialized, overwriting, $graph")
-      err <- "Knowledge graph already initialized".assertionError[F, (Option[MapGraphLake[F]], MapInfoResponse)]
+      msg <- s"Map graph already initialized, graph = $graph, dbName = $dbName".pure[F]
+      _ <- logger.error(msg)
+      err <- msg.assertionError[F, (Option[(MapGraphLake[F], DbName)], MapInfoResponse)]
     yield err
 
   private def withGraph[R](block: MapGraphLake[F] => F[R]): F[R] = mgState.get.flatMap:
-    case Some(kg) => block(kg)
-    case None     => "Map graph is not initialized".assertionError[F, R]
+    case Some((mapGraph, _)) => block(mapGraph)
+    case None                => "Map graph is not initialized".assertionError[F, R]
 
-  override def init(definition: MapInitRequest): F[MapInfoResponse] = mgState.evalModify:
+  override def init(request: MapInitRequest): F[MapInfoResponse] = mgState.evalModify:
     case None =>
       for
-        metadata <- definition.toMetadata
-        inputNodes <- definition.toInputNodes
-        outputNodes <- definition.toOutputNodes
-        knowledgeGraph <- builder.init(config, metadata, inputNodes, outputNodes)
-        info <- MapInfoResponse.fromKnowledgeGraph(knowledgeGraph)
-      yield (Some(knowledgeGraph), info)
+        metadata <- request.toMetadata
+        inputNodes <- request.toInputNodes
+        outputNodes <- request.toOutputNodes
+        mapGraph <- builder.init(request.dbName, config, metadata, inputNodes, outputNodes)
+        info <- MapInfoResponse.fromMapGraph(mapGraph)
+      yield (Some(mapGraph, request.dbName), info)
 
-    case Some(kg) => initError(kg)
+    case Some((mapGraph, dbName)) => initError(mapGraph, dbName)
 
-  override def load: F[MapInfoResponse] = mgState.evalModify:
+  override def load(request: MapLoadRequest): F[MapInfoResponse] = mgState.evalModify:
     case None =>
       for
-        knowledgeGraph <- builder.load(config)
-        info <- MapInfoResponse.fromKnowledgeGraph(knowledgeGraph)
-      yield (Some(knowledgeGraph), info)
+        mapGraph <- builder.load(request.dbName, config)
+        info <- MapInfoResponse.fromMapGraph(mapGraph)
+      yield (Some(mapGraph, request.dbName), info)
 
-    case Some(kg) => initError(kg)
+    case Some((mapGraph, dbName)) if dbName == request.dbName =>
+      for
+          info <- MapInfoResponse.fromMapGraph(mapGraph)
+      yield (Some(mapGraph, dbName), info)
+
+    case Some((mapGraph, dbName)) => initError(mapGraph, dbName)
 
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = withGraph: graph =>
     def composeHnIdMap(
@@ -103,5 +113,7 @@ object MapService:
       config: MapConfig,
       builder: MapBuilderLike[F]
   ): Resource[F, MapService[F]] = Resource.eval(
-    AtomicCell[F].of[Option[MapGraphLake[F]]](None).map(mgState => new MapService[F](config, builder, mgState))
+    AtomicCell[F].of[Option[(MapGraphLake[F], DbName)]](None).map(mgState =>
+      new MapService[F](config, builder, mgState)
+    )
   )

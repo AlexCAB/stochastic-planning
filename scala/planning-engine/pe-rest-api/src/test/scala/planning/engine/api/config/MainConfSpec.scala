@@ -30,7 +30,6 @@ class MainConfSpec extends UnitSpecWithData:
         |    user = "neo4j"
         |    password = "password"
         |  }
-        |  name = "testDatabase"
         |}
         |api.server {
         |  host = "127.0.0.1"
@@ -52,10 +51,7 @@ class MainConfSpec extends UnitSpecWithData:
       MainConf.formConfig[IO](data.validConfig)
         .logValue(tn, "MainConf")
         .asserting(_ mustEqual MainConf(
-          db = DbConf(
-            Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password"),
-            "testDatabase"
-          ),
+          db = DbConf(Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password")),
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           mapGraph = MapConfig(
             initNextHnId = 1L,

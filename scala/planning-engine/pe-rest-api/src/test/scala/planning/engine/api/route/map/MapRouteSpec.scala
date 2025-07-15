@@ -51,11 +51,12 @@ class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO
   "POST /map/load" should:
     "return OK and valid response when loading succeeds" in: (mockService, route) =>
       async[IO]:
+        logInfo("POST /map/load", s"Request JSON: ${testMapLoadRequest.asJson}").await
         logInfo("POST /map/load", s"Response JSON: ${testMapInfoResponse.asJson}").await
 
-        (() => mockService.load).expects().returns(IO.pure(testMapInfoResponse)).once()
+        mockService.load.expects(testMapLoadRequest).returns(IO.pure(testMapInfoResponse)).once()
 
-        val request = Request[IO](Method.POST, uri"/map/load")
+        val request = Request[IO](Method.POST, uri"/map/load").withEntity(testMapLoadRequest)
         val response: Response[IO] = route.endpoints.run(request).value
           .logValue("load")
           .await.getOrElse(fail("Expected a response"))

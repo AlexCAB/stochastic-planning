@@ -24,6 +24,7 @@ import neotypes.cats.effect.implicits.*
 import neotypes.mappers.ResultMapper
 import neotypes.model.types.{Node, Relationship, Value}
 import neotypes.query.DeferredQueryBuilder
+import planning.engine.common.values.db.DbName
 import neotypes.syntax.all.*
 import cats.syntax.all.*
 import planning.engine.common.values.node.HnId
@@ -34,19 +35,19 @@ trait WithItDb:
 
   val removeDbAfterTest: Boolean = true
 
-  private def createDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: String): IO[ItDb] =
+  private def createDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: DbName): IO[ItDb] =
     for
-      _ <- c"CREATE DATABASE $dbName".execute.void(driver)
-      _ <- c"START DATABASE $dbName".execute.void(driver)
+      _ <- c"CREATE DATABASE ${dbName.value}".execute.void(driver)
+      _ <- c"START DATABASE ${dbName.value}".execute.void(driver)
       _ <- IO.sleep(2.second) // Wait for the database to start
       _ <- logInfo("createDb", s"[WithItDb] Database $dbName created and started.")
     yield ItDb(config, driver, dbName)
 
-  private def dropDb(driver: AsyncDriver[IO], dbName: String): IO[Unit] =
+  private def dropDb(driver: AsyncDriver[IO], dbName: DbName): IO[Unit] =
     if removeDbAfterTest then
       for
-        _ <- c"STOP DATABASE $dbName".execute.void(driver)
-        _ <- c"DROP DATABASE $dbName DESTROY DATA".execute.void(driver)
+        _ <- c"STOP DATABASE ${dbName.value}".execute.void(driver)
+        _ <- c"DROP DATABASE ${dbName.value} DESTROY DATA".execute.void(driver)
         _ <- logInfo("dropDb", s"[WithItDb] Database $dbName stopped and dropped.")
         _ <- IO.sleep(2.second) // Wait for the database to be dropped
       yield ()
@@ -57,14 +58,14 @@ trait WithItDb:
     for
       config <- Resource.eval(Neo4jConf
         .formConfig[IO](ConfigFactory.load("it_test_db.conf").getConfig("it_test_db.neo4j")))
-      dbName = "integration-test-db-" + UUID.randomUUID().toString
+      dbName = DbName("integration-test-db-" + UUID.randomUUID().toString)
       driver <- GraphDatabase.asyncDriver[IO](config.uri, config.authToken)
       itDb <- Resource.make(createDb(config, driver, dbName))(id => dropDb(id.driver, id.dbName))
     yield itDb
 
   extension (builder: DeferredQueryBuilder)
     def queryList[T](mapper: ResultMapper[T])(implicit db: WithItDb.ItDb): IO[List[T]] = builder
-      .query(mapper).list(db.driver, TransactionConfig.default.withDatabase(db.dbName))
+      .query(mapper).list(db.driver, TransactionConfig.default.withDatabase(db.dbName.value))
       .flatMap(_.traverseTap(n => logInfo("queryList", s"node = $n")))
       .logValue("queryList")
 
@@ -103,5 +104,5 @@ trait WithItDb:
       case _                => fail(s"Not found Long property $key in $node")
 
 object WithItDb:
-  final case class ItDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: String)
+  final case class ItDb(config: Neo4jConf, driver: AsyncDriver[IO], dbName: DbName)
   final case class ResourceWithDb[R](resource: R, itDb: ItDb)

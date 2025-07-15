@@ -17,6 +17,7 @@ import cats.effect.cps.*
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.database.Neo4jDatabase
 import planning.engine.map.graph.{MapBuilder, MapGraphTestData}
+import cats.syntax.all.*
 
 class MapGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, MapBuilder[IO])]
     with WithItDb with MapGraphTestData:
@@ -24,18 +25,18 @@ class MapGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithIt
   override val resource: Resource[IO, (WithItDb.ItDb, MapBuilder[IO])] =
     for
       itDb <- makeDb()
-      neo4jdb <- Neo4jDatabase[IO](itDb.config, itDb.dbName)
-      builder <- MapBuilder[IO](neo4jdb)
+      neo4jdb <- Resource.eval(Neo4jDatabase[IO](itDb.driver, itDb.dbName))
+      builder <- Resource.pure(new MapBuilder[IO](_ => neo4jdb.pure[IO]))
     yield (itDb, builder)
 
   "MapGraphBuilder" should:
-    "init KnowledgeGraph and load it" in: (_, builder) =>
+    "init KnowledgeGraph and load it" in: (itDb, builder) =>
       async[IO]:
         val createdGraph = builder
-          .init(testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
+          .init(itDb.dbName, testMapConfig, testMetadata, List(boolInNode), List(boolOutNode))
           .logValue("created graph").await
 
-        val loadedGraph = builder.load(testMapConfig).logValue("loaded graph").await
+        val loadedGraph = builder.load(itDb.dbName, testMapConfig).logValue("loaded graph").await
 
         createdGraph.metadata mustEqual testMetadata
         createdGraph.ioNodes mustEqual boolIoNodes

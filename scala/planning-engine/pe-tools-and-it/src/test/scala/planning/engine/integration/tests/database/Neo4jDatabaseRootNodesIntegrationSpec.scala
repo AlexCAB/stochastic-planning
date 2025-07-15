@@ -28,7 +28,7 @@ class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[
   override val resource: Resource[IO, (WithItDb.ItDb, Neo4jDatabase[IO])] =
     for
       itDb <- makeDb()
-      neo4jdb <- Neo4jDatabase[IO](itDb.config, itDb.dbName)
+      neo4jdb <- Resource.eval(Neo4jDatabase[IO](itDb.driver, itDb.dbName))
     yield (itDb, neo4jdb)
 
   "Neo4jDatabase" should:

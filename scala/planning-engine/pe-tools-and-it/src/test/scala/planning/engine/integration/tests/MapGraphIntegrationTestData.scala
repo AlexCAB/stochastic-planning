@@ -23,16 +23,20 @@ import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
 import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.syntax.all.*
+import neotypes.GraphDatabase
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
+import planning.engine.common.values.db.DbName
+import neotypes.cats.effect.implicits.*
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
   self: AsyncIOSpec & Matchers & SpecLogging =>
 
-  def createRootNodesInDb(dbConfig: Neo4jConf, dbName: String): Resource[IO, Neo4jDatabase[IO]] =
+  def createRootNodesInDb(dbConfig: Neo4jConf, dbName: DbName): Resource[IO, Neo4jDatabase[IO]] =
     for
-      neo4jdb <- Neo4jDatabase[IO](dbConfig, dbName)
+      driver <- GraphDatabase.asyncDriver[IO](dbConfig.uri, dbConfig.authToken)
+      neo4jdb <- Resource.eval(Neo4jDatabase[IO](driver, dbName))
       _ <- Resource.eval(neo4jdb.initDatabase(
         testMapConfig,
         testMetadata,
@@ -75,8 +79,8 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
 
   def loadTestMapGraph(neo4jdb: Neo4jDatabase[IO]): Resource[IO, MapGraph[IO]] =
     for
-      builder <- MapBuilder[IO](neo4jdb)
-      graph <- Resource.eval(builder.load(testMapConfig))
+      builder <- Resource.pure(new MapBuilder[IO](_ => neo4jdb.pure[IO]))
+      graph <- Resource.eval(builder.load(testDbName, testMapConfig))
     yield graph.asInstanceOf[MapGraph[IO]]
 
   def initHiddenNodesInDb(

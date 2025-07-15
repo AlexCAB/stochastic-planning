@@ -14,6 +14,7 @@ package planning.engine.api.model.map
 
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
@@ -28,7 +29,10 @@ trait TestApiData:
     samplesName = "samples"
   )
 
+  lazy val testDbName = DbName("testMapDb")
+
   lazy val testMapInitRequest = MapInitRequest(
+    dbName = testDbName,
     name = Some(Name("testMapName")),
     description = Some(Description("testMapDescription")),
     inputNodes = List(
@@ -40,6 +44,8 @@ trait TestApiData:
       ListStrIoNode(Name("listStrDef"), elements = List("a", "b", "c"))
     )
   )
+
+  lazy val testMapLoadRequest = MapLoadRequest(dbName = testDbName)
 
   lazy val testMapInfoResponse = MapInfoResponse(
     testMapInitRequest.name,

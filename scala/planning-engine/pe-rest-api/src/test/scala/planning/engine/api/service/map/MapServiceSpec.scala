@@ -21,6 +21,7 @@ import cats.effect.cps.*
 import cats.effect.std.AtomicCell
 import org.scalatest.compatible.Assertion
 import planning.engine.api.model.map.payload.ShortSampleData
+import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
@@ -45,7 +46,8 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
       mockGraph
 
     lazy val mockedGraph = mock[MapGraphLake[IO]]
-    lazy val service = new MapService(testConfig, mockBuilder, AtomicCell[IO].of(Some(mockedGraph)).unsafeRunSync())
+    lazy val service =
+      new MapService(testConfig, mockBuilder, AtomicCell[IO].of(Some((mockedGraph, testDbName))).unsafeRunSync())
 
   "MapService.init(...)" should:
     "initialize knowledge graph when none exists" in newCase[CaseData]: (tn, data) =>
@@ -56,7 +58,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
         val mockGraph = data.makeMockGraph(expInputNodes, expOutputNodes)
 
         data.mockBuilder.init
-          .expects(testConfig, expMetadata, expInputNodes, expOutputNodes)
+          .expects(testDbName, testConfig, expMetadata, expInputNodes, expOutputNodes)
           .returns(IO.pure(mockGraph))
           .once()
 
@@ -72,9 +74,9 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
       async[IO]:
         val mockGraph = data.makeMockGraph(List(), List())
 
-        data.mockBuilder.load.expects(testConfig).returns(IO.pure(mockGraph)).once()
+        data.mockBuilder.load.expects(testDbName, testConfig).returns(IO.pure(mockGraph)).once()
 
-        val mapInfo = data.emptyService.load.logValue(tn, "mapInfo").await
+        val mapInfo = data.emptyService.load(testMapLoadRequest).logValue(tn, "mapInfo").await
         mapInfo.mapName mustEqual testMapInitRequest.name
         mapInfo.numInputNodes mustEqual 0
         mapInfo.numOutputNodes mustEqual 0

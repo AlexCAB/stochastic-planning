@@ -13,16 +13,15 @@
 package planning.engine.map.database
 
 import cats.effect.Async
-import cats.effect.Resource
-import neotypes.{AsyncDriver, AsyncTransaction, GraphDatabase, TransactionConfig}
+import neotypes.{AsyncDriver, AsyncTransaction, TransactionConfig}
 import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import neotypes.cats.effect.implicits.*
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
+import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.graph.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
@@ -40,6 +39,7 @@ import planning.engine.map.subgraph.NextSampleEdge
   */
 
 trait Neo4jDatabaseLike[F[_]]:
+  def dbName: DbName
   def initDatabase(
       config: MapConfig,
       metadata: MapMetadata,
@@ -61,9 +61,10 @@ trait Neo4jDatabaseLike[F[_]]:
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
 
-class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends Neo4jDatabaseLike[F] with Neo4jQueries:
-  private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName)
-  private val readConf: TransactionConfig = TransactionConfig.readOnly.withDatabase(dbName)
+class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) extends Neo4jDatabaseLike[F]
+    with Neo4jQueries:
+  private val writeConf: TransactionConfig = TransactionConfig.default.withDatabase(dbName.value)
+  private val readConf: TransactionConfig = TransactionConfig.readOnly.withDatabase(dbName.value)
 
   private def loadAbstractNodes(ids: List[Long])(tx: AsyncTransaction[F]): F[List[AbstractNode[F]]] =
     for
@@ -81,7 +82,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
         .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
     yield concreteNodes
 
-  override def toString: String = s"Neo4jDatabase(dbName = $dbName)"
+  override def toString: String = s"Neo4jDatabase(dbName = ${dbName.value})"
 
   override def checkConnection: F[Long] = driver.transact(readConf)(tx => checkConnectionQuery(tx))
 
@@ -253,10 +254,9 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], dbName: String) extends
       yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
 
 object Neo4jDatabase:
-  def apply[F[_]: {Async, LoggerFactory}](connectionConf: Neo4jConf, dbName: String): Resource[F, Neo4jDatabase[F]] =
+  def apply[F[_]: {Async, LoggerFactory}](driver: AsyncDriver[F], dbName: DbName): F[Neo4jDatabase[F]] =
     for
-      driver <- GraphDatabase.asyncDriver[F](connectionConf.uri, connectionConf.authToken)
-      db = new Neo4jDatabase[F](driver, dbName)
-      numOfNodes <- Resource.eval(db.checkConnection)
-      _ <- Resource.eval(LoggerFactory[F].getLogger.info(s"Initialized $db, total number of nodes: $numOfNodes"))
+      db <- new Neo4jDatabase[F](driver, dbName).pure
+      numOfNodes <- db.checkConnection
+      _ <- LoggerFactory[F].getLogger.info(s"Initialized $db, total number of nodes: $numOfNodes")
     yield db

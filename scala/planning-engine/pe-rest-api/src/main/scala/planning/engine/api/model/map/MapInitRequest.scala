@@ -19,10 +19,12 @@ import planning.engine.api.model.map.payload.*
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.graph.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
+import planning.engine.common.values.db.DbName
 import planning.engine.map.io.variable.*
 
 final case class MapInitRequest(
+    dbName: DbName,
     name: Option[Name],
     description: Option[Description],
     inputNodes: List[IoNodeApiDef],

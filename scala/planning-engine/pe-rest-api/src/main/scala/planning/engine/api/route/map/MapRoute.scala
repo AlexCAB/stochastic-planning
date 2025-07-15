@@ -17,7 +17,7 @@ import cats.effect.{Concurrent, Resource}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
-import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest}
+import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest, MapLoadRequest}
 import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
 import org.http4s.circe.CirceEntityCodec.*
@@ -29,19 +29,24 @@ class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
     case req @ POST -> Root / "map" / "init" =>
       for
-        definition <- req.as[MapInitRequest]
-        info <- service.init(definition)
-        res <- Ok(info.asJson)
-      yield res
+        request <- req.as[MapInitRequest]
+        info <- service.init(request)
+        response <- Ok(info.asJson)
+      yield response
 
-    case POST -> Root / "map" / "load" => service.load.flatMap(info => Ok(info.asJson))
+    case req @ POST -> Root / "map" / "load" =>
+      for
+        request <- req.as[MapLoadRequest]
+        info <- service.load(request)
+        response <- Ok(info.asJson)
+      yield response
 
     case req @ POST -> Root / "map" / "samples" =>
       for
-        definition <- req.as[MapAddSamplesRequest]
-        result <- service.addSamples(definition)
-        res <- Ok(result.asJson)
-      yield res
+        request <- req.as[MapAddSamplesRequest]
+        result <- service.addSamples(request)
+        response <- Ok(result.asJson)
+      yield response
 
 object MapRoute:
   def apply[F[_]: Concurrent](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =

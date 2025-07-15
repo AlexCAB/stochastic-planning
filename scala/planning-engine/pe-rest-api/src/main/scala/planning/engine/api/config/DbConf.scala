@@ -17,11 +17,10 @@ import com.typesafe.config.Config
 import cats.syntax.all.*
 import planning.engine.map.database.Neo4jConf
 
-final case class DbConf(connection: Neo4jConf, name: String)
+final case class DbConf(connection: Neo4jConf)
 
 object DbConf:
   def formConfig[F[_]: Sync](conf: => Config): F[DbConf] =
     for
-      connection <- Neo4jConf.formConfig[F](conf.getConfig("neo4j"))
-      name <- Sync[F].delay(conf.getString("name"))
-    yield DbConf(connection, name)
+        connection <- Neo4jConf.formConfig[F](conf.getConfig("neo4j"))
+    yield DbConf(connection)

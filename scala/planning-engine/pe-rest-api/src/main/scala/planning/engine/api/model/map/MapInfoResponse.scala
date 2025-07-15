@@ -13,7 +13,6 @@
 package planning.engine.api.model.map
 
 import cats.effect.Async
-import org.typelevel.log4cats.LoggerFactory
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
 import planning.engine.map.graph.MapGraphLake
@@ -34,7 +33,7 @@ object MapInfoResponse:
   implicit val decoder: Decoder[MapInfoResponse] = deriveDecoder[MapInfoResponse]
   implicit val encoder: Encoder[MapInfoResponse] = deriveEncoder[MapInfoResponse]
 
-  def fromKnowledgeGraph[F[_]: {Async, LoggerFactory}](knowledgeGraph: MapGraphLake[F]): F[MapInfoResponse] =
+  def fromMapGraph[F[_]: Async](knowledgeGraph: MapGraphLake[F]): F[MapInfoResponse] =
     for
       numHiddenNodes <- knowledgeGraph.countHiddenNodes
       mapName = knowledgeGraph.metadata.name

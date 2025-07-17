@@ -17,8 +17,8 @@ from map.full_sample_graph_class import FullSampleGraph, ValueNode
 from map.hidden_node_class import AbstractHiddenNode, HiddenNode, ConcreteHiddenNode
 from map.io_node_class import IoNode
 from map.knowledge_graph_class import KnowledgeGraph
-from yed.parsed_edge_class import ParsedEdge, ParsedEdgeType
-from yed.parsed_node_class import ParsedNode
+from yed.parsing.parsed_edge_class import ParsedEdge, ParsedEdgeType
+from yed.parsing.parsed_node_class import ParsedNode
 
 
 class RawSample:

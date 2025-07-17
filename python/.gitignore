@@ -4,8 +4,5 @@
 # IDE
 .idea
 
-# Credentials
-config/neo4j_driver.json
-
 # Python
 **/__pycache__/

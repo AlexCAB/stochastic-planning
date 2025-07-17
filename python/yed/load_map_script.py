@@ -29,9 +29,9 @@ from map.full_sample_graph_class import FullSampleGraph
 from map.io_node_class import InputNode, OutputNode
 from map.io_variable_class import IoVariable
 from map.knowledge_graph_class import KnowledgeGraph
-from yed.parsed_edge_class import ParsedEdge
-from yed.parsed_node_class import ParsedNode
-from yed.raw_sample_class import RawSample
+from yed.parsing.parsed_edge_class import ParsedEdge
+from yed.parsing.parsed_node_class import ParsedNode
+from yed.parsing.raw_sample_class import RawSample
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

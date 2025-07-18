@@ -49,4 +49,4 @@ class PeClient:
     def kill_planning_engine(self):
         response = requests.post(self.base_url + PeClient.PATH_EXIT)
         self._check_response(response, "POST", PeClient.PATH_EXIT)
-        self.logger.info(f"Exit signal sent to planning engine, response: {self.base_url}}")
+        self.logger.info(f"Exit signal sent to planning engine, response: {response}")

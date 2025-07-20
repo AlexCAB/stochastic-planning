@@ -17,7 +17,7 @@ from typing import Dict
 
 import requests
 
-from planning_engine.pe_client_conf_class import PeClientConf
+from planning_engine.model.pe_client_conf_class import PeClientConf
 
 
 class PeClient:
@@ -50,3 +50,9 @@ class PeClient:
         response = requests.post(self.base_url + PeClient.PATH_EXIT)
         self._check_response(response, "POST", PeClient.PATH_EXIT)
         self.logger.info(f"Exit signal sent to planning engine, response: {response}")
+
+    def init_map(self, definition: MapDefinition) -> MapInfo:
+        request_path = f"/pe/v1/map/{map_name}/init"
+        response = self._run_post(request_path, {})
+        self.logger.info(f"Map {map_name} initialized, response: {response}")
+        return response

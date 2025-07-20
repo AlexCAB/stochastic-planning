@@ -12,26 +12,36 @@
 
 package planning.engine.api.model.map.payload
 
+import cats.MonadThrow
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
 import io.circe.{Decoder, Encoder, HCursor, Json}
+import cats.syntax.all.*
 import io.circe.syntax.*
-import planning.engine.map.hidden.node.{ConcreteNode, AbstractNode}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.io.node.IoNode
+import planning.engine.common.errors.assertionError
+import planning.engine.map.io.variable.*
 
 sealed trait HiddenNodeDef:
   def name: Name
 
-final case class ConcreteNodeDef(name: Name, ioNodeName: Name, valueIndex: IoIndex) extends HiddenNodeDef:
-  def toNew: ConcreteNode.New = ConcreteNode.New(
-    name = Some(name),
-    ioNodeName = ioNodeName,
-    valueIndex = valueIndex
-  )
+final case class ConcreteNodeDef(name: Name, ioNodeName: Name, value: Json) extends HiddenNodeDef:
+  def toNew[F[_]: MonadThrow](getIoNode: Name => F[IoNode[F]]): F[ConcreteNode.New] =
+    def parseValue(variable: IoVariable[F, ?]): F[IoIndex] = variable match
+      case v: BooleanIoVariable[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)
+      case v: FloatIoVariable[F]   => MonadThrow[F].fromEither(value.as[Double]).flatMap(v.indexForValue)
+      case v: IntIoVariable[F]     => MonadThrow[F].fromEither(value.as[Long]).flatMap(v.indexForValue)
+      case v: ListStrIoVariable[F] => MonadThrow[F].fromEither(value.as[String]).flatMap(v.indexForValue)
+      case _                       => s"Unsupported variable type for value: $value".assertionError
+
+    for
+      ioNode <- getIoNode(ioNodeName)
+      valueIndex <- parseValue(ioNode.variable)
+    yield ConcreteNode.New(name = Some(name), ioNodeName = ioNodeName, valueIndex = valueIndex)
 
 final case class AbstractNodeDef(name: Name) extends HiddenNodeDef:
-  def toNew: AbstractNode.New = AbstractNode.New(
-    name = Some(name)
-  )
+  def toNew: AbstractNode.New = AbstractNode.New(name = Some(name))
 
 object HiddenNodeDef:
   import io.circe.generic.auto.*

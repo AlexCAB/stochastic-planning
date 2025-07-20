@@ -98,7 +98,7 @@ class MapService[F[_]: {Async, LoggerFactory}](
     for
       _ <- Validation.validateList(definition.samples)
       foundHnIdMap <- graph.findHnIdsByNames(definition.hnNames)
-      (listNewCon, listNewAbs) = definition.listNewNotFoundHn(foundHnIdMap.keySet)
+      (listNewCon, listNewAbs) <- definition.listNewNotFoundHn(foundHnIdMap.keySet, graph.getIoNode)
       newConHnIds <- graph.newConcreteNodes(listNewCon)
       newAbsHnIds <- graph.newAbstractNodes(listNewAbs)
       hnIdMap <- composeHnIdMap(foundHnIdMap, newConHnIds, newAbsHnIds)

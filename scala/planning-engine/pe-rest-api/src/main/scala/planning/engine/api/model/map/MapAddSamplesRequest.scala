@@ -21,18 +21,25 @@ import planning.engine.common.errors.assertionError
 import io.circe.{Decoder, Encoder}
 import cats.syntax.all.*
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.io.node.IoNode
 
 final case class MapAddSamplesRequest(
     samples: List[NewSampleData]
 ):
   lazy val hnNames: List[Name] = samples.flatMap(_.hiddenNodes.map(_.name)).distinct
 
-  def listNewNotFoundHn(foundHnNames: Set[Name]): (ConcreteNode.ListNew, AbstractNode.ListNew) =
+  def listNewNotFoundHn[F[_]: MonadThrow](
+      foundHnNames: Set[Name],
+      getIoNode: Name => F[IoNode[F]]
+  ): F[(ConcreteNode.ListNew, AbstractNode.ListNew)] =
     val hns = samples.flatMap(_.hiddenNodes).filterNot(hn => foundHnNames.contains(hn.name))
+
     val (conHns, absHns) = hns.foldRight((List[ConcreteNodeDef](), List[AbstractNodeDef]())):
       case (n: ConcreteNodeDef, (conList, absList)) => (n +: conList, absList)
       case (n: AbstractNodeDef, (conList, absList)) => (conList, n +: absList)
-    (ConcreteNode.ListNew(conHns.map(_.toNew)), AbstractNode.ListNew(absHns.map(_.toNew)))
+
+    conHns.traverse(_.toNew(getIoNode)).map: newConHns =>
+      (ConcreteNode.ListNew(newConHns), AbstractNode.ListNew(absHns.map(_.toNew)))
 
   def toSampleNewList[F[_]: MonadThrow](hnIdMap: Map[Name, HnId]): F[Sample.ListNew] =
     def getHnId(hnName: Name): F[HnId] = hnIdMap.get(hnName) match

@@ -39,11 +39,11 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
 
     def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): MapGraphLake[IO] =
       val ioNodes = (inNodes ++ outNodes).map(node => node.name -> node).toMap
-      val mockGraph = mock[MapGraphLake[IO]]
-      (() => mockGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
-      (() => mockGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name, None)).once()
-      (() => mockGraph.ioNodes).expects().returns(ioNodes).twice()
-      mockGraph
+      val mockedGraph = mock[MapGraphLake[IO]]
+      (() => mockedGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
+      (() => mockedGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name, None)).once()
+      (() => mockedGraph.ioNodes).expects().returns(ioNodes).twice()
+      mockedGraph
 
     lazy val mockedGraph = mock[MapGraphLake[IO]]
     lazy val service =

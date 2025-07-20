@@ -19,8 +19,13 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.{Description, Name}
 import cats.effect.cps.*
+import io.circe.Json
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.map.hidden.node.ConcreteNode
+import planning.engine.map.io.node.{InputNode, IoNode}
+import planning.engine.map.io.variable.IntIoVariable
 
-class MapAddSamplesRequestSpec extends UnitSpecWithData:
+class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case:
     lazy val testEdge = NewSampleEdge(
@@ -29,7 +34,12 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData:
       edgeType = EdgeType.THEN
     )
 
-    lazy val testConcreteNodeDef = ConcreteNodeDef(testEdge.sourceHnName, Name("ioNode1"), IoIndex(0))
+    lazy val testValue = 1234L
+    lazy val mockedIntIoVariable = mock[IntIoVariable[IO]]
+    lazy val ioNode = InputNode(name = Name("ioNode1"), variable = mockedIntIoVariable)
+    lazy val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
+
+    lazy val testConcreteNodeDef = ConcreteNodeDef(testEdge.sourceHnName, ioNode.name, Json.fromLong(testValue))
     lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName)
 
     lazy val testNewSampleData: NewSampleData = NewSampleData(
@@ -56,18 +66,28 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData:
   "MapAddSamplesRequest.listNewNotFoundHn" should:
     "return empty lists when all hidden nodes are found" in newCase[CaseData]: (_, data) =>
       async[IO]:
+        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.name).returning(IO.pure(data.ioNode)).never()
+
         val foundHnNames = Set(data.testConcreteNodeDef.name, data.testAbstractNodeDef.name)
-        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(foundHnNames)
+        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(foundHnNames, data.mockedGetIoNode).await
 
         concreteList.list mustBe empty
         abstractList.list mustBe empty
 
     "return lists of new hidden nodes when some are not found" in newCase[CaseData]: (_, data) =>
       async[IO]:
-        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(Set())
+        val testIoIndex = IoIndex(4321)
+        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.name).returning(IO.pure(data.ioNode)).once()
+        data.mockedIntIoVariable.indexForValue.expects(data.testValue).returning(IO.pure(testIoIndex)).once()
+
+        val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(Set(), data.mockedGetIoNode).await
 
         concreteList.list.size mustEqual 1
-        concreteList.list.head mustEqual data.testConcreteNodeDef.toNew
+        concreteList.list.head mustEqual ConcreteNode.New(
+          name = Some(data.testConcreteNodeDef.name),
+          ioNodeName = data.testConcreteNodeDef.ioNodeName,
+          valueIndex = testIoIndex
+        )
 
         abstractList.list.size mustEqual 1
         abstractList.list.head mustEqual data.testAbstractNodeDef.toNew

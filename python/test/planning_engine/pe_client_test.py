@@ -16,13 +16,13 @@ import logging
 import unittest
 
 from planning_engine.pe_client_class import PeClient
-from planning_engine.pe_client_conf_class import PeClientConf
+from planning_engine.model.pe_client_conf_class import PeClientConf
 
 logging.basicConfig(level=logging.INFO)
 
-class TestPeClientTest(unittest.TestCase):
+class TestPeClient(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestPeClientTest, self).__init__(*args, **kwargs)
+        super(TestPeClient, self).__init__(*args, **kwargs)
 
         self.config = PeClientConf.from_json_file("config/pe_client_config.json")
         self.client = PeClient(self.config)

@@ -28,14 +28,14 @@ class MapInitRequestSpec extends UnitSpecWithData with TestApiData:
     )
 
     lazy val expectedInputNodes = testMapInitRequest.inputNodes.map:
-      case BooleanIoNode(name, acceptableValues) => InputNode[IO](name, BooleanIoVariable[IO](acceptableValues))
-      case FloatIoNode(name, min, max)           => InputNode[IO](name, FloatIoVariable[IO](min, max))
-      case n                                     => fail(s"Unexpected node definition: $n")
+      case BooleanIoNodeDef(name, acceptableValues) => InputNode[IO](name, BooleanIoVariable[IO](acceptableValues))
+      case FloatIoNodeDef(name, min, max)           => InputNode[IO](name, FloatIoVariable[IO](min, max))
+      case n                                        => fail(s"Unexpected node definition: $n")
 
     lazy val expectedOutputNodes = testMapInitRequest.outputNodes.map:
-      case IntIoNode(name, min, max)     => OutputNode[IO](name, IntIoVariable[IO](min, max))
-      case ListStrIoNode(name, elements) => OutputNode[IO](name, ListStrIoVariable[IO](elements))
-      case n                             => fail(s"Unexpected node definition: $n")
+      case IntIoNodeDef(name, min, max)     => OutputNode[IO](name, IntIoVariable[IO](min, max))
+      case ListStrIoNodeDef(name, elements) => OutputNode[IO](name, ListStrIoVariable[IO](elements))
+      case n                                => fail(s"Unexpected node definition: $n")
 
   "MapInitRequest.toMetadata" should:
     "convert valid request to metadata" in newCase[CaseData]: (tn, data) =>

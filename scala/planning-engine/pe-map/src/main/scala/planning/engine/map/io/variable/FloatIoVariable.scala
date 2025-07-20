@@ -21,7 +21,14 @@ import neotypes.query.QueryArg.Param
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) extends IoVariable[F, Double]:
+abstract class FloatIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Double]:
+  def min: Double
+  def max: Double
+  def valueForIndex(index: IoIndex): F[Double]
+  def indexForValue(value: Double): F[IoIndex]
+
+final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) extends FloatIoVariableLike[F]:
+
   private val scalingConstant = 10000.0
 
   override def valueForIndex(index: IoIndex): F[Double] = index.value / scalingConstant match

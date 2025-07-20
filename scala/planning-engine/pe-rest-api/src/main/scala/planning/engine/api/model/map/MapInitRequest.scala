@@ -31,10 +31,10 @@ final case class MapInitRequest(
     outputNodes: List[IoNodeApiDef]
 ):
   private def toVariables[F[_]: MonadThrow](definition: IoNodeApiDef): F[IoVariable[F, ?]] = definition match
-    case v: BooleanIoNode if v.acceptableValues.nonEmpty => BooleanIoVariable[F](v.acceptableValues).pure
-    case v: FloatIoNode if v.min <= v.max                => FloatIoVariable[F](v.min, v.max).pure
-    case v: IntIoNode if v.min <= v.max                  => IntIoVariable[F](v.min, v.max).pure
-    case v: ListStrIoNode if v.elements.nonEmpty         => ListStrIoVariable[F](v.elements).pure
+    case v: BooleanIoNodeDef if v.acceptableValues.nonEmpty => BooleanIoVariable[F](v.acceptableValues).pure
+    case v: FloatIoNodeDef if v.min <= v.max                => FloatIoVariable[F](v.min, v.max).pure
+    case v: IntIoNodeDef if v.min <= v.max                  => IntIoVariable[F](v.min, v.max).pure
+    case v: ListStrIoNodeDef if v.elements.nonEmpty         => ListStrIoVariable[F](v.elements).pure
     case _ => s"Can't convert in/out node definition $definition to variable".assertionError
 
   private def toNode[F[_]: MonadThrow, N <: IoNode[F]](

@@ -17,12 +17,12 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.text.{Description, Name}
 import cats.syntax.all.*
-import planning.engine.common.values.node.IoIndex
+import io.circe.Json
 
 class NewSampleDataSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val testConNodeDef = ConcreteNodeDef(Name("hn1"), Name("ioNode1"), IoIndex(0))
+    lazy val testConNodeDef = ConcreteNodeDef(Name("hn1"), Name("ioNode1"), Json.fromLong(1234L))
     lazy val testAbsNodeDef = AbstractNodeDef(Name("hn2"))
 
     lazy val testSample: IO[NewSampleData] = NewSampleData(

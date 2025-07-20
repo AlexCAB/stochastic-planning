@@ -16,14 +16,19 @@ import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.text.Name
 import planning.engine.common.values.node.IoIndex
-import planning.engine.map.hidden.node.{ConcreteNode, AbstractNode}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.effect.cps.*
+import io.circe.Json
 import io.circe.syntax.*
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.map.io.node.{InputNode, IoNode}
+import planning.engine.map.io.variable.IntIoVariableLike
 
-class HiddenNodeDefSpec extends UnitSpecWithData:
+class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case:
-    lazy val testConcreteNodeDef = ConcreteNodeDef(Name("concreteNode"), Name("ioNode"), IoIndex(0))
+    lazy val testValue = 1234L
+    lazy val testConcreteNodeDef = ConcreteNodeDef(Name("concreteNode"), Name("ioNode"), Json.fromLong(testValue))
     lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"))
 
   "HiddenNodeDef" should:
@@ -50,10 +55,18 @@ class HiddenNodeDefSpec extends UnitSpecWithData:
   "ConcreteNodeDef.toNew" should:
     "convert to ConcreteNode.New" in newCase[CaseData]: (_, data) =>
       async[IO]:
-        data.testConcreteNodeDef.toNew mustEqual ConcreteNode.New(
+        val testIoIndex = IoIndex(321)
+        val mockedIntIoVariable = mock[IntIoVariableLike[IO]]
+        val ioNode = InputNode(data.testConcreteNodeDef.ioNodeName, mockedIntIoVariable)
+        val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
+
+        mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(ioNode)).once()
+        mockedIntIoVariable.indexForValue.expects(data.testValue).returning(IO.pure(testIoIndex)).once()
+
+        data.testConcreteNodeDef.toNew[IO](mockedGetIoNode).await mustEqual ConcreteNode.New(
           name = Some(data.testConcreteNodeDef.name),
           ioNodeName = data.testConcreteNodeDef.ioNodeName,
-          valueIndex = data.testConcreteNodeDef.valueIndex
+          valueIndex = testIoIndex
         )
 
   "AbstractNodeDef.toNew" should:

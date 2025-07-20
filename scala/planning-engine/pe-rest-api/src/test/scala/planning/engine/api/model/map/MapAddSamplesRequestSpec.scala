@@ -23,7 +23,7 @@ import io.circe.Json
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, IoNode}
-import planning.engine.map.io.variable.IntIoVariable
+import planning.engine.map.io.variable.IntIoVariableLike
 
 class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
 
@@ -35,7 +35,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
     )
 
     lazy val testValue = 1234L
-    lazy val mockedIntIoVariable = mock[IntIoVariable[IO]]
+    lazy val mockedIntIoVariable = mock[IntIoVariableLike[IO]]
     lazy val ioNode = InputNode(name = Name("ioNode1"), variable = mockedIntIoVariable)
     lazy val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
 
@@ -66,7 +66,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapAddSamplesRequest.listNewNotFoundHn" should:
     "return empty lists when all hidden nodes are found" in newCase[CaseData]: (_, data) =>
       async[IO]:
-        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.name).returning(IO.pure(data.ioNode)).never()
+        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(data.ioNode)).never()
 
         val foundHnNames = Set(data.testConcreteNodeDef.name, data.testAbstractNodeDef.name)
         val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(foundHnNames, data.mockedGetIoNode).await
@@ -77,7 +77,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
     "return lists of new hidden nodes when some are not found" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val testIoIndex = IoIndex(4321)
-        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.name).returning(IO.pure(data.ioNode)).once()
+        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(data.ioNode)).once()
         data.mockedIntIoVariable.indexForValue.expects(data.testValue).returning(IO.pure(testIoIndex)).once()
 
         val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(Set(), data.mockedGetIoNode).await

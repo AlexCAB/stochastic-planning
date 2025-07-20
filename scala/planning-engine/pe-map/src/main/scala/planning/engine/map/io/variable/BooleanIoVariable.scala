@@ -21,7 +21,13 @@ import neotypes.query.QueryArg.Param
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
 
-final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boolean]) extends IoVariable[F, Boolean]:
+abstract class BooleanIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Boolean]:
+  def acceptableValues: Set[Boolean]
+  def valueForIndex(index: IoIndex): F[Boolean]
+  def indexForValue(value: Boolean): F[IoIndex]
+
+final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boolean]) extends BooleanIoVariableLike[F]:
+
   override def valueForIndex(index: IoIndex): F[Boolean] = index match
     case IoIndex(0) if acceptableValues.contains(false) => false.pure
     case IoIndex(1) if acceptableValues.contains(true)  => true.pure

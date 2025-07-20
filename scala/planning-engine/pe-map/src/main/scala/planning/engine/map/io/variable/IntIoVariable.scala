@@ -21,7 +21,14 @@ import neotypes.query.QueryArg.Param
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends IoVariable[F, Long]:
+abstract class IntIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Long]:
+  def min: Long
+  def max: Long
+  def valueForIndex(index: IoIndex): F[Long]
+  def indexForValue(value: Long): F[IoIndex]
+
+final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends IntIoVariableLike[F]:
+
   override def valueForIndex(index: IoIndex): F[Long] = index.value match
     case v if v >= min && v <= max => v.pure
     case v                         => s"Value $v of index $index not in range: $min to $max".assertionError

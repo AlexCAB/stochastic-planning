@@ -29,11 +29,11 @@ sealed trait HiddenNodeDef:
 final case class ConcreteNodeDef(name: Name, ioNodeName: Name, value: Json) extends HiddenNodeDef:
   def toNew[F[_]: MonadThrow](getIoNode: Name => F[IoNode[F]]): F[ConcreteNode.New] =
     def parseValue(variable: IoVariable[F, ?]): F[IoIndex] = variable match
-      case v: BooleanIoVariable[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)
-      case v: FloatIoVariable[F]   => MonadThrow[F].fromEither(value.as[Double]).flatMap(v.indexForValue)
-      case v: IntIoVariable[F]     => MonadThrow[F].fromEither(value.as[Long]).flatMap(v.indexForValue)
-      case v: ListStrIoVariable[F] => MonadThrow[F].fromEither(value.as[String]).flatMap(v.indexForValue)
-      case _                       => s"Unsupported variable type for value: $value".assertionError
+      case v: BooleanIoVariableLike[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)
+      case v: FloatIoVariableLike[F]   => MonadThrow[F].fromEither(value.as[Double]).flatMap(v.indexForValue)
+      case v: IntIoVariableLike[F]     => MonadThrow[F].fromEither(value.as[Long]).flatMap(v.indexForValue)
+      case v: ListStrIoVariableLike[F] => MonadThrow[F].fromEither(value.as[String]).flatMap(v.indexForValue)
+      case v                           => s"Unsupported variable type for value: $value, variable: $v".assertionError
 
     for
       ioNode <- getIoNode(ioNodeName)

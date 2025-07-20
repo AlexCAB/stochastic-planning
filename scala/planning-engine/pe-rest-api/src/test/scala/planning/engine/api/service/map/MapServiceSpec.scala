@@ -29,6 +29,7 @@ import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake, MapMe
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
+import planning.engine.common.errors.assertionError
 
 class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 
@@ -121,13 +122,21 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
           testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name))
         )
 
+        data.mockedGraph.getIoNode
+          .expects(*)
+          .onCall: name =>
+            ioNodes.get(name) match
+              case Some(node) => IO.pure(node)
+              case None       => "No IoNode found for name: $name".assertionError
+          .once()
+
         data.mockedGraph.findHnIdsByNames
           .expects(testMapAddSamplesRequest.hnNames)
           .returns(IO.pure(findHnIdsByNamesRes))
           .once()
 
         data.mockedGraph.newConcreteNodes
-          .expects(ConcreteNode.ListNew.of(testConNodeDef2.toNew))
+          .expects(ConcreteNode.ListNew.of(testConNodeNew2))
           .returns(IO.pure(newConcreteNodesRes))
           .once()
 

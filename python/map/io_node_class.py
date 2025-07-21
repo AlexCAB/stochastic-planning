@@ -13,7 +13,6 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2025-01-29 ||||||||||"""
 
 from typing import Any, List, TYPE_CHECKING, Dict, Tuple
-
 from map.io_variable_class import IoVariable
 
 if TYPE_CHECKING:
@@ -32,7 +31,7 @@ class IoNode:
         self.name: str = name
         self.variable: IoVariable = variable
 
-        self.hidden_nodes: Dict['ConcreteHiddenNode', int] = {} # hidden nodes with value index
+        self.hidden_nodes: Dict['ConcreteHiddenNode', int] = {}  # hidden nodes with value index
 
     def add_hidden_node(self, hidden_node: 'ConcreteHiddenNode', value_index: int):
         self.hidden_nodes[hidden_node] = value_index
@@ -62,6 +61,7 @@ class IoNode:
             'type': node_type,
             'variable': self.variable.to_properties()
         }
+
 
 class InputNode(IoNode):
     def __init__(self, name: str, variable: IoVariable):

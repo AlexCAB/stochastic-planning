@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"test-map\"\r\n}",
+					"raw": "{\r\n  \"dbName\" : \"test-db\",\r\n  \"name\" : \"testMapName\",\r\n  \"description\" : \"testMapDescription\",\r\n  \"inputNodes\" : [\r\n    {\r\n      \"type\" : \"BooleanIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"boolDef\",\r\n        \"acceptableValues\" : [\r\n          true,\r\n          false\r\n        ]\r\n      }\r\n    },\r\n    {\r\n      \"type\" : \"FloatIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"floatDef\",\r\n        \"min\" : -1.0,\r\n        \"max\" : 1.0\r\n      }\r\n    }\r\n  ],\r\n  \"outputNodes\" : [\r\n    {\r\n      \"type\" : \"IntIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"intDef\",\r\n        \"min\" : 0,\r\n        \"max\" : 10\r\n      }\r\n    },\r\n    {\r\n      \"type\" : \"ListStrIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"listStrDef\",\r\n        \"elements\" : [\r\n          \"a\",\r\n          \"b\",\r\n          \"c\"\r\n        ]\r\n      }\r\n    }\r\n  ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -41,6 +41,15 @@
 			"request": {
 				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"dbName\" : \"test-db\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "localhost:8080/pe/v1/map/load",
 					"host": [
@@ -52,6 +61,36 @@
 						"v1",
 						"map",
 						"load"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "samples",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"samples\" : [\r\n    {\r\n      \"probabilityCount\" : 10,\r\n      \"utility\" : -0.5,\r\n      \"name\" : \"sample-1\",\r\n      \"description\" : \"Sample 1 description\",\r\n      \"hiddenNodes\" : [\r\n        {\r\n          \"type\" : \"ConcreteNode\",\r\n          \"data\" : {\r\n            \"name\" : \"con-hn-1\",\r\n            \"ioNodeName\" : \"boolDef\",\r\n            \"value\" : true\r\n          }\r\n        },\r\n        {\r\n          \"type\" : \"AbstractNode\",\r\n          \"data\" : {\r\n            \"name\" : \"abs-hn-3\"\r\n          }\r\n        }\r\n      ],\r\n      \"edges\" : [\r\n        {\r\n          \"sourceHnName\" : \"con-hn-1\",\r\n          \"targetHnName\" : \"abs-hn-3\",\r\n          \"edgeType\" : \"Then\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"probabilityCount\" : 20,\r\n      \"utility\" : 0.8,\r\n      \"name\" : \"sample2\",\r\n      \"description\" : \"Sample 2 description\",\r\n      \"hiddenNodes\" : [\r\n        {\r\n          \"type\" : \"ConcreteNode\",\r\n          \"data\" : {\r\n            \"name\" : \"con-hn-2\",\r\n            \"ioNodeName\" : \"listStrDef\",\r\n            \"value\" : \"a\"\r\n          }\r\n        },\r\n        {\r\n          \"type\" : \"AbstractNode\",\r\n          \"data\" : {\r\n            \"name\" : \"abs-hn-4\"\r\n          }\r\n        }\r\n      ],\r\n      \"edges\" : [\r\n        {\r\n          \"sourceHnName\" : \"con-hn-2\",\r\n          \"targetHnName\" : \"abs-hn-4\",\r\n          \"edgeType\" : \"Link\"\r\n        }\r\n      ]\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/pe/v1/map/samples",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"pe",
+						"v1",
+						"map",
+						"samples"
 					]
 				}
 			},

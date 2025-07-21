@@ -1,3 +1,17 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+r"""|||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2025-07-21 ||||||||||"""
+
 import unittest
 
 from planning_engine.model.io_node_class import BoolIoNode, IntIoNode, FloatIoNode, ListStrIoNode

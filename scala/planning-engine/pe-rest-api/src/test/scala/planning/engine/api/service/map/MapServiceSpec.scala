@@ -50,8 +50,20 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
     lazy val service =
       new MapService(testConfig, mockBuilder, AtomicCell[IO].of(Some((mockedGraph, testDbName))).unsafeRunSync())
 
+  "MapService.reset()" should:
+    "reset map graph" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val testMapName = Name("testMapName")
+
+        (() => data.mockedGraph.metadata).expects().returns(MapMetadata(Some(testMapName), None)).once()
+
+        data.service.reset().logValue(tn, "resetResponse").await mustEqual
+          MapResetResponse(Some(testDbName), Some(testMapName))
+
+        data.service.getState.logValue(tn, "state").await mustBe empty
+
   "MapService.init(...)" should:
-    "initialize knowledge graph when none exists" in newCase[CaseData]: (tn, data) =>
+    "initialize map graph when none exists" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val expMetadata: MapMetadata = testMapInitRequest.toMetadata[IO].await
         val expInputNodes: List[InputNode[IO]] = testMapInitRequest.toInputNodes[IO].await
@@ -71,7 +83,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
         mapInfo.numHiddenNodes mustEqual data.testNumOfHiddenNodes
 
   "MapService.load(...)" should:
-    "load knowledge graph when none exists" in newCase[CaseData]: (tn, data) =>
+    "load map graph when none exists" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val mockGraph = data.makeMockGraph(List(), List())
 

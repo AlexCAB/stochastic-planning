@@ -16,10 +16,12 @@ import cats.effect.Async
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
 import planning.engine.map.graph.MapGraphLake
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
+import planning.engine.common.values.db.DbName
 import planning.engine.map.io.node.{InputNode, OutputNode}
 
 final case class MapInfoResponse(
+    dbName: DbName,
     mapName: Option[Name],
     numInputNodes: Long,
     numOutputNodes: Long,
@@ -33,10 +35,10 @@ object MapInfoResponse:
   implicit val decoder: Decoder[MapInfoResponse] = deriveDecoder[MapInfoResponse]
   implicit val encoder: Encoder[MapInfoResponse] = deriveEncoder[MapInfoResponse]
 
-  def fromMapGraph[F[_]: Async](knowledgeGraph: MapGraphLake[F]): F[MapInfoResponse] =
+  def fromMapGraph[F[_]: Async](dbName: DbName, knowledgeGraph: MapGraphLake[F]): F[MapInfoResponse] =
     for
       numHiddenNodes <- knowledgeGraph.countHiddenNodes
       mapName = knowledgeGraph.metadata.name
       numInputNodes = knowledgeGraph.ioNodes.values.count(_.isInstanceOf[InputNode[?]])
       numOutputNodes = knowledgeGraph.ioNodes.values.count(_.isInstanceOf[OutputNode[?]])
-    yield MapInfoResponse(mapName, numInputNodes, numOutputNodes, numHiddenNodes)
+    yield MapInfoResponse(dbName, mapName, numInputNodes, numOutputNodes, numHiddenNodes)

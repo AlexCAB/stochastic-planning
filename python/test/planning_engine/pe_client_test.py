@@ -33,7 +33,9 @@ class TestPeClient(unittest.TestCase):
     def test_kill_planning_engine(self):
         self.client.kill_planning_engine()
 
-    def test_map_init(self):
+    def test_init_map(self):
+        self.client.reset_map()
+
         definition = MapDefinition(
             db_name="test-db",
             name="pe-client-test",
@@ -50,10 +52,20 @@ class TestPeClient(unittest.TestCase):
 
         map_info = self.client.init_map(definition)
         self.assertIsNotNone(map_info)
+        self.assertEqual(map_info.db_name, definition.db_name)
         self.assertEqual(map_info.map_name, definition.name)
         self.assertEqual(map_info.num_input_nodes, len(definition.input_nodes))
         self.assertEqual(map_info.num_output_nodes, len(definition.output_nodes))
         self.assertEqual(map_info.num_hidden_nodes, 0)
+
+    def test_load_map(self):
+        self.client.reset_map()
+
+        db_name = "test-db"
+        map_info = self.client.load_map(db_name)
+        self.assertIsNotNone(map_info)
+        self.assertEqual(map_info.db_name, db_name)
+
 
 
 if __name__ == '__main__':

@@ -38,6 +38,11 @@ trait TestApiData:
 
   lazy val testDbName = DbName("testMapDb")
 
+  lazy val testMapResetResponse = MapResetResponse(
+    prevDbName = Some(testDbName),
+    prevMapName = Some(Name("testMapName"))
+  )
+
   lazy val booleanIoNodeDef = BooleanIoNodeDef(Name("boolDef"), Set(true, false))
   lazy val floatIoNodeDef = FloatIoNodeDef(Name("floatDef"), min = -1, max = 1)
   lazy val intIoNodeDef = IntIoNodeDef(Name("intDef"), min = 0, max = 10)
@@ -54,6 +59,7 @@ trait TestApiData:
   lazy val testMapLoadRequest = MapLoadRequest(dbName = testDbName)
 
   lazy val testMapInfoResponse = MapInfoResponse(
+    testDbName,
     testMapInitRequest.name,
     testMapInitRequest.inputNodes.size,
     testMapInitRequest.outputNodes.size,

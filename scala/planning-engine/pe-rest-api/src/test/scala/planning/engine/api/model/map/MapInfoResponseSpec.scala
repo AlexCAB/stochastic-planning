@@ -34,9 +34,10 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
 
   "MapInfoResponse.fromKnowledgeGraph(...)" should:
     "create MapInfoResponse with correct values from a valid knowledge graph" in newCase[CaseData]: (tn, data) =>
-      MapInfoResponse.fromMapGraph(data.mockKnowledgeGraph)
+      MapInfoResponse.fromMapGraph(testDbName, data.mockKnowledgeGraph)
         .logValue(tn)
         .asserting(_ mustEqual MapInfoResponse(
+          testDbName,
           data.validMetadata.name,
           data.validInputNodes.size,
           data.validOutputNodes.size,

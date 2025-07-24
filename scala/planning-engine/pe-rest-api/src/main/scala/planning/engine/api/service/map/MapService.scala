@@ -25,6 +25,8 @@ import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 
 trait MapServiceLike[F[_]]:
+  def getState: F[Option[(MapGraphLake[F], DbName)]]
+  def reset(): F[MapResetResponse]
   def init(request: MapInitRequest): F[MapInfoResponse]
   def load(request: MapLoadRequest): F[MapInfoResponse]
   def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse]
@@ -51,6 +53,12 @@ class MapService[F[_]: {Async, LoggerFactory}](
     case Some((mapGraph, _)) => block(mapGraph)
     case None                => "Map graph is not initialized".assertionError[F, R]
 
+  override def getState: F[Option[(MapGraphLake[F], DbName)]] = mgState.get
+
+  override def reset(): F[MapResetResponse] = mgState.modify:
+    case None                     => (None, MapResetResponse(None, None))
+    case Some((mapGraph, dbName)) => (None, MapResetResponse(Some(dbName), mapGraph.metadata.name))
+
   override def init(request: MapInitRequest): F[MapInfoResponse] = mgState.evalModify:
     case None =>
       for
@@ -58,7 +66,7 @@ class MapService[F[_]: {Async, LoggerFactory}](
         inputNodes <- request.toInputNodes
         outputNodes <- request.toOutputNodes
         mapGraph <- builder.init(request.dbName, config, metadata, inputNodes, outputNodes)
-        info <- MapInfoResponse.fromMapGraph(mapGraph)
+        info <- MapInfoResponse.fromMapGraph(request.dbName, mapGraph)
       yield (Some(mapGraph, request.dbName), info)
 
     case Some((mapGraph, dbName)) => initError(mapGraph, dbName)
@@ -67,12 +75,12 @@ class MapService[F[_]: {Async, LoggerFactory}](
     case None =>
       for
         mapGraph <- builder.load(request.dbName, config)
-        info <- MapInfoResponse.fromMapGraph(mapGraph)
+        info <- MapInfoResponse.fromMapGraph(request.dbName, mapGraph)
       yield (Some(mapGraph, request.dbName), info)
 
     case Some((mapGraph, dbName)) if dbName == request.dbName =>
       for
-          info <- MapInfoResponse.fromMapGraph(mapGraph)
+          info <- MapInfoResponse.fromMapGraph(dbName, mapGraph)
       yield (Some(mapGraph, dbName), info)
 
     case Some((mapGraph, dbName)) => initError(mapGraph, dbName)

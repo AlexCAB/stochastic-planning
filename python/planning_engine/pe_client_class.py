@@ -26,7 +26,9 @@ from planning_engine.model.pe_client_conf_class import PeClientConf
 class PeClient:
     PATH_HEALTH = "/pe/v1/maintenance/__health"
     PATH_EXIT = "/pe/v1/maintenance/__exit"
+    PATH_RESET = "/pe/v1/map/reset"
     PATH_INIT = "/pe/v1/map/init"
+    PATH_LOAD = "/pe/v1/map/load"
 
     def __init__(self, config: PeClientConf):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -62,7 +64,17 @@ class PeClient:
         self._check_response(response, "POST", PeClient.PATH_EXIT)
         self.logger.info(f"Exit signal sent to planning engine, response: {response}")
 
+    def reset_map(self):
+        response = requests.post(self.base_url + PeClient.PATH_RESET)
+        self._check_response(response, "POST", PeClient.PATH_RESET)
+        self.logger.info(f"Map reset, response: {response}")
+
     def init_map(self, definition: MapDefinition) -> MapInfo:
         response = self._run_post(PeClient.PATH_INIT, definition.to_json())
         self.logger.info(f"Map initialized, definition: {definition}, response: {response}")
+        return MapInfo.from_json(response)
+
+    def load_map(self, db_name: str) -> MapInfo:
+        response = self._run_post(PeClient.PATH_LOAD, data = {"dbName": db_name})
+        self.logger.info(f"Map loaded, from db_name: {db_name}, response: {response}")
         return MapInfo.from_json(response)

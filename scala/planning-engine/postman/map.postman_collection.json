@@ -7,6 +7,36 @@
 	},
 	"item": [
 		{
+			"name": "reset",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"dbName\" : \"test-db\",\r\n  \"name\" : \"testMapName\",\r\n  \"description\" : \"testMapDescription\",\r\n  \"inputNodes\" : [\r\n    {\r\n      \"type\" : \"BooleanIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"boolDef\",\r\n        \"acceptableValues\" : [\r\n          true,\r\n          false\r\n        ]\r\n      }\r\n    },\r\n    {\r\n      \"type\" : \"FloatIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"floatDef\",\r\n        \"min\" : -1.0,\r\n        \"max\" : 1.0\r\n      }\r\n    }\r\n  ],\r\n  \"outputNodes\" : [\r\n    {\r\n      \"type\" : \"IntIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"intDef\",\r\n        \"min\" : 0,\r\n        \"max\" : 10\r\n      }\r\n    },\r\n    {\r\n      \"type\" : \"ListStrIoNode\",\r\n      \"data\" : {\r\n        \"name\" : \"listStrDef\",\r\n        \"elements\" : [\r\n          \"a\",\r\n          \"b\",\r\n          \"c\"\r\n        ]\r\n      }\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/pe/v1/map/reset",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"pe",
+						"v1",
+						"map",
+						"reset"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "init",
 			"request": {
 				"method": "POST",

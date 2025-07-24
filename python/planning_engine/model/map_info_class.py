@@ -12,7 +12,7 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-07-21 ||||||||||"""
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class MapInfo:
@@ -20,12 +20,13 @@ class MapInfo:
     @staticmethod
     def from_json(json_data: Dict[str, Any]):
         assert json_data, "JSON data should not be empty"
-        assert 'mapName' in json_data, "Map name should be defined in JSON data"
+        assert 'dbName' in json_data, "DB name should be defined in JSON data"
         assert 'numInputNodes' in json_data, "Number of input nodes should be defined in JSON data"
         assert 'numOutputNodes' in json_data, "Number of output nodes should be defined in JSON data"
         assert 'numHiddenNodes' in json_data, "Number of hidden nodes should be defined in JSON data"
 
         return MapInfo(
+            db_name=json_data['dbName'],
             map_name=json_data['mapName'],
             num_input_nodes=json_data['numInputNodes'],
             num_output_nodes=json_data['numOutputNodes'],
@@ -34,13 +35,15 @@ class MapInfo:
 
     def __init__(
             self,
-            map_name: str,
+            db_name: str,
+            map_name: Optional[str],
             num_input_nodes: int,
             num_output_nodes: int,
             num_hidden_nodes: int):
-        assert map_name, "Map name should be defined"
+        assert db_name, "Map DB name should be defined"
 
-        self.map_name: str = map_name
+        self.db_name: str = db_name
+        self.map_name:  Optional[str] = map_name
         self.num_input_nodes: int = num_input_nodes
         self.num_output_nodes: int = num_output_nodes
         self.num_hidden_nodes: int = num_hidden_nodes
@@ -48,6 +51,7 @@ class MapInfo:
     def __str__(self):
         return (
             f"MapInfo("
+            f"db_name={self.db_name}, "
             f"map_name={self.map_name}, "
             f"num_input_nodes={self.num_input_nodes}, "
             f"num_output_nodes={self.num_output_nodes}, "

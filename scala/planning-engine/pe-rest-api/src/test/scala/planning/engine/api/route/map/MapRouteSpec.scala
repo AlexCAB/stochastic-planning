@@ -32,6 +32,21 @@ class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO
       route <- MapRoute(mockService)
     yield (mockService, route)
 
+  "POST /map/reset" should:
+    "return OK and valid response when reset succeeds" in: (mockService, route) =>
+      async[IO]:
+        logInfo("POST /map/reset", s"Response JSON: ${testMapResetResponse.asJson}").await
+
+        (() => mockService.reset()).expects().returns(IO.pure(testMapResetResponse)).once()
+
+        val request = Request[IO](Method.POST, uri"/map/reset")
+        val response: Response[IO] = route.endpoints.run(request).value
+          .logValue("reset")
+          .await.getOrElse(fail("Expected a response"))
+
+        response.status mustEqual Status.Ok
+        response.as[MapResetResponse].await mustEqual testMapResetResponse
+
   "POST /map/init" should:
     "return OK and valid response when initialization succeeds" in: (mockService, route) =>
       async[IO]:

@@ -27,6 +27,12 @@ class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends Http4sDsl[F
   import MapInitRequest.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
+    case POST -> Root / "map" / "reset" =>
+      for
+        result <- service.reset()
+        response <- Ok(result.asJson)
+      yield response
+
     case req @ POST -> Root / "map" / "init" =>
       for
         request <- req.as[MapInitRequest]

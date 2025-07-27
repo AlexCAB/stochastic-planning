@@ -18,7 +18,7 @@ from typing import Dict, Any, Optional
 class MapInfo:
 
     @staticmethod
-    def from_json(json_data: Dict[str, Any]):
+    def from_json(json_data: Dict[str, Any]) -> 'MapInfo':
         assert json_data, "JSON data should not be empty"
         assert 'dbName' in json_data, "DB name should be defined in JSON data"
         assert 'numInputNodes' in json_data, "Number of input nodes should be defined in JSON data"

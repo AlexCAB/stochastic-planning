@@ -13,14 +13,16 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2025-07-16 ||||||||||"""
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import requests
 from requests import Response
 
+from planning_engine.model.added_sample_class import AddedSample
 from planning_engine.model.map_definition_class import MapDefinition
 from planning_engine.model.map_info_class import MapInfo
 from planning_engine.model.pe_client_conf_class import PeClientConf
+from planning_engine.model.sample_class import Sample
 
 
 class PeClient:
@@ -29,6 +31,7 @@ class PeClient:
     PATH_RESET = "/pe/v1/map/reset"
     PATH_INIT = "/pe/v1/map/init"
     PATH_LOAD = "/pe/v1/map/load"
+    PATH_SAMPLES = "/pe/v1/map/samples"
 
     def __init__(self, config: PeClientConf):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -75,6 +78,12 @@ class PeClient:
         return MapInfo.from_json(response)
 
     def load_map(self, db_name: str) -> MapInfo:
-        response = self._run_post(PeClient.PATH_LOAD, data = {"dbName": db_name})
+        response = self._run_post(PeClient.PATH_LOAD, data={"dbName": db_name})
         self.logger.info(f"Map loaded, from db_name: {db_name}, response: {response}")
         return MapInfo.from_json(response)
+
+    def add_samples(self, samples: List[Sample]) -> List[AddedSample]:
+        response = self._run_post(PeClient.PATH_SAMPLES, data={"samples": [s.to_json() for s in samples]})
+        assert 'addedSamples' in response, "Samples should be defined in JSON response"
+        self.logger.info(f"Added samples: {samples}, response: {response}")
+        return [AddedSample.from_json(j) for j in response['addedSamples']]

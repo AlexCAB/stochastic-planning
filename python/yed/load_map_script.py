@@ -64,7 +64,7 @@ def read_args():
     args = parser.parse_args()
     return args
 
-#
+
 # def read_and_parse_yed_file(yed_path: str) -> Tuple[Dict[str, ParsedNode], List[Set[str]], List[ParsedEdge]]:
 #     yed_graph: MultiDiGraph = read_graphml(yed_path)
 #
@@ -78,7 +78,7 @@ def read_args():
 #             ParsedEdge(e) for e in BeautifulSoup(fp, 'lxml').find_all("edge")]
 #
 #         return parsed_nodes, graph_components, parsed_edges
-#
+
 #
 # def connect_to_neo4j(driver_config_path: str, database_name: str) -> No4jDatabase:
 #     driver_config = json.load(open(driver_config_path))
@@ -87,8 +87,8 @@ def read_args():
 #         driver_config['username'],
 #         driver_config['password'],
 #         database_name)
-#
-#
+
+
 # def build_empty_knowledge_graph(
 #         parsed_nodes: Dict[str, ParsedNode],
 #         graph_components: List[Set[str]],
@@ -96,6 +96,7 @@ def read_args():
 #
 #     graph_node: ParsedNode = next(filter(lambda n: n.node_type == "G", parsed_nodes.values()), None)
 #     assert graph_node is not None, "Graph node should be defined"
+#
 #     component: Set[str] = next((c for c in graph_components if graph_node.id in c), None)
 #     assert component is not None, "Graph node should be in one of the components"
 #
@@ -165,6 +166,8 @@ def read_args():
 def main():
     args = read_args()
     yed = Yed(args.path)
+
+    map_definition = yed.build_map_definition(args.database)
     # load_yed_graph(args.path, args.database, args.neo4j_config)
 
 

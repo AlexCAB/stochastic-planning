@@ -14,6 +14,7 @@ r"""|||||||||||||||||||||||||||||||
 
 from typing import List, Any, Tuple
 
+
 class ParsedNode:
     def __init__(self, id: str, label: str):
         split_label = label.split(":")
@@ -36,25 +37,24 @@ class ParsedNode:
 
         match split_label[0]:
             case "G":
-               self.name = split_label[1].strip()
-               self.description = ":".join(split_label[2:])
+                self.name = split_label[1].strip()
+                self.description = ":".join(split_label[2:])
 
             case "S":
-               self.name = split_label[1].strip()
-               self.probability_count = int(split_label[2].strip())
-               self.utility = float(split_label[3].strip())
-               self.description = ":".join(split_label[4:])
+                self.name = split_label[1].strip()
+                self.probability_count = int(split_label[2].strip())
+                self.utility = float(split_label[3].strip())
+                self.description = ":".join(split_label[4:])
 
-               assert \
-                   self.probability_count is not None and self.probability_count > 0,\
-                   f"Probability count is None or <= 0, label = {label}"
+                assert \
+                    self.probability_count is not None and self.probability_count > 0, \
+                    f"Probability count is None or <= 0, label = {label}"
 
-               assert self.utility is not None, f"Utility is None, label = {label}"
+                assert self.utility is not None, f"Utility is None, label = {label}"
 
             case "I" | "O":
                 self.name = split_label[1].strip()
                 split_value_range = [v.strip() for v in split_label[3].split(";")]
-
 
                 match split_label[2]:
                     case "bool":
@@ -63,7 +63,7 @@ class ParsedNode:
 
                         assert \
                             0 < len(self.value_range) <= 2, \
-                            f"Invalid value range: {split_label[3]}, for type `bool` expected 1 or 2 values, "\
+                            f"Invalid value range: {split_label[3]}, for type `bool` expected 1 or 2 values, " \
                             "label = {label}"
 
                     case "int":
@@ -72,7 +72,7 @@ class ParsedNode:
 
                         assert \
                             len(value_range) == 2, \
-                            f"Invalid value range: {split_label[3]}, for type `int` expected 2 values (min, max), "\
+                            f"Invalid value range: {split_label[3]}, for type `int` expected 2 values (min, max), " \
                             "label = {label}"
 
                         self.value_range = (value_range[0], value_range[1])
@@ -83,7 +83,7 @@ class ParsedNode:
 
                         assert \
                             len(value_range) == 2, \
-                            f"Invalid value range: {split_label[3]}, for type `float` expected 2 values (min, max), "\
+                            f"Invalid value range: {split_label[3]}, for type `float` expected 2 values (min, max), " \
                             "label = {label}"
 
                         self.value_range = (value_range[0], value_range[1])
@@ -108,7 +108,7 @@ class ParsedNode:
                 self.description = ":".join(split_label[4:])
 
                 assert \
-                    self.variable_name != "" and self.variable_name is not None,\
+                    self.variable_name != "" and self.variable_name is not None, \
                     f"Variable name is empty or None, label = {label}"
 
                 assert self.value != "" and self.value is not None, f"Value is empty or None, label = {label}"
@@ -118,14 +118,35 @@ class ParsedNode:
                 self.description = ":".join(split_label[2:])
 
             case _:
-               raise ValueError(f"Unknown node type: {split_label[0]}, expected one of: G, S, I, O, C, A")
+                raise ValueError(f"Unknown node type: {split_label[0]}, expected one of: G, S, I, O, C, A")
 
         assert self.name != "" and self.name is not None, f"Node name is empty or None, label = {label}"
 
         self.description = self.description if self.description != "" else None
 
+    def is_graph_node(self) -> bool:
+        return self.node_type == "G"
+
+    def is_sample_node(self) -> bool:
+        return self.node_type == "S"
+
+    def is_input_node(self) -> bool:
+        return self.node_type == "I"
+
+    def is_output_node(self) -> bool:
+        return self.node_type == "O"
+
+    def is_concrete_node(self) -> bool:
+        return self.node_type == "C"
+
+    def is_abstract_node(self) -> bool:
+        return self.node_type == "A"
+
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
-        return f"Node: id = {self.id}, node_type = {self.node_type}, name = {self.name}, "\
-            f"description = {self.description}, probability_count = {self.probability_count}, "\
-            f"utility = {self.utility}, value_type = {self.value_type}, value_range = {self.value_range}, "\
-            f"variable_name = {self.variable_name}, value = {self.value}"
+        return f"Node: id = {self.id}, node_type = {self.node_type}, name = {self.name}, " \
+               f"description = {self.description}, probability_count = {self.probability_count}, " \
+               f"utility = {self.utility}, value_type = {self.value_type}, value_range = {self.value_range}, " \
+               f"variable_name = {self.variable_name}, value = {self.value}"

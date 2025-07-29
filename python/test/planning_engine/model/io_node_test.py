@@ -14,10 +14,40 @@ r"""|||||||||||||||||||||||||||||||
 
 import unittest
 
-from planning_engine.model.io_node_class import BoolIoNode, IntIoNode, FloatIoNode, ListStrIoNode
+from planning_engine.model.io_node_class import BoolIoNode, IntIoNode, FloatIoNode, ListStrIoNode, IoNode
 
 
 class TestIoNode(unittest.TestCase):
+    def test_creates_boolean_io_node_with_valid_domain(self):
+        node = IoNode.create(name="boolNode", value_type=bool, domain=[True, False])
+        self.assertIsInstance(node, BoolIoNode)
+        self.assertEqual(node.name, "boolNode")
+        self.assertEqual(node.acceptable_values, [True, False])
+
+    def test_creates_integer_io_node_with_valid_range(self):
+        node = IoNode.create(name="intNode", value_type=int, domain=(0, 10))
+        self.assertIsInstance(node, IntIoNode)
+        self.assertEqual(node.name, "intNode")
+        self.assertEqual(node.min, 0)
+        self.assertEqual(node.max, 10)
+
+    def test_creates_float_io_node_with_valid_range(self):
+        node = IoNode.create(name="floatNode", value_type=float, domain=(0.0, 1.0))
+        self.assertIsInstance(node, FloatIoNode)
+        self.assertEqual(node.name, "floatNode")
+        self.assertEqual(node.min, 0.0)
+        self.assertEqual(node.max, 1.0)
+
+    def test_creates_list_string_io_node_with_valid_elements(self):
+        node = IoNode.create(name="listNode", value_type=list, domain=["a", "b", "c"])
+        self.assertIsInstance(node, ListStrIoNode)
+        self.assertEqual(node.name, "listNode")
+        self.assertEqual(node.elements, ["a", "b", "c"])
+
+    def raises_error_for_invalid_value_type(self):
+        with self.assertRaises(ValueError):
+            IoNode.create(name="invalidNode", value_type=dict, domain={})
+
     def test_creates_bool_io_node_with_valid_values(self):
         node = BoolIoNode(name="boolNode", acceptable_values=[True, False])
         self.assertEqual(node.name, "boolNode")

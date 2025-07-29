@@ -44,7 +44,12 @@ class MapDefinition:
         }
 
     def __str__(self):
-        return f"MapDefinition(db_name={self.db_name}, name={self.name})"
+        return (f"MapDefinition(\n"
+                f"    db_name = {self.db_name},\n"
+                f"    name = {self.name}\n"
+                f"    input_nodes = [\n        {',\n        '.join(str(n) for n in self.input_nodes)}\n    ],\n"
+                f"    output_nodes = [\n        {',\n        '.join(str(n) for n in self.output_nodes)}\n    ]\n"
+                f")")
 
     def __repr__(self):
         return self.__str__()

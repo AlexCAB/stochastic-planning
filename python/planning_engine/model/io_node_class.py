@@ -12,10 +12,29 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-07-19 ||||||||||"""
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 
 class IoNode:
+
+    @staticmethod
+    def create(
+            name: str,
+            value_type: type,
+            domain: List[bool] | Tuple[int, int] | Tuple[float, float] | List[str]) -> 'IoNode':
+
+        match value_type:
+            case t if t is bool:
+                return BoolIoNode(name, domain)
+            case t if t is int:
+                return IntIoNode(name, domain[0], domain[1])
+            case t if t is float:
+                return FloatIoNode(name, domain[0], domain[1])
+            case t if t is list:
+                return ListStrIoNode(name, domain)
+            case _:
+                raise ValueError(f"Invalid type {value_type} for IoVariable")
+
     def __init__(self, name: str, node_type: str):
         assert name, "Name should be defined"
         assert type is not None, "Type should be defined"
@@ -64,7 +83,7 @@ class BoolIoNode(IoNode):
         }
 
     def __str__(self):
-        return f"BoolIoNode(acceptable_values = {self.acceptable_values})"
+        return f"BoolIoNode(name = {self.name}, acceptable_values = {self.acceptable_values})"
 
 
 class IntIoNode(IoNode):
@@ -101,7 +120,7 @@ class IntIoNode(IoNode):
         }
 
     def __str__(self):
-        return f"IntIoNode(min = {self.min}, max = {self.max})"
+        return f"IntIoNode(name = {self.name}, min = {self.min}, max = {self.max})"
 
 
 class FloatIoNode(IoNode):
@@ -139,9 +158,8 @@ class FloatIoNode(IoNode):
             }
         }
 
-
     def __str__(self):
-        return f"FloatIoNode(min = {self.min}, max = {self.max})"
+        return f"FloatIoNode(name = {self.name}, min = {self.min}, max = {self.max})"
 
 
 class ListStrIoNode(IoNode):
@@ -176,4 +194,4 @@ class ListStrIoNode(IoNode):
         }
 
     def __str__(self):
-        return f"ListStrIoNode(elements = {self.elements})"
+        return f"ListStrIoNode(name = {self.name}, elements = {self.elements})"

@@ -27,7 +27,7 @@ class ParsedEdge:
         self.source_id: str = edge_elem.attrs['source']
         self.target_id: str = edge_elem.attrs['target']
 
-        match edge_elem.find('y:linestyle').attrs['color']:
+        match edge_elem.find('y:LineStyle').attrs['color']:
             case "#FF0000":
                 self.edge_type = ParsedEdgeType.ThenEdge
             case "#00FF00":

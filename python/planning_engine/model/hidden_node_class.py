@@ -12,14 +12,15 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-07-27 ||||||||||"""
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class HiddenNode:
-    def __init__(self, name: str):
+    def __init__(self, name: str, description: Optional[str]):
         assert name, "Name should be defined"
 
         self.name: str = name
+        self.description: str = description
 
     def to_json(self) -> Dict[str, Any]:
         raise NotImplementedError("Abstract method")
@@ -29,8 +30,8 @@ class HiddenNode:
 
 
 class ConcreteNode(HiddenNode):
-    def __init__(self, name: str, io_node_name: str, value: Any):
-        super().__init__(name)
+    def __init__(self, name: str, description: Optional[str], io_node_name: str, value: Any):
+        super().__init__(name, description)
 
         assert io_node_name, "IO node name should be defined"
         assert value is not None, "Value should be defined"
@@ -49,12 +50,12 @@ class ConcreteNode(HiddenNode):
         }
 
     def __str__(self):
-        return f"ConcreteNode(name={self.name}, ioNodeName={self.io_node_name}, value={self.value})"
+        return f"ConcreteNode(name = {self.name}, description = {self.description}, ioNodeName = {self.io_node_name}, value = {self.value})"
 
 
 class AbstractNode(HiddenNode):
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self, description: Optional[str], name: str):
+        super().__init__(name, description)
 
     def to_json(self) -> Dict[str, Any]:
         return {
@@ -65,4 +66,4 @@ class AbstractNode(HiddenNode):
         }
 
     def __str__(self):
-        return f"AbstractNode(name={self.name})"
+        return f"AbstractNode(name = {self.name}, description = {self.description})"

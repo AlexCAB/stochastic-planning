@@ -17,7 +17,7 @@ class PeClientConf:
     @staticmethod
     def from_json_file(json_file: str):
         import json
-        with open(json_file, 'r') as file:
+        with open(json_file, 'r', encoding="utf8") as file:
             data = json.load(file)
             return PeClientConf(url=data['url'])
 
@@ -26,7 +26,7 @@ class PeClientConf:
         self.url: str = url
 
     def __str__(self):
-        return f"PeClientConf(url={self.url})"
+        return f"PeClientConf(url = {self.url})"
 
     def __repr__(self):
         return self.__str__()

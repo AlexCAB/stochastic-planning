@@ -40,7 +40,11 @@ class HiddenEdge:
         }
 
     def __str__(self):
-        return f"HiddenEdge(source={self.source_hn_name}, target={self.target_hn_name}, type={self.edge_type.name})"
+        return (f"HiddenEdge("
+                f"source = {self.source_hn_name}, "
+                f"target = {self.target_hn_name}, "
+                f"type = {self.edge_type.name})"
+                )
 
     def __repr__(self):
         return self.__str__()

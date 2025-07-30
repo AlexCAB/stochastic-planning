@@ -15,7 +15,7 @@ r"""|||||||||||||||||||||||||||||||
 import os
 import unittest
 
-from planning_engine.model.pe_client_conf_class import PeClientConf
+from planning_engine.config.pe_client_conf_class import PeClientConf
 
 
 class TestPeClientConf(unittest.TestCase):

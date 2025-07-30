@@ -24,7 +24,7 @@ final case class NewSampleData(
     hiddenNodes: List[HiddenNodeDef],
     edges: List[NewSampleEdge]
 ) extends Validation:
-  lazy val validationName: String = "NewSampleData"
+  lazy val validationName: String = s"NewSampleData(name = ${name.getOrElse("None")})"
 
   lazy val validationErrors: List[Throwable] = validations(
     (probabilityCount > 0) -> "Probability count must be greater than zero",

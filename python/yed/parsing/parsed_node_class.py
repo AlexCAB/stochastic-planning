@@ -146,7 +146,7 @@ class ParsedNode:
         return self.__str__()
 
     def __str__(self):
-        return f"Node: id = {self.id}, node_type = {self.node_type}, name = {self.name}, " \
+        return f"Node(id = {self.id}, node_type = {self.node_type}, name = {self.name}, " \
                f"description = {self.description}, probability_count = {self.probability_count}, " \
                f"utility = {self.utility}, value_type = {self.value_type}, value_range = {self.value_range}, " \
-               f"variable_name = {self.variable_name}, value = {self.value}"
+               f"variable_name = {self.variable_name}, value = {self.value})"

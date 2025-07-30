@@ -50,10 +50,14 @@ class Sample:
         }
 
     def __str__(self):
-        return (f"Sample(probability_count={self.probability_count}, "
-                f"utility={self.utility}, name={self.name}, "
-                f"description={self.description}, "
-                f"hidden_nodes={self.hidden_nodes}, edges={self.edges})")
+        return (f"Sample(\n"
+                f"    probability_count = {self.probability_count},\n"
+                f"    utility = {self.utility},\n"
+                f"    name = {self.name},\n"
+                f"    description = {self.description},\n"
+                f"    hidden_nodes = [\n        {',\n        '.join(str(n) for n in self.hidden_nodes)}\n    ],\n"
+                f"    edges = [\n        {',\n        '.join(str(n) for n in self.edges)}\n    ]\n"
+                f")")
 
     def __repr__(self):
         return self.__str__()

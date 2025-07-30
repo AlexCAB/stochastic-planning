@@ -41,8 +41,15 @@ class ParsedEdge:
         assert self.source_id, "Source id should be defined"
         assert self.target_id, "Target id should be defined"
 
+    def is_link_edge(self) -> bool:
+        return self.edge_type == ParsedEdgeType.LinkEdge
+    def is_then_edge(self) -> bool:
+        return self.edge_type == ParsedEdgeType.ThenEdge
+    def is_support_edge(self) -> bool:
+        return self.edge_type == ParsedEdgeType.SupportEdge
+
     def __str__(self):
-        return f"Edge: {self.source_id} - {self.edge_type} -> {self.target_id}"
+        return f"Edge({self.source_id} - {self.edge_type} -> {self.target_id})"
 
     def __repr__(self):
         return self.__str__()

@@ -21,8 +21,11 @@ from networkx.algorithms.components import weakly_connected_components
 from networkx.classes import MultiDiGraph
 from networkx.readwrite.graphml import read_graphml
 
+from planning_engine.model.hidden_edge_class import HiddenEdge, EdgeType
+from planning_engine.model.hidden_node_class import HiddenNode, AbstractNode, ConcreteNode
 from planning_engine.model.io_node_class import IoNode
 from planning_engine.model.map_definition_class import MapDefinition
+from planning_engine.model.sample_class import Sample
 from yed.parsing.parsed_edge_class import ParsedEdge
 from yed.parsing.parsed_node_class import ParsedNode
 
@@ -71,5 +74,64 @@ class Yed:
         )
 
         self.logger.info(f"Built MapDefinition from yEd graph: {definition}")
-
         return definition
+
+    def build_sample(self, sample_node: ParsedNode) -> Sample:
+        assert sample_node.is_sample_node(), f"Node {sample_node} is not a sample node"
+
+        component: Set[str] = next(iter([c for c in self.components if sample_node.id in c]), None)
+
+        sample_nodes: Dict[str, ParsedNode] = {
+            id: node for id, node in self.nodes.items()
+            if id in component and id != sample_node.id
+        }
+
+        found_keys: Set[str] = set(sample_nodes.keys()) | {sample_node.id}
+        assert found_keys == component, f"Not all sample nodes found, found: {found_keys}, required: {component}"
+
+        sample_edges: List[ParsedEdge] = [
+            e for e in self.edges
+            if (e.source_id in sample_nodes or e.target_id in sample_nodes) and not e.is_support_edge()
+        ]
+
+        edge_end_not_in_component: Set[ParsedEdge] = {
+            e for e in sample_edges
+            if e.source_id not in sample_nodes or e.target_id not in sample_nodes
+        }
+
+        assert not edge_end_not_in_component, f"Edges with end not in component found: {edge_end_not_in_component}"
+
+        assert all([(n.is_abstract_node() or n.is_concrete_node()) for n in sample_nodes.values()]), \
+            "All nodes in the sample should be abstract or concrete nodes"
+
+        assert all([(e.is_link_edge() or e.is_then_edge()) for e in sample_edges]), \
+            "All edges in the sample should be link or then edges"
+
+        hidden_nodes: List[HiddenNode] = [
+            (AbstractNode(name=n.name, description=n.description) if n.is_abstract_node() else
+             ConcreteNode(name=n.name, description=n.description, io_node_name=n.variable_name, value=n.value))
+            for n in sample_nodes.values()
+        ]
+
+        hidden_edges: List[HiddenEdge] = [
+            HiddenEdge(
+                source_hn_name=sample_nodes[e.source_id].name,
+                target_hn_name=sample_nodes[e.target_id].name,
+                edge_type=EdgeType.LinkEdge if e.is_link_edge() else EdgeType.ThenEdge)
+            for e in sample_edges
+        ]
+
+        sample: Sample = Sample(
+            probability_count=sample_node.probability_count,
+            utility=sample_node.utility,
+            name=sample_node.name,
+            description=sample_node.description,
+            hidden_nodes=hidden_nodes,
+            edges=hidden_edges
+        )
+
+        self.logger.info(f"Built Sample from yEd graph: {sample}")
+        return sample
+
+    def build_samples(self) -> List[Sample]:
+        return [self.build_sample(n) for n in self.nodes.values() if n.is_sample_node()]

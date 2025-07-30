@@ -50,12 +50,13 @@ class MapInfo:
 
     def __str__(self):
         return (
-            f"MapInfo("
-            f"db_name={self.db_name}, "
-            f"map_name={self.map_name}, "
-            f"num_input_nodes={self.num_input_nodes}, "
-            f"num_output_nodes={self.num_output_nodes}, "
-            f"num_hidden_nodes={self.num_hidden_nodes})"
+            f"MapInfo(\n"
+            f"    db_name = {self.db_name},\n"
+            f"    map_name = {self.map_name},\n"
+            f"    num_input_nodes = {self.num_input_nodes},\n"
+            f"    num_output_nodes = {self.num_output_nodes},\n"
+            f"    num_hidden_nodes = {self.num_hidden_nodes}\n"
+            f")"
         )
 
     def __repr__(self):

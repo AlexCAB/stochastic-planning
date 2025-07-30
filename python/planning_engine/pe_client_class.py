@@ -21,7 +21,7 @@ from requests import Response
 from planning_engine.model.added_sample_class import AddedSample
 from planning_engine.model.map_definition_class import MapDefinition
 from planning_engine.model.map_info_class import MapInfo
-from planning_engine.model.pe_client_conf_class import PeClientConf
+from planning_engine.config.pe_client_conf_class import PeClientConf
 from planning_engine.model.sample_class import Sample
 
 

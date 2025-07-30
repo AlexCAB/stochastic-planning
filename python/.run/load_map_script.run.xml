@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/yed/load_map_script.py" />
-    <option name="PARAMETERS" value="--path yed/example_maps/pacman-5x3-two-ways.graphml --database pacman-5x3-two-ways --pe_config config/pe_client_config.json" />
+    <option name="PARAMETERS" value="--path yed/example_maps/pacman-5x3-two-ways.graphml --database test-db --pe_config config/pe_client_config.json" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

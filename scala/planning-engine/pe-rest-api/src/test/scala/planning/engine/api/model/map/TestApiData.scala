@@ -86,19 +86,21 @@ trait TestApiData:
     listStrIoNode.name -> listStrIoNode
   )
 
-  lazy val testConNodeDef1 = ConcreteNodeDef(Name("conHn1"), booleanIoNode.name, Json.fromBoolean(testConNodeVal1))
-  lazy val testConNodeDef2 = ConcreteNodeDef(Name("conHn2"), listStrIoNode.name, Json.fromString(testConNodeVal2))
-  lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"))
-  lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"))
+  lazy val testConNodeDef1 = ConcreteNodeDef(Name("conHn1"), Some(Description("testConNodeDef1")), booleanIoNode.name, Json.fromBoolean(testConNodeVal1))
+  lazy val testConNodeDef2 = ConcreteNodeDef(Name("conHn2"), Some(Description("testConNodeDef2")), listStrIoNode.name, Json.fromString(testConNodeVal2))
+  lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"), Some(Description("testAbsNodeDef1")))
+  lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"), Some(Description("testAbsNodeDef2")))
 
   lazy val testConNodeNew1 = ConcreteNode.New(
     Some(testConNodeDef1.name),
+    testConNodeDef1.description,
     testConNodeDef1.ioNodeName,
     booleanIoVar.indexForValue(testConNodeVal1).unsafeRunSync()
   )
 
   lazy val testConNodeNew2 = ConcreteNode.New(
     Some(testConNodeDef2.name),
+    testConNodeDef2.description,
     testConNodeDef2.ioNodeName,
     listStrIoVar.indexForValue(testConNodeVal2).unsafeRunSync()
   )
@@ -110,7 +112,6 @@ trait TestApiData:
         utility = 0.5,
         name = Some(Name("sample1")),
         description = Some(Description("Sample 1 description")),
-        hiddenNodes = List(testConNodeDef1, testAbsNodeDef1),
         edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN))
       ),
       NewSampleData(
@@ -118,10 +119,10 @@ trait TestApiData:
         utility = 0.8,
         name = Some(Name("sample2")),
         description = Some(Description("Sample 2 description")),
-        hiddenNodes = List(testConNodeDef2, testAbsNodeDef2),
         edges = List(NewSampleEdge(testConNodeDef2.name, testAbsNodeDef2.name, EdgeType.LINK))
       )
-    )
+    ),
+    hiddenNodes = List(testConNodeDef1, testAbsNodeDef1, testConNodeDef2, testAbsNodeDef2)
   )
 
   lazy val testMapAddSamplesResponse = MapAddSamplesResponse(

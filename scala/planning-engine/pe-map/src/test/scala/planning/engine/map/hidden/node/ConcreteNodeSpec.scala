@@ -15,7 +15,7 @@ package planning.engine.map.hidden.node
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
 import planning.engine.common.properties.*
@@ -29,10 +29,11 @@ class ConcreteNodeSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val id = HnId(1234L)
     lazy val name = Some(Name("TestNode"))
+    lazy val description = Some(Description("TestNodeDescription"))
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
-    lazy val singleNode = ConcreteNode[IO](id, name, intInNode, valueIndex)
-    lazy val newNode = ConcreteNode.New(name, intInNode.name, valueIndex)
+    lazy val singleNode = ConcreteNode[IO](id, name, description, intInNode, valueIndex)
+    lazy val newNode = ConcreteNode.New(name, description, intInNode.name, valueIndex)
     lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
@@ -55,6 +56,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
       data.singleNode.pure[IO].logValue(tn).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
+        node.description mustEqual data.description
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
 
@@ -63,6 +65,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
       ConcreteNode.fromNode[IO](data.rawNode, data.intInNode).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
+        node.description mustEqual data.description
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
 
@@ -73,12 +76,14 @@ class ConcreteNodeSpec extends UnitSpecWithData:
 
   "ConcreteNode.equals(...)" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](data.id, data.name, data.intInNode, data.valueIndex).pure[IO].asserting: node2 =>
-        data.singleNode.equals(node2) mustEqual true
+      ConcreteNode[IO](data.id, data.name, data.description, data.intInNode, data.valueIndex).pure[IO].asserting:
+        node2 =>
+          data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), data.intInNode, IoIndex(2)).pure[IO].asserting: node2 =>
-        data.singleNode.equals(node2) mustEqual false
+      ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), None, data.intInNode, IoIndex(2)).pure[IO].asserting:
+        node2 =>
+          data.singleNode.equals(node2) mustEqual false
 
   "ConcreteNode.validationErrors" should:
     "return empty list for valid new node" in newCase[CaseData]: (_, data) =>

@@ -21,19 +21,16 @@ final case class NewSampleData(
     utility: Double,
     name: Option[Name],
     description: Option[Description],
-    hiddenNodes: List[HiddenNodeDef],
     edges: List[NewSampleEdge]
 ) extends Validation:
+  
+  lazy val edgesHnNames: Set[Name] = edges.toSet.flatMap(e => Set(e.sourceHnName, e.targetHnName))
   lazy val validationName: String = s"NewSampleData(name = ${name.getOrElse("None")})"
 
   lazy val validationErrors: List[Throwable] = validations(
     (probabilityCount > 0) -> "Probability count must be greater than zero",
-    (hiddenNodes.map(_.name).distinct.size == hiddenNodes.size) -> "Hidden nodes names must be unique",
-    hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty",
     (edges.distinct == edges) -> "Edges must be unique",
     edges.nonEmpty -> "Edges must not be empty",
-    (edges.flatMap(e => Set(e.sourceHnName, e.targetHnName)) == hiddenNodes.map(_.name))
-      -> "Edges must reference all provided hnNames"
   )
 
 object NewSampleData:

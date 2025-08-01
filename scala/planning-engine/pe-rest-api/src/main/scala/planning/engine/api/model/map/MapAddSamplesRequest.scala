@@ -13,26 +13,47 @@
 package planning.engine.api.model.map
 
 import cats.MonadThrow
-import planning.engine.api.model.map.payload.{AbstractNodeDef, ConcreteNodeDef, NewSampleData, NewSampleEdge}
+import planning.engine.api.model.map.payload.{
+  AbstractNodeDef,
+  ConcreteNodeDef,
+  HiddenNodeDef,
+  NewSampleData,
+  NewSampleEdge
+}
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.common.errors.assertionError
 import io.circe.{Decoder, Encoder}
 import cats.syntax.all.*
+import planning.engine.common.validation.Validation
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 
 final case class MapAddSamplesRequest(
-    samples: List[NewSampleData]
-):
-  lazy val hnNames: List[Name] = samples.flatMap(_.hiddenNodes.map(_.name)).distinct
+    samples: List[NewSampleData],
+    hiddenNodes: List[HiddenNodeDef] // This is a list of hidden nodes used in the samples, should be unique
+) extends Validation:
 
+  lazy val hnNames: List[Name] = hiddenNodes.map(_.name)
+  lazy val validationName: String = "MapAddSamplesRequest"
+  
+  private lazy val hnNamesSet = hnNames.toSet
+
+  lazy val validationErrors: List[Throwable] = validations(
+    (hiddenNodes.map(_.name).distinct.size == hiddenNodes.size) -> "Hidden nodes names must be unique",
+    hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty"
+  ) ++ validations(samples.map(s =>
+    s.edgesHnNames.subsetOf(
+      hnNamesSet
+    ) -> s"Sample edges must reference only provided hnNames: ${s.edgesHnNames} not in $hnNames"
+  )*)
+  
   def listNewNotFoundHn[F[_]: MonadThrow](
       foundHnNames: Set[Name],
       getIoNode: Name => F[IoNode[F]]
   ): F[(ConcreteNode.ListNew, AbstractNode.ListNew)] =
-    val hns = samples.flatMap(_.hiddenNodes).filterNot(hn => foundHnNames.contains(hn.name))
+    val hns = hiddenNodes.filterNot(hn => foundHnNames.contains(hn.name))
 
     val (conHns, absHns) = hns.foldRight((List[ConcreteNodeDef](), List[AbstractNodeDef]())):
       case (n: ConcreteNodeDef, (conList, absList)) => (n +: conList, absList)

@@ -15,7 +15,7 @@ package planning.engine.map.hidden.node
 import cats.MonadThrow
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.node.HnId
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
@@ -25,13 +25,14 @@ import planning.engine.common.validation.Validation
 
 final case class AbstractNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name]
+    name: Option[Name],
+    description: Option[Description]
 ) extends HiddenNode[F]:
 
-  override def toString: String = s"AbstractHiddenNode(id=$id, name=$name)"
+  override def toString: String = s"AbstractHiddenNode(id=$id, name=$name, description=$description)"
 
 object AbstractNode:
-  final case class New(name: Option[Name]) extends Validation:
+  final case class New(name: Option[Name], description: Option[Description]) extends Validation:
     lazy val validationName: String = s"AbstractNode.New(name=$name)"
 
     lazy val validationErrors: List[Throwable] = validations(
@@ -41,6 +42,7 @@ object AbstractNode:
     def toProperties[F[_]: MonadThrow](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.map(_.toDbParam),
+      PROP.DESCRIPTION -> description.map(_.toDbParam),
       PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
     )
 
@@ -54,6 +56,7 @@ object AbstractNode:
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
         name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
-        concreteNode <- AbstractNode(id, name).pure
-      yield concreteNode
+        description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
+        absNode <- AbstractNode(id, name, description).pure
+      yield absNode
     case _ => s"Node is not a hidden abstract node: $node".assertionError

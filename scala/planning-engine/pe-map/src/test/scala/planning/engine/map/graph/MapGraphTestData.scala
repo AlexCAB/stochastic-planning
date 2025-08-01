@@ -54,10 +54,20 @@ trait MapGraphTestData:
 
   lazy val testHnIndex = HnIndex(1L)
 
-  def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](id = HnId(id), name = Some(Name("Test Node")))
+  def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](
+    id = HnId(id), 
+    name = Some(Name("Abs Test Node")),
+    description = Some(Description("Abs Test Node Description"))
+  )
 
   def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] =
-    ConcreteNode[IO](HnId(123), Some(Name("test")), ioNode, IoIndex(index))
+    ConcreteNode[IO](
+      id = HnId(123),
+      name = Some(Name("Con Test Node")),
+      description = Some(Description("Con Test Node Description")),
+      ioNode = ioNode,
+      valueIndex = IoIndex(index)
+    )
 
   lazy val hiddenNodes: List[AbstractNode[IO]] = (1 to 10).map(i => makeAbstractNode(i)).toList
 

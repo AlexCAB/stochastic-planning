@@ -59,6 +59,7 @@ def main():
 
     client = PeClient(PeClientConf.from_json_file(args.pe_config))
 
+    client.reset_map()
     client.init_map(map_definition)
     client.add_samples(samples)
 

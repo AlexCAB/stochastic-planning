@@ -95,15 +95,17 @@ class MapService[F[_]: {Async, LoggerFactory}](
         foundIds <- foundHnIdMap.toList.traverse:
           case (name, id :: Nil) => (name -> id).pure
           case (name, ids)       => s"Expect exactly one variable with name $name, but got: $ids".assertionError
-        newNames = newConHnIds.toList ++ newAbsHnIds.toList
-        newIds <- newNames.traverse:
+        _ = println(s"Found Hn IDs: $foundIds")
+        newIds <- (newConHnIds.toList ++ newAbsHnIds.toList).traverse:
           case (id, Some(name)) => (name -> id).pure
           case (id, _)          => s"No name found for hnId: $id".assertionError
+        _ = println(s"New Hn IDs: $newIds")
         allHnNames = foundIds ++ newIds
         _ <- allHnNames.map(_._1).assertDistinct(s"Hn names must be distinct")
       yield allHnNames.toMap
 
     for
+      _ <- Validation.validate(definition)
       _ <- Validation.validateList(definition.samples)
       foundHnIdMap <- graph.findHnIdsByNames(definition.hnNames)
       (listNewCon, listNewAbs) <- definition.listNewNotFoundHn(foundHnIdMap.keySet, graph.getIoNode)

@@ -39,15 +39,20 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val ioNode = InputNode(name = Name("ioNode1"), variable = mockedIntIoVariable)
     lazy val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
 
-    lazy val testConcreteNodeDef = ConcreteNodeDef(testEdge.sourceHnName, ioNode.name, Json.fromLong(testValue))
-    lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName)
+    lazy val testConcreteNodeDef = ConcreteNodeDef(
+      testEdge.sourceHnName,
+      Some(Description("testConcreteNodeDef")),
+      ioNode.name,
+      Json.fromLong(testValue)
+    )
+
+    lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName, Some(Description("testAbstractNodeDef")))
 
     lazy val testNewSampleData: NewSampleData = NewSampleData(
       probabilityCount = 10,
       utility = 0.5,
       name = Some(Name("sample1")),
       description = Some(Description("Sample 1 description")),
-      hiddenNodes = List(testConcreteNodeDef, testAbstractNodeDef),
       edges = List(testEdge)
     )
 
@@ -56,7 +61,10 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
       testEdge.targetHnName -> HnId(2)
     )
 
-    lazy val testRequest: MapAddSamplesRequest = MapAddSamplesRequest(samples = List(testNewSampleData))
+    lazy val testRequest: MapAddSamplesRequest = MapAddSamplesRequest(
+      samples = List(testNewSampleData),
+      hiddenNodes = List(testConcreteNodeDef, testAbstractNodeDef)
+    )
 
   "MapAddSamplesRequest.hnNames" should:
     "list all hidden node names" in newCase[CaseData]: (_, data) =>
@@ -85,6 +93,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
         concreteList.list.size mustEqual 1
         concreteList.list.head mustEqual ConcreteNode.New(
           name = Some(data.testConcreteNodeDef.name),
+          description = data.testConcreteNodeDef.description,
           ioNodeName = data.testConcreteNodeDef.ioNodeName,
           valueIndex = testIoIndex
         )

@@ -53,8 +53,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "add concrete nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
-          ConcreteNode.New(Some(Name("inputNode")), boolInNode.name, IoIndex(0L)),
-          ConcreteNode.New(Some(Name("outputNode")), boolOutNode.name, IoIndex(1L))
+          ConcreteNode.New(Some(Name("inputNode")), None, boolInNode.name, IoIndex(0L)),
+          ConcreteNode.New(Some(Name("outputNode")), None, boolOutNode.name, IoIndex(1L))
         )
 
         data.mockedDb.createConcreteNodes
@@ -77,8 +77,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "add abstract nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
-          AbstractNode.New(Some(Name("AbstractNode1"))),
-          AbstractNode.New(Some(Name("AbstractNode2")))
+          AbstractNode.New(Some(Name("AbstractNode1")), None),
+          AbstractNode.New(Some(Name("AbstractNode2")), None)
         )
 
         data.mockedDb.createAbstractNodes
@@ -101,14 +101,14 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "find nodes by name" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val newNodes = List(
-          AbstractNode.New(Some(Name("Node1"))),
-          AbstractNode.New(Some(Name("Node2"))),
-          AbstractNode.New(Some(Name("Node3")))
+          AbstractNode.New(Some(Name("Node1")), None),
+          AbstractNode.New(Some(Name("Node2")), None),
+          AbstractNode.New(Some(Name("Node3")), None)
         )
 
         val expectedNames = newNodes.map(_.name.getOrElse(fail("Node name should not be empty")))
         val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1))
-        val createdNodes = newNodes.zip(expectedHnIds).map((n, id) => AbstractNode[IO](id, n.name))
+        val createdNodes = newNodes.zip(expectedHnIds).map((n, id) => AbstractNode[IO](id, n.name, None))
 
         data.mockedDb.createAbstractNodes
           .when(*, *)

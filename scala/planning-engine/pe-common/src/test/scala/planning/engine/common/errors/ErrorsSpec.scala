@@ -30,7 +30,7 @@ class ErrorsSpec extends UnitSpecIO:
     "raise an AssertionError if the sequence contains duplicates" in: _ =>
       List(1, 2, 2, 3, 4).assertDistinct[IO](
         "Elements are not distinct"
-      ).assertThrowsWithMessage[AssertionError]("Elements are not distinct, seq: 1,2,2,3,4")
+      ).assertThrowsWithMessage[AssertionError]("Elements are not distinct, seq: 1,2,2,3,4, duplicates: 2")
 
   "assertNonEmpty" should:
     "return the sequence when it is not empty" in: _ =>

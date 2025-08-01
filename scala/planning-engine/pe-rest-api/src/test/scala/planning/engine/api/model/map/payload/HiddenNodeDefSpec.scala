@@ -14,7 +14,7 @@ package planning.engine.api.model.map.payload
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.node.IoIndex
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.effect.cps.*
@@ -28,8 +28,14 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case:
     lazy val testValue = 1234L
-    lazy val testConcreteNodeDef = ConcreteNodeDef(Name("concreteNode"), Name("ioNode"), Json.fromLong(testValue))
-    lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"))
+    lazy val testConcreteNodeDef = ConcreteNodeDef(
+      Name("concreteNode"),
+      Some(Description("testConcreteNodeDef")),
+      Name("ioNode"),
+      Json.fromLong(testValue)
+    )
+
+    lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"), Some(Description("testAbstractNodeDef")))
 
   "HiddenNodeDef" should:
     "decode and encode ConcreteNodeDef" in newCase[CaseData]: (tn, data) =>
@@ -65,6 +71,7 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
 
         data.testConcreteNodeDef.toNew[IO](mockedGetIoNode).await mustEqual ConcreteNode.New(
           name = Some(data.testConcreteNodeDef.name),
+          description = data.testConcreteNodeDef.description,
           ioNodeName = data.testConcreteNodeDef.ioNodeName,
           valueIndex = testIoIndex
         )
@@ -73,5 +80,6 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
     "convert to AbstractNode.New" in newCase[CaseData]: (_, data) =>
       async[IO]:
         data.testAbstractNodeDef.toNew mustEqual AbstractNode.New(
-          name = Some(data.testAbstractNodeDef.name)
+          name = Some(data.testAbstractNodeDef.name),
+          description = data.testAbstractNodeDef.description
         )

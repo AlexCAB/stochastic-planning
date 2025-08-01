@@ -14,7 +14,7 @@ package planning.engine.map.hidden.node
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.node.HnId
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
@@ -27,8 +27,9 @@ class AbstractNodeSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val id = HnId(1234)
     lazy val name = Some(Name("TestNode"))
-    lazy val singleNode = AbstractNode[IO](id, name)
-    lazy val newNode = AbstractNode.New(name)
+    lazy val description = Some(Description("TestNodeDescription"))
+    lazy val singleNode = AbstractNode[IO](id, name, description)
+    lazy val newNode = AbstractNode.New(name, description)
     lazy val initNextHnIndex = 1L
 
     lazy val nodeProperties = Map(
@@ -49,12 +50,14 @@ class AbstractNodeSpec extends UnitSpecWithData:
       data.singleNode.pure[IO].logValue(tn).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
+        node.description mustEqual data.description
 
   "AbstractNode.fromNode(...)" should:
     "create AbstractNode from raw node" in newCase[CaseData]: (_, data) =>
       AbstractNode.fromNode[IO](data.rawNode).asserting: node =>
         node.id mustEqual data.id
         node.name mustEqual data.name
+        node.description mustEqual data.description
 
   "AbstractNode.toProperties(...)" should:
     "make DB node properties" in newCase[CaseData]: (tn, data) =>
@@ -63,11 +66,11 @@ class AbstractNodeSpec extends UnitSpecWithData:
 
   "AbstractNode.equals(...)" should:
     "return true for same nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](data.id, data.name).pure[IO].asserting: node2 =>
+      AbstractNode[IO](data.id, data.name, data.description).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](HnId(5678), Some(Name("TestNode2"))).pure[IO].asserting: node2 =>
+      AbstractNode[IO](HnId(5678), Some(Name("TestNode2")), None).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
 
   "AbstractNode.validationErrors" should:

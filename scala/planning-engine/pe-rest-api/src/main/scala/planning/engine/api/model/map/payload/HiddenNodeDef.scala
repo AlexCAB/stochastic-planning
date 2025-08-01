@@ -14,7 +14,7 @@ package planning.engine.api.model.map.payload
 
 import cats.MonadThrow
 import planning.engine.common.values.node.IoIndex
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import cats.syntax.all.*
 import io.circe.syntax.*
@@ -26,7 +26,9 @@ import planning.engine.map.io.variable.*
 sealed trait HiddenNodeDef:
   def name: Name
 
-final case class ConcreteNodeDef(name: Name, ioNodeName: Name, value: Json) extends HiddenNodeDef:
+final case class ConcreteNodeDef(name: Name, description: Option[Description], ioNodeName: Name, value: Json)
+    extends HiddenNodeDef:
+  
   def toNew[F[_]: MonadThrow](getIoNode: Name => F[IoNode[F]]): F[ConcreteNode.New] =
     def parseValue(variable: IoVariable[F, ?]): F[IoIndex] = variable match
       case v: BooleanIoVariableLike[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)
@@ -38,10 +40,15 @@ final case class ConcreteNodeDef(name: Name, ioNodeName: Name, value: Json) exte
     for
       ioNode <- getIoNode(ioNodeName)
       valueIndex <- parseValue(ioNode.variable)
-    yield ConcreteNode.New(name = Some(name), ioNodeName = ioNodeName, valueIndex = valueIndex)
+    yield ConcreteNode.New(
+      name = Some(name),
+      description = description,
+      ioNodeName = ioNodeName,
+      valueIndex = valueIndex
+    )
 
-final case class AbstractNodeDef(name: Name) extends HiddenNodeDef:
-  def toNew: AbstractNode.New = AbstractNode.New(name = Some(name))
+final case class AbstractNodeDef(name: Name, description: Option[Description]) extends HiddenNodeDef:
+  def toNew: AbstractNode.New = AbstractNode.New(name = Some(name), description)
 
 object HiddenNodeDef:
   import io.circe.generic.auto.*

@@ -27,7 +27,12 @@ extension (msg: String)
 
 extension [T, C[_] <: Seq[T]](seq: C[T])
   inline def assertDistinct[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(seq.distinct.size == seq.size, seq, msg + s", seq: ${seq.mkString(",")}")
+    val duplicates = seq.groupBy(identity).filter((_, v) => v.size > 1).keySet
+    predicateAssert(
+      seq.distinct.size == seq.size,
+      seq,
+      msg + s", seq: ${seq.mkString(",")}, duplicates: ${duplicates.mkString(",")}"
+    )
 
   inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
     predicateAssert(seq.nonEmpty, seq, msg + s", seq: ${seq.mkString(",")}")

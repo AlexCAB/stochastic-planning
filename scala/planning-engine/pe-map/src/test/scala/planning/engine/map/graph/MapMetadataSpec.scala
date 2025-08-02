@@ -29,7 +29,7 @@ class MapMetadataSpec extends UnitSpecWithData:
     )
 
     lazy val metadataParams = metadataProps.map((k, v) => k -> v.toParam)
-    lazy val metadata = MapMetadata(Some(Name("TestName")), Some(Description("TestDescription")))
+    lazy val metadata = MapMetadata(Name.some("TestName"), Description.some("TestDescription"))
     lazy val rootNode = Node("1", Set(ROOT_LABEL), metadataProps)
 
   "MapMetadata.toQueryParam" should:

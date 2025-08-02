@@ -31,8 +31,8 @@ class SampleSpec extends UnitSpecWithData:
     val newSample = Sample.New(
       probabilityCount = 10,
       utility = 0.5,
-      name = Some(Name("SampleName")),
-      description = Some(Description("SampleDescription")),
+      name = Name.some("SampleName"),
+      description = Description.some("SampleDescription"),
       edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
     )
 
@@ -52,8 +52,8 @@ class SampleSpec extends UnitSpecWithData:
     "return list errors for invalid data" in newCase[CaseData]: (tn, data) =>
       val invalidSample = data.newSample.copy(
         probabilityCount = 0, // Invalid count
-        name = Some(Name("")), // Empty name
-        description = Some(Description("")), // Empty description
+        name = Name.some(""), // Empty name
+        description = Description.some(""), // Empty description
         edges = List() // No edges
       )
 

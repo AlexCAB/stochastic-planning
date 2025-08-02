@@ -32,15 +32,14 @@ trait TestApiData:
     initNextHnId = 100L,
     initNextSampleId = 200L,
     initSampleCount = 300L,
-    initNextHnIndex = 400L,
-    samplesName = "samples"
+    initNextHnIndex = 400L
   )
 
   lazy val testDbName = DbName("testMapDb")
 
   lazy val testMapResetResponse = MapResetResponse(
     prevDbName = Some(testDbName),
-    prevMapName = Some(Name("testMapName"))
+    prevMapName = Name.some("testMapName")
   )
 
   lazy val booleanIoNodeDef = BooleanIoNodeDef(Name("boolDef"), Set(true, false))
@@ -50,8 +49,8 @@ trait TestApiData:
 
   lazy val testMapInitRequest = MapInitRequest(
     dbName = testDbName,
-    name = Some(Name("testMapName")),
-    description = Some(Description("testMapDescription")),
+    name = Name.some("testMapName"),
+    description = Description.some("testMapDescription"),
     inputNodes = List(booleanIoNodeDef, floatIoNodeDef),
     outputNodes = List(intIoNodeDef, listStrIoNodeDef)
   )
@@ -86,10 +85,22 @@ trait TestApiData:
     listStrIoNode.name -> listStrIoNode
   )
 
-  lazy val testConNodeDef1 = ConcreteNodeDef(Name("conHn1"), Some(Description("testConNodeDef1")), booleanIoNode.name, Json.fromBoolean(testConNodeVal1))
-  lazy val testConNodeDef2 = ConcreteNodeDef(Name("conHn2"), Some(Description("testConNodeDef2")), listStrIoNode.name, Json.fromString(testConNodeVal2))
-  lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"), Some(Description("testAbsNodeDef1")))
-  lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"), Some(Description("testAbsNodeDef2")))
+  lazy val testConNodeDef1 = ConcreteNodeDef(
+    Name("conHn1"),
+    Description.some("testConNodeDef1"),
+    booleanIoNode.name,
+    Json.fromBoolean(testConNodeVal1)
+  )
+
+  lazy val testConNodeDef2 = ConcreteNodeDef(
+    Name("conHn2"),
+    Description.some("testConNodeDef2"),
+    listStrIoNode.name,
+    Json.fromString(testConNodeVal2)
+  )
+
+  lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"), Description.some("testAbsNodeDef1"))
+  lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"), Description.some("testAbsNodeDef2"))
 
   lazy val testConNodeNew1 = ConcreteNode.New(
     Some(testConNodeDef1.name),
@@ -110,15 +121,15 @@ trait TestApiData:
       NewSampleData(
         probabilityCount = 10,
         utility = 0.5,
-        name = Some(Name("sample1")),
-        description = Some(Description("Sample 1 description")),
+        name = Name.some("sample1"),
+        description = Description.some("Sample 1 description"),
         edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN))
       ),
       NewSampleData(
         probabilityCount = 20,
         utility = 0.8,
-        name = Some(Name("sample2")),
-        description = Some(Description("Sample 2 description")),
+        name = Name.some("sample2"),
+        description = Description.some("Sample 2 description"),
         edges = List(NewSampleEdge(testConNodeDef2.name, testAbsNodeDef2.name, EdgeType.LINK))
       )
     ),

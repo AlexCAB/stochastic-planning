@@ -22,7 +22,7 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
 
   private class CaseData extends Case:
     val mockKnowledgeGraph = mock[MapGraphLake[IO]]
-    val validMetadata = MapMetadata(Some(Name("TestMap")), None)
+    val validMetadata = MapMetadata(Name.some("TestMap"), None)
     val validInputNodes = List(boolInNode)
     val validOutputNodes = List(boolOutNode)
     val ioNodes = validInputNodes.map(n => n.name -> n).++(validOutputNodes.map(n => n.name -> n)).toMap

@@ -41,7 +41,6 @@ class MainConfSpec extends UnitSpecWithData:
         |  init-next-sample-id = 2
         |  init-sample-count = 3
         |  init-next-hn-index = 4
-        |  samples-name = "samples-1"
         |}
         |""".stripMargin
     )
@@ -57,7 +56,6 @@ class MainConfSpec extends UnitSpecWithData:
             initNextHnId = 1L,
             initNextSampleId = 2L,
             initSampleCount = 3L,
-            initNextHnIndex = 4L,
-            samplesName = "samples-1"
+            initNextHnIndex = 4L
           )
         ))

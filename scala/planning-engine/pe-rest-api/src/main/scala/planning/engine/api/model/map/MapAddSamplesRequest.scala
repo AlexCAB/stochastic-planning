@@ -37,7 +37,7 @@ final case class MapAddSamplesRequest(
 
   lazy val hnNames: List[Name] = hiddenNodes.map(_.name)
   lazy val validationName: String = "MapAddSamplesRequest"
-  
+
   private lazy val hnNamesSet = hnNames.toSet
 
   lazy val validationErrors: List[Throwable] = validations(
@@ -48,7 +48,7 @@ final case class MapAddSamplesRequest(
       hnNamesSet
     ) -> s"Sample edges must reference only provided hnNames: ${s.edgesHnNames} not in $hnNames"
   )*)
-  
+
   def listNewNotFoundHn[F[_]: MonadThrow](
       foundHnNames: Set[Name],
       getIoNode: Name => F[IoNode[F]]

@@ -26,8 +26,8 @@ class AbstractNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234)
-    lazy val name = Some(Name("TestNode"))
-    lazy val description = Some(Description("TestNodeDescription"))
+    lazy val name = Name.some("TestNode")
+    lazy val description = Description.some("TestNodeDescription")
     lazy val singleNode = AbstractNode[IO](id, name, description)
     lazy val newNode = AbstractNode.New(name, description)
     lazy val initNextHnIndex = 1L
@@ -35,12 +35,14 @@ class AbstractNodeSpec extends UnitSpecWithData:
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.get.toDbParam,
+      PROP.DESCRIPTION -> description.get.toDbParam,
       PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
     )
 
     lazy val nodeValues = Map(
       PROP.HN_ID -> Value.Integer(id.value),
-      PROP.NAME -> Value.Str(name.get.value)
+      PROP.NAME -> Value.Str(name.get.value),
+      PROP.DESCRIPTION -> Value.Str(description.get.value)
     )
 
     lazy val rawNode = Node("1", Set(HN_LABEL, ABSTRACT_LABEL), nodeValues)
@@ -70,7 +72,7 @@ class AbstractNodeSpec extends UnitSpecWithData:
         data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](HnId(5678), Some(Name("TestNode2")), None).pure[IO].asserting: node2 =>
+      AbstractNode[IO](HnId(5678), Name.some("TestNode2"), None).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
 
   "AbstractNode.validationErrors" should:
@@ -78,6 +80,6 @@ class AbstractNodeSpec extends UnitSpecWithData:
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 
     "return error if name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = Some(Name(""))).validationErrors.pure[IO].asserting: errors =>
+      data.newNode.copy(name = Name.some("")).validationErrors.pure[IO].asserting: errors =>
         errors must have size 1
         errors.head.getMessage mustEqual "Name must not be empty if defined"

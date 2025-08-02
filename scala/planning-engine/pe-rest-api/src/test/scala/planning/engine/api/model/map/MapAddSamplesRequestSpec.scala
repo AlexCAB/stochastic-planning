@@ -41,18 +41,18 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
 
     lazy val testConcreteNodeDef = ConcreteNodeDef(
       testEdge.sourceHnName,
-      Some(Description("testConcreteNodeDef")),
+      Description.some("testConcreteNodeDef"),
       ioNode.name,
       Json.fromLong(testValue)
     )
 
-    lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName, Some(Description("testAbstractNodeDef")))
+    lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName, Description.some("testAbstractNodeDef"))
 
     lazy val testNewSampleData: NewSampleData = NewSampleData(
       probabilityCount = 10,
       utility = 0.5,
-      name = Some(Name("sample1")),
-      description = Some(Description("Sample 1 description")),
+      name = Name.some("sample1"),
+      description = Description.some("Sample 1 description"),
       edges = List(testEdge)
     )
 

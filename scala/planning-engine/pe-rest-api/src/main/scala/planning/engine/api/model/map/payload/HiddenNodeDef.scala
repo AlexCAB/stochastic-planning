@@ -28,7 +28,7 @@ sealed trait HiddenNodeDef:
 
 final case class ConcreteNodeDef(name: Name, description: Option[Description], ioNodeName: Name, value: Json)
     extends HiddenNodeDef:
-  
+
   def toNew[F[_]: MonadThrow](getIoNode: Name => F[IoNode[F]]): F[ConcreteNode.New] =
     def parseValue(variable: IoVariable[F, ?]): F[IoIndex] = variable match
       case v: BooleanIoVariableLike[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)

@@ -30,12 +30,12 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val testValue = 1234L
     lazy val testConcreteNodeDef = ConcreteNodeDef(
       Name("concreteNode"),
-      Some(Description("testConcreteNodeDef")),
+      Description.some("testConcreteNodeDef"),
       Name("ioNode"),
       Json.fromLong(testValue)
     )
 
-    lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"), Some(Description("testAbstractNodeDef")))
+    lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"), Description.some("testAbstractNodeDef"))
 
   "HiddenNodeDef" should:
     "decode and encode ConcreteNodeDef" in newCase[CaseData]: (tn, data) =>

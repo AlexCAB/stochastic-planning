@@ -22,13 +22,13 @@ import cats.syntax.all.*
 class MapAddSamplesResponseSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val sampleNames = Map(
-      SampleId(1) -> Some(Name("Sample 1")),
+      SampleId(1) -> Name.some("Sample 1"),
       SampleId(2) -> None
     )
 
     lazy val expectedResponse = MapAddSamplesResponse(
       addedSamples = List(
-        ShortSampleData(SampleId(1), Some(Name("Sample 1"))),
+        ShortSampleData(SampleId(1), Name.some("Sample 1")),
         ShortSampleData(SampleId(2), None)
       )
     )

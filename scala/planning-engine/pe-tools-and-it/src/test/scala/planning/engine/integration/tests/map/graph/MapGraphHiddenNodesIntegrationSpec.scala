@@ -17,7 +17,7 @@ import planning.engine.integration.tests.MapGraphIntegrationTestData.{TestMapGra
 import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import cats.effect.cps.*
 import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
 import neotypes.syntax.all.*
@@ -50,9 +50,9 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
       given WithItDb.ItDb = res.itDb
       async[IO]:
         val newConcreteNodes = ConcreteNode.ListNew(List(
-          ConcreteNode.New(Some(Name("test-concrete-1")), intInNode.name, IoIndex(101L)),
-          ConcreteNode.New(Some(Name("test-concrete-2")), boolOutNode.name, IoIndex(102L)),
-          ConcreteNode.New(None, intOutNode.name, IoIndex(103L))
+          ConcreteNode.New(Name.some("test-con-1"), Description.some("test-con-1"), intInNode.name, IoIndex(101L)),
+          ConcreteNode.New(Name.some("test-con-2"), None, boolOutNode.name, IoIndex(102L)),
+          ConcreteNode.New(None, None, intOutNode.name, IoIndex(103L))
         ))
 
         val createdNodeIds: List[HnId] = res.graph.newConcreteNodes(newConcreteNodes).await.keys.toList
@@ -69,13 +69,13 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         dbConcreteNodeIds must contain allElementsOf createdNodeIds
 
   "MapGraph.newAbstractNodes(...)" should:
-    "create new abstract nodes and cache them" in: res =>
+    "create new abstract nodes" in: res =>
       given WithItDb.ItDb = res.itDb
       async[IO]:
         val newAbstractNodes = AbstractNode.ListNew(List(
-          AbstractNode.New(Some(Name("test-abstract-1"))),
-          AbstractNode.New(Some(Name("test-abstract-2"))),
-          AbstractNode.New(None)
+          AbstractNode.New(Name.some("test-abstract-1"), Description.some("test-abs-1")),
+          AbstractNode.New(Name.some("test-abstract-2"), None),
+          AbstractNode.New(None, None)
         ))
 
         val createdNodeIds: List[HnId] = res.graph.newAbstractNodes(newAbstractNodes).await.keys.toList

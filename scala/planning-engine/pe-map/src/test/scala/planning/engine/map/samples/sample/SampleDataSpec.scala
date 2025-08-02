@@ -28,8 +28,8 @@ class SampleDataSpec extends UnitSpecWithData:
       id = SampleId(1),
       probabilityCount = 100,
       utility = 0.75,
-      name = Some(Name("Sample Node")),
-      description = Some(Description("This is a sample node for testing."))
+      name = Name.some("Sample Node"),
+      description = Description.some("This is a sample node for testing.")
     )
 
     lazy val nodeValues = Map(

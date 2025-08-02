@@ -53,8 +53,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "add concrete nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
-          ConcreteNode.New(Some(Name("inputNode")), None, boolInNode.name, IoIndex(0L)),
-          ConcreteNode.New(Some(Name("outputNode")), None, boolOutNode.name, IoIndex(1L))
+          ConcreteNode.New(Name.some("inputNode"), None, boolInNode.name, IoIndex(0L)),
+          ConcreteNode.New(Name.some("outputNode"), None, boolOutNode.name, IoIndex(1L))
         )
 
         data.mockedDb.createConcreteNodes
@@ -77,8 +77,8 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "add abstract nodes" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val newNodes = List(
-          AbstractNode.New(Some(Name("AbstractNode1")), None),
-          AbstractNode.New(Some(Name("AbstractNode2")), None)
+          AbstractNode.New(Name.some("AbstractNode1"), None),
+          AbstractNode.New(Name.some("AbstractNode2"), None)
         )
 
         data.mockedDb.createAbstractNodes
@@ -101,9 +101,9 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
     "find nodes by name" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val newNodes = List(
-          AbstractNode.New(Some(Name("Node1")), None),
-          AbstractNode.New(Some(Name("Node2")), None),
-          AbstractNode.New(Some(Name("Node3")), None)
+          AbstractNode.New(Name.some("Node1"), None),
+          AbstractNode.New(Name.some("Node2"), None),
+          AbstractNode.New(Name.some("Node3"), None)
         )
 
         val expectedNames = newNodes.map(_.name.getOrElse(fail("Node name should not be empty")))
@@ -205,7 +205,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "MapGraphSpec.getSampleNames(...)" should:
     "get sample names for sample IDs" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val expectedSampleNames = data.testSampleIds.zip(List(Some(Name("Sample1")), None)).toMap
+        val expectedSampleNames = data.testSampleIds.zip(List(Name.some("Sample1"), None)).toMap
 
         data.mockedDb.getSampleNames
           .when(*)

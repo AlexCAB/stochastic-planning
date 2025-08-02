@@ -23,15 +23,15 @@ class NewSampleDataSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val testConNodeDef =
-      ConcreteNodeDef(Name("hn1"), Some(Description("testConNodeDef")), Name("ioNode1"), Json.fromLong(1234L))
+      ConcreteNodeDef(Name("hn1"), Description.some("testConNodeDef"), Name("ioNode1"), Json.fromLong(1234L))
 
-    lazy val testAbsNodeDef = AbstractNodeDef(Name("hn2"), Some(Description("testAbsNodeDef")))
+    lazy val testAbsNodeDef = AbstractNodeDef(Name("hn2"), Description.some("testAbsNodeDef"))
 
     lazy val testSample: IO[NewSampleData] = NewSampleData(
       probabilityCount = 10,
       utility = 0.5,
-      name = Some(Name("sample1")),
-      description = Some(Description("Sample 1 description")),
+      name = Name.some("sample1"),
+      description = Description.some("Sample 1 description"),
       edges = List(NewSampleEdge(testConNodeDef.name, testAbsNodeDef.name, EdgeType.THEN))
     ).pure[IO]
 

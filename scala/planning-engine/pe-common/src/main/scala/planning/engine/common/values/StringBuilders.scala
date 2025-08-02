@@ -24,3 +24,5 @@ trait StringBuilders[T <: AnyVal]:
 
   def fromString[F[_]: ApplicativeThrow](str: String): F[T] =
     if str.nonEmpty then makeValue(str).pure else s"Can't build ${this.getClass} from empty string".assertionError
+
+  def some(str: String): Option[T] = makeValue(str).some

@@ -28,8 +28,8 @@ class ConcreteNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234L)
-    lazy val name = Some(Name("TestNode"))
-    lazy val description = Some(Description("TestNodeDescription"))
+    lazy val name = Name.some("TestNode")
+    lazy val description = Description.some("TestNodeDescription")
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
     lazy val singleNode = ConcreteNode[IO](id, name, description, intInNode, valueIndex)
@@ -39,6 +39,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
     lazy val nodeProperties = Map(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.get.toDbParam,
+      PROP.DESCRIPTION -> description.get.toDbParam,
       PROP.IO_INDEX -> valueIndex.toDbParam,
       PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
     )
@@ -46,6 +47,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
     lazy val nodeValues = Map(
       PROP.HN_ID -> Value.Integer(id.value),
       PROP.NAME -> Value.Str(name.get.value),
+      PROP.DESCRIPTION -> Value.Str(description.get.value),
       PROP.IO_INDEX -> Value.Integer(valueIndex.value)
     )
 
@@ -81,7 +83,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
           data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](HnId(5678), Some(Name("TestNode2")), None, data.intInNode, IoIndex(2)).pure[IO].asserting:
+      ConcreteNode[IO](HnId(5678), Name.some("TestNode2"), None, data.intInNode, IoIndex(2)).pure[IO].asserting:
         node2 =>
           data.singleNode.equals(node2) mustEqual false
 
@@ -90,7 +92,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 
     "return error if var name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = Some(Name(""))).validationErrors.pure[IO].asserting: errors =>
+      data.newNode.copy(name = Name.some("")).validationErrors.pure[IO].asserting: errors =>
         errors must have size 1
         errors.head.getMessage mustEqual "Name must not be empty if defined"
 

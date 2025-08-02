@@ -20,14 +20,14 @@ import pureconfig.{ConfigReader, ConfigSource}
 import pureconfig.generic.semiauto.*
 import pureconfig.module.catseffect.syntax.*
 import planning.engine.common.properties.*
+import planning.engine.common.values.db.Neo4j.SAMPLES_LABEL
 
 // Config do not stored in the database (unlike MapMetadata), but used to initialize the map graph
 final case class MapConfig(
     initNextHnId: Long,
     initNextSampleId: Long,
     initSampleCount: Long,
-    initNextHnIndex: Long,
-    samplesName: String
+    initNextHnIndex: Long
 ):
   def toRootParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_HN_ID -> initNextHnId.toDbParam
@@ -36,7 +36,7 @@ final case class MapConfig(
   def toSamplesParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_SAMPLES_ID -> initNextSampleId.toDbParam,
     PROP.SAMPLES_COUNT -> initSampleCount.toDbParam,
-    PROP.NAME -> samplesName.toDbParam
+    PROP.NAME -> SAMPLES_LABEL.toDbParam
   )
 
 object MapConfig:

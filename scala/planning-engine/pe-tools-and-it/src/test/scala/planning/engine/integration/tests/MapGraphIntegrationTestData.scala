@@ -45,8 +45,7 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       ).logValue("createRootNodesInDb"))
     yield neo4jdb
 
-  def makeNames(prefix: String, n: Int): List[Option[Name]] =
-    (1 to n).toList.map(i => Some(Name(s"$prefix-$i"))) :+ None
+  def makeNames(prefix: String, n: Int): List[Option[Name]] = (1 to n).toList.map(i => Name.some(s"$prefix-$i")) :+ None
 
   def createTestHiddenNodesInDb(
       neo4jdb: Neo4jDatabase[IO],
@@ -63,11 +62,11 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
 
     for
       concreteNodes <- concreteNames
-        .traverse(name => makeConcreteNodes(ConcreteNode.New(name, intInNode.name, IoIndex(123L))))
+        .traverse(name => makeConcreteNodes(ConcreteNode.New(name, None, intInNode.name, IoIndex(123L))))
         .map(_.toMap)
         .logValue("createTestHiddenNodesInDb", "concreteNodes")
       abstractNodes <- abstractNames
-        .traverse(name => makeAbstractNodes(AbstractNode.New(name)))
+        .traverse(name => makeAbstractNodes(AbstractNode.New(name, None)))
         .map(_.toMap)
         .logValue("createTestHiddenNodesInDb", "abstractNodes")
     yield TestHiddenNodes(

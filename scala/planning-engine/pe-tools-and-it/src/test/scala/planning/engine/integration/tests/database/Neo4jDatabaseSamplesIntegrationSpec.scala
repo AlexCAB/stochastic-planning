@@ -370,7 +370,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           .traverse(id => getSampleNode(id)).logValue("get sample names", "rawSampleNodes").await
 
         val expectedSampleNames: Map[SampleId, Option[Name]] = rawSampleNodes
-          .map(node => SampleId(node.getLongProperty(PROP.SAMPLE_ID)) -> Some(Name(node.getStringProperty(PROP.NAME))))
+          .map(node => SampleId(node.getLongProperty(PROP.SAMPLE_ID)) -> Name.some(node.getStringProperty(PROP.NAME)))
           .toMap
 
         logInfo("get sample names", s"expectedSampleNames = $expectedSampleNames").await

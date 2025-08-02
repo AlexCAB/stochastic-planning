@@ -35,11 +35,10 @@ trait MapGraphTestData:
     initNextHnId = 1L,
     initNextSampleId = 1L,
     initSampleCount = 0L,
-    initNextHnIndex = 1L,
-    samplesName = "TestSamples"
+    initNextHnIndex = 1L
   )
 
-  lazy val testMetadata = MapMetadata(Some(Name("TestMap")), Some(Description("Test description")))
+  lazy val testMetadata = MapMetadata(Name.some("TestMap"), Description.some("Test description"))
   lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 
   lazy val boolInNode = InputNode[IO](Name("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
@@ -55,27 +54,26 @@ trait MapGraphTestData:
   lazy val testHnIndex = HnIndex(1L)
 
   def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](
-    id = HnId(id), 
-    name = Some(Name("Abs Test Node")),
-    description = Some(Description("Abs Test Node Description"))
+    id = HnId(id),
+    name = Name.some("Abs Test Node"),
+    description = Description.some("Abs Test Node Description")
   )
 
-  def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] =
-    ConcreteNode[IO](
-      id = HnId(123),
-      name = Some(Name("Con Test Node")),
-      description = Some(Description("Con Test Node Description")),
-      ioNode = ioNode,
-      valueIndex = IoIndex(index)
-    )
+  def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] = ConcreteNode[IO](
+    id = HnId(123),
+    name = Name.some("Con Test Node"),
+    description = Description.some("Con Test Node Description"),
+    ioNode = ioNode,
+    valueIndex = IoIndex(index)
+  )
 
   lazy val hiddenNodes: List[AbstractNode[IO]] = (1 to 10).map(i => makeAbstractNode(i)).toList
 
   lazy val newSample: Sample.New = Sample.New(
     probabilityCount = 10L,
     utility = 0.5,
-    name = Some(Name("sample-1")),
-    description = Some(Description("This is a test sample")),
+    name = Name.some("sample-1"),
+    description = Description.some("This is a test sample"),
     edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
   )
 
@@ -107,17 +105,17 @@ trait MapGraphTestData:
   )
 
   def makeFourNewSamples(hnId1: HnId, hnId2: HnId, hnId3: HnId): Sample.ListNew = Sample.ListNew.of(
-    newSample.copy(name = Some(Name("loop-sample-1")), edges = List(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
-    newSample.copy(name = Some(Name("one-edge-sample-1")), edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
+    newSample.copy(name = Name.some("loop-sample-1"), edges = List(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
+    newSample.copy(name = Name.some("one-edge-sample-1"), edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
     newSample.copy(
-      name = Some(Name("two-edge-sample-1")),
+      name = Name.some("two-edge-sample-1"),
       edges = List(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK)
       )
     ),
     newSample.copy(
-      name = Some(Name("three-edge-sample-1")),
+      name = Name.some("three-edge-sample-1"),
       edges = List(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK),

@@ -50,7 +50,7 @@ trait Neo4jQueries:
   )(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
       CREATE (root: #$ROOT_LABEL ${rootPrams.qp}),
-             (io: #$IO_NODES_LABEL {name: "#$SAMPLES_LABEL"}),
+             (io: #$IO_NODES_LABEL {name: "#$IO_NODES_LABEL"}),
              (samples: #$SAMPLES_LABEL ${samplesParams.qp}),
              (root)-[:IO_NODES_EDGE]->(io),
              (root)-[:SAMPLES_EDGE]->(samples)

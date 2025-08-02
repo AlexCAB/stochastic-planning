@@ -17,6 +17,7 @@ import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.properties.PROP
 import planning.engine.common.properties.*
+import planning.engine.common.values.db.Neo4j.SAMPLES_LABEL
 
 class MapConfigSpec extends UnitSpecWithData:
 
@@ -24,11 +25,10 @@ class MapConfigSpec extends UnitSpecWithData:
     val rawConfig: String =
       """
         |knowledge-graph {
-        |  init-next-hn-id = 100,
-        |  init-next-sample-id = 1000,
-        |  init-sample-count = 5000,
-        |  init-next-hn-index = 100,
-        |  samples-name = "test-samples"
+        |  init-next-hn-id = 100
+        |  init-next-sample-id = 1000
+        |  init-sample-count = 5000
+        |  init-next-hn-index = 100
         |}
       """.stripMargin
 
@@ -36,8 +36,7 @@ class MapConfigSpec extends UnitSpecWithData:
       initNextHnId = 100,
       initNextSampleId = 1000,
       initSampleCount = 5000,
-      initNextHnIndex = 100,
-      samplesName = "test-samples"
+      initNextHnIndex = 100
     )
 
   "MapConfig.formConfig(...)" should:
@@ -57,5 +56,5 @@ class MapConfigSpec extends UnitSpecWithData:
       data.parsedConfig.toSamplesParams[IO].asserting(_ mustEqual Map(
         PROP.NEXT_SAMPLES_ID -> data.parsedConfig.initNextSampleId.toDbParam,
         PROP.SAMPLES_COUNT -> data.parsedConfig.initSampleCount.toDbParam,
-        PROP.NAME -> data.parsedConfig.samplesName.toDbParam
+        PROP.NAME -> SAMPLES_LABEL.toDbParam
       ))

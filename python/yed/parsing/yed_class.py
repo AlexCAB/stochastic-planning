@@ -76,7 +76,7 @@ class Yed:
         self.logger.info(f"Built MapDefinition from yEd graph: {definition}")
         return definition
 
-    def build_sample(self, sample_node: ParsedNode) -> Sample:
+    def _build_sample(self, sample_node: ParsedNode) -> Sample:
         assert sample_node.is_sample_node(), f"Node {sample_node} is not a sample node"
 
         component: Set[str] = next(iter([c for c in self.components if sample_node.id in c]), None)
@@ -133,5 +133,5 @@ class Yed:
         self.logger.info(f"Built Sample from yEd graph: {sample}")
         return sample
 
-    def build_samples(self) -> List[Sample]:
+    def build_samples(self) -> Samples:
         return [self.build_sample(n) for n in self.nodes.values() if n.is_sample_node()]

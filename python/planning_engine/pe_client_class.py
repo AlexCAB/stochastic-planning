@@ -22,7 +22,7 @@ from planning_engine.model.added_sample_class import AddedSample
 from planning_engine.model.map_definition_class import MapDefinition
 from planning_engine.model.map_info_class import MapInfo
 from planning_engine.config.pe_client_conf_class import PeClientConf
-from planning_engine.model.sample_class import Sample
+from planning_engine.model.sample_class import Sample, Samples
 
 
 class PeClient:
@@ -82,8 +82,8 @@ class PeClient:
         self.logger.info(f"Map loaded, from db_name: {db_name}, response: {response}")
         return MapInfo.from_json(response)
 
-    def add_samples(self, samples: List[Sample]) -> List[AddedSample]:
-        response = self._run_post(PeClient.PATH_SAMPLES, data={"samples": [s.to_json() for s in samples]})
+    def add_samples(self, samples: Samples) -> List[AddedSample]:
+        response = self._run_post(PeClient.PATH_SAMPLES, data=samples.to_json())
         assert 'addedSamples' in response, "Samples should be defined in JSON response"
         self.logger.info(f"Added samples: {samples}, response: {response}")
         return [AddedSample.from_json(j) for j in response['addedSamples']]

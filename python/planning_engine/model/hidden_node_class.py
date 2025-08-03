@@ -44,6 +44,7 @@ class ConcreteNode(HiddenNode):
             "type": "ConcreteNode",
             "data": {
                 "name": self.name,
+                "description": self.description,
                 "ioNodeName": self.io_node_name,
                 "value": self.value
             }
@@ -54,14 +55,15 @@ class ConcreteNode(HiddenNode):
 
 
 class AbstractNode(HiddenNode):
-    def __init__(self, description: Optional[str], name: str):
+    def __init__(self, name: str, description: Optional[str]):
         super().__init__(name, description)
 
     def to_json(self) -> Dict[str, Any]:
         return {
             "type": "AbstractNode",
             "data": {
-                "name": self.name
+                "name": self.name,
+                "description": self.description
             }
         }
 

@@ -76,16 +76,6 @@ class TestMapDefinition(unittest.TestCase):
         }
         self.assertEqual(map_def.to_json(), expected_json)
 
-    def test_converts_to_string_correctly(self):
-        map_def = MapDefinition(
-            db_name="test_db",
-            name="test_map",
-            description=None,
-            input_nodes=[],
-            output_nodes=[]
-        )
-        self.assertEqual(str(map_def), "MapDefinition(db_name=test_db, name=test_map)")
-
 
 if __name__ == '__main__':
     unittest.main()

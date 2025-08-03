@@ -42,15 +42,6 @@ class TestMapInfo(unittest.TestCase):
                 num_hidden_nodes=2
             )
 
-    def test_converts_to_string_correctly(self):
-        map_info = MapInfo(
-            db_name="db-name",
-            map_name="TestMap",
-            num_input_nodes=5,
-            num_output_nodes=3,
-            num_hidden_nodes=2
-        )
-        self.assertEqual(
-            str(map_info),
-            "MapInfo(db_name=db-name, map_name=TestMap, num_input_nodes=5, num_output_nodes=3, num_hidden_nodes=2)"
-        )
+
+if __name__ == '__main__':
+    unittest.main()

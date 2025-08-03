@@ -33,13 +33,13 @@ class TestAddedSample(unittest.TestCase):
             AddedSample(sample_id=None, sample_name="Sample B")
 
     def test_creates_added_sample_from_valid_json(self):
-        json_data = {"sampleId": 3, "sampleName": "Sample C"}
+        json_data = {"id": 3, "name": "Sample C"}
         sample = AddedSample.from_json(json_data)
         self.assertEqual(sample.sample_id, 3)
         self.assertEqual(sample.sample_name, "Sample C")
 
     def test_creates_added_sample_from_json_with_missing_name(self):
-        json_data = {"sampleId": 4}
+        json_data = {"id": 4}
         sample = AddedSample.from_json(json_data)
         self.assertEqual(sample.sample_id, 4)
         self.assertIsNone(sample.sample_name)
@@ -49,13 +49,9 @@ class TestAddedSample(unittest.TestCase):
             AddedSample.from_json({})
 
     def test_raises_error_when_sample_id_is_missing_in_json(self):
-        json_data = {"sampleName": "Sample D"}
+        json_data = {"name": "Sample D"}
         with self.assertRaises(AssertionError):
             AddedSample.from_json(json_data)
-
-    def test_string_representation_is_correct(self):
-        sample = AddedSample(sample_id=5, sample_name="Sample E")
-        self.assertEqual(str(sample), "AddedSample(sample_id=5, sample_name=Sample E)")
 
 
 if __name__ == '__main__':

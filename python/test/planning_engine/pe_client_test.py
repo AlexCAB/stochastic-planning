@@ -20,7 +20,7 @@ from planning_engine.model.hidden_edge_class import HiddenEdge, EdgeType
 from planning_engine.model.hidden_node_class import ConcreteNode, AbstractNode
 from planning_engine.model.io_node_class import BoolIoNode, FloatIoNode, IntIoNode, ListStrIoNode
 from planning_engine.model.map_definition_class import MapDefinition
-from planning_engine.model.sample_class import Sample
+from planning_engine.model.sample_class import Sample, Samples
 from planning_engine.pe_client_class import PeClient
 from planning_engine.config.pe_client_conf_class import PeClientConf
 
@@ -73,28 +73,29 @@ class TestPeClient(unittest.TestCase):
 
     def test_add_samples(self):
         hidden_nodes = [
-            ConcreteNode(name="con-hn-1", io_node_name="boolDef", value=True),
-            AbstractNode(name="abs-hn-2")
+            ConcreteNode(name="con-hn-1", description="Concrete 1", io_node_name="boolDef", value=True),
+            AbstractNode(name="abs-hn-2", description="Abstract 2")
         ]
 
         edges = [HiddenEdge(source_hn_name="con-hn-1", target_hn_name="abs-hn-2", edge_type=EdgeType.LinkEdge)]
 
-        definition = Sample(
+        sample = Sample(
             probability_count=5,
             utility=0.75,
             name="Sample1",
             description="Test sample",
-            hidden_nodes=hidden_nodes,
             edges=edges)
 
-        result = self.client.add_samples([definition])
+        definition =  Samples(hidden_nodes, [sample])
+
+        result = self.client.add_samples(definition)
 
         self.assertIsNotNone(result)
         self.assertEqual(len(result), 1)
 
         addedSample: AddedSample = result[0]
         self.assertIsNotNone(addedSample.sample_id)
-        self.assertEqual(addedSample.sample_name, definition.name)
+        self.assertEqual(addedSample.sample_name, sample.name)
 
 
 if __name__ == '__main__':

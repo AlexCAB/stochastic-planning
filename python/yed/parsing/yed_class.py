@@ -25,7 +25,7 @@ from planning_engine.model.hidden_edge_class import HiddenEdge, EdgeType
 from planning_engine.model.hidden_node_class import HiddenNode, AbstractNode, ConcreteNode
 from planning_engine.model.io_node_class import IoNode
 from planning_engine.model.map_definition_class import MapDefinition
-from planning_engine.model.sample_class import Sample
+from planning_engine.model.sample_class import Sample, Samples
 from yed.parsing.parsed_edge_class import ParsedEdge
 from yed.parsing.parsed_node_class import ParsedNode
 
@@ -107,12 +107,6 @@ class Yed:
         assert all([(e.is_link_edge() or e.is_then_edge()) for e in sample_edges]), \
             "All edges in the sample should be link or then edges"
 
-        hidden_nodes: List[HiddenNode] = [
-            (AbstractNode(name=n.name, description=n.description) if n.is_abstract_node() else
-             ConcreteNode(name=n.name, description=n.description, io_node_name=n.variable_name, value=n.value))
-            for n in sample_nodes.values()
-        ]
-
         hidden_edges: List[HiddenEdge] = [
             HiddenEdge(
                 source_hn_name=sample_nodes[e.source_id].name,
@@ -126,12 +120,31 @@ class Yed:
             utility=sample_node.utility,
             name=sample_node.name,
             description=sample_node.description,
-            hidden_nodes=hidden_nodes,
             edges=hidden_edges
         )
 
-        self.logger.info(f"Built Sample from yEd graph: {sample}")
         return sample
 
     def build_samples(self) -> Samples:
-        return [self.build_sample(n) for n in self.nodes.values() if n.is_sample_node()]
+        hidden_nodes: Dict[str, HiddenNode] = {}
+
+        for n in self.nodes.values():
+            if n.is_abstract_node() or n.is_concrete_node():
+                hn = AbstractNode(n.name, n.description) if n.is_abstract_node() else \
+                    ConcreteNode(n.name, n.description, n.variable_name, n.value)
+                if n.name in hidden_nodes:
+                    assert hidden_nodes[n.name] == hn, \
+                        f"Node {n.name} already exists with different params: " \
+                        f"{hidden_nodes[n.name]} != {n}"
+                    if hn.description and hidden_nodes[n.name].description is None:
+                        hidden_nodes[n.name].description = hn.description
+                else:
+                    hidden_nodes[n.name] = hn
+
+        samples: Samples = Samples(
+            list(hidden_nodes.values()),
+            [self._build_sample(n) for n in self.nodes.values() if n.is_sample_node()]
+        )
+
+        self.logger.info(f"Built Samples from yEd graph: {samples}")
+        return samples

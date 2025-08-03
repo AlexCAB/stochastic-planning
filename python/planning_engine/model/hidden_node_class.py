@@ -50,6 +50,12 @@ class ConcreteNode(HiddenNode):
             }
         }
 
+    def __eq__(self, other) -> bool:
+        return isinstance(other, ConcreteNode) \
+            and self.name == other.name \
+            and self.io_node_name == other.io_node_name \
+            and self.value == other.value
+
     def __str__(self):
         return f"ConcreteNode(name = {self.name}, description = {self.description}, ioNodeName = {self.io_node_name}, value = {self.value})"
 
@@ -66,6 +72,10 @@ class AbstractNode(HiddenNode):
                 "description": self.description
             }
         }
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, AbstractNode) \
+            and self.name == other.name
 
     def __str__(self):
         return f"AbstractNode(name = {self.name}, description = {self.description})"

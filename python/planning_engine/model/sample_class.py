@@ -48,12 +48,12 @@ class Sample:
 
     def __str__(self):
         return (f"Sample(\n"
-                f"    probability_count = {self.probability_count},\n"
-                f"    utility = {self.utility},\n"
-                f"    name = {self.name},\n"
-                f"    description = {self.description},\n"
-                f"    edges = [\n        {',\n        '.join(str(n) for n in self.edges)}\n    ]\n"
-                f")")
+                f"      probability_count = {self.probability_count},\n"
+                f"      utility = {self.utility},\n"
+                f"      name = {self.name},\n"
+                f"      description = {self.description},\n"
+                f"      edges = [\n        {',\n        '.join(str(n) for n in self.edges)}\n      ]\n"
+                f"    )")
 
     def __repr__(self):
         return self.__str__()
@@ -79,7 +79,6 @@ class Samples:
                     he_names.add(e.source_hn_name)
                     he_names.add(e.target_hn_name)
 
-            print(f"Sample {sample.name} has edges with hidden nodes: {he_names}")
             assert he_names.issubset(hn_names), f"All edge nodes must be in hidden nodes. Found: {he_names - hn_names}"
 
         self.hidden_nodes: List[HiddenNode] = hidden_nodes
@@ -93,8 +92,8 @@ class Samples:
 
     def __str__(self):
         return (f"Samples(\n"
-                f"hidden_nodes = [\n        {',\n        '.join(str(n) for n in self.hidden_nodes)}\n    ],\n"
-                f"samples = [{', '.join(str(s) for s in self.samples)}])")
+                f"  hidden_nodes = [\n    {',\n    '.join(str(n) for n in self.hidden_nodes)}\n  ],\n"
+                f"  samples = [\n    {',\n    '.join(str(s) for s in self.samples)}\n  ]\n)")
 
     def __repr__(self):
         return self.__str__()

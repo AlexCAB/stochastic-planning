@@ -145,6 +145,9 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- (sampleIds, samples.keys).assertSameElems("Not all sample were found")
       yield samples
 
+  override def toString: String =
+    s"MapGraph(name = ${metadata.name.toStr}, ioNodes = ${ioNodes.keys.map(_.value).mkString(", ")})"
+
 object MapGraph:
   def apply[F[_]: {Async, LoggerFactory}](
       config: MapConfig,

@@ -33,7 +33,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
 ) extends HiddenNode[F]:
 
   override def toString: String = s"ConcreteHiddenNode(" +
-    s"id=$id, name=$name, description=$description, valueIndex=$valueIndex, ioNode=$ioNode)"
+    s"id = $id, name = $name, description = $description, valueIndex = $valueIndex, ioNode = $ioNode)"
 
 object ConcreteNode:
   final case class New(name: Option[Name], description: Option[Description], ioNodeName: Name, valueIndex: IoIndex)

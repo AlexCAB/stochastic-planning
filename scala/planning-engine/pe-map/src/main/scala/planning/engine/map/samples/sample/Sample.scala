@@ -28,11 +28,11 @@ final case class Sample(
     edges: List[SampleEdge]
 ):
   override def toString: String = "Sample(" +
-    s"id=${data.id.value}, " +
-    s"name=${data.name.toStr}, " +
-    s"count=${data.probabilityCount}, " +
-    s"utility=${data.utility}, " +
-    s"edges=[${edges.map(_.toString).mkString(", ")}])"
+    s"id = ${data.id.value}, " +
+    s"name = ${data.name.toStr}, " +
+    s"count = ${data.probabilityCount}, " +
+    s"utility = ${data.utility}, " +
+    s"edges = [${edges.map(_.toString).mkString(", ")}])"
 
 object Sample:
   final case class New(
@@ -79,12 +79,12 @@ object Sample:
     )
 
     override def toString: String = s"Sample.New(" +
-      s"probabilityCount=$probabilityCount, " +
-      s"utility=$utility, " +
-      s"name=${name.toStr}, " +
-      s"description=${description.toStr}, " +
-      s"hnIds=[${hnIds.map(_.value).mkString(", ")}], " +
-      s"edges=[${edges.map(_.toString).mkString(", ")}])"
+      s"probabilityCount = $probabilityCount, " +
+      s"utility = $utility, " +
+      s"name = ${name.toStr}, " +
+      s"description = ${description.toStr}, " +
+      s"hnIds = [${hnIds.map(_.value).mkString(", ")}], " +
+      s"edges = [${edges.map(_.toString).mkString(", ")}])"
 
   final case class ListNew(list: List[New]):
     lazy val allEdges: List[SampleEdge.New] = list.flatMap(_.edges).distinct

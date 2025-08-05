@@ -16,10 +16,10 @@ import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.toSemigroupKOps
 import fs2.io.net.Network
-import org.http4s.{HttpApp, HttpRoutes, Response}
+import org.http4s.{HttpRoutes, Response}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.{Router, Server}
-import org.http4s.server.middleware.{ErrorHandling, Logger}
+import org.http4s.server.middleware.Logger
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import planning.engine.api.config.{MainConf, ServerConf}
@@ -39,16 +39,12 @@ object Main extends IOApp:
 
   private val shutdownTimeout: FiniteDuration = 1.seconds
   private val loggerService: Middleware = Logger.httpRoutes[IO](logHeaders = true, logBody = true)
-  private val errorHandlingService = ErrorHandling.httpRoutes[IO]
-
-  private def buildHttpApp(apiPrefix: String, routes: HttpRoutes[IO]): HttpApp[IO] =
-    loggerService(errorHandlingService(Router(apiPrefix -> routes))).orNotFound
 
   private def buildServer(config: ServerConf, routes: HttpRoutes[IO]): Resource[IO, Server] = EmberServerBuilder
     .default[IO]
     .withHost(config.host)
     .withPort(config.port)
-    .withHttpApp(buildHttpApp(config.apiPrefix, routes))
+    .withHttpApp(loggerService(Router(config.apiPrefix -> routes)).orNotFound)
     .withShutdownTimeout(shutdownTimeout)
     .build
 

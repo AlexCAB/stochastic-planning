@@ -29,7 +29,7 @@ final case class AbstractNode[F[_]: MonadThrow](
     description: Option[Description]
 ) extends HiddenNode[F]:
 
-  override def toString: String = s"AbstractHiddenNode(id=$id, name=$name, description=$description)"
+  override def toString: String = s"AbstractHiddenNode(id = $id, name = $name, description = $description)"
 
 object AbstractNode:
   final case class New(name: Option[Name], description: Option[Description]) extends Validation:

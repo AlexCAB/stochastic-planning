@@ -56,7 +56,6 @@ class MapBuilder[F[_]: {Async, LoggerFactory}](makeDb: DbName => F[Neo4jDatabase
     for
       _ <- checkIoNodesNames(inNodes, outNodes)
       database <- makeDb(dbName)
-      _ = println(s"Init map graph from database: $database")
       createdNodes <- database.initDatabase(config, metadata, inNodes, outNodes)
       _ <- logger.info(s"Created nodes: ${nodesList(createdNodes)}")
       graph <- MapGraph[F](config, metadata, inNodes, outNodes, database)
@@ -65,7 +64,6 @@ class MapBuilder[F[_]: {Async, LoggerFactory}](makeDb: DbName => F[Neo4jDatabase
   override def load(dbName: DbName, config: MapConfig): F[MapGraphLake[F]] =
     for
       database <- makeDb(dbName)
-      _ = println(s"Loading map graph from database: $database")
       (metadata, inNodes, outNodes) <- database.loadRootNodes
       _ <- checkIoNodesNames(inNodes, outNodes)
       _ <- logger.info(s"Loaded metadata: ${(metadata, inNodes, outNodes)}")

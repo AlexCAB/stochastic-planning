@@ -56,7 +56,6 @@ class MapGraphBuilderSpec
           .expects()
           .returns(IO.pure((testMetadata, List(boolInNode), List(boolOutNode))))
           .once()
-        println(s"Loaded graph")
 
         val graph: MapGraphLake[IO] = builder.load(testDbName, testMapConfig).logValue("load", "graph").await
 

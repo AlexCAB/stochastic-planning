@@ -28,8 +28,12 @@ final case class SampleData(
     name: Option[Name],
     description: Option[Description]
 ):
-  override def toString: String =
-    s"SampleData(id = $id, probabilityCount = $probabilityCount, utility = $utility, name = $name, description = $description)"
+  override def toString: String = "SampleData(" +
+    s"id = $id, " +
+    s"probabilityCount = $probabilityCount, " +
+    s"utility = $utility, " +
+    s"name = $name, " +
+    s"description = $description)"
 
 object SampleData:
   def fromNode[F[_]: MonadThrow](node: Node): F[SampleData] = node match

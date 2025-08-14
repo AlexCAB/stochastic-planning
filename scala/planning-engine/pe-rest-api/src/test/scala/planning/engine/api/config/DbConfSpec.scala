@@ -15,7 +15,7 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
-import planning.engine.map.database.Neo4jConf
+import planning.engine.database.Neo4jConf
 
 class DbConfSpec extends UnitSpecWithData:
 

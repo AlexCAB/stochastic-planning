@@ -10,17 +10,17 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-25 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.{Async, Resource, Sync}
-import org.typelevel.log4cats.LoggerFactory
 import cats.syntax.all.*
 import neotypes.GraphDatabase
 import neotypes.model.types.Node
-import planning.engine.map.database.{Neo4jConf, Neo4jDatabase, Neo4jDatabaseLike}
-import planning.engine.map.io.node.{InputNode, OutputNode}
+import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.DbName
+import planning.engine.database.{Neo4jConf, Neo4jDatabase, Neo4jDatabaseLike}
+import planning.engine.map.io.node.{InputNode, OutputNode}
 
 trait MapBuilderLike[F[_]]:
   def init(

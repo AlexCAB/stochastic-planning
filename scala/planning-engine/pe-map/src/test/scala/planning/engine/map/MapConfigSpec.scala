@@ -10,12 +10,11 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-01 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.properties.PROP
 import planning.engine.common.properties.*
 import planning.engine.common.values.db.Neo4j.SAMPLES_LABEL
 

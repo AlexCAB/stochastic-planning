@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-10 |||||||||||*/
 
-package planning.engine.map.database
+package planning.engine.database
 
 import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
 import planning.engine.common.UnitSpecIO
+import planning.engine.database.Neo4jConf
 
 class Neo4jConfSpec extends UnitSpecIO:
 

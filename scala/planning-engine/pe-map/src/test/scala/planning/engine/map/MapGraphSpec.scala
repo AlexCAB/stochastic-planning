@@ -10,17 +10,17 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-15 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.IO
+import cats.effect.cps.*
+import cats.syntax.all.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
-import planning.engine.map.database.Neo4jDatabaseLike
-import cats.syntax.all.*
-import planning.engine.common.values.text.Name
-import cats.effect.cps.*
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
+import planning.engine.database.Neo4jDatabaseLike
 import planning.engine.map.hidden.node.*
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.map.subgraph.NextSampleEdgeMap

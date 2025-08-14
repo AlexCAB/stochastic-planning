@@ -15,9 +15,9 @@ package planning.engine.integration.tests.map.graph
 import cats.effect.{IO, Resource}
 import cats.effect.cps.*
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
-import planning.engine.map.database.Neo4jDatabase
-import planning.engine.map.graph.{MapBuilder, MapGraphTestData}
+import planning.engine.map.{MapBuilder, MapGraphTestData}
 import cats.syntax.all.*
+import planning.engine.database.Neo4jDatabase
 
 class MapGraphBuilderIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, MapBuilder[IO])]
     with WithItDb with MapGraphTestData:

@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-11 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
@@ -20,9 +20,9 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge
 

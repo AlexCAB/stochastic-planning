@@ -10,17 +10,17 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-18 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.MonadThrow
-import com.typesafe.config.Config
 import cats.effect.Sync
+import com.typesafe.config.Config
 import neotypes.query.QueryArg.Param
-import pureconfig.{ConfigReader, ConfigSource}
-import pureconfig.generic.semiauto.*
-import pureconfig.module.catseffect.syntax.*
 import planning.engine.common.properties.*
 import planning.engine.common.values.db.Neo4j.SAMPLES_LABEL
+import pureconfig.generic.semiauto.*
+import pureconfig.module.catseffect.syntax.*
+import pureconfig.{ConfigReader, ConfigSource}
 
 // Config do not stored in the database (unlike MapMetadata), but used to initialize the map graph
 final case class MapConfig(

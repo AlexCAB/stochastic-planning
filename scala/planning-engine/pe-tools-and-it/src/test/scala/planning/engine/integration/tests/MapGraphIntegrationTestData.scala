@@ -19,8 +19,7 @@ import planning.engine.common.SpecLogging
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.integration.tests.MapGraphIntegrationTestData.*
-import planning.engine.map.database.{Neo4jConf, Neo4jDatabase}
-import planning.engine.map.graph.{MapBuilder, MapGraph, MapGraphTestData}
+import planning.engine.map.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.syntax.all.*
 import neotypes.GraphDatabase
@@ -29,6 +28,7 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.common.values.db.DbName
 import neotypes.cats.effect.implicits.*
+import planning.engine.database.{Neo4jConf, Neo4jDatabase}
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
   self: AsyncIOSpec & Matchers & SpecLogging =>

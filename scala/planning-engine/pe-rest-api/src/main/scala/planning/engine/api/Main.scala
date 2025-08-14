@@ -27,7 +27,7 @@ import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapService
-import planning.engine.map.graph.MapBuilder
+import planning.engine.map.MapBuilder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt

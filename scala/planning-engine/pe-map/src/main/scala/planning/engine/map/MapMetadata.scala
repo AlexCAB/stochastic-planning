@@ -10,17 +10,16 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-10 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.MonadThrow
-import neotypes.model.types.{Node, Value}
-import planning.engine.common.properties.*
 import cats.syntax.all.*
+import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.text.Description
-import planning.engine.common.values.text.Name
+import planning.engine.common.properties.*
 import planning.engine.common.values.db.Neo4j.ROOT_LABEL
+import planning.engine.common.values.text.{Description, Name}
 
 final case class MapMetadata(
     name: Option[Name],

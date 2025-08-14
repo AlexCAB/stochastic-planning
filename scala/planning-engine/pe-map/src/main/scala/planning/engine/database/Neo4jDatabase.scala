@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-11 |||||||||||*/
 
-package planning.engine.map.database
+package planning.engine.database
 
 import cats.effect.Async
 import neotypes.{AsyncDriver, AsyncTransaction, TransactionConfig}
@@ -23,7 +23,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
-import planning.engine.map.graph.{MapConfig, MapMetadata}
+import planning.engine.map.{MapConfig, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge

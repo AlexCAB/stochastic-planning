@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-10 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
+import cats.effect.cps.*
 import cats.effect.{IO, Resource}
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithResource
-import planning.engine.map.database.Neo4jDatabaseLike
-import cats.effect.cps.*
 import planning.engine.common.values.db.DbName
+import planning.engine.database.Neo4jDatabaseLike
 
 class MapGraphBuilderSpec
     extends UnitSpecWithResource[(Neo4jDatabaseLike[IO], DbName => IO[Neo4jDatabaseLike[IO]], MapBuilder[IO])]

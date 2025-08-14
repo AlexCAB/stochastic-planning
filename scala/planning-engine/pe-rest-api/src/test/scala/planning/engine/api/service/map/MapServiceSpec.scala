@@ -25,7 +25,7 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import planning.engine.map.graph.{MapBuilderLike, MapConfig, MapGraphLake, MapMetadata}
+import planning.engine.map.{MapBuilderLike, MapConfig, MapGraphLake, MapMetadata}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}

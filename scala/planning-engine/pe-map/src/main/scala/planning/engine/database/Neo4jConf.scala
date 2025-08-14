@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-10 |||||||||||*/
 
-package planning.engine.map.database
+package planning.engine.database
 
 import cats.effect.Sync
 import com.typesafe.config.Config

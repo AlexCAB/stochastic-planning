@@ -15,7 +15,6 @@ package planning.engine.integration.tests
 import cats.effect.{IO, Resource}
 import com.typesafe.config.ConfigFactory
 import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
-import planning.engine.map.database.Neo4jConf
 import planning.engine.integration.tests.WithItDb.ItDb
 
 import java.util.UUID
@@ -29,6 +28,7 @@ import neotypes.syntax.all.*
 import cats.syntax.all.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.properties.*
+import planning.engine.database.Neo4jConf
 
 trait WithItDb:
   self: IntegrationSpecWithResource[?] =>

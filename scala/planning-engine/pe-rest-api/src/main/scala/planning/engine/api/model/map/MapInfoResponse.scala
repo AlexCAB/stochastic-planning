@@ -15,7 +15,7 @@ package planning.engine.api.model.map
 import cats.effect.Async
 import cats.syntax.all.*
 import planning.engine.common.values.text.Name
-import planning.engine.map.graph.MapGraphLake
+import planning.engine.map.MapGraphLake
 import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.db.DbName
 import planning.engine.map.io.node.{InputNode, OutputNode}

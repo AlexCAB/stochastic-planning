@@ -10,19 +10,19 @@
 | website: github.com/alexcab |||||
 | created: 2025-03-15 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.Async
-import org.typelevel.log4cats.LoggerFactory
-import planning.engine.map.database.Neo4jDatabaseLike
-import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
-import planning.engine.common.values.text.Name
-import planning.engine.common.values.node.HnId
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
+import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
+import planning.engine.database.Neo4jDatabaseLike
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
+import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.map.subgraph.NextSampleEdgeMap
 

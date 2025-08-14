@@ -16,7 +16,6 @@ import cats.effect.{IO, Resource}
 import planning.engine.common.properties.*
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.integration.tests.*
-import planning.engine.map.database.Neo4jDatabase
 import cats.effect.cps.*
 import neotypes.model.types.Node
 import org.scalatest.Assertion
@@ -27,6 +26,7 @@ import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenN
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge
 import cats.syntax.all.*
+import planning.engine.database.Neo4jDatabase
 
 class Neo4jDatabaseSamplesIntegrationSpec
     extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO], TestHiddenNodes)]

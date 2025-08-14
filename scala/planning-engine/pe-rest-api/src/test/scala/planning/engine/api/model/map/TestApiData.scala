@@ -20,7 +20,7 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.map.graph.MapConfig
+import planning.engine.map.MapConfig
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*

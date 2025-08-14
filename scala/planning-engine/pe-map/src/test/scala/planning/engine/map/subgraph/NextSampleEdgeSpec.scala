@@ -17,7 +17,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.map.graph.MapGraphTestData
+import planning.engine.map.MapGraphTestData
 import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.samples.sample.{SampleData, SampleEdge}
 

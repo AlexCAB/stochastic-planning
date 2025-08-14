@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-05-01 |||||||||||*/
 
-package planning.engine.map.database
+package planning.engine.database
 
 import cats.effect.Async
 import neotypes.AsyncTransaction

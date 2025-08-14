@@ -17,13 +17,13 @@ import planning.engine.common.properties.*
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.integration.tests.*
-import planning.engine.map.database.Neo4jDatabase
 import planning.engine.common.values.db.Neo4j.*
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.effect.cps.*
 import cats.syntax.all.*
 import neotypes.model.types.Node
 import neotypes.syntax.all.*
+import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]

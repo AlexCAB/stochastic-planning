@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-10 |||||||||||*/
 
-package planning.engine.map.graph
+package planning.engine.map
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
 import neotypes.model.types.{Node, Value}
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.properties.PROP
-import planning.engine.common.values.db.Neo4j.ROOT_LABEL
 import planning.engine.common.properties.PropertiesMapping.*
+import planning.engine.common.values.db.Neo4j.ROOT_LABEL
 import planning.engine.common.values.text.{Description, Name}
 
 class MapMetadataSpec extends UnitSpecWithData:

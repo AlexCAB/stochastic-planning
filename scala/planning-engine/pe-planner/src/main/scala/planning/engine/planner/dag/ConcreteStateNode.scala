@@ -1,0 +1,47 @@
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2025-08-14 |||||||||||*/
+
+package planning.engine.planner.dag
+
+import cats.MonadThrow
+import cats.effect.Concurrent
+import cats.effect.std.AtomicCell
+import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.text.Name
+import planning.engine.map.io.node.IoNode
+import planning.engine.planner.dag.StateNode.{Parameters, Structure}
+import cats.syntax.all.*
+
+final class ConcreteStateNode[F[_]: MonadThrow](
+    val hnId: HnId,
+    val name: Option[Name],
+    val ioNode: IoNode[F],
+    val valueIndex: IoIndex,
+    structure: AtomicCell[F, Structure[F]],
+    parameters: AtomicCell[F, Parameters]
+) extends StateNode[F](structure, parameters):
+
+  override def toString: String =
+    s"ConcreteStateNode(hnId = $hnId, name = ${name.toStr}, ioNode = $ioNode, valueIndex = $valueIndex)"
+
+object ConcreteStateNode:
+  def apply[F[_]: Concurrent](
+      hnId: HnId,
+      name: Option[Name],
+      ioNode: IoNode[F],
+      valueIndex: IoIndex,
+      linkParents: Set[StateNode[F]],
+      thenParents: Set[StateNode[F]]
+  ): F[ConcreteStateNode[F]] =
+    for
+        (structure, parameters) <- StateNode.initState(linkParents, thenParents)
+    yield new ConcreteStateNode(hnId, name, ioNode, valueIndex, structure, parameters)

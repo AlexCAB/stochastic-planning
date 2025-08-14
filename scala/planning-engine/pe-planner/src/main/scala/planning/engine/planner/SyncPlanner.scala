@@ -15,7 +15,7 @@
 package planning.engine.planner
 
 import cats.effect.Async
-import planning.engine.planner.model.Observation
+import planning.engine.planner.io.Observation
 
 import java.awt.Desktop.Action
 

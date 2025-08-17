@@ -73,16 +73,37 @@ class ErrorsSpec extends UnitSpecIO:
       (List(1, 2, 3), List(4, 5, 6)).assertSameElems[IO]("Collections do not have the same elements")
         .assertThrows[AssertionError]
 
+  "assertContainsAll" should:
+    "return the collections when all elements in the second collection are present in the first" in: _ =>
+      val col1 = Seq(1, 2, 3, 4)
+      val col2 = Seq(2, 3)
+      (col1, col2).assertContainsAll[IO]("Not all elements are contained").asserting(_ mustEqual (col1, col2))
+
+    "raise an error when the second collection has elements not present in the first" in: _ =>
+      val col1 = Seq(1, 2, 3)
+      val col2 = Seq(4, 5)
+      (col1, col2).assertContainsAll[IO]("Not all elements are contained").assertThrows[AssertionError]
+
+    "return the collections when the second collection is empty" in: _ =>
+      val col1 = Seq(1, 2, 3)
+      val col2 = Seq.empty[Int]
+      (col1, col2).assertContainsAll[IO]("Not all elements are contained").asserting(_ mustEqual (col1, col2))
+
+    "raise an error when the first collection is empty and the second is not" in: _ =>
+      val col1 = Seq.empty[Int]
+      val col2 = Seq(1, 2)
+      (col1, col2).assertContainsAll[IO]("Not all elements are contained").assertThrows[AssertionError]
+
   "assertTrue" should:
     "complete successfully when the condition is true" in: _ =>
-      true.assertTrue[IO]("Condition must be true").asserting(_ mustEqual (()))
+      true.assertTrue[IO]("Condition must be true").asserting(_ mustEqual ())
 
     "raise an error when the condition is false" in: _ =>
       false.assertTrue[IO]("Condition must be true").assertThrows[AssertionError]
 
   "assetAnNumberOf" should:
     "complete successfully when the condition is true" in: _ =>
-      5L.assetAnNumberOf[IO]("Value is not positive").asserting(_ mustEqual (()))
+      5L.assetAnNumberOf[IO]("Value is not positive").asserting(_ mustEqual ())
 
     "raise an error when the condition is false" in: tn =>
       -1L.assetAnNumberOf[IO]("Value is not positive").assertThrows[AssertionError]

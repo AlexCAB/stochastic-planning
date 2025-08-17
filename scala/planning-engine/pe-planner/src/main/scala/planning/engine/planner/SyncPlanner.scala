@@ -15,14 +15,23 @@
 package planning.engine.planner
 
 import cats.effect.Async
-import planning.engine.planner.io.Observation
-
-import java.awt.Desktop.Action
+import planning.engine.map.MapGraphLake
+import planning.engine.planner.io.{Action, Observation}
 
 trait SyncPlannerLike[F[_]]:
   def step(observation: Observation): F[Action]
 
 
-class SyncPlanner[F[_] : Async] extends SyncPlannerLike[F]:
+class SyncPlanner[F[_] : Async](mapGraph: MapGraphLake[F]) extends SyncPlannerLike[F]:
+  
+  // Implement the step method to process the observation and return an action
+  // General algorithm:
+  //   1. Load observed hidden nodes to context:
+  //       - Fond already loaded during planning process
+  //       - Load new nodes from mapGraph 
+  //   2. Run planning process until action is found:
+  //       - Run abstraction up to top level
+  //       - Run concretization down to action
+  //       - If action is found, return it, otherwise return empty (client agent will have to pick random action)
   override def step(observation: Observation): F[Action] = ???
          

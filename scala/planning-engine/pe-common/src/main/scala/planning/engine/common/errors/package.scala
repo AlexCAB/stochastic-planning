@@ -53,6 +53,14 @@ extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[
     msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
   )
 
+  inline def assertContainsAll[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
+    val dif = value._2.iterator.toSet -- value._1.iterator.toSet
+    predicateAssert(
+      dif.isEmpty,
+      value,
+      msg + s", collection: ${value._1.iterator.toSet}, do not contains: $dif"
+    )
+
 extension (bool: Boolean)
   inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(bool, (), msg)
 

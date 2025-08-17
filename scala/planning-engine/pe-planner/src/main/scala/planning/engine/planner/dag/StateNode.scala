@@ -28,6 +28,9 @@ abstract class StateNode[F[_]: MonadThrow](
   def name: Option[Name]
 
 object StateNode:
+  enum Kind:
+    case Past, Present, Plan
+
   final case class Structure[F[_]: MonadThrow](
       linkParents: Set[StateNode[F]],
       linkChildren: Set[StateNode[F]],
@@ -47,12 +50,14 @@ object StateNode:
     )
 
   final case class Parameters(
+      kind: Kind,
       probability: Double,
       utility: Double
   )
 
   object Parameters:
     lazy val init: Parameters = Parameters(
+      kind = Kind.Present,
       probability = 0.0,
       utility = 0.0
     )

@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.database.Neo4jDatabaseLike
@@ -25,6 +25,8 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.map.subgraph.NextSampleEdgeMap
+
+import scala.collection.immutable.Iterable
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
@@ -41,6 +43,8 @@ trait MapGraphLake[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
+  def findHiddenNodesByIoValues(values: Map[Name, IoIndex])
+      : F[Map[Name, (IoIndex, List[ConcreteNode[F]])]] // Name if IO variable name
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
@@ -51,7 +55,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   private val logger = LoggerFactory[F].getLogger
 
-  private def skipIfEmpty[A, R](list: List[A], empty: => R)(block: => F[R]): F[R] =
+  private def skipIfEmpty[A, R](list: Iterable[A], empty: => R)(block: => F[R]): F[R] =
     if list.isEmpty then empty.pure
     else block
 
@@ -144,6 +148,16 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Got samples = $samples for sampleIds = $sampleIds")
         _ <- (sampleIds, samples.keys).assertSameElems("Not all sample were found")
       yield samples
+
+  override def findHiddenNodesByIoValues(values: Map[Name, IoIndex]): F[Map[Name, (IoIndex, List[ConcreteNode[F]])]] =
+    skipIfEmpty(values, Map[Name, (IoIndex, List[ConcreteNode[F]])]()):
+      for
+        _ <- (ioNodes.keys, values.keys).assertContainsAll("Unknown IO nodes names")
+        ioNodeWithIndex <- values.toList.traverse((n, i) => getIoNode(n).map(io => io -> i))
+        foundNodes <- database.findHiddenNodesByIoValues(ioNodeWithIndex)
+        _ <- logger.info(s"Found nodes = $foundNodes for values = $values")
+        _ <- (values.keys, foundNodes.keys).assertSameElems("Not all io nodes names was processed")
+      yield foundNodes
 
   override def toString: String =
     s"MapGraph(name = ${metadata.name.toStr}, ioNodes = ${ioNodes.keys.map(_.value).mkString(", ")})"

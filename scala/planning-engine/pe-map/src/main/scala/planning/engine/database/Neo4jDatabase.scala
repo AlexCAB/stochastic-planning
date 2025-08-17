@@ -18,7 +18,7 @@ import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
 import planning.engine.common.values.db.DbName
@@ -60,6 +60,7 @@ trait Neo4jDatabaseLike[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
+  def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)]): F[Map[Name, (IoIndex, List[ConcreteNode[F]])]]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) extends Neo4jDatabaseLike[F]
     with Neo4jQueries:
@@ -252,6 +253,16 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
         edgesMap = edges.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap
         _ <- (sampleIds, edgesMap.keys).assertSameElems("Not for all sample the edges were found")
       yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
+
+  override def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)])
+      : F[Map[Name, (IoIndex, List[ConcreteNode[F]])]] = driver.transact(readConf)(tx =>
+    values
+      .traverse((ioNode, ioIndex) =>
+        findHiddenNodesByIoValueQuery(ioNode.name.value, ioIndex.value)(tx).flatMap(_.traverse(node =>
+          ConcreteNode.fromNode(node, ioNode)
+        ).map(concreteNodes => ioNode.name -> (ioIndex, concreteNodes)))
+      ).map(_.toMap)
+  )
 
 object Neo4jDatabase:
   def apply[F[_]: {Async, LoggerFactory}](driver: AsyncDriver[F], dbName: DbName): F[Neo4jDatabase[F]] =

@@ -219,3 +219,10 @@ trait Neo4jQueries:
          WHERE (edge:#$LINK_LABEL OR edge:#$THEN_LABEL) AND any(k IN keys(edge) WHERE k IN $sampleIds)
          RETURN [source.#${PROP.HN_ID}, edge, target.#${PROP.HN_ID}]
          """.query(ResultMapper.tuple[Long, Relationship, Long]).listResult(tx)
+
+  protected def findHiddenNodesByIoValueQuery[F[_]: Async](ioNodeName: String, ioIndex: Long)(tx: AsyncTransaction[F])
+      : F[List[Node]] =
+    c"""
+         MATCH (io: #$IO_LABEL {#${PROP.NAME}: $ioNodeName})-->(cn: #$CONCRETE_LABEL {#${PROP.IO_INDEX}: $ioIndex})
+         RETURN cn
+         """.query(ResultMapper.node).listResult(tx)

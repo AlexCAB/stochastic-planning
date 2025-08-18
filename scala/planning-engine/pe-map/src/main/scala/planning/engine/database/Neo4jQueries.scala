@@ -223,6 +223,6 @@ trait Neo4jQueries:
   protected def findHiddenNodesByIoValueQuery[F[_]: Async](ioNodeName: String, ioIndex: Long)(tx: AsyncTransaction[F])
       : F[List[Node]] =
     c"""
-         MATCH (io: #$IO_LABEL {#${PROP.NAME}: $ioNodeName})-->(cn: #$CONCRETE_LABEL {#${PROP.IO_INDEX}: $ioIndex})
+         MATCH (io: #$IO_LABEL {#${PROP.NAME}: $ioNodeName})<--(cn: #$CONCRETE_LABEL {#${PROP.IO_INDEX}: $ioIndex})
          RETURN cn
          """.query(ResultMapper.node).listResult(tx)

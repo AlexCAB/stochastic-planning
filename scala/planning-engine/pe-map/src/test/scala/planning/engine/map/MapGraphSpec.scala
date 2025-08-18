@@ -254,3 +254,23 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
 
         val result: Map[SampleId, Sample] = data.mapGraph.getSamples(data.testSampleIds).await
         result mustEqual expectedSample
+
+  "MapGraphSpec.findHiddenNodesByIoValues(...)" should:
+    "find hidden nodes connected to particular IO values" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val expectedResult = Map(testConcreteNode.ioNode.name -> (testConcreteNode.valueIndex, List(testConcreteNode)))
+
+        data.mockedDb.findHiddenNodesByIoValues
+          .when(*)
+          .onCall: ioNodeWithIndex =>
+            for
+              _ <- IO.delay(ioNodeWithIndex mustEqual List(testConcreteNode.ioNode -> testConcreteNode.valueIndex))
+              _ <- logInfo(tn, s"Got ioNodeWithIndex = $ioNodeWithIndex")
+            yield expectedResult
+          .once()
+
+        val result: Map[Name, (IoIndex, List[ConcreteNode[IO]])] = data.mapGraph
+          .findHiddenNodesByIoValues(Map(testConcreteNode.ioNode.name -> testConcreteNode.valueIndex))
+          .await
+
+        result mustEqual expectedResult

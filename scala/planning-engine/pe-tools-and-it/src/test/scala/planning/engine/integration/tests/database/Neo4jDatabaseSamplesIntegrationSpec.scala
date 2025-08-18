@@ -38,7 +38,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
     for
       itDb <- makeDb()
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
-      nodes <- initHiddenNodesInDb(neo4jdb, makeNames("concrete", 2), makeNames("abstract", 2))
+      nodes <- initHiddenNodesInDb(neo4jdb, makeConNames("concrete", 2), makeAbsNames("abstract", 2))
     yield (itDb, neo4jdb, nodes)
 
   private def addFourNamedSamples(hnIds: List[HnId], db: Neo4jDatabase[IO]): Map[SampleId, Sample.New] =

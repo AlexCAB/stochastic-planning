@@ -31,8 +31,8 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
     for
       itDb <- makeDb()
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
-      concreteNames = makeNames("concrete", 3)
-      abstractNames = makeNames("abstract", 3)
+      concreteNames = makeConNames("concrete", 3)
+      abstractNames = makeAbsNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       samplesHnIds = List(nodes.allNodeIds(1), nodes.allNodeIds(3), nodes.allNodeIds(5))
       namedSamples = makeFourNewSamples(samplesHnIds.head, samplesHnIds(1), samplesHnIds(2))

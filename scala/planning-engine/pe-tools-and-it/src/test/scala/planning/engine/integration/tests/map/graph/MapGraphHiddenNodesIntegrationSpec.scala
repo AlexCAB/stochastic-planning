@@ -30,8 +30,8 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
     for
       itDb <- makeDb()
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
-      concreteNames = makeNames("concrete", 3)
-      abstractNames = makeNames("abstract", 3)
+      concreteNames = makeConNames("concrete", 3)
+      abstractNames = makeAbsNames("abstract", 3)
       nodes <- initHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
       graph <- loadTestMapGraph(neo4jdb)
     yield TestMapGraph(itDb, neo4jdb, nodes, TestSamples.empty, graph)
@@ -115,3 +115,26 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         val testCount = c"MATCH (n: #$HN_LABEL) RETURN count(n)".count.await
 
         gotCount mustEqual testCount
+
+  "MapGraph.findHiddenNodesByIoValues(...)" should :
+    "find concrete nodes connected to particular IO values" in : res =>
+      async[IO]:
+        val conNode = res.nodes.concreteNodes.head._2
+
+        conNode.name must not be empty
+
+        val foundNodes: Map[Name, (IoIndex, List[ConcreteNode[IO]])] = res.graph
+          .findHiddenNodesByIoValues(Map(conNode.ioNodeName -> conNode.valueIndex))
+          .await
+
+        foundNodes.toList
+          .traverse((name, nodes) => logInfo("found concrete node", s"name = $name, nodes = $nodes"))
+          .await
+
+        foundNodes.size mustEqual 1
+        foundNodes.keySet mustEqual Set(conNode.ioNodeName)
+
+        val (index, conNodes) = foundNodes(conNode.ioNodeName)
+        index mustEqual conNode.valueIndex
+
+        conNodes.map(_.name) must contain (conNode.name)

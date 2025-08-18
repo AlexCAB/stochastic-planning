@@ -94,6 +94,7 @@ trait MapGraphTestData:
 
   lazy val testSample: Sample = Sample(data = testSampleData, edges = testSampleEdges)
 
+  lazy val testConcreteNode: ConcreteNode[IO] = makeConcreteNode(123L, boolInNode)
   lazy val testAbstractNode: AbstractNode[IO] = makeAbstractNode(321)
 
   lazy val testNextSampleEdge: NextSampleEdge[IO] = NextSampleEdge[IO](

@@ -20,21 +20,27 @@ import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.IoNode
 import planning.engine.planner.dag.StateNode.{Parameters, Structure}
 import cats.syntax.all.*
+import planning.engine.common.values.io.Time
 
 final class ConcreteStateNode[F[_]: MonadThrow](
-    val hnId: HnId,
-    val name: Option[Name],
+    override val time: Time,
+    override val hnId: HnId,
+    override val name: Option[Name],
     val ioNode: IoNode[F],
     val valueIndex: IoIndex,
     structure: AtomicCell[F, Structure[F]],
     parameters: AtomicCell[F, Parameters]
 ) extends StateNode[F](structure, parameters):
-
+  
+  override def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean = 
+    ioNode.name == ioNodeName && valueIndex == ioIndex
+  
   override def toString: String =
     s"ConcreteStateNode(hnId = $hnId, name = ${name.toStr}, ioNode = $ioNode, valueIndex = $valueIndex)"
 
 object ConcreteStateNode:
   def apply[F[_]: Concurrent](
+                               time: Time,
       hnId: HnId,
       name: Option[Name],
       ioNode: IoNode[F],
@@ -44,4 +50,4 @@ object ConcreteStateNode:
   ): F[ConcreteStateNode[F]] =
     for
         (structure, parameters) <- StateNode.initState(linkParents, thenParents)
-    yield new ConcreteStateNode(hnId, name, ioNode, valueIndex, structure, parameters)
+    yield new ConcreteStateNode(time, hnId, name, ioNode, valueIndex, structure, parameters)

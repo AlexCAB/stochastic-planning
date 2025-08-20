@@ -18,11 +18,11 @@ import cats.effect.Async
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.io.{Action, Observation}
 
-trait SyncPlannerLike[F[_]]:
+trait PlannerSyncLike[F[_]]:
   def step(observation: Observation): F[Action]
 
 
-class SyncPlanner[F[_] : Async](mapGraph: MapGraphLake[F]) extends SyncPlannerLike[F]:
+class PlannerSync[F[_] : Async](mapGraph: MapGraphLake[F]) extends PlannerSyncLike[F]:
   
   // Implement the step method to process the observation and return an action
   // General algorithm:

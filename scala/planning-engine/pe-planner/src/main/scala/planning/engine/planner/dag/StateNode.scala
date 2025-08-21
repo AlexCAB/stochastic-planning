@@ -34,8 +34,8 @@ abstract class StateNode[F[_]: MonadThrow](
   // Returns the updated list of values (with removed fount entries)
   // and this node if it was moved to Present kind.
   def markAsPresentIfInValues(values: Map[Name, IoIndex]): F[(Map[Name, IoIndex], Option[StateNode[F]])] =
-    parameters.evalModify(params =>
-      values.find((n, i) => isBelongsToIo(n, i)) match
+    parameters.evalModify: params =>
+      values.find((n, i) => this.isBelongsToIo(n, i)) match
 
         // If this node is mentioned in IO values, and it is in Plan, we change its kind to Present,
         // which means that it is now part of the current context (mowing node from plan to context)
@@ -51,16 +51,14 @@ abstract class StateNode[F[_]: MonadThrow](
         case None =>
           // If the node is not in the values, we do not change its parameters
           (params, (values, None)).pure
-    )
 
   def markThenChildrenAsPresentIfInValues(values: Map[Name, IoIndex]): F[(Map[Name, IoIndex], Set[StateNode[F]])] =
-    structure.get
-      .flatMap(_.thenChildren.foldLeft((values, Set[StateNode[F]]()).pure)((acc, child) =>
+    structure.get.flatMap: s =>
+      s.thenChildren.foldLeft((values, Set[StateNode[F]]()).pure): (acc, child) =>
         for
           (vs, found) <- acc
           (newVs, nodeOpt) <- child.markAsPresentIfInValues(vs)
         yield (newVs, found ++ nodeOpt.toSet)
-      ))
 
 object StateNode:
   enum Kind:

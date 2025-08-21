@@ -30,13 +30,19 @@ final class ContextSimple[F[_]: Async](
 ) extends ContextLike[F]:
 
   override def moveNextFoundIntoContext(values: Map[Name, IoIndex]): F[Map[Name, IoIndex]] =
+    def updateNodesKind(contextBoundary: Set[StateNode[F]]): F[(Map[Name, IoIndex], Set[StateNode[F]])] =
+      contextBoundary.foldLeft((values, Set[StateNode[F]]()).pure): (acc, node) =>
+        for
+          (vs, found) <- acc
+          (newVs, moved) <- node.markThenChildrenAsPresentIfInValues(vs)
+        yield (newVs, found ++ moved)
+        
+    // TODO: Here also should be cline up operation to limit context size (by `maxPathLength`)
+    // TODO: but it's algorithm is not developed yet.
     planningDag.modifyContextBoundary: contextBoundary =>
-
-      contextBoundary.foldLeft(values, Set[StateNode[F]]())
-    
-     
-      
-     
+      for
+        (newValues, movedNodes) <- updateNodesKind(contextBoundary)
+      yield (contextBoundary ++ movedNodes, newValues) 
 
 object ContextSimple:
   final case class State[F[_]: MonadThrow]()

@@ -22,7 +22,6 @@ import cats.syntax.all.*
 import planning.engine.common.values.io.Time
 
 final class AbstractStateNode[F[_]: MonadThrow](
-    override val time: Time,
     override val hnId: HnId,
     override val name: Option[Name],
     structure: AtomicCell[F, Structure[F]],
@@ -36,7 +35,6 @@ final class AbstractStateNode[F[_]: MonadThrow](
 
 object AbstractStateNode:
   def apply[F[_]: Concurrent](
-      time: Time,
       hnId: HnId,
       name: Option[Name],
       linkParents: Set[StateNode[F]],
@@ -44,4 +42,4 @@ object AbstractStateNode:
   ): F[AbstractStateNode[F]] =
     for
         (structure, parameters) <- StateNode.initState(linkParents, thenParents)
-    yield new AbstractStateNode(time, hnId, name, structure, parameters)
+    yield new AbstractStateNode(hnId, name, structure, parameters)

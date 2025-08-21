@@ -17,14 +17,14 @@ import cats.effect.std.AtomicCell
 import cats.syntax.all.*
 
 trait PlanningDagLike[F[_]: Async]:
-  def modifyContextBoundary[R](f: Set[StateNode[F]] => (Set[StateNode[F]], R)): F[R]
+  def modifyContextBoundary[R](f: Set[StateNode[F]] => F[(Set[StateNode[F]], R)]): F[R]
 
 final class PlanningDag[F[_]: Async](
     contextBoundary: AtomicCell[F, Set[StateNode[F]]],
     planningBoundary: AtomicCell[F, Set[StateNode[F]]]
 ) extends PlanningDagLike[F]:
   
-  override def modifyContextBoundary[R](f: Set[StateNode[F]] => (Set[StateNode[F]], R)): F[R] = ???
+  override def modifyContextBoundary[R](f: Set[StateNode[F]] => F[(Set[StateNode[F]], R)]): F[R] = ???
 
 object PlanningDag:
   def apply[F[_]: Async](): F[PlanningDag[F]] =

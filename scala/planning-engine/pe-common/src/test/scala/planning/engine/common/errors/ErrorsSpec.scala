@@ -94,6 +94,19 @@ class ErrorsSpec extends UnitSpecIO:
       val col2 = Seq(1, 2)
       (col1, col2).assertContainsAll[IO]("Not all elements are contained").assertThrows[AssertionError]
 
+  "assertNoSameElems" should:
+    "return the input collections when no common elements exist" in: _ =>
+      val left = List(1, 2, 3)
+      val right = List(4, 5, 6)
+      (left, right).assertNoSameElems[IO]("No common elements")
+        .asserting(_ mustEqual (left, right))
+
+    "raise an error when common elements exist" in: _ =>
+      val left = List(1, 2, 3)
+      val right = List(3, 4, 5)
+      (left, right).assertNoSameElems[IO]("Common elements found")
+        .assertThrows[AssertionError]
+
   "assertTrue" should:
     "complete successfully when the condition is true" in: _ =>
       true.assertTrue[IO]("Condition must be true").asserting(_ mustEqual ())

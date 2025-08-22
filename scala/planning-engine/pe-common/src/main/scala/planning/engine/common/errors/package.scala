@@ -46,19 +46,31 @@ extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[
     value,
     msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}"
   )
-
-  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] = predicateAssert(
+  
+extension[T, CL[_] <: IterableOnce[T], CR[_] <: IterableOnce[T]] (value: (CL[T], CR[T] ) )
+  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] = predicateAssert(
     value._1.iterator.toSet == value._2.iterator.toSet,
     value,
     msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
   )
 
-  inline def assertContainsAll[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] =
-    val dif = value._2.iterator.toSet -- value._1.iterator.toSet
+  inline def assertContainsAll[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] =
+    val rightSet = value._2.iterator.toSet
+    val dif = rightSet -- value._1
     predicateAssert(
       dif.isEmpty,
       value,
-      msg + s", collection: ${value._1.iterator.toSet}, do not contains: $dif"
+      msg + s", collection: ${value._1.iterator.toSet}, do not contains: $dif of collection $rightSet"
+    )
+
+  inline def assertNoSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] =
+    val leftSet = value._1.iterator.toSet
+    val rightSet = value._2.iterator.toSet
+    val intersect = rightSet.intersect(leftSet)
+    predicateAssert(
+      intersect.isEmpty,
+      value,
+      msg + s", found same elements $intersect, in collections: $leftSet and $rightSet"
     )
 
 extension (bool: Boolean)

@@ -19,6 +19,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
 import planning.engine.planner.dag.{PlanningDagLike, StateNode}
+import planning.engine.common.errors.assertNoSameElems
 
 trait ContextLike[F[_]: Async]:
   def moveNextFoundIntoContext(values: Map[Name, IoIndex]): F[Map[Name, IoIndex]]
@@ -35,7 +36,9 @@ final class ContextSimple[F[_]: Async](
         for
           (vs, found) <- acc
           (newVs, moved) <- node.markThenChildrenAsPresentIfInValues(vs)
-        yield (newVs, found ++ moved)
+          _ <- (moved.movedToPresent, moved.movedToPast)
+            .assertNoSameElems("Seems bug: State node cannot be moved to present and past at the same time")
+        yield (newVs, (found ++ moved.movedToPresent) -- moved.movedToPast)
         
     // TODO: Here also should be cline up operation to limit context size (by `maxPathLength`)
     // TODO: but it's algorithm is not developed yet.

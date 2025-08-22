@@ -15,13 +15,13 @@ package planning.engine.planner.dag
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.node.{HnId, IoIndex, SnId}
 import planning.engine.common.values.text.Name
 import planning.engine.planner.dag.StateNode.{Parameters, Structure}
 import cats.syntax.all.*
-import planning.engine.common.values.io.Time
 
 final class AbstractStateNode[F[_]: MonadThrow](
+    override val id: SnId,
     override val hnId: HnId,
     override val name: Option[Name],
     structure: AtomicCell[F, Structure[F]],
@@ -31,15 +31,17 @@ final class AbstractStateNode[F[_]: MonadThrow](
   override def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean =
     false // Abstract state nodes do not belong to any specific IO node
 
-  override def toString: String = s"AbstractStateNode(hnId = $hnId, name = ${name.toStr})"
+  override def toString: String = s"AbstractStateNode(id = $id, hnId = $hnId, name = ${name.toStr})"
 
 object AbstractStateNode:
   def apply[F[_]: Concurrent](
+      id: SnId,
       hnId: HnId,
       name: Option[Name],
       linkParents: Set[StateNode[F]],
-      thenParents: Set[StateNode[F]]
+      thenParents: Set[StateNode[F]],
+      initParameters: Parameters
   ): F[AbstractStateNode[F]] =
     for
-        (structure, parameters) <- StateNode.initState(linkParents, thenParents)
-    yield new AbstractStateNode(hnId, name, structure, parameters)
+        (structure, parameters) <- StateNode.initState(linkParents, thenParents, initParameters)
+    yield new AbstractStateNode(id, hnId, name, structure, parameters)

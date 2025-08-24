@@ -20,6 +20,8 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.map.config.MapConfig
+import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}

@@ -14,7 +14,12 @@ package planning.engine.planner.plan
 
 import cats.effect.Async
 import planning.engine.planner.dag.PlanningDagLike
+import cats.syntax.all.*
 
-trait PlanningSimpleLike[F[_]: Async]
+trait SimplePlanLike[F[_]: Async]
 
-final class PlanSimple[F[_]: Async](planningDag: PlanningDagLike[F]) extends PlanningSimpleLike[F]
+final class SimplePlan[F[_]: Async](planningDag: PlanningDagLike[F]) extends SimplePlanLike[F]
+
+object SimplePlan:
+    def apply[F[_]: Async](planningDag: PlanningDagLike[F]): F[SimplePlan[F]] =
+        new SimplePlan[F](planningDag).pure

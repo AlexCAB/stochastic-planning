@@ -87,3 +87,15 @@ class StateNodeSpec extends UnitSpecWithData with DagTestData:
 
         data.conStateNode.getParameters.await.kind mustEqual Kind.Present
         data.absStateNode.getParameters.await.kind mustEqual Kind.Past
+
+  "StateNode.addLinkChild(...)" should:
+    "to add link child" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.conStateNode.addLinkChild(data.absStateNode).await
+        data.conStateNode.getStructure.await.linkChildren mustEqual Set(data.absStateNode)
+
+  "StateNode.addThenChild(...)" should:
+    "to add then child" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.conStateNode.addThenChild(data.absStateNode).await
+        data.conStateNode.getStructure.await.thenChildren mustEqual Set(data.absStateNode)

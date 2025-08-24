@@ -15,8 +15,8 @@ package planning.engine.api.config
 import cats.effect.{Resource, Sync}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.map.config.MapConfig
 import cats.syntax.all.*
-import planning.engine.map.MapConfig
 
 final case class MainConf(db: DbConf, server: ServerConf, mapGraph: MapConfig)
 

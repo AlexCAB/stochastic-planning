@@ -19,7 +19,8 @@ import planning.engine.common.values.db.Neo4j.*
 import neotypes.model.types.Node
 import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
-import planning.engine.map.{MapGraphTestData, MapMetadata}
+import planning.engine.map.MapGraphTestData
+import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.IoNode
 
 class Neo4jDatabaseRootNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]

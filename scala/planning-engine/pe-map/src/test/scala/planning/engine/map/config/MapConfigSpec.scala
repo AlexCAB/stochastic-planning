@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-01 |||||||||||*/
 
-package planning.engine.map
+package planning.engine.map.config
 
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory

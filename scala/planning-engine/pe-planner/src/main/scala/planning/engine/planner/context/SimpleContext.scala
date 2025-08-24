@@ -20,15 +20,17 @@ import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
 import planning.engine.planner.dag.{PlanningDagLike, StateNode}
 import planning.engine.common.errors.assertNoSameElems
+import planning.engine.map.hidden.node.ConcreteNode
 
-trait ContextLike[F[_]: Async]:
+trait SimpleContextLike[F[_]: Async]:
   def moveNextFoundIntoContext(values: Map[Name, IoIndex]): F[Map[Name, IoIndex]]
+  def addObservedConcreteToContextBoundary(nodes:  List[ConcreteNode[F]]): F[Unit]
 
-final class ContextSimple[F[_]: Async](
+final class SimpleContext[F[_]: Async](
     maxPathLength: Int,
     planningDag: PlanningDagLike[F],
-    state: AtomicCell[F, ContextSimple.State[F]]
-) extends ContextLike[F]:
+    state: AtomicCell[F, SimpleContext.State[F]]
+) extends SimpleContextLike[F]:
 
   override def moveNextFoundIntoContext(values: Map[Name, IoIndex]): F[Map[Name, IoIndex]] =
     def updateNodesKind(contextBoundary: Set[StateNode[F]]): F[(Map[Name, IoIndex], Set[StateNode[F]])] =
@@ -45,10 +47,12 @@ final class ContextSimple[F[_]: Async](
     planningDag.modifyContextBoundary: contextBoundary =>
       for
         (newValues, movedNodes) <- updateNodesKind(contextBoundary)
-      yield (contextBoundary ++ movedNodes, newValues) 
+      yield (contextBoundary ++ movedNodes, newValues)
 
-object ContextSimple:
+  override def addObservedConcreteToContextBoundary(nodes:  List[ConcreteNode[F]]): F[Unit] = ???
+
+object SimpleContext:
   final case class State[F[_]: MonadThrow]()
 
-  def apply[F[_]: Async](maxPathLength: Int, planningDag: PlanningDagLike[F]): F[ContextSimple[F]] =
-    AtomicCell[F].of(State()).map(state => new ContextSimple[F](maxPathLength, planningDag, state))
+  def apply[F[_]: Async](maxPathLength: Int, planningDag: PlanningDagLike[F]): F[SimpleContext[F]] =
+    AtomicCell[F].of(State()).map(state => new SimpleContext[F](maxPathLength, planningDag, state))

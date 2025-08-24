@@ -123,18 +123,14 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
 
         conNode.name must not be empty
 
-        val foundNodes: Map[Name, (IoIndex, List[ConcreteNode[IO]])] = res.graph
-          .findHiddenNodesByIoValues(Map(conNode.ioNodeName -> conNode.valueIndex))
+        val foundNodes: List[ConcreteNode[IO]] = res.graph
+          .findConcreteNodesByIoValues(Map(conNode.ioNodeName -> conNode.valueIndex))
           .await
 
-        foundNodes.toList
-          .traverse((name, nodes) => logInfo("found concrete node", s"name = $name, nodes = $nodes"))
+        foundNodes
+          .traverse(node => logInfo("found concrete node", s"node = $node"))
           .await
 
-        foundNodes.size mustEqual 1
-        foundNodes.keySet mustEqual Set(conNode.ioNodeName)
-
-        val (index, conNodes) = foundNodes(conNode.ioNodeName)
-        index mustEqual conNode.valueIndex
-
-        conNodes.map(_.name) must contain (conNode.name)
+        val conNodes = foundNodes.filter(_.ioNode.name == conNode.ioNodeName)
+        conNodes.map(_.ioNode.name).toSet mustEqual Set(conNode.ioNodeName)
+        conNodes.map(_.valueIndex).toSet mustEqual Set(conNode.valueIndex)

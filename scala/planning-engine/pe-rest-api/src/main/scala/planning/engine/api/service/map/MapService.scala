@@ -17,12 +17,13 @@ import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
 import cats.syntax.all.*
-import planning.engine.map.{MapBuilderLike, MapConfig, MapGraphLake}
+import planning.engine.map.{MapBuilderLike, MapGraphLake}
 import planning.engine.common.errors.{assertDistinct, assertSameElems, assertionError}
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
+import planning.engine.map.config.MapConfig
 
 trait MapServiceLike[F[_]]:
   def getState: F[Option[(MapGraphLake[F], DbName)]]

@@ -26,3 +26,6 @@ final case class Observation(
 ) extends IoValues
 
 final case class Action(values: Map[Name, IoIndex]) extends IoValues
+
+object Action:
+  val empty: Action = Action(Map.empty)

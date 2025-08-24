@@ -17,7 +17,7 @@ import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
 import com.comcast.ip4s.{Host, Port}
 import planning.engine.database.Neo4jConf
-import planning.engine.map.MapConfig
+import planning.engine.map.config.MapConfig
 
 class MainConfSpec extends UnitSpecWithData:
 

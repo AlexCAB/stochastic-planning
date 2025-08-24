@@ -23,7 +23,8 @@ import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
-import planning.engine.map.{MapConfig, MapMetadata}
+import planning.engine.map.config.MapConfig
+import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge
@@ -60,7 +61,7 @@ trait Neo4jDatabaseLike[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
-  def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)]): F[Map[Name, (IoIndex, List[ConcreteNode[F]])]]
+  def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]]
 
 class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) extends Neo4jDatabaseLike[F]
     with Neo4jQueries:
@@ -254,15 +255,13 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
         _ <- (sampleIds, edgesMap.keys).assertSameElems("Not for all sample the edges were found")
       yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
 
-  override def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)])
-      : F[Map[Name, (IoIndex, List[ConcreteNode[F]])]] = driver.transact(readConf)(tx =>
-    values
-      .traverse((ioNode, ioIndex) =>
-        findHiddenNodesByIoValueQuery(ioNode.name.value, ioIndex.value)(tx).flatMap(_.traverse(node =>
-          ConcreteNode.fromNode(node, ioNode)
-        ).map(concreteNodes => ioNode.name -> (ioIndex, concreteNodes)))
-      ).map(_.toMap)
-  )
+  override def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)]): F[List[ConcreteNode[F]]] =
+    driver.transact(readConf): tx =>
+      values
+        .traverse: (ioNode, ioIndex) =>
+          findHiddenNodesByIoValueQuery(ioNode.name.value, ioIndex.value)(tx)
+            .flatMap(_.traverse(node => ConcreteNode.fromNode(node, ioNode)))
+        .map(_.flatten)
 
 object Neo4jDatabase:
   def apply[F[_]: {Async, LoggerFactory}](driver: AsyncDriver[F], dbName: DbName): F[Neo4jDatabase[F]] =

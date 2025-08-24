@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-10 |||||||||||*/
 
-package planning.engine.map
+package planning.engine.map.data
 
 import cats.MonadThrow
 import cats.syntax.all.*

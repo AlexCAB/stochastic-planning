@@ -20,6 +20,8 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.DbName
 import planning.engine.database.{Neo4jConf, Neo4jDatabase, Neo4jDatabaseLike}
+import planning.engine.map.config.MapConfig
+import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 
 trait MapBuilderLike[F[_]]:

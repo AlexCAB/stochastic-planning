@@ -25,11 +25,12 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import planning.engine.map.{MapBuilderLike, MapConfig, MapGraphLake, MapMetadata}
+import planning.engine.map.{MapBuilderLike, MapGraphLake}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.common.errors.assertionError
+import planning.engine.map.data.MapMetadata
 
 class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 

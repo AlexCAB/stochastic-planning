@@ -16,7 +16,8 @@ import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.text.Name
-import planning.engine.map.{MapGraphLake, MapGraphTestData, MapMetadata}
+import planning.engine.map.data.MapMetadata
+import planning.engine.map.{MapGraphLake, MapGraphTestData}
 
 class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphTestData:
 

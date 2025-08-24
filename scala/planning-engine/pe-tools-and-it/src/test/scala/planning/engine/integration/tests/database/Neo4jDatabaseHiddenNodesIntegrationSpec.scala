@@ -201,16 +201,16 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteParams, List()).await
         logInfo("find concrete nodes", s" created nodes = $nodes").await
 
-        val result: Map[Name, (IoIndex, List[ConcreteNode[IO]])] = neo4jdb.findHiddenNodesByIoValues(findParams).await
+        val result: List[ConcreteNode[IO]] = neo4jdb.findHiddenNodesByIoValues(findParams).await
         logInfo("find concrete nodes", s" result = $result").await
 
-        result.size mustEqual 2
-        result.keys.toSet mustEqual Set(intInNode.name, intOutNode.name)
+        result.size mustEqual 3
+        result.map(_.ioNode.name).toSet mustEqual Set(intInNode.name, intOutNode.name)
 
-        val (index1, conNodes1) = result(intInNode.name)
-        index1 mustEqual IoIndex(1L)
+        val conNodes1 = result.filter(_.ioNode.name == intInNode.name)
+        conNodes1.map(_.valueIndex).toSet mustEqual Set(IoIndex(1L))
         conNodes1.map(_.name) mustEqual List(Some(Name("find_con_1")), Some(Name("find_con_2")))
 
-        val (index2, conNodes2) = result(intOutNode.name)
-        index2 mustEqual IoIndex(2L)
+        val conNodes2 = result.filter(_.ioNode.name == intOutNode.name)
+        conNodes2.map(_.valueIndex).toSet mustEqual Set(IoIndex(2L))
         conNodes2.map(_.name) mustEqual List(Some(Name("find_con_3")))

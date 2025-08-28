@@ -26,9 +26,9 @@ trait SimpleSyncPlannerLike[F[_]]:
   def step(observation: Observation): F[Action]
 
 class SimpleSyncPlanner[F[_]: Async](
-                                      mapGraph: MapGraphLake[F],
-                                      context: SimpleContextLike[F],
-                                      plan: SimplePlanLike[F]
+    mapGraph: MapGraphLake[F],
+    context: SimpleContextLike[F],
+    plan: SimplePlanLike[F]
 ) extends SimpleSyncPlannerLike[F]:
 
   // Implement the step method to process the observation and return an action
@@ -45,9 +45,8 @@ class SimpleSyncPlanner[F[_]: Async](
       valuesNotInContext <- context.moveNextFoundIntoContext(observation.values)
       observedConcreteNodes <- mapGraph.findConcreteNodesByIoValues(valuesNotInContext)
       _ <- context.addObservedConcreteToContextBoundary(observedConcreteNodes)
-      
-      // TODO Here should be planning process to find action
-      
+
+    // TODO Here should be planning process to find action
     yield Action.empty
 
 object SimpleSyncPlanner:

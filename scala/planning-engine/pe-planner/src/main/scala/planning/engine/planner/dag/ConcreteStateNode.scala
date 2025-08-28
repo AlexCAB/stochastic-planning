@@ -31,7 +31,7 @@ final class ConcreteStateNode[F[_]: MonadThrow](
     parameters: AtomicCell[F, Parameters]
 ) extends StateNode[F](structure, parameters):
 
-  override def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean =
+  def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean =
     ioNode.name == ioNodeName && valueIndex == ioIndex
 
   override def toString: String = s"ConcreteStateNode(" +

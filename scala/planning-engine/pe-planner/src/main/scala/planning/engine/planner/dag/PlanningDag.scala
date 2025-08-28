@@ -26,6 +26,9 @@ final class PlanningDag[F[_]: {Async, LoggerFactory}](
 ) extends PlanningDagLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
+
+  def getContextBoundary: F[Set[StateNode[F]]] = contextBoundary.get
+  def getPlanningBoundary: F[Set[StateNode[F]]] = planningBoundary.get
   
   override def modifyContextBoundary[R](f: Set[StateNode[F]] => F[(Set[StateNode[F]], R)]): F[R] =
     contextBoundary.evalModify: cb => 

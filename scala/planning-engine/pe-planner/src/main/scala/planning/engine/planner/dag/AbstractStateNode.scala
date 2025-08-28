@@ -15,7 +15,7 @@ package planning.engine.planner.dag
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.node.{HnId, IoIndex, SnId}
+import planning.engine.common.values.node.{HnId, SnId}
 import planning.engine.common.values.text.Name
 import planning.engine.planner.dag.StateNode.{Parameters, Structure}
 import cats.syntax.all.*
@@ -27,9 +27,6 @@ final class AbstractStateNode[F[_]: MonadThrow](
     structure: AtomicCell[F, Structure[F]],
     parameters: AtomicCell[F, Parameters]
 ) extends StateNode[F](structure, parameters):
-
-  override def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean =
-    false // Abstract state nodes do not belong to any specific IO node
 
   override def toString: String = s"AbstractStateNode(id = $id, hnId = $hnId, name = ${name.toStr})"
 

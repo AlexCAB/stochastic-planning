@@ -17,7 +17,7 @@ import com.typesafe.config.Config
 import pureconfig.{ConfigReader, ConfigSource}
 
 final case class SimpleSyncPlannerConfig(
-                                          maxContextPathLength: Int
+    maxContextPathLength: Int
 )
 
 object SimpleSyncPlannerConfig:

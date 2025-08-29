@@ -29,6 +29,8 @@ abstract class StateNode[F[_]: MonadThrow](
   def id: SnId
   def hnId: HnId
   def name: Option[Name]
+  
+  def isConcrete: Boolean
 
   def getStructure: F[Structure[F]] = structure.get
   def getParameters: F[Parameters] = parameters.get
@@ -54,8 +56,40 @@ abstract class StateNode[F[_]: MonadThrow](
   def findThenChildNodesInValues(values: Map[Name, IoIndex]): F[Set[ConcreteStateNode[F]]] =
     structure.get.flatMap(_.thenChildren.toList.traverse(_.isInObservedValues(values))).map(_.flatten.toSet)
 
-  def addLinkChild(node: StateNode[F]): F[Unit] = structure.update(s => s.copy(linkChildren = s.linkChildren + node))
-  def addThenChild(node: StateNode[F]): F[Unit] = structure.update(s => s.copy(thenChildren = s.thenChildren + node))
+  private def addLinkChild(node: StateNode[F]): F[Unit] =
+    structure.update(s => s.copy(linkChildren = s.linkChildren + node))
+
+  private def addLinkParent(node: StateNode[F]): F[Unit] = structure.evalUpdate: s =>
+    if this.isConcrete
+    then s"Concrete sate nod can't not have LINK parents, as it is base level of abstraction".assertionError
+    else s.copy(linkParents = s.linkParents + node).pure
+
+  private def updateStructure(add: (Parameters, Structure[F]) => F[Structure[F]]): F[Unit] =
+    structure.evalUpdate(s => parameters.get.flatMap(p => add(p, s)))
+
+  private def addThenChild(node: StateNode[F]): F[Unit] = updateStructure: (p, s) =>
+    if p.kind == Kind.Past
+    then
+      (s"Past state node can't have THEN children, as it is in the past (state nodes added in two way: " +
+        s"1) as stand alone in present, 2) as then child in plan), node = $node, params: = $p").assertionError
+    else s.copy(thenChildren = s.thenChildren + node).pure
+
+  private def addThenParent(node: StateNode[F]): F[Unit] = updateStructure: (p, s) =>
+    if p.kind != Kind.Plan
+    then s"Parent can be added only for plan nodes, node = $node, params: = $p ".assertionError
+    else s.copy(thenParents = s.thenParents + node).pure
+
+  def joinNextLink(node: StateNode[F]): F[Unit] =
+    for
+      _ <- this.addLinkChild(node)
+      _ <- node.addLinkParent(this)
+    yield ()
+
+  def joinNextThen(node: StateNode[F]): F[Unit] =
+    for
+      _ <- this.addThenChild(node)
+      _ <- node.addThenParent(this)
+    yield ()
 
   private def setKind(expectedCurrentKind: Kind, newKind: Kind): F[Unit] = parameters.evalUpdate: params =>
     if params.kind != expectedCurrentKind then
@@ -84,13 +118,10 @@ object StateNode:
       s")"
 
   object Structure:
-    def init[F[_]: MonadThrow](
-        linkParents: Set[StateNode[F]],
-        thenParents: Set[StateNode[F]]
-    ): Structure[F] = Structure(
-      linkParents = linkParents,
+    def init[F[_]: MonadThrow]: Structure[F] = Structure(
+      linkParents = Set.empty,
       linkChildren = Set.empty,
-      thenParents = thenParents,
+      thenParents = Set.empty,
       thenChildren = Set.empty
     )
 
@@ -112,11 +143,9 @@ object StateNode:
     )
 
   def initState[F[_]: Concurrent](
-      linkParents: Set[StateNode[F]],
-      thenParents: Set[StateNode[F]],
       initParameters: Parameters
   ): F[(AtomicCell[F, Structure[F]], AtomicCell[F, Parameters])] =
     for
-      structure <- AtomicCell[F].of(Structure.init(linkParents, thenParents))
+      structure <- AtomicCell[F].of(Structure.init)
       parameters <- AtomicCell[F].of(initParameters)
     yield (structure, parameters)

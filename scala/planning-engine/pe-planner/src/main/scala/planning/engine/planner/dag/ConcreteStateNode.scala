@@ -34,6 +34,8 @@ final class ConcreteStateNode[F[_]: MonadThrow](
   def isBelongsToIo(ioNodeName: Name, ioIndex: IoIndex): Boolean =
     ioNode.name == ioNodeName && valueIndex == ioIndex
 
+  override val isConcrete: Boolean = true
+  
   override def toString: String = s"ConcreteStateNode(" +
     s"id = $id, hnId = $hnId, name = ${name.toStr}, ioNodeName = ${ioNode.name}, valueIndex = $valueIndex)"
 
@@ -49,8 +51,8 @@ object ConcreteStateNode:
       initParameters: Parameters
   ): F[ConcreteStateNode[F]] =
     for
-      (structure, parameters) <- StateNode.initState(linkParents, thenParents, initParameters)
+      (structure, parameters) <- StateNode.initState(initParameters)
       node = new ConcreteStateNode(id, hnId, name, ioNode, valueIndex, structure, parameters)
-      _ <- linkParents.toList.traverse(_.addLinkChild(node))
-      _ <- thenParents.toList.traverse(_.addThenChild(node))
+      _ <- linkParents.toList.traverse(_.joinNextLink(node))
+      _ <- thenParents.toList.traverse(_.joinNextThen(node))
     yield node

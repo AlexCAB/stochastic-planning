@@ -27,7 +27,8 @@ final class AbstractStateNode[F[_]: MonadThrow](
     structure: AtomicCell[F, Structure[F]],
     parameters: AtomicCell[F, Parameters]
 ) extends StateNode[F](structure, parameters):
-
+  
+  override val isConcrete: Boolean = false
   override def toString: String = s"AbstractStateNode(id = $id, hnId = $hnId, name = ${name.toStr})"
 
 object AbstractStateNode:
@@ -40,5 +41,8 @@ object AbstractStateNode:
       initParameters: Parameters
   ): F[AbstractStateNode[F]] =
     for
-        (structure, parameters) <- StateNode.initState(linkParents, thenParents, initParameters)
-    yield new AbstractStateNode(id, hnId, name, structure, parameters)
+      (structure, parameters) <- StateNode.initState(initParameters)
+      node = new AbstractStateNode(id, hnId, name, structure, parameters)
+      _ <- linkParents.toList.traverse(_.joinNextLink(node))
+      _ <- thenParents.toList.traverse(_.joinNextThen(node))
+    yield node

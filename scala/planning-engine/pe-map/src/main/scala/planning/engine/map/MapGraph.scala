@@ -26,7 +26,7 @@ import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleData}
-import planning.engine.map.subgraph.NextSampleEdgeMap
+import planning.engine.map.subgraph.{ConcreteWithParentIds, NextSampleEdgeMap}
 
 import scala.collection.immutable.Iterable
 
@@ -45,7 +45,7 @@ trait MapGraphLake[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
-  def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteNode[F]]] // Name is IO variable name
+  def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteWithParentIds[F]]] // Name is IO var name
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
@@ -150,14 +150,14 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- (sampleIds, samples.keys).assertSameElems("Not all sample were found")
       yield samples
 
-  override def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteNode[F]]] =
-    skipIfEmpty(values, List[ConcreteNode[F]]()):
+  override def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteWithParentIds[F]]] =
+    skipIfEmpty(values, List[ConcreteWithParentIds[F]]()):
       for
         _ <- (ioNodes.keys, values.keys).assertContainsAll("Unknown IO nodes names")
         ioNodeWithIndex <- values.toList.traverse((n, i) => getIoNode(n).map(io => io -> i))
         foundNodes <- database.findHiddenNodesByIoValues(ioNodeWithIndex)
         _ <- logger.info(s"Found nodes = $foundNodes for values = $values")
-        _ <- (values.keys, foundNodes.map(_.ioNode.name)).assertSameElems("Not all io nodes names was processed")
+        _ <- (values.keys, foundNodes.map(_.node.ioNode.name)).assertSameElems("Not all io nodes names was processed")
       yield foundNodes
 
   override def toString: String =

@@ -21,11 +21,19 @@ import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
 import planning.engine.planner.dag.{ConcreteStateNode, PlanningDagLike, StateNode}
 import planning.engine.map.hidden.node.ConcreteNode
+import planning.engine.map.subgraph.ConcreteWithParentIds
 import planning.engine.planner.context.SimpleContext.UpdateConcrete
+
+// Simple context (graph) component:
+//  - I represent observed current and past state of the agent world (i.e. it contains only observed hidden nodes from
+//    the map graph).
+//  - Context graph is a subgraph of the map graph.
+//  - Context graph can be represented as a set of paths from root nodes (roots is oldest observed events)
+//    to leaves (leaves is in context boundary and represents present state of the world).
 
 trait SimpleContextLike[F[_]: Async]:
   def moveNextFoundIntoContext(values: Map[Name, IoIndex]): F[Map[Name, IoIndex]]
-  def addObservedConcreteToContextBoundary(nodes: List[ConcreteNode[F]]): F[Unit]
+  def addObservedConcreteToContextBoundary(nodes: List[ConcreteWithParentIds[F]]): F[Unit]
 
 final class SimpleContext[F[_]: {Async, LoggerFactory}](
     maxPathLength: Int,
@@ -68,7 +76,12 @@ final class SimpleContext[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Values for which next plan node not found: $newValues")
       yield (newContextBoundary, newValues)
 
-  override def addObservedConcreteToContextBoundary(nodes: List[ConcreteNode[F]]): F[Unit] = ???
+  override def addObservedConcreteToContextBoundary(nodes: List[ConcreteWithParentIds[F]]): F[Unit] = ???
+    //TODO: 1) To check of parents in context boundary, if so move them to past and create links.
+    //TODO: 2) Add new nodes as present with links to parents to context boundary.
+    //TODO:
+    //TODO:
+
 
 object SimpleContext:
   final case class State[F[_]: MonadThrow]()

@@ -8,18 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-09-01 |||||||||||*/
+| created: 2025-12-01 |||||||||||*/
 
-package planning.engine.map.subgraph
+package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
 import planning.engine.common.values.node.HnId
-import planning.engine.map.hidden.node.ConcreteNode
+import planning.engine.common.values.text.Name
 
-final case class ConcreteWithParentIds[F[_]: MonadThrow](
-    node: ConcreteNode[F],
-    linkParentIds: Set[HnId],
-    thenParentIds: Set[HnId]
-):
-  override def toString: String =
-    s"ConcreteWithParentIds(nodeId=${node.id}, linkParentIds=$linkParentIds, thenParentIds=$thenParentIds)"
+class AbstractMapNode[F[_]: MonadThrow](
+    id: HnId,
+    name: Option[Name],
+    patents: MapNode.Patents[F],
+    children: MapNode.Children[F],
+) extends MapNode[F](id, patents, children)

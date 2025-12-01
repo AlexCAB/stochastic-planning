@@ -25,6 +25,7 @@ import neotypes.model.types.Node
 import neotypes.syntax.all.*
 import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
+import planning.engine.map.subgraph.ConcreteWithParentIds
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]
     with WithItDb with TestItDbQuery with MapGraphIntegrationTestData:
@@ -201,16 +202,16 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteParams, List()).await
         logInfo("find concrete nodes", s" created nodes = $nodes").await
 
-        val result: List[ConcreteNode[IO]] = neo4jdb.findHiddenNodesByIoValues(findParams).await
+        val result: List[ConcreteWithParentIds[IO]] = neo4jdb.findHiddenNodesByIoValues(findParams).await
         logInfo("find concrete nodes", s" result = $result").await
 
         result.size mustEqual 3
-        result.map(_.ioNode.name).toSet mustEqual Set(intInNode.name, intOutNode.name)
+        result.map(_.node.ioNode.name).toSet mustEqual Set(intInNode.name, intOutNode.name)
 
-        val conNodes1 = result.filter(_.ioNode.name == intInNode.name)
-        conNodes1.map(_.valueIndex).toSet mustEqual Set(IoIndex(1L))
-        conNodes1.map(_.name) mustEqual List(Some(Name("find_con_1")), Some(Name("find_con_2")))
+        val conNodes1 = result.filter(_.node.ioNode.name == intInNode.name)
+        conNodes1.map(_.node.valueIndex).toSet mustEqual Set(IoIndex(1L))
+        conNodes1.map(_.node.name) mustEqual List(Some(Name("find_con_1")), Some(Name("find_con_2")))
 
-        val conNodes2 = result.filter(_.ioNode.name == intOutNode.name)
-        conNodes2.map(_.valueIndex).toSet mustEqual Set(IoIndex(2L))
-        conNodes2.map(_.name) mustEqual List(Some(Name("find_con_3")))
+        val conNodes2 = result.filter(_.node.ioNode.name == intOutNode.name)
+        conNodes2.map(_.node.valueIndex).toSet mustEqual Set(IoIndex(2L))
+        conNodes2.map(_.node.name) mustEqual List(Some(Name("find_con_3")))

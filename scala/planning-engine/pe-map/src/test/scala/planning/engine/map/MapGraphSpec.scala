@@ -23,7 +23,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.database.Neo4jDatabaseLike
 import planning.engine.map.hidden.node.*
 import planning.engine.map.samples.sample.{Sample, SampleData}
-import planning.engine.map.subgraph.NextSampleEdgeMap
+import planning.engine.map.subgraph.{ConcreteWithParentIds, NextSampleEdgeMap}
 
 class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphTestData:
 
@@ -258,7 +258,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "MapGraphSpec.findHiddenNodesByIoValues(...)" should:
     "find hidden nodes connected to particular IO values" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val expectedResult = List(testConcreteNode)
+        val expectedResult = List(ConcreteWithParentIds[IO](testConcreteNode, Set(), Set()))
 
         data.mockedDb.findHiddenNodesByIoValues
           .when(*)
@@ -269,7 +269,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
             yield expectedResult
           .once()
 
-        val result: List[ConcreteNode[IO]] = data.mapGraph
+        val result: List[ConcreteWithParentIds[IO]] = data.mapGraph
           .findConcreteNodesByIoValues(Map(testConcreteNode.ioNode.name -> testConcreteNode.valueIndex))
           .await
 

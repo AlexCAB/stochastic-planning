@@ -18,6 +18,7 @@ import planning.engine.common.UnitSpecWithData
 import cats.effect.cps.*
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
+import planning.engine.planner.plan.dag.{ConcreteStateNode, StateNode}
 
 class ConcreteStateNodeSpec extends UnitSpecWithData with DagTestData:
 

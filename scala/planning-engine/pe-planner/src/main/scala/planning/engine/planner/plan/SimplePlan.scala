@@ -13,8 +13,8 @@
 package planning.engine.planner.plan
 
 import cats.effect.Async
-import planning.engine.planner.dag.PlanningDagLike
 import cats.syntax.all.*
+import planning.engine.planner.plan.dag.PlanningDagLike
 
 trait SimplePlanLike[F[_]: Async]
 

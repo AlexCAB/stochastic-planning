@@ -19,10 +19,9 @@ import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.node.IoIndex
 import planning.engine.common.values.text.Name
-import planning.engine.planner.dag.{ConcreteStateNode, PlanningDagLike, StateNode}
-import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.subgraph.ConcreteWithParentIds
 import planning.engine.planner.context.SimpleContext.UpdateConcrete
+import planning.engine.planner.plan.dag.{ConcreteStateNode, PlanningDagLike, StateNode}
 
 // Simple context (graph) component:
 //  - I represent observed current and past state of the agent world (i.e. it contains only observed hidden nodes from

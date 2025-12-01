@@ -18,6 +18,7 @@ import planning.engine.common.values.node.{HnId, IoIndex, SnId}
 import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.IntIoVariable
+import planning.engine.planner.plan.dag.{AbstractStateNode, ConcreteStateNode, StateNode}
 
 trait DagTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

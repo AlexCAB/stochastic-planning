@@ -20,7 +20,7 @@ import planning.engine.planner.plan.{SimplePlan, SimplePlanLike}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.planner.config.SimpleSyncPlannerConfig
-import planning.engine.planner.dag.PlanningDag
+import planning.engine.planner.plan.dag.PlanningDag
 
 trait SimpleSyncPlannerLike[F[_]]:
   def step(observation: Observation): F[Action]

@@ -15,9 +15,9 @@ package planning.engine.planner.dag
 import cats.effect.IO
 import cats.effect.cps.async
 import planning.engine.common.UnitSpecWithData
-
 import cats.syntax.all.*
 import cats.effect.cps.*
+import planning.engine.planner.plan.dag.PlanningDag
 
 class PlanningDagSpec extends UnitSpecWithData with DagTestData:
 

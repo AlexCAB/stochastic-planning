@@ -22,6 +22,7 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
 import neotypes.syntax.all.*
 import planning.engine.common.values.db.Neo4j.*
+import planning.engine.map.subgraph.ConcreteWithParentIds
 
 class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
     with WithItDb with MapGraphIntegrationTestData:
@@ -123,7 +124,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
 
         conNode.name must not be empty
 
-        val foundNodes: List[ConcreteNode[IO]] = res.graph
+        val foundNodes: List[ConcreteWithParentIds[IO]] = res.graph
           .findConcreteNodesByIoValues(Map(conNode.ioNodeName -> conNode.valueIndex))
           .await
 
@@ -131,6 +132,6 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
           .traverse(node => logInfo("found concrete node", s"node = $node"))
           .await
 
-        val conNodes = foundNodes.filter(_.ioNode.name == conNode.ioNodeName)
-        conNodes.map(_.ioNode.name).toSet mustEqual Set(conNode.ioNodeName)
-        conNodes.map(_.valueIndex).toSet mustEqual Set(conNode.valueIndex)
+        val conNodes = foundNodes.filter(_.node.ioNode.name == conNode.ioNodeName)
+        conNodes.map(_.node.ioNode.name).toSet mustEqual Set(conNode.ioNodeName)
+        conNodes.map(_.node.valueIndex).toSet mustEqual Set(conNode.valueIndex)

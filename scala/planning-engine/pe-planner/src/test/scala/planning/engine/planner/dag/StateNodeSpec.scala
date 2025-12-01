@@ -17,7 +17,8 @@ import cats.effect.cps.async
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{IoIndex, SnId}
 import cats.effect.cps.*
-import planning.engine.planner.dag.StateNode.{Kind, Parameters}
+import planning.engine.planner.plan.dag.{AbstractStateNode, ConcreteStateNode}
+import planning.engine.planner.plan.dag.StateNode.{Kind, Parameters}
 
 class StateNodeSpec extends UnitSpecWithData with DagTestData:
 

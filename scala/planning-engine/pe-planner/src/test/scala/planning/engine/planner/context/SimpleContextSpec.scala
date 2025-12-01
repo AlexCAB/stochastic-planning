@@ -15,12 +15,13 @@ package planning.engine.planner.context
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.planner.dag.{ConcreteStateNode, DagTestData, PlanningDagLike, StateNode}
+import planning.engine.planner.dag.DagTestData
 import cats.effect.cps.*
 import planning.engine.common.values.node.{IoIndex, SnId}
 import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.InputNode
-import planning.engine.planner.dag.StateNode.{Kind, Parameters}
+import planning.engine.planner.plan.dag.{ConcreteStateNode, PlanningDagLike, StateNode}
+import planning.engine.planner.plan.dag.StateNode.{Kind, Parameters}
 
 class SimpleContextSpec extends UnitSpecWithData with DagTestData with AsyncMockFactory:
 

@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2025-08-14 |||||||||||*/
 
-package planning.engine.planner.dag
+package planning.engine.planner.plan.dag
 
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.std.AtomicCell
 import planning.engine.common.values.node.{HnId, IoIndex, SnId}
 import planning.engine.common.values.text.Name
-import planning.engine.planner.dag.StateNode.{Kind, Parameters, Structure}
+import StateNode.{Kind, Parameters, Structure}
 import cats.syntax.all.*
 import planning.engine.common.values.io.Time
 import planning.engine.common.errors.assertionError

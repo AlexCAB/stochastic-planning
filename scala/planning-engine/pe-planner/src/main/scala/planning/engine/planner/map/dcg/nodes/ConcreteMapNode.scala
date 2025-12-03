@@ -15,13 +15,18 @@ package planning.engine.planner.map.dcg.nodes
 import cats.MonadThrow
 import planning.engine.common.values.node.{HnId, IoIndex}
 import planning.engine.common.values.text.Name
+import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.IoNode
+import planning.engine.planner.map.dcg.state.MapNodeState.{Children, Patents}
 
 class ConcreteMapNode[F[_]: MonadThrow](
     id: HnId,
     name: Option[Name],
-    ioNode: IoNode[F],
-    valueIndex: IoIndex,
-    patents: MapNode.Patents[F],
-    children: MapNode.Children[F],
+    val ioNode: IoNode[F],
+    val valueIndex: IoIndex,
+    patents: Patents[F],
+    children: Children[F]
 ) extends MapNode[F](id, patents, children)
+
+object ConcreteMapNode:
+  def fromMapNode[F[_]: MonadThrow](mapNode: ConcreteNode[F]): F[ConcreteMapNode[F]] = ???

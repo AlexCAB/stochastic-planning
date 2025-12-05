@@ -13,8 +13,9 @@
 package planning.engine.api.model.map.payload
 
 import planning.engine.common.values.text.{Description, Name}
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.node.HnName
 
 final case class NewSampleData(
     probabilityCount: Long,
@@ -24,7 +25,7 @@ final case class NewSampleData(
     edges: List[NewSampleEdge]
 ) extends Validation:
 
-  lazy val edgesHnNames: Set[Name] = edges.toSet.flatMap(e => Set(e.sourceHnName, e.targetHnName))
+  lazy val edgesHnNames: Set[HnName] = edges.toSet.flatMap(e => Set(e.sourceHnName, e.targetHnName))
   lazy val validationName: String = s"NewSampleData(name = ${name.getOrElse("None")})"
 
   lazy val validationErrors: List[Throwable] = validations(

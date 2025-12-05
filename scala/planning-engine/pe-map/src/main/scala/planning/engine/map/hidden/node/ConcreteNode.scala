@@ -17,26 +17,27 @@ import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.map.io.node.IoNode
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.text.Description
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.io.{IoIndex, IoName}
 
 final case class ConcreteNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name],
+    name: Option[HnName],
     description: Option[Description],
     ioNode: IoNode[F],
-    valueIndex: IoIndex,
+    valueIndex: IoIndex
 ) extends HiddenNode[F]:
 
   override def toString: String = s"ConcreteHiddenNode(" +
     s"id = $id, name = $name, description = $description, valueIndex = $valueIndex, ioNode = $ioNode)"
 
 object ConcreteNode:
-  final case class New(name: Option[Name], description: Option[Description], ioNodeName: Name, valueIndex: IoIndex)
+  final case class New(name: Option[HnName], description: Option[Description], ioNodeName: IoName, valueIndex: IoIndex)
       extends Validation:
 
     lazy val validationName: String = s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)"
@@ -63,7 +64,7 @@ object ConcreteNode:
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
-        name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
+        name <- n.getOptional[F, String](PROP.NAME).map(_.map(HnName.apply))
         description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
         valueIndex <- n.getValue[F, Long](PROP.IO_INDEX).map(IoIndex.apply)
         conNode <- ConcreteNode(id, name, description, ioNode, valueIndex).pure

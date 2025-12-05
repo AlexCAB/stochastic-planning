@@ -14,8 +14,8 @@ package planning.engine.map.hidden.node
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.common.values.text.{Description, Name}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
 import planning.engine.common.properties.*
@@ -23,15 +23,16 @@ import planning.engine.map.io.node.InputNode
 import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
+import planning.engine.common.values.io.{IoIndex, IoName}
 
 class ConcreteNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234L)
-    lazy val name = Name.some("TestNode")
+    lazy val name = HnName.some("TestNode")
     lazy val description = Description.some("TestNodeDescription")
     lazy val valueIndex = IoIndex(1L)
-    lazy val intInNode = InputNode[IO](Name("inputNode"), IntIoVariable[IO](0, 10))
+    lazy val intInNode = InputNode[IO](IoName("inputNode"), IntIoVariable[IO](0, 10))
     lazy val singleNode = ConcreteNode[IO](id, name, description, intInNode, valueIndex)
     lazy val newNode = ConcreteNode.New(name, description, intInNode.name, valueIndex)
     lazy val initNextHnIndex = 1L
@@ -83,7 +84,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
           data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      ConcreteNode[IO](HnId(5678), Name.some("TestNode2"), None, data.intInNode, IoIndex(2)).pure[IO].asserting:
+      ConcreteNode[IO](HnId(5678), HnName.some("TestNode2"), None, data.intInNode, IoIndex(2)).pure[IO].asserting:
         node2 =>
           data.singleNode.equals(node2) mustEqual false
 
@@ -92,11 +93,11 @@ class ConcreteNodeSpec extends UnitSpecWithData:
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 
     "return error if var name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = Name.some("")).validationErrors.pure[IO].asserting: errors =>
+      data.newNode.copy(name = HnName.some("")).validationErrors.pure[IO].asserting: errors =>
         errors must have size 1
         errors.head.getMessage mustEqual "Name must not be empty if defined"
 
     "return error if IO node name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(ioNodeName = Name("")).validationErrors.pure[IO].asserting: errors =>
+      data.newNode.copy(ioNodeName = IoName("")).validationErrors.pure[IO].asserting: errors =>
         errors must have size 1
         errors.head.getMessage mustEqual "IoNode name must not be empty"

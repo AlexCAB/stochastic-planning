@@ -8,11 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-18 |||||||||||*/
+| created: 2025-12-04 |||||||||||*/
 
-package planning.engine.common.values.node
+package planning.engine.common.values.io
 
-import planning.engine.common.values.LongVal
+import planning.engine.common.values.{StringBuilders, StringVal}
 
-// IoValueIndex is used to identify the value in IoNode.
-final case class IoIndex(value: Long) extends AnyVal with LongVal
+final case class IoName(value: String) extends AnyVal with StringVal
+
+object IoName extends StringBuilders[IoName]:
+  protected def makeValue(str: String): IoName = IoName(str)

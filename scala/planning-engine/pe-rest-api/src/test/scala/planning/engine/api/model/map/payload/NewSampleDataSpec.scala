@@ -16,16 +16,18 @@ import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.common.values.io.IoName
 import cats.syntax.all.*
 import io.circe.Json
+import planning.engine.common.values.node.HnName
 
 class NewSampleDataSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val testConNodeDef =
-      ConcreteNodeDef(Name("hn1"), Description.some("testConNodeDef"), Name("ioNode1"), Json.fromLong(1234L))
+      ConcreteNodeDef(HnName("hn1"), Description.some("testConNodeDef"), IoName("ioNode1"), Json.fromLong(1234L))
 
-    lazy val testAbsNodeDef = AbstractNodeDef(Name("hn2"), Description.some("testAbsNodeDef"))
+    lazy val testAbsNodeDef = AbstractNodeDef(HnName("hn2"), Description.some("testAbsNodeDef"))
 
     lazy val testSample: IO[NewSampleData] = NewSampleData(
       probabilityCount = 10,

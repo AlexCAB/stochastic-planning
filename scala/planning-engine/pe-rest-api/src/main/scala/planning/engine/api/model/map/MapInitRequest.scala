@@ -21,6 +21,7 @@ import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.db.DbName
+import planning.engine.common.values.io.IoName
 import planning.engine.map.io.variable.*
 
 final case class MapInitRequest(
@@ -39,7 +40,7 @@ final case class MapInitRequest(
 
   private def toNode[F[_]: MonadThrow, N <: IoNode[F]](
       definitions: List[IoNodeApiDef],
-      makeNode: (Name, IoVariable[F, ?]) => F[N]
+      makeNode: (IoName, IoVariable[F, ?]) => F[N]
   ): F[List[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)

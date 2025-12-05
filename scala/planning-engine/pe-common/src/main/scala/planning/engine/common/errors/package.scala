@@ -46,8 +46,8 @@ extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[
     value,
     msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}"
   )
-  
-extension[T, CL[_] <: IterableOnce[T], CR[_] <: IterableOnce[T]] (value: (CL[T], CR[T] ) )
+
+extension [T, CL[_] <: IterableOnce[T], CR[_] <: IterableOnce[T]](value: (CL[T], CR[T]))
   inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] = predicateAssert(
     value._1.iterator.toSet == value._2.iterator.toSet,
     value,

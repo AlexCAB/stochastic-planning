@@ -12,20 +12,18 @@
 
 package planning.engine.planner.io
 
-import planning.engine.common.values.io.Time
-import planning.engine.common.values.node.IoIndex
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.io.{IoTime, IoValue}
 
 trait IoValues:
-  def values: Map[Name, IoIndex] // Map of variable names to their indices
+  def values: Set[IoValue] // Set of variable names to their indices
 
 final case class Observation(
-    time: Time,  // Monotonically increased value used to track the time of the observation
-    values: Map[Name, IoIndex], // Map of observed IO variable names to their value indices.
+    time: IoTime, // Monotonically increased value used to track the time of the observation
+    values: Set[IoValue], // Set of observed IO variable names to their value indices.
     utility: Option[Double] // Optional utility value associated with the observation
 ) extends IoValues
 
-final case class Action(values: Map[Name, IoIndex]) extends IoValues
+final case class Action(values: Set[IoValue]) extends IoValues
 
 object Action:
-  val empty: Action = Action(Map.empty)
+  val empty: Action = Action(Set.empty)

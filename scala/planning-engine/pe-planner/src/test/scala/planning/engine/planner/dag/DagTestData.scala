@@ -14,7 +14,8 @@ package planning.engine.planner.dag
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.node.{HnId, IoIndex, SnId}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, SnId}
 import planning.engine.common.values.text.Name
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.IntIoVariable
@@ -24,9 +25,9 @@ trait DagTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   lazy val intInNodes =
-    (1 to 10).toList.map(i => InputNode[IO](Name(s"intInputNode$i"), IntIoVariable[IO](-10000, 10000)))
+    (1 to 10).toList.map(i => InputNode[IO](IoName(s"intInputNode$i"), IntIoVariable[IO](-10000, 10000)))
 
-  lazy val intOutNode = OutputNode[IO](Name("intOutputNode"), IntIoVariable[IO](-10000, 10000))
+  lazy val intOutNode = OutputNode[IO](IoName("intOutputNode"), IntIoVariable[IO](-10000, 10000))
 
   lazy val conId: SnId = SnId(1L)
   lazy val absId: SnId = SnId(2L)

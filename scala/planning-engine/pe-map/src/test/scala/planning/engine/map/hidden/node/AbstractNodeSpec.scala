@@ -14,8 +14,8 @@ package planning.engine.map.hidden.node
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.text.Description
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.properties.PROP
 import cats.syntax.all.*
 import planning.engine.common.properties.*
@@ -26,7 +26,7 @@ class AbstractNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234)
-    lazy val name = Name.some("TestNode")
+    lazy val name = HnName.some("TestNode")
     lazy val description = Description.some("TestNodeDescription")
     lazy val singleNode = AbstractNode[IO](id, name, description)
     lazy val newNode = AbstractNode.New(name, description)
@@ -72,7 +72,7 @@ class AbstractNodeSpec extends UnitSpecWithData:
         data.singleNode.equals(node2) mustEqual true
 
     "return false for different nodes" in newCase[CaseData]: (_, data) =>
-      AbstractNode[IO](HnId(5678), Name.some("TestNode2"), None).pure[IO].asserting: node2 =>
+      AbstractNode[IO](HnId(5678), HnName.some("TestNode2"), None).pure[IO].asserting: node2 =>
         data.singleNode.equals(node2) mustEqual false
 
   "AbstractNode.validationErrors" should:
@@ -80,6 +80,6 @@ class AbstractNodeSpec extends UnitSpecWithData:
       data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
 
     "return error if name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = Name.some("")).validationErrors.pure[IO].asserting: errors =>
+      data.newNode.copy(name = HnName.some("")).validationErrors.pure[IO].asserting: errors =>
         errors must have size 1
         errors.head.getMessage mustEqual "Name must not be empty if defined"

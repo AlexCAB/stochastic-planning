@@ -13,12 +13,12 @@
 package planning.engine.api.model.map.payload
 
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.text.Name
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
+import planning.engine.common.values.node.HnName
 
 final case class NewSampleEdge(
-    sourceHnName: Name,
-    targetHnName: Name,
+    sourceHnName: HnName,
+    targetHnName: HnName,
     edgeType: EdgeType
 )
 

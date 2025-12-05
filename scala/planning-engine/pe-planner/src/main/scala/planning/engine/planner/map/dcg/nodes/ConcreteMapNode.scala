@@ -13,7 +13,8 @@
 package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.io.IoIndex
+import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.IoNode

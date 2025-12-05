@@ -40,14 +40,14 @@ class SimpleSyncPlanner[F[_]: Async](
   //       - Run abstraction up to top level
   //       - Run concretization down to action
   //       - If action is found, return it, otherwise return empty (client agent will have to pick random action)
-  override def step(observation: Observation): F[Action] =
-    for
-      valuesNotInContext <- context.moveNextFoundIntoContext(observation.values)
-      observedConcreteNodes <- mapGraph.findConcreteNodesByIoValues(valuesNotInContext)
-      _ <- context.addObservedConcreteToContextBoundary(observedConcreteNodes)
-
-    // TODO Here should be planning process to find action
-    yield Action.empty
+  override def step(observation: Observation): F[Action] = ???
+//    for
+//      valuesNotInContext <- context.moveNextFoundIntoContext(observation.values)
+//      observedConcreteNodes <- mapGraph.findConcreteNodesByIoValues(valuesNotInContext)
+//      _ <- context.addObservedConcreteToContextBoundary(observedConcreteNodes)
+//
+//    // TODO Here should be planning process to find action
+//    yield Action.empty
 
 object SimpleSyncPlanner:
   def apply[F[_]: {Async, LoggerFactory}](

@@ -20,6 +20,8 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.common.values.io.IoName
+import planning.engine.common.values.node.HnName
 import planning.engine.map.config.MapConfig
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
@@ -42,10 +44,10 @@ trait TestApiData:
     prevMapName = Name.some("testMapName")
   )
 
-  lazy val booleanIoNodeDef = BooleanIoNodeDef(Name("boolDef"), Set(true, false))
-  lazy val floatIoNodeDef = FloatIoNodeDef(Name("floatDef"), min = -1, max = 1)
-  lazy val intIoNodeDef = IntIoNodeDef(Name("intDef"), min = 0, max = 10)
-  lazy val listStrIoNodeDef = ListStrIoNodeDef(Name("listStrDef"), elements = List("a", "b", "c"))
+  lazy val booleanIoNodeDef = BooleanIoNodeDef(IoName("boolDef"), Set(true, false))
+  lazy val floatIoNodeDef = FloatIoNodeDef(IoName("floatDef"), min = -1, max = 1)
+  lazy val intIoNodeDef = IntIoNodeDef(IoName("intDef"), min = 0, max = 10)
+  lazy val listStrIoNodeDef = ListStrIoNodeDef(IoName("listStrDef"), elements = List("a", "b", "c"))
 
   lazy val testMapInitRequest = MapInitRequest(
     dbName = testDbName,
@@ -73,10 +75,10 @@ trait TestApiData:
   lazy val intIoVar = IntIoVariable[IO](intIoNodeDef.min, intIoNodeDef.max)
   lazy val listStrIoVar = ListStrIoVariable[IO](listStrIoNodeDef.elements)
 
-  lazy val booleanIoNode = InputNode(Name("ioNode1"), booleanIoVar)
-  lazy val floatIoNode = InputNode(Name("ioNode2"), floatIoVar)
-  lazy val intIoNode = OutputNode(Name("ioNode3"), intIoVar)
-  lazy val listStrIoNode = OutputNode(Name("ioNode4"), listStrIoVar)
+  lazy val booleanIoNode = InputNode(IoName("ioNode1"), booleanIoVar)
+  lazy val floatIoNode = InputNode(IoName("ioNode2"), floatIoVar)
+  lazy val intIoNode = OutputNode(IoName("ioNode3"), intIoVar)
+  lazy val listStrIoNode = OutputNode(IoName("ioNode4"), listStrIoVar)
 
   lazy val ioNodes = Map(
     booleanIoNode.name -> booleanIoNode,
@@ -86,21 +88,21 @@ trait TestApiData:
   )
 
   lazy val testConNodeDef1 = ConcreteNodeDef(
-    Name("conHn1"),
+    HnName("conHn1"),
     Description.some("testConNodeDef1"),
     booleanIoNode.name,
     Json.fromBoolean(testConNodeVal1)
   )
 
   lazy val testConNodeDef2 = ConcreteNodeDef(
-    Name("conHn2"),
+    HnName("conHn2"),
     Description.some("testConNodeDef2"),
     listStrIoNode.name,
     Json.fromString(testConNodeVal2)
   )
 
-  lazy val testAbsNodeDef1 = AbstractNodeDef(Name("absHn3"), Description.some("testAbsNodeDef1"))
-  lazy val testAbsNodeDef2 = AbstractNodeDef(Name("absHn4"), Description.some("testAbsNodeDef2"))
+  lazy val testAbsNodeDef1 = AbstractNodeDef(HnName("absHn3"), Description.some("testAbsNodeDef1"))
+  lazy val testAbsNodeDef2 = AbstractNodeDef(HnName("absHn4"), Description.some("testAbsNodeDef2"))
 
   lazy val testConNodeNew1 = ConcreteNode.New(
     Some(testConNodeDef1.name),

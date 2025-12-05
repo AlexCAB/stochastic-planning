@@ -40,7 +40,7 @@ final case class MapConfig(
 object MapConfig:
   import pureconfig.generic.semiauto.*
   import pureconfig.module.catseffect.syntax.*
-  
+
   def formConfig[F[_]: Sync](conf: Config): F[MapConfig] =
     given configReader: ConfigReader[MapConfig] = deriveReader[MapConfig]
     ConfigSource.fromConfig(conf).loadF[F, MapConfig]()

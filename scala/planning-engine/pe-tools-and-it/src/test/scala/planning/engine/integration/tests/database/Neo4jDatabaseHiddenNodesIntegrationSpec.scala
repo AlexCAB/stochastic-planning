@@ -14,7 +14,7 @@ package planning.engine.integration.tests.database
 
 import cats.effect.{IO, Resource}
 import planning.engine.common.properties.*
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.integration.tests.*
 import planning.engine.common.values.db.Neo4j.*
@@ -23,6 +23,7 @@ import cats.effect.cps.*
 import cats.syntax.all.*
 import neotypes.model.types.Node
 import neotypes.syntax.all.*
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
 import planning.engine.map.subgraph.ConcreteWithParentIds
@@ -38,8 +39,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
       neo4jdb <- createRootNodesInDb(itDb.config, itDb.dbName)
     yield (itDb, neo4jdb)
 
-  private def makeConNames(n1: String, ns: String*): List[(Option[Name], Name, IoIndex)] =
-    ((n1 +: ns).map(n => Name(n).some) :+ None).toList.map(n => (n, intInNode.name, IoIndex(123L)))
+  private def makeConNames(n1: String, ns: String*): List[(Option[HnName], IoName, IoIndex)] =
+    ((n1 +: ns).map(n => HnName(n).some) :+ None).toList.map(n => (n, intInNode.name, IoIndex(123L)))
 
   "Neo4jDatabase.createConcreteNodes(...)" should:
     "create concrete nodes in DB" in: (itDb, neo4jdb) =>
@@ -53,8 +54,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         val nextHnId = getNextHnId.await
 
         val newNodes = List(
-          ConcreteNode.New(Name.some("inputNode"), Description.some("IN node"), boolInNode.name, IoIndex(10L)),
-          ConcreteNode.New(Name.some("outputNode"), Description.some("OUT node"), boolOutNode.name, IoIndex(20L))
+          ConcreteNode.New(HnName.some("inputNode"), Description.some("IN node"), boolInNode.name, IoIndex(10L)),
+          ConcreteNode.New(HnName.some("outputNode"), Description.some("OUT node"), boolOutNode.name, IoIndex(20L))
         )
 
         val concreteNodeIds: List[HnId] = neo4jdb
@@ -99,8 +100,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
         val nextHnId = getNextHnId.await
 
         val newNodes = List(
-          AbstractNode.New(Name.some("AbstractNode1"), Description.some("Abs node 1")),
-          AbstractNode.New(Name.some("AbstractNode2"), Description.some("Abs node 2"))
+          AbstractNode.New(HnName.some("AbstractNode1"), Description.some("Abs node 1")),
+          AbstractNode.New(HnName.some("AbstractNode2"), Description.some("Abs node 2"))
         )
 
         val abstractNodeIds: List[HnId] = neo4jdb
@@ -125,16 +126,16 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
   "Neo4jDatabase.findHiddenNodesByNames(...)" should:
     "find hidden nodes" in: (_, neo4jdb) =>
       async[IO]:
-        val name1 = Name("find_node_con_1")
-        val name2 = Name("find_node_abs_1")
+        val name1 = HnName("find_node_con_1")
+        val name2 = HnName("find_node_abs_1")
         val concreteNames = makeConNames(name1.value, name1.value, "find_node_con_2")
-        val abstractNames = List(Some(name2), Name.some("find_node_abs_2"), None)
+        val abstractNames = List(Some(name2), HnName.some("find_node_abs_2"), None)
         val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
         val expectedHnIds = Map(name1 -> nodes.findHnIdsForName(name1), name2 -> nodes.findHnIdsForName(name2))
 
         logInfo("find hidden nodes", s" created nodes = $nodes").await
 
-        val foundNodes: Map[Name, List[HiddenNode[IO]]] = neo4jdb
+        val foundNodes: Map[HnName, List[HiddenNode[IO]]] = neo4jdb
           .findHiddenNodesByNames(
             names = List(name1, name2),
             getIoNode = name =>
@@ -159,15 +160,15 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
   "Neo4jDatabase.findHnIdsByNames(...)" should:
     "find hidden nodes IDs" in: (_, neo4jdb) =>
       async[IO]:
-        val name1 = Name("find_id_con_1")
-        val name2 = Name("find_id_abs_1")
+        val name1 = HnName("find_id_con_1")
+        val name2 = HnName("find_id_abs_1")
         val concreteNames = makeConNames(name1.value, name1.value, "find_id_con_2")
-        val abstractNames = List(Some(name2), Name.some("find_id_abs_2"), None)
+        val abstractNames = List(Some(name2), HnName.some("find_id_abs_2"), None)
         val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames).await
         val expectedHnIds = Map(name1 -> nodes.findHnIdsForName(name1), name2 -> nodes.findHnIdsForName(name2))
 
         logInfo("find hidden nodes IDs", s" created nodes = $nodes").await
-        val foundIds: Map[Name, List[HnId]] = neo4jdb.findHnIdsByNames(List(name1, name2)).await
+        val foundIds: Map[HnName, List[HnId]] = neo4jdb.findHnIdsByNames(List(name1, name2)).await
         logInfo("find hidden nodes", s"foundIds = $foundIds").await
 
         foundIds.size mustEqual 2
@@ -188,10 +189,10 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
     "find concrete nodes connected to particular IO values" in: (_, neo4jdb) =>
       async[IO]:
         val concreteParams = List(
-          (Some(Name("find_con_1")), intInNode.name, IoIndex(1L)),
-          (Some(Name("find_con_2")), intInNode.name, IoIndex(1L)),
-          (Some(Name("find_con_3")), intOutNode.name, IoIndex(2L)),
-          (Some(Name("find_con_4")), intOutNode.name, IoIndex(3L))
+          (Some(HnName("find_con_1")), intInNode.name, IoIndex(1L)),
+          (Some(HnName("find_con_2")), intInNode.name, IoIndex(1L)),
+          (Some(HnName("find_con_3")), intOutNode.name, IoIndex(2L)),
+          (Some(HnName("find_con_4")), intOutNode.name, IoIndex(3L))
         )
 
         val findParams = List(

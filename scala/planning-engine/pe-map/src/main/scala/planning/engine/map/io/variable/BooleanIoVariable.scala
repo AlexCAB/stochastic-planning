@@ -18,7 +18,7 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
 
 abstract class BooleanIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Boolean]:

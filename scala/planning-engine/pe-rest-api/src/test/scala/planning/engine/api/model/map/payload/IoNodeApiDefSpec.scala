@@ -16,15 +16,15 @@ import cats.effect.IO
 import cats.effect.cps.*
 import io.circe.syntax.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.io.IoName
 
 class IoNodeApiDefSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val booleanIoNode: IoNodeApiDef = BooleanIoNodeDef(Name("boolDef"), Set(true, false))
-    lazy val floatIoNode: IoNodeApiDef = FloatIoNodeDef(Name("floatDef"), min = -1, max = 1)
-    lazy val intIoNode: IoNodeApiDef = IntIoNodeDef(Name("intDef"), min = 0, max = 10)
-    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNodeDef(Name("listStrDef"), elements = List("a", "b", "c"))
+    lazy val booleanIoNode: IoNodeApiDef = BooleanIoNodeDef(IoName("boolDef"), Set(true, false))
+    lazy val floatIoNode: IoNodeApiDef = FloatIoNodeDef(IoName("floatDef"), min = -1, max = 1)
+    lazy val intIoNode: IoNodeApiDef = IntIoNodeDef(IoName("intDef"), min = 0, max = 10)
+    lazy val listStrIoNode: IoNodeApiDef = ListStrIoNodeDef(IoName("listStrDef"), elements = List("a", "b", "c"))
 
   "IoNodeApiDef" should:
     "decode and encode BooleanIoNode" in newCase[CaseData]: (tn, data) =>

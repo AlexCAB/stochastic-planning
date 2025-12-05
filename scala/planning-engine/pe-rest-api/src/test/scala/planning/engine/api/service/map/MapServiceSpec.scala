@@ -22,7 +22,7 @@ import cats.effect.std.AtomicCell
 import org.scalatest.compatible.Assertion
 import planning.engine.api.model.map.payload.ShortSampleData
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
@@ -106,7 +106,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
           testAbsNodeDef2.name -> HnId(104L)
         )
 
-        val findHnIdsByNamesRes: Map[Name, List[HnId]] = Map(
+        val findHnIdsByNamesRes: Map[HnName, List[HnId]] = Map(
           testConNodeDef1.name -> List(testHnIdMap(testConNodeDef1.name)),
           testAbsNodeDef1.name -> List(testHnIdMap(testAbsNodeDef1.name))
         )

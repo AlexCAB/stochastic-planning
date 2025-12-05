@@ -20,13 +20,13 @@ import planning.engine.api.model.map.payload.{
   NewSampleData,
   NewSampleEdge
 }
-import planning.engine.common.values.node.HnId
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.common.errors.assertionError
 import io.circe.{Decoder, Encoder}
 import cats.syntax.all.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.io.IoName
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 
@@ -35,7 +35,7 @@ final case class MapAddSamplesRequest(
     hiddenNodes: List[HiddenNodeDef] // This is a list of hidden nodes used in the samples, should be unique
 ) extends Validation:
 
-  lazy val hnNames: List[Name] = hiddenNodes.map(_.name)
+  lazy val hnNames: List[HnName] = hiddenNodes.map(_.name)
   lazy val validationName: String = "MapAddSamplesRequest"
 
   private lazy val hnNamesSet = hnNames.toSet
@@ -50,8 +50,8 @@ final case class MapAddSamplesRequest(
   )*)
 
   def listNewNotFoundHn[F[_]: MonadThrow](
-      foundHnNames: Set[Name],
-      getIoNode: Name => F[IoNode[F]]
+      foundHnNames: Set[HnName],
+      getIoNode: IoName => F[IoNode[F]]
   ): F[(ConcreteNode.ListNew, AbstractNode.ListNew)] =
     val hns = hiddenNodes.filterNot(hn => foundHnNames.contains(hn.name))
 
@@ -62,8 +62,8 @@ final case class MapAddSamplesRequest(
     conHns.traverse(_.toNew(getIoNode)).map: newConHns =>
       (ConcreteNode.ListNew(newConHns), AbstractNode.ListNew(absHns.map(_.toNew)))
 
-  def toSampleNewList[F[_]: MonadThrow](hnIdMap: Map[Name, HnId]): F[Sample.ListNew] =
-    def getHnId(hnName: Name): F[HnId] = hnIdMap.get(hnName) match
+  def toSampleNewList[F[_]: MonadThrow](hnIdMap: Map[HnName, HnId]): F[Sample.ListNew] =
+    def getHnId(hnName: HnName): F[HnId] = hnIdMap.get(hnName) match
       case Some(id) => id.pure
       case _        => s"HnName $hnName not found in hnIdMap: $hnIdMap".assertionError
 

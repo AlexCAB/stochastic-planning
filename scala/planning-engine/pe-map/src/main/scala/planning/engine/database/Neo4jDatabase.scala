@@ -18,11 +18,12 @@ import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
+import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.db.Neo4j.{LINK_LABEL, THEN_LABEL}
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.config.MapConfig
 import planning.engine.map.data.MapMetadata
@@ -51,14 +52,18 @@ trait Neo4jDatabaseLike[F[_]]:
 
   def checkConnection: F[Long]
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
-  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[HnId, Option[Name]]]
-  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[Name]]]
-  def findHiddenNodesByNames(names: List[Name], getIoNode: Name => F[IoNode[F]]): F[Map[Name, List[HiddenNode[F]]]]
-  def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]]
+  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[HnId, Option[HnName]]]
+  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[HnName]]]
+  def findHiddenNodesByNames(
+      names: List[HnName],
+      getIoNode: IoName => F[IoNode[F]]
+  ): F[Map[HnName, List[HiddenNode[F]]]]
+
+  def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
   def countHiddenNodes: F[Long]
   def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
   def countSamples: F[Long]
-  def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[List[NextSampleEdge[F]]]
+  def getNextSampleEdge(currentNodeId: HnId, getIoNode: IoName => F[IoNode[F]]): F[List[NextSampleEdge[F]]]
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
@@ -77,10 +82,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   private def loadConcreteNodes(
       ids: List[Long],
-      getIoNode: Name => F[IoNode[F]]
+      getIoNode: IoName => F[IoNode[F]]
   )(tx: AsyncTransaction[F]): F[List[ConcreteNode[F]]] =
     for
-      withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, Name(ioName))))
+      withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, IoName(ioName))))
       concreteNodes <- withIoNames
         .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
     yield concreteNodes
@@ -125,31 +130,33 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
   override def createConcreteNodes(
       initNextHnIndex: Long,
       params: List[ConcreteNode.New]
-  ): F[Map[HnId, Option[Name]]] = driver.transact(writeConf): tx =>
+  ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
       _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex).map(p => (n.ioNodeName, p)))
       createdIds <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
       _ <- createdIds.map(_._1).assertDistinct("Concrete node ids should be distinct")
-    yield createdIds.map((id, name) => HnId(id) -> name.map(Name.apply)).toMap
+    yield createdIds.map((id, name) => HnId(id) -> name.map(HnName.apply)).toMap
 
-  override def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[Name]]] =
-    driver.transact(writeConf): tx =>
-      for
-        newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
-        _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
-        params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
-        createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
-        _ <- createdIds.map(_._1).assertDistinct("Abstract node ids should be distinct")
-      yield createdIds.map((id, name) => HnId(id) -> name.map(Name.apply)).toMap
+  override def createAbstractNodes(
+      initNextHnIndex: Long,
+      params: List[AbstractNode.New]
+  ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
+    for
+      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
+      _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
+      params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
+      createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
+      _ <- createdIds.map(_._1).assertDistinct("Abstract node ids should be distinct")
+    yield createdIds.map((id, name) => HnId(id) -> name.map(HnName.apply)).toMap
 
   override def findHiddenNodesByNames(
-      names: List[Name],
-      getIoNode: Name => F[IoNode[F]]
-  ): F[Map[Name, List[HiddenNode[F]]]] = driver.transact(readConf): tx =>
-    def buildMap(allNodes: List[HiddenNode[F]]): F[Map[Name, List[HiddenNode[F]]]] = allNodes
-      .foldRight(List[(Name, HiddenNode[F])]().pure):
+      names: List[HnName],
+      getIoNode: IoName => F[IoNode[F]]
+  ): F[Map[HnName, List[HiddenNode[F]]]] = driver.transact(readConf): tx =>
+    def buildMap(allNodes: List[HiddenNode[F]]): F[Map[HnName, List[HiddenNode[F]]]] = allNodes
+      .foldRight(List[(HnName, HiddenNode[F])]().pure):
         case (node, acc) if node.name.nonEmpty => acc.map(nl => (node.name.get -> node) +: nl)
         case (node, _)                         => s"Seems bug, node expected to have name, node = $node".assertionError
       .map(_.groupBy(_._1).map((name, nodes) => (name, nodes.map(_._2))))
@@ -162,10 +169,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       nodesMap <- buildMap(abstractNodes ++ concreteNodes)
     yield nodesMap
 
-  override def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]] = driver.transact(readConf): tx =>
+  override def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]] = driver.transact(readConf): tx =>
     for
         ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
-    yield ids.map(r => Name(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
+    yield ids.map(r => HnName(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
@@ -209,7 +216,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def countSamples: F[Long] = driver.transact(readConf)(tx => countSamplesQuery(tx))
 
-  override def getNextSampleEdge(currentNodeId: HnId, getIoNode: Name => F[IoNode[F]]): F[List[NextSampleEdge[F]]] =
+  override def getNextSampleEdge(currentNodeId: HnId, getIoNode: IoName => F[IoNode[F]]): F[List[NextSampleEdge[F]]] =
     driver.transact(readConf): tx =>
       def loadSamples(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]] =
         for

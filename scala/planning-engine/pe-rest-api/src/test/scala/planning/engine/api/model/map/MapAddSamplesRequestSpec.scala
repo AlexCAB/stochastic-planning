@@ -16,11 +16,12 @@ import cats.effect.IO
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.text.{Description, Name}
 import cats.effect.cps.*
 import io.circe.Json
 import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, IoNode}
 import planning.engine.map.io.variable.IntIoVariableLike
@@ -29,15 +30,15 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case:
     lazy val testEdge = NewSampleEdge(
-      sourceHnName = Name("hn1"),
-      targetHnName = Name("hn2"),
+      sourceHnName = HnName("hn1"),
+      targetHnName = HnName("hn2"),
       edgeType = EdgeType.THEN
     )
 
     lazy val testValue = 1234L
     lazy val mockedIntIoVariable = mock[IntIoVariableLike[IO]]
-    lazy val ioNode = InputNode(name = Name("ioNode1"), variable = mockedIntIoVariable)
-    lazy val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
+    lazy val ioNode = InputNode(name = IoName("ioNode1"), variable = mockedIntIoVariable)
+    lazy val mockedGetIoNode = mock[IoName => IO[IoNode[IO]]]
 
     lazy val testConcreteNodeDef = ConcreteNodeDef(
       testEdge.sourceHnName,
@@ -56,7 +57,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
       edges = List(testEdge)
     )
 
-    lazy val hnIdMap: Map[Name, HnId] = Map(
+    lazy val hnIdMap: Map[HnName, HnId] = Map(
       testEdge.sourceHnName -> HnId(1),
       testEdge.targetHnName -> HnId(2)
     )

@@ -13,7 +13,7 @@
 package planning.engine.map.io.node
 
 import cats.MonadThrow
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.io.IoName
 import planning.engine.map.io.variable.IoVariable
 
-final case class OutputNode[F[_]: MonadThrow](name: Name, variable: IoVariable[F, ?]) extends IoNode[F]
+final case class OutputNode[F[_]: MonadThrow](name: IoName, variable: IoVariable[F, ?]) extends IoNode[F]

@@ -16,12 +16,13 @@ import cats.effect.{IO, Resource}
 import planning.engine.integration.tests.MapGraphIntegrationTestData.{TestMapGraph, TestSamples}
 import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import cats.effect.cps.*
-import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.common.values.text.{Description, Name}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.syntax.all.*
 import neotypes.syntax.all.*
 import planning.engine.common.values.db.Neo4j.*
+import planning.engine.common.values.io.IoIndex
 import planning.engine.map.subgraph.ConcreteWithParentIds
 
 class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]
@@ -51,8 +52,8 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
       given WithItDb.ItDb = res.itDb
       async[IO]:
         val newConcreteNodes = ConcreteNode.ListNew(List(
-          ConcreteNode.New(Name.some("test-con-1"), Description.some("test-con-1"), intInNode.name, IoIndex(101L)),
-          ConcreteNode.New(Name.some("test-con-2"), None, boolOutNode.name, IoIndex(102L)),
+          ConcreteNode.New(HnName.some("test-con-1"), Description.some("test-con-1"), intInNode.name, IoIndex(101L)),
+          ConcreteNode.New(HnName.some("test-con-2"), None, boolOutNode.name, IoIndex(102L)),
           ConcreteNode.New(None, None, intOutNode.name, IoIndex(103L))
         ))
 
@@ -74,8 +75,8 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
       given WithItDb.ItDb = res.itDb
       async[IO]:
         val newAbstractNodes = AbstractNode.ListNew(List(
-          AbstractNode.New(Name.some("test-abstract-1"), Description.some("test-abs-1")),
-          AbstractNode.New(Name.some("test-abstract-2"), None),
+          AbstractNode.New(HnName.some("test-abstract-1"), Description.some("test-abs-1")),
+          AbstractNode.New(HnName.some("test-abstract-2"), None),
           AbstractNode.New(None, None)
         ))
 
@@ -94,7 +95,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         val nameToFind1 = res.nodes.abstractNodes.head._2.name.get
         val nameToFind2 = res.nodes.concreteNodes.head._2.name.get
 
-        val foundNodes: Map[Name, List[HiddenNode[IO]]] = res.graph
+        val foundNodes: Map[HnName, List[HiddenNode[IO]]] = res.graph
           .findHiddenNodesByNames(List(nameToFind1, nameToFind2))
           .await
 
@@ -117,8 +118,8 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
 
         gotCount mustEqual testCount
 
-  "MapGraph.findHiddenNodesByIoValues(...)" should :
-    "find concrete nodes connected to particular IO values" in : res =>
+  "MapGraph.findHiddenNodesByIoValues(...)" should:
+    "find concrete nodes connected to particular IO values" in: res =>
       async[IO]:
         val conNode = res.nodes.concreteNodes.head._2
 

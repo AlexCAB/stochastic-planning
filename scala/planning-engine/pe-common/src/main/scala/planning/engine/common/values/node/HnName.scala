@@ -8,12 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-25 |||||||||||*/
+| created: 2025-12-04 |||||||||||*/
 
-package planning.engine.map.io.node
+package planning.engine.common.values.node
 
-import cats.MonadThrow
-import planning.engine.common.values.io.IoName
-import planning.engine.map.io.variable.IoVariable
+import planning.engine.common.values.{StringBuilders, StringVal}
 
-final case class InputNode[F[_]: MonadThrow](name: IoName, variable: IoVariable[F, ?]) extends IoNode[F]
+final case class HnName(value: String) extends AnyVal with StringVal
+
+object HnName extends StringBuilders[HnName]:
+  protected def makeValue(str: String): HnName = HnName(str)

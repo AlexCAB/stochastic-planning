@@ -15,11 +15,11 @@ package planning.engine.planner.plan.dag
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.node.{HnId, IoIndex, SnId}
+import planning.engine.common.values.node.{HnId, SnId}
 import planning.engine.common.values.text.Name
 import StateNode.{Kind, Parameters, Structure}
 import cats.syntax.all.*
-import planning.engine.common.values.io.Time
+import planning.engine.common.values.io.{IoIndex, IoTime}
 import planning.engine.common.errors.assertionError
 
 abstract class StateNode[F[_]: MonadThrow](
@@ -126,10 +126,10 @@ object StateNode:
     )
 
   final case class Parameters(
-      kind: Kind,
-      observationTime: Option[Time], // Wil be set if the node is observed by receiving Observation(...) signal
-      probability: Double,
-      utility: Double
+                               kind: Kind,
+                               observationTime: Option[IoTime], // Wil be set if the node is observed by receiving Observation(...) signal
+                               probability: Double,
+                               utility: Double
   ):
     override def toString: String = s"Parameters(kind = $kind, observationTime = $observationTime, " +
       s"probability = $probability, utility = $utility)"

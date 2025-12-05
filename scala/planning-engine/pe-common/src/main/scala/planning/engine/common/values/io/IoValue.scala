@@ -8,12 +8,10 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-03-25 |||||||||||*/
+| created: 2025-12-04 |||||||||||*/
 
-package planning.engine.map.io.node
+package planning.engine.common.values.io
 
-import cats.MonadThrow
-import planning.engine.common.values.io.IoName
-import planning.engine.map.io.variable.IoVariable
-
-final case class InputNode[F[_]: MonadThrow](name: IoName, variable: IoVariable[F, ?]) extends IoNode[F]
+final case class IoValue(value: (IoName, IoIndex)) extends AnyVal:
+  def name: IoName = value._1
+  def index: IoIndex = value._2

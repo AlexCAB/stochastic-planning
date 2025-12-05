@@ -12,10 +12,10 @@
 
 package planning.engine.map.hidden.node
 
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.text.Description
+import planning.engine.common.values.node.{HnId, HnName}
 
 trait HiddenNode[F[_]]:
   def id: HnId
-  def name: Option[Name]
+  def name: Option[HnName]
   def description: Option[Description]

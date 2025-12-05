@@ -17,7 +17,8 @@ import cats.effect.unsafe.IORuntime
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.{HnId, HnIndex, IoIndex}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.config.MapConfig
@@ -43,13 +44,13 @@ trait MapGraphTestData:
   lazy val testMetadata = MapMetadata(Name.some("TestMap"), Description.some("Test description"))
   lazy val emptyNeo4jNode = Node("test_res_node", Set(), Map())
 
-  lazy val boolInNode = InputNode[IO](Name("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
-  lazy val boolOutNode = OutputNode[IO](Name("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
+  lazy val boolInNode = InputNode[IO](IoName("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
+  lazy val boolOutNode = OutputNode[IO](IoName("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
 
   lazy val boolIoNodes = Map(boolInNode.name -> boolInNode, boolOutNode.name -> boolOutNode)
 
-  lazy val intInNode = InputNode[IO](Name("intInputNode"), IntIoVariable[IO](0, 10000))
-  lazy val intOutNode = OutputNode[IO](Name("intOutputNode"), IntIoVariable[IO](-10000, 10000))
+  lazy val intInNode = InputNode[IO](IoName("intInputNode"), IntIoVariable[IO](0, 10000))
+  lazy val intOutNode = OutputNode[IO](IoName("intOutputNode"), IntIoVariable[IO](-10000, 10000))
 
   lazy val allIoNodes = Set(boolInNode, boolOutNode)
 
@@ -57,13 +58,13 @@ trait MapGraphTestData:
 
   def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](
     id = HnId(id),
-    name = Name.some("Abs Test Node"),
+    name = HnName.some("Abs Test Node"),
     description = Description.some("Abs Test Node Description")
   )
 
   def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] = ConcreteNode[IO](
     id = HnId(123),
-    name = Name.some("Con Test Node"),
+    name = HnName.some("Con Test Node"),
     description = Description.some("Con Test Node Description"),
     ioNode = ioNode,
     valueIndex = IoIndex(index)

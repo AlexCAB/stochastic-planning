@@ -14,13 +14,14 @@ package planning.engine.api.model.map.payload
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.effect.cps.*
 import io.circe.Json
 import io.circe.syntax.*
 import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.HnName
 import planning.engine.map.io.node.{InputNode, IoNode}
 import planning.engine.map.io.variable.IntIoVariableLike
 
@@ -29,13 +30,13 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
   private class CaseData extends Case:
     lazy val testValue = 1234L
     lazy val testConcreteNodeDef = ConcreteNodeDef(
-      Name("concreteNode"),
+      HnName("concreteNode"),
       Description.some("testConcreteNodeDef"),
-      Name("ioNode"),
+      IoName("ioNode"),
       Json.fromLong(testValue)
     )
 
-    lazy val testAbstractNodeDef = AbstractNodeDef(Name("abstractNode"), Description.some("testAbstractNodeDef"))
+    lazy val testAbstractNodeDef = AbstractNodeDef(HnName("abstractNode"), Description.some("testAbstractNodeDef"))
 
   "HiddenNodeDef" should:
     "decode and encode ConcreteNodeDef" in newCase[CaseData]: (tn, data) =>
@@ -64,7 +65,7 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
         val testIoIndex = IoIndex(321)
         val mockedIntIoVariable = mock[IntIoVariableLike[IO]]
         val ioNode = InputNode(data.testConcreteNodeDef.ioNodeName, mockedIntIoVariable)
-        val mockedGetIoNode = mock[Name => IO[IoNode[IO]]]
+        val mockedGetIoNode = mock[IoName => IO[IoNode[IO]]]
 
         mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(ioNode)).once()
         mockedIntIoVariable.indexForValue.expects(data.testValue).returning(IO.pure(testIoIndex)).once()

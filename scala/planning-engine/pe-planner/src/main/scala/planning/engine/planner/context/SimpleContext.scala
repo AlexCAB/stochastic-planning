@@ -17,7 +17,7 @@ import cats.effect.std.AtomicCell
 import cats.effect.Async
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.text.Name
 import planning.engine.map.subgraph.ConcreteWithParentIds
 import planning.engine.planner.context.SimpleContext.UpdateConcrete
@@ -65,15 +65,16 @@ final class SimpleContext[F[_]: {Async, LoggerFactory}](
     // TODO: Here also should be cline up operation to limit context size (by `maxPathLength`)
     // TODO: but it's algorithm is not developed yet.
 
-    planningDag.modifyContextBoundary: contextBoundary =>
-      for
-        _ <- logger.info(s"Moving nodes for values: $values, current context boundary: ${contextBoundary.map(_.id)}")
-        toUpdate <- findNodesToUpdate(contextBoundary)
-        newContextBoundary <- updateNodeState(contextBoundary, toUpdate)
-        _ <- logger.info(s"New context boundary: ${newContextBoundary.map(_.id)}")
-        newValues = values -- toUpdate.moveToPresent.map(_.ioNode.name)
-        _ <- logger.info(s"Values for which next plan node not found: $newValues")
-      yield (newContextBoundary, newValues)
+    planningDag.modifyContextBoundary: contextBoundary => 
+      ???
+//      for
+//        _ <- logger.info(s"Moving nodes for values: $values, current context boundary: ${contextBoundary.map(_.id)}")
+//        toUpdate <- findNodesToUpdate(contextBoundary)
+//        newContextBoundary <- updateNodeState(contextBoundary, toUpdate)
+//        _ <- logger.info(s"New context boundary: ${newContextBoundary.map(_.id)}")
+//        newValues = values -- toUpdate.moveToPresent.map(_.ioNode.name)
+//        _ <- logger.info(s"Values for which next plan node not found: $newValues")
+//      yield (newContextBoundary, newValues)
 
   override def addObservedConcreteToContextBoundary(nodes: List[ConcreteWithParentIds[F]]): F[Unit] = ???
     //TODO: 1) To check of parents in context boundary, if so move them to past and create links.

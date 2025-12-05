@@ -16,8 +16,7 @@ import cats.effect.testing.scalatest.AsyncIOSpec
 import cats.effect.{IO, Resource}
 import org.scalatest.matchers.must.Matchers
 import planning.engine.common.SpecLogging
-import planning.engine.common.values.node.{HnId, IoIndex}
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.integration.tests.MapGraphIntegrationTestData.*
 import planning.engine.map.{MapBuilder, MapGraph, MapGraphTestData}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
@@ -28,6 +27,7 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.common.values.db.DbName
 import neotypes.cats.effect.implicits.*
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.database.{Neo4jConf, Neo4jDatabase}
 
 trait MapGraphIntegrationTestData extends MapGraphTestData:
@@ -45,16 +45,16 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       ).logValue("createRootNodesInDb"))
     yield neo4jdb
 
-  def makeAbsNames(prefix: String, n: Int): List[Option[Name]] =
-    (1 to n).toList.map(i => Name.some(s"$prefix-$i")) :+ None
-    
-  def makeConNames(prefix: String, n: Int): List[(Option[Name], Name, IoIndex)] =
+  def makeAbsNames(prefix: String, n: Int): List[Option[HnName]] =
+    (1 to n).toList.map(i => HnName.some(s"$prefix-$i")) :+ None
+
+  def makeConNames(prefix: String, n: Int): List[(Option[HnName], IoName, IoIndex)] =
     makeAbsNames(prefix, n).map(n => (n, intInNode.name, IoIndex(123L)))
 
   def createTestHiddenNodesInDb(
       neo4jdb: Neo4jDatabase[IO],
-      concreteNames: List[(Option[Name], Name, IoIndex)],
-      abstractNames: List[Option[Name]]
+      concreteNames: List[(Option[HnName], IoName, IoIndex)],
+      abstractNames: List[Option[HnName]]
   ): IO[TestHiddenNodes] =
     def makeConcreteNodes(newNode: ConcreteNode.New): IO[(HnId, ConcreteNode.New)] = neo4jdb
       .createConcreteNodes(testMapConfig.initNextHnIndex, List(newNode))
@@ -88,8 +88,8 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
 
   def initHiddenNodesInDb(
       neo4jdb: Neo4jDatabase[IO],
-      concreteNames: List[(Option[Name], Name, IoIndex)],
-      abstractNames: List[Option[Name]]
+      concreteNames: List[(Option[HnName], IoName, IoIndex)],
+      abstractNames: List[Option[HnName]]
   ): Resource[IO, TestHiddenNodes] = Resource.eval(
     createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
   )
@@ -114,15 +114,15 @@ object MapGraphIntegrationTestData extends Matchers:
       concreteNodes: Map[HnId, ConcreteNode.New],
       abstractNodes: Map[HnId, AbstractNode.New],
       allNodeIds: List[HnId],
-      ioNodeMap: Map[Name, IoNode[IO]]
+      ioNodeMap: Map[IoName, IoNode[IO]]
   ):
-    def findHnIdsForName(name: Name): Set[HnId] = concreteNodes
+    def findHnIdsForName(name: HnName): Set[HnId] = concreteNodes
       .map((i, n) => (i, n.name))
       .++(abstractNodes.map((i, n) => (i, n.name)))
       .filter((_, n) => n.contains(name))
       .keys.toSet
 
-    def getIoNode(name: Name): IO[IoNode[IO]] = ioNodeMap
+    def getIoNode(name: IoName): IO[IoNode[IO]] = ioNodeMap
       .getOrElse(name, fail(s"IO Node with name $name not found in $ioNodeMap"))
       .pure[IO]
 

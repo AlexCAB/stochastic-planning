@@ -21,11 +21,11 @@ import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.text.Name
 import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, Label, OUT_LABEL}
+import planning.engine.common.values.io.IoName
 
 trait IoNode[F[_]: MonadThrow] extends Validation:
-  val name: Name
+  val name: IoName
   val variable: IoVariable[F, ?]
 
   private lazy val thisLabel: F[Label] = this match
@@ -53,7 +53,7 @@ object IoNode:
   def fromNode[F[_]: Concurrent](node: Node): F[IoNode[F]] = node match
     case n if n.is(IO_LABEL) =>
       for
-        name <- node.properties.getValue[F, String](PROP.NAME).flatMap(Name.fromString)
+        name <- node.properties.getValue[F, String](PROP.NAME).flatMap(IoName.fromString)
         variable <- node.properties.getProps(PROP.VARIABLE).flatMap(IoVariable.fromProperties[F])
         ioNode <- node match
           case n if n.is(IN_LABEL)  => InputNode[F](name, variable).asInstanceOf[IoNode[F]].pure
@@ -62,6 +62,6 @@ object IoNode:
       yield ioNode
     case _ => s"Not a IO node: $node".assertionError
 
-  def nameFromNode[F[_]: MonadThrow](node: Node): F[Name] = node match
-    case n if n.is(IO_LABEL) => node.properties.getValue[F, String](PROP.NAME).flatMap(Name.fromString)
+  def nameFromNode[F[_]: MonadThrow](node: Node): F[IoName] = node match
+    case n if n.is(IO_LABEL) => node.properties.getValue[F, String](PROP.NAME).flatMap(IoName.fromString)
     case _                   => s"Not a IO node: $node".assertionError

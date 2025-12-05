@@ -21,8 +21,7 @@ import planning.engine.map.{MapBuilderLike, MapGraphLake}
 import planning.engine.common.errors.{assertDistinct, assertSameElems, assertionError}
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.HnId
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.config.MapConfig
 
 trait MapServiceLike[F[_]]:
@@ -88,10 +87,10 @@ class MapService[F[_]: {Async, LoggerFactory}](
 
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = withGraph: graph =>
     def composeHnIdMap(
-        foundHnIdMap: Map[Name, List[HnId]],
-        newConHnIds: Map[HnId, Option[Name]],
-        newAbsHnIds: Map[HnId, Option[Name]]
-    ): F[Map[Name, HnId]] =
+        foundHnIdMap: Map[HnName, List[HnId]],
+        newConHnIds: Map[HnId, Option[HnName]],
+        newAbsHnIds: Map[HnId, Option[HnName]]
+    ): F[Map[HnName, HnId]] =
       for
         foundIds <- foundHnIdMap.toList.traverse:
           case (name, id :: Nil) => (name -> id).pure

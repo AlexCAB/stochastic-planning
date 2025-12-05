@@ -15,15 +15,15 @@ package planning.engine.api.model.map.payload
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import planning.engine.api.model.map.*
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.io.IoName
 
 sealed trait IoNodeApiDef:
-  val name: Name
+  val name: IoName
 
-final case class BooleanIoNodeDef(name: Name, acceptableValues: Set[Boolean]) extends IoNodeApiDef
-final case class FloatIoNodeDef(name: Name, min: Float, max: Float) extends IoNodeApiDef
-final case class IntIoNodeDef(name: Name, min: Int, max: Int) extends IoNodeApiDef
-final case class ListStrIoNodeDef(name: Name, elements: List[String]) extends IoNodeApiDef
+final case class BooleanIoNodeDef(name: IoName, acceptableValues: Set[Boolean]) extends IoNodeApiDef
+final case class FloatIoNodeDef(name: IoName, min: Float, max: Float) extends IoNodeApiDef
+final case class IntIoNodeDef(name: IoName, min: Int, max: Int) extends IoNodeApiDef
+final case class ListStrIoNodeDef(name: IoName, elements: List[String]) extends IoNodeApiDef
 
 object IoNodeApiDef:
   import io.circe.generic.auto.*

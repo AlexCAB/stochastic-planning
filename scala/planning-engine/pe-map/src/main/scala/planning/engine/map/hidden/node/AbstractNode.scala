@@ -15,8 +15,8 @@ package planning.engine.map.hidden.node
 import cats.MonadThrow
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.text.Description
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
@@ -25,14 +25,14 @@ import planning.engine.common.validation.Validation
 
 final case class AbstractNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name],
+    name: Option[HnName],
     description: Option[Description]
 ) extends HiddenNode[F]:
 
   override def toString: String = s"AbstractHiddenNode(id = $id, name = $name, description = $description)"
 
 object AbstractNode:
-  final case class New(name: Option[Name], description: Option[Description]) extends Validation:
+  final case class New(name: Option[HnName], description: Option[Description]) extends Validation:
     lazy val validationName: String = s"AbstractNode.New(name=$name)"
 
     lazy val validationErrors: List[Throwable] = validations(
@@ -55,7 +55,7 @@ object AbstractNode:
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
-        name <- n.getOptional[F, String](PROP.NAME).map(_.map(Name.apply))
+        name <- n.getOptional[F, String](PROP.NAME).map(_.map(HnName.apply))
         description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
         absNode <- AbstractNode(id, name, description).pure
       yield absNode

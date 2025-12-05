@@ -16,7 +16,8 @@ import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import planning.engine.common.values.text.{Description, Name}
 import cats.syntax.all.*
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.IoIndex
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.HnName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.{LongVal, StringVal}
 
@@ -38,6 +39,12 @@ package object values:
 
   implicit val encodeName: Encoder[Name] = encodeStringVal[Name]
   implicit val decodeName: Decoder[Name] = decodeStringVal[Name](Name.apply)
+
+  implicit val encodeIoName: Encoder[IoName] = encodeStringVal[IoName]
+  implicit val decodeIoName: Decoder[IoName] = decodeStringVal[IoName](IoName.apply)
+
+  implicit val encodeHnName: Encoder[HnName] = encodeStringVal[HnName]
+  implicit val decodeHnName: Decoder[HnName] = decodeStringVal[HnName](HnName.apply)
 
   implicit val encodeDescription: Encoder[Description] = encodeStringVal[Description]
   implicit val decodeDescription: Decoder[Description] = decodeStringVal[Description](Description.apply)

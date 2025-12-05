@@ -17,7 +17,8 @@ import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.node.{HnId, IoIndex}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.database.Neo4jDatabaseLike
@@ -32,12 +33,12 @@ import scala.collection.immutable.Iterable
 
 trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
-  def ioNodes: Map[Name, IoNode[F]]
-  def getIoNode(name: Name): F[IoNode[F]]
-  def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[Name]]]
-  def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[Name]]]
-  def findHiddenNodesByNames(names: List[Name]): F[Map[Name, List[HiddenNode[F]]]]
-  def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]]
+  def ioNodes: Map[IoName, IoNode[F]]
+  def getIoNode(name: IoName): F[IoNode[F]]
+  def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]]
+  def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]]
+  def findHiddenNodesByNames(names: List[HnName]): F[Map[HnName, List[HiddenNode[F]]]]
+  def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
   def countHiddenNodes: F[Long]
   def addNewSamples(params: Sample.ListNew): F[List[SampleId]]
   def countSamples: F[Long]
@@ -45,12 +46,13 @@ trait MapGraphLake[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
-  def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteWithParentIds[F]]] // Name is IO var name
+  def findConcreteNodesByIoValues(values: Map[IoName, IoIndex])
+      : F[List[ConcreteWithParentIds[F]]] // Name is IO var name
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     override val metadata: MapMetadata,
-    override val ioNodes: Map[Name, IoNode[F]],
+    override val ioNodes: Map[IoName, IoNode[F]],
     database: Neo4jDatabaseLike[F]
 ) extends MapGraphLake[F]:
 
@@ -60,12 +62,12 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     if list.isEmpty then empty.pure
     else block
 
-  override def getIoNode(name: Name): F[IoNode[F]] = ioNodes.get(name) match
+  override def getIoNode(name: IoName): F[IoNode[F]] = ioNodes.get(name) match
     case Some(node) => node.pure
     case _          => s"Input node with name $name not found".assertionError
 
-  override def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[Name]]] =
-    skipIfEmpty(params.list, Map[HnId, Option[Name]]()):
+  override def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
+    skipIfEmpty(params.list, Map[HnId, Option[HnName]]()):
       for
         _ <- Validation.validateList(params.list)
         _ <- params.list.traverse(p => getIoNode(p.ioNodeName).map(_.variable.validateIndex(p.valueIndex)))
@@ -73,16 +75,16 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Created concrete nodes, hnIds = $hnIds, for params = $params")
       yield hnIds
 
-  override def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[Name]]] =
-    skipIfEmpty(params.list, Map[HnId, Option[Name]]()):
+  override def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
+    skipIfEmpty(params.list, Map[HnId, Option[HnName]]()):
       for
         _ <- Validation.validateList(params.list)
         hnIds <- database.createAbstractNodes(config.initNextHnIndex, params.list)
         _ <- logger.info(s"Created abstract nodes, hnIds = $hnIds, for params = $params")
       yield hnIds
 
-  override def findHiddenNodesByNames(names: List[Name]): F[Map[Name, List[HiddenNode[F]]]] =
-    skipIfEmpty(names, Map[Name, List[HiddenNode[F]]]()):
+  override def findHiddenNodesByNames(names: List[HnName]): F[Map[HnName, List[HiddenNode[F]]]] =
+    skipIfEmpty(names, Map[HnName, List[HiddenNode[F]]]()):
       for
         _ <- names.assertDistinct("Hidden nodes names must be distinct")
         foundHns <- database.findHiddenNodesByNames(names, getIoNode)
@@ -90,8 +92,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- (names, foundHns.keys).assertSameElems("Not all hidden nodes were found")
       yield foundHns
 
-  override def findHnIdsByNames(names: List[Name]): F[Map[Name, List[HnId]]] =
-    skipIfEmpty(names, Map[Name, List[HnId]]()):
+  override def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]] =
+    skipIfEmpty(names, Map[HnName, List[HnId]]()):
       for
         _ <- names.assertDistinct("Hidden nodes names must be distinct")
         foundHnIds <- database.findHnIdsByNames(names)
@@ -150,7 +152,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- (sampleIds, samples.keys).assertSameElems("Not all sample were found")
       yield samples
 
-  override def findConcreteNodesByIoValues(values: Map[Name, IoIndex]): F[List[ConcreteWithParentIds[F]]] =
+  override def findConcreteNodesByIoValues(values: Map[IoName, IoIndex]): F[List[ConcreteWithParentIds[F]]] =
     skipIfEmpty(values, List[ConcreteWithParentIds[F]]()):
       for
         _ <- (ioNodes.keys, values.keys).assertContainsAll("Unknown IO nodes names")

@@ -14,8 +14,8 @@ package planning.engine.common.values.io
 
 import planning.engine.common.values.LongVal
 
-final case class Time(value: Long) extends AnyVal with LongVal:
-  def increase: Time = Time(value + 1L)
+final case class IoTime(value: Long) extends AnyVal with LongVal:
+  def increase: IoTime = IoTime(value + 1L)
 
-object Time:
-  val init: Time = Time(0L)
+object IoTime:
+  val init: IoTime = IoTime(0L)

@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2025-08-23 |||||||||||*/
 
-
-
 package planning.engine.common.values.node
 
 import planning.engine.common.values.LongVal

@@ -8,14 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-12-01 |||||||||||*/
+| created: 2025-12-06 |||||||||||*/
 
-package planning.engine.planner.map.dcg.edges
+
+
+package planning.engine.map.subgraph
 
 import cats.MonadThrow
-import planning.engine.planner.map.dcg.nodes.MapNode
 
-abstract class MapEdge[F[_]: MonadThrow](
-    val source: MapNode[F],  // Line
-    val target: MapNode[F],  // Arrow
-)
+class MapSubGraph[F[_]: MonadThrow](
+    
+                                   )

@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
@@ -27,7 +27,7 @@ import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.samples.sample.{Sample, SampleData}
-import planning.engine.map.subgraph.{ConcreteWithParentIds, NextSampleEdgeMap}
+import planning.engine.map.subgraph.{ConcreteWithParentIds, MapSubGraph, NextSampleEdgeMap}
 
 import scala.collection.immutable.Iterable
 
@@ -46,8 +46,8 @@ trait MapGraphLake[F[_]]:
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
-  def findConcreteNodesByIoValues(values: Map[IoName, IoIndex])
-      : F[List[ConcreteWithParentIds[F]]] // Name is IO var name
+  def findConcreteNodesByIoValues(values: Map[IoName, IoIndex]): F[List[ConcreteWithParentIds[F]]]
+  def loadSubgraphForIoValue(values:  Map[IoValue, Set[HnId]]): F[MapSubGraph[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,

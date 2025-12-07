@@ -36,8 +36,8 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     for
       (fullyLoaded, toLoadNodes) <- cs.filter((k, _) => values.contains(k)).partition((_, v) => v.allLoaded).pure
       toLoadValues = toLoadNodes.map((k, v) => k -> v.nodes.keySet) ++ (values -- cs.keySet).map(v => v -> Set[HnId]())
+      subGraph <- mapGraph.loadSubgraphForIoValue(toLoadValues)
 
-     
       _ <- loadedHnId.assertDistinct("Loaded HnIds for IoValues are not distinct")
 
       cached = cachedKeys.map(k => k -> st.get(k).toList.flatMap(_.values))

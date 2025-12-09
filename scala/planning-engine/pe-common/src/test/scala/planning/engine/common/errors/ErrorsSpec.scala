@@ -39,6 +39,14 @@ class ErrorsSpec extends UnitSpecIO:
 
     "raise an error when the sequence is empty" in: _ =>
       List.empty[Int].assertNonEmpty[IO]("Sequence is empty").assertThrows[AssertionError]
+      
+  "assertEmpty" should :
+    "return the sequence when it is empty" in : _ =>
+      val seq = List.empty[Int]
+      seq.assertNonEmpty[IO]("Sequence is empty").asserting(_ mustEqual seq)
+
+    "raise an error when the sequence is non empty" in : _ =>
+      List(1).assertNonEmpty[IO]("Sequence is non empty").assertThrows[AssertionError]
 
   "assertUniform" should:
     "return the sequence when all elements are the same" in: _ =>

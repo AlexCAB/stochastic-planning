@@ -161,6 +161,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Found nodes = $foundNodes for values = $values")
         _ <- (values.keys, foundNodes.map(_.node.ioNode.name)).assertSameElems("Not all io nodes names was processed")
       yield foundNodes
+    
+  override def loadSubgraphForIoValue(values:  Map[IoValue, Set[HnId]]): F[MapSubGraph[F]] = ???
 
   override def toString: String =
     s"MapGraph(name = ${metadata.name.toStr}, ioNodes = ${ioNodes.keys.map(_.value).mkString(", ")})"

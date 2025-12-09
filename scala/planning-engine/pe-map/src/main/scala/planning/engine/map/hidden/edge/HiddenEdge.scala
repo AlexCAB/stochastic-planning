@@ -15,18 +15,18 @@ package planning.engine.map.hidden.edge
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.map.hidden.edge.HiddenEdge.SampleValues
+import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class HiddenEdge(
     edgeType: EdgeType,
     sourceId: HnId,
     targetId: HnId,
-    samples: List[SampleValues]
+    samples: List[SampleIndexies]
 )
 
 object HiddenEdge:
-  final case class SampleValues(
+  final case class SampleIndexies(
       sampleId: SampleId,
-      sourceValue: HnIndex,
-      targetValue: HnIndex
+      source: HnIndex,
+      target: HnIndex
   )

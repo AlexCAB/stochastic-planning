@@ -15,12 +15,13 @@ package planning.engine.map.subgraph
 import cats.MonadThrow
 import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.edge.HiddenEdge
-import planning.engine.map.hidden.node.HiddenNode
+import planning.engine.map.hidden.node.{ConcreteNode, AbstractNode}
 import planning.engine.map.samples.sample.SampleData
 
 final case class MapSubGraph[F[_]: MonadThrow](
     skippedNodes: List[HnId],
-    loadedNodes: List[HiddenNode[F]],
+    concreteNodes: List[ConcreteNode[F]],
+    abstractNodes: List[AbstractNode[F]],
     edges: List[HiddenEdge],
     samplesData: List[SampleData]
 )

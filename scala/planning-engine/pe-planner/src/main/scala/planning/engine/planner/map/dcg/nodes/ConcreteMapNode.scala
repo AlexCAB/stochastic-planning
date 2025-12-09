@@ -13,7 +13,7 @@
 package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
-import planning.engine.common.values.io.IoIndex
+import planning.engine.common.values.io.{IoIndex, IoValue}
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.node.ConcreteNode
@@ -27,7 +27,8 @@ class ConcreteMapNode[F[_]: MonadThrow](
     val valueIndex: IoIndex,
     targets: Targets[F],
     sources: Sources[F]
-) extends MapNode[F](id, targets, sources)
+) extends MapNode[F](id, targets, sources):
+  lazy val ioValue = IoValue(ioNode.name, valueIndex)
 
 object ConcreteMapNode:
-  def fromMapNode[F[_]: MonadThrow](mapNode: ConcreteNode[F]): F[ConcreteMapNode[F]] = ???
+  def apply[F[_]: MonadThrow](mapNode: ConcreteNode[F]): F[ConcreteMapNode[F]] = ???

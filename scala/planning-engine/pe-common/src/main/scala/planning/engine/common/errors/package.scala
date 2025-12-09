@@ -37,6 +37,9 @@ extension [T, C[_] <: Seq[T]](seq: C[T])
   inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
     predicateAssert(seq.nonEmpty, seq, msg + s", seq: ${seq.mkString(",")}")
 
+  inline def assertEmpty[F[_] : ApplicativeThrow](msg: String): F[C[T]] =
+    predicateAssert(seq.isEmpty, seq, msg + s", seq: ${seq.mkString(",")}")
+
   inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
     predicateAssert(seq.isEmpty || (seq.distinct.size == 1), seq, msg + s", seq: ${seq.mkString(",")}")
 

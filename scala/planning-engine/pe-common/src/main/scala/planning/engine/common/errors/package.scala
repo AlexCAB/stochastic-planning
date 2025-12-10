@@ -15,6 +15,7 @@ package planning.engine.common.errors
 import cats.ApplicativeThrow
 
 import scala.collection.Seq
+import scala.collection.immutable.Iterable
 
 package object errors
 
@@ -34,14 +35,15 @@ extension [T, C[_] <: Seq[T]](seq: C[T])
       msg + s", seq: ${seq.mkString(",")}, duplicates: ${duplicates.mkString(",")}"
     )
 
-  inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(seq.nonEmpty, seq, msg + s", seq: ${seq.mkString(",")}")
-
-  inline def assertEmpty[F[_] : ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(seq.isEmpty, seq, msg + s", seq: ${seq.mkString(",")}")
-
   inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
     predicateAssert(seq.isEmpty || (seq.distinct.size == 1), seq, msg + s", seq: ${seq.mkString(",")}")
+
+extension [T, C[_] <: Iterable[T]](iterable: C[T])
+  inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
+    predicateAssert(iterable.nonEmpty, iterable, msg + s", seq: ${iterable.mkString(",")}")
+
+  inline def assertEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
+    predicateAssert(iterable.isEmpty, iterable, msg + s", seq: ${iterable.mkString(",")}")
 
 extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[L], CR[R]))
   inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] = predicateAssert(

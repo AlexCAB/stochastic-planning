@@ -23,7 +23,7 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 
 final case class ConcreteNode[F[_]: MonadThrow](
     id: HnId,
@@ -32,6 +32,8 @@ final case class ConcreteNode[F[_]: MonadThrow](
     ioNode: IoNode[F],
     valueIndex: IoIndex
 ) extends HiddenNode[F]:
+  
+  lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
 
   override def toString: String = s"ConcreteHiddenNode(" +
     s"id = $id, name = $name, description = $description, valueIndex = $valueIndex, ioNode = $ioNode)"

@@ -13,22 +13,23 @@
 package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
-import planning.engine.common.values.io.{IoIndex, IoValue}
-import planning.engine.common.values.node.HnId
-import planning.engine.common.values.text.Name
+import cats.syntax.all.*
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.IoNode
-import planning.engine.planner.map.dcg.nodes.MapNode.{Sources, Targets}
 
-class ConcreteMapNode[F[_]: MonadThrow](
+class ConcreteCachedNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name],
+    name: Option[HnName],
     val ioNode: IoNode[F],
-    val valueIndex: IoIndex,
-    targets: Targets[F],
-    sources: Sources[F]
-) extends MapNode[F](id, targets, sources):
-  lazy val ioValue = IoValue(ioNode.name, valueIndex)
+    val ioValue: IoValue
+) extends CachedNode[F](id)
 
-object ConcreteMapNode:
-  def apply[F[_]: MonadThrow](mapNode: ConcreteNode[F]): F[ConcreteMapNode[F]] = ???
+object ConcreteCachedNode:
+  def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[ConcreteCachedNode[F]] = new ConcreteCachedNode[F](
+    id = node.id,
+    name = node.name,
+    ioNode = node.ioNode,
+    ioValue = node.ioValue
+  ).pure

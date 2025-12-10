@@ -13,13 +13,9 @@
 package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
-import planning.engine.common.values.node.HnId
-import planning.engine.common.values.text.Name
-import planning.engine.planner.map.dcg.nodes.MapNode.{Sources, Targets}
+import planning.engine.common.values.node.{HnId, HnName}
 
-class AbstractMapNode[F[_]: MonadThrow](
+class AbstractCachedNode[F[_]: MonadThrow](
     id: HnId,
-    name: Option[Name],
-    targets: Targets[F],
-    sources: Sources[F]
-) extends MapNode[F](id, targets, sources)
+    name: Option[HnName]
+) extends CachedNode[F](id)

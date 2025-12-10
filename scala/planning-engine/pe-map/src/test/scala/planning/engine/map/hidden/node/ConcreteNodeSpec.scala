@@ -23,7 +23,7 @@ import planning.engine.map.io.node.InputNode
 import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 
 class ConcreteNodeSpec extends UnitSpecWithData:
 
@@ -62,6 +62,7 @@ class ConcreteNodeSpec extends UnitSpecWithData:
         node.description mustEqual data.description
         node.ioNode mustEqual data.intInNode
         node.valueIndex mustEqual data.valueIndex
+        node.ioValue mustEqual IoValue(data.intInNode.name, data.valueIndex)
 
   "ConcreteNode.fromNode(...)" should:
     "create ConcreteNode from raw node" in newCase[CaseData]: (_, data) =>

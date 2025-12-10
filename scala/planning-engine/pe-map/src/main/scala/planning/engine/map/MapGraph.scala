@@ -47,7 +47,7 @@ trait MapGraphLake[F[_]]:
   def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]]
   def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]]
   def findConcreteNodesByIoValues(values: Map[IoName, IoIndex]): F[List[ConcreteWithParentIds[F]]]
-  def loadSubgraphForIoValue(values:  Map[IoValue, Set[HnId]]): F[MapSubGraph[F]]
+  def loadSubgraphForIoValue(values: List[IoValue], loadedSamples: List[SampleId]): F[MapSubGraph[F]]
 
 class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
@@ -162,7 +162,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- (values.keys, foundNodes.map(_.node.ioNode.name)).assertSameElems("Not all io nodes names was processed")
       yield foundNodes
     
-  override def loadSubgraphForIoValue(values:  Map[IoValue, Set[HnId]]): F[MapSubGraph[F]] = ???
+  override def loadSubgraphForIoValue(values: List[IoValue], loadedSamples: List[SampleId]): F[MapSubGraph[F]] = ???
 
   override def toString: String =
     s"MapGraph(name = ${metadata.name.toStr}, ioNodes = ${ioNodes.keys.map(_.value).mkString(", ")})"

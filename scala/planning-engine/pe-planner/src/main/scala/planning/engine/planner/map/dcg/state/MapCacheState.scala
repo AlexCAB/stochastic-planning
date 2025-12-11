@@ -17,6 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.edges.CachedEdge
+import planning.engine.planner.map.dcg.edges.CachedEdge.Key
 import planning.engine.common.errors.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
@@ -26,13 +27,35 @@ final case class MapCacheState[F[_]: MonadThrow](
     ioValues: Map[IoValue, Set[HnId]],
     concreteNodes: Map[HnId, ConcreteCachedNode[F]],
     abstractNodes: Map[HnId, AbstractCachedNode[F]],
-    edges: Map[(HnId, HnId), CachedEdge],
+    edges: Map[Key, CachedEdge],
     forwardLinks: Map[HnId, Set[HnId]],
     backwardLinks: Map[HnId, Set[HnId]],
     forwardThen: Map[HnId, Set[HnId]],
     backwardThen: Map[HnId, Set[HnId]],
     samplesData: Map[SampleId, SampleData]
 ):
+  lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
+
+  private[map] def splitIds(newEdges: List[CachedEdge]): F[(Set[Key], Set[Key])] =
+    newEdges.foldRight((Set[Key](), Set[Key]()).pure):
+      case (e, acc) if e.key.edgeType.isLink => acc.map((ls, ts) => (ls + e.key, ts))
+      case (e, acc) if e.key.edgeType.isThen => acc.map((ls, ts) => (ls, ts + e.key))
+      case (e, _)                            => s"Edge with unsupported EdgeType detected, $e".assertionError
+
+  private[map] def makeForward(keys: Set[Key]): Map[HnId, Set[HnId]] =
+    keys.groupBy(_.sourceId).view.mapValues(_.map(_.targetId).toSet).toMap
+
+  private[map] def makeBackward(keys: Set[Key]): Map[HnId, Set[HnId]] =
+    keys.groupBy(_.targetId).view.mapValues(_.map(_.sourceId).toSet).toMap
+
+  private[map] def joinIds(oldIds: Map[HnId, Set[HnId]], newIds: Map[HnId, Set[HnId]]): F[Map[HnId, Set[HnId]]] =
+    newIds.foldRight(oldIds.pure):
+      case ((hnId, targets), accF) => accF.flatMap:
+          case acc if acc.contains(hnId) && acc(hnId).intersect(targets).isEmpty =>
+            acc.updated(hnId, acc(hnId) ++ targets).pure
+          case acc if !acc.contains(hnId) => (acc + (hnId -> targets)).pure
+          case acc => s"Can't add duplicate links: $hnId -> ${acc(hnId).intersect(targets)}".assertionError
+
   def addConcreteNodes(nodes: List[ConcreteCachedNode[F]]): F[MapCacheState[F]] =
     for
       allNewHdId <- nodes.map(_.id).pure
@@ -45,7 +68,24 @@ final case class MapCacheState[F[_]: MonadThrow](
       concreteNodes = concreteNodes ++ nodes.map(n => n.id -> n).toMap
     )
 
-  def addEdges(nodes: List[CachedEdge]): F[MapCacheState[F]] = ???
+  def addEdges(newEdges: List[CachedEdge]): F[MapCacheState[F]] =
+    for
+      _ <- newEdges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
+      _ <- (allHnIds, newEdges.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
+      (allLinkIds, allThenIds) <- splitIds(newEdges)
+      nEdges = newEdges.map(e => e.key -> e).toMap
+      _ <- (nEdges.keys, edges.keys).assertNoSameElems("Can't add Edges that already exist")
+      nForwardLinks <- joinIds(forwardLinks, makeForward(allLinkIds))
+      nBackwardLinks <- joinIds(backwardLinks, makeBackward(allLinkIds))
+      nForwardThen <- joinIds(forwardThen, makeForward(allThenIds))
+      nBackwardThen <- joinIds(backwardThen, makeBackward(allThenIds))
+    yield this.copy(
+      edges = edges ++ nEdges,
+      forwardLinks = nForwardLinks,
+      backwardLinks = nBackwardLinks,
+      forwardThen = nForwardThen,
+      backwardThen = nBackwardThen
+    )
 
   def addSamples(samples: List[SampleData]): F[MapCacheState[F]] =
     for

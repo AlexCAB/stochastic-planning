@@ -41,3 +41,17 @@ class EdgeTypeSpec extends AnyWordSpecLike with Matchers with EitherValues:
 
     "handle case insensitivity for LINK_LABEL" in:
       EdgeType.fromLabel(Neo4j.LINK_LABEL.toLowerCase).value mustEqual EdgeType.LINK
+
+  "EdgeType.isThen" should:
+    "return true for THEN link" in:
+        EdgeType.THEN.isThen mustBe true
+        
+    "return false for LINK link" in:
+        EdgeType.LINK.isThen mustBe false
+        
+  "EdgeType.isLink" should:
+    "return true for LINK link" in:
+        EdgeType.LINK.isLink mustBe true
+        
+    "return false for THEN link" in:
+        EdgeType.THEN.isLink mustBe false

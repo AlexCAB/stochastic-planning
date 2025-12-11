@@ -21,19 +21,25 @@ import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class CachedEdge(
-    edgeType: EdgeType,
-    sourceId: HnId, // Line
-    targetId: HnId, // Arrow
+    key: CachedEdge.Key,
     samples: Map[SampleId, SampleIndexies]
-)
+):
+  lazy val hnIds: Set[HnId] = Set(key.sourceId, key.targetId)
 
 object CachedEdge:
+  final case class Key(
+      edgeType: EdgeType,
+      sourceId: HnId, // Line
+      targetId: HnId // Arrow
+  )
+
   def apply[F[_]: MonadThrow](
       edge: HiddenEdge
-  ): F[CachedEdge] =
-    CachedEdge(
+  ): F[CachedEdge] = CachedEdge(
+    key = Key(
       edgeType = edge.edgeType,
       sourceId = edge.sourceId,
-      targetId = edge.targetId,
-      samples = edge.samples.map(s => s.sampleId -> s).toMap
-    ).pure
+      targetId = edge.targetId
+    ),
+    samples = edge.samples.map(s => s.sampleId -> s).toMap
+  ).pure

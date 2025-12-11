@@ -15,11 +15,14 @@ package planning.engine.common.enums
 import planning.engine.common.values.db.Neo4j
 
 enum EdgeType:
-  case THEN, LINK
+  case LINK, THEN
 
   def toLabel: String = this match
-    case THEN => Neo4j.THEN_LABEL
     case LINK => Neo4j.LINK_LABEL
+    case THEN => Neo4j.THEN_LABEL
+
+  def isLink: Boolean = this == LINK
+  def isThen: Boolean = this == THEN
 
 object EdgeType:
   def fromLabel(l: String): Either[String, EdgeType] =

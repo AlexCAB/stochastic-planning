@@ -14,22 +14,23 @@ package planning.engine.planner.map.dcg.nodes
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.io.{IoIndex, IoValue}
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.IoNode
 
-class ConcreteCachedNode[F[_]: MonadThrow](
+final case class ConcreteDcgNode[F[_]: MonadThrow](
     id: HnId,
     name: Option[HnName],
-    val ioNode: IoNode[F],
-    val ioValue: IoValue
-) extends CachedNode[F](id)
+    ioNode: IoNode[F],
+    valueIndex: IoIndex
+) extends DcgNode[F]:
+  lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
 
-object ConcreteCachedNode:
-  def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[ConcreteCachedNode[F]] = new ConcreteCachedNode[F](
+object ConcreteDcgNode:
+  def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[ConcreteDcgNode[F]] = new ConcreteDcgNode[F](
     id = node.id,
     name = node.name,
     ioNode = node.ioNode,
-    ioValue = node.ioValue
+    valueIndex = node.valueIndex
   ).pure

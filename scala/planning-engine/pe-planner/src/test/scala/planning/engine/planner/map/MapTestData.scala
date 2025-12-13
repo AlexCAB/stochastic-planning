@@ -1,0 +1,89 @@
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2025-12-12 |||||||||||*/
+
+package planning.engine.planner.map
+
+import cats.effect.IO
+import cats.effect.unsafe.IORuntime
+import planning.engine.common.enums.EdgeType
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, HnIndex, HnName}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Description
+import planning.engine.map.hidden.edge.HiddenEdge
+import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.io.node.InputNode
+import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
+import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
+
+trait MapTestData:
+  private implicit lazy val ioRuntime: IORuntime = IORuntime.global
+
+  lazy val testBoolInNode = InputNode[IO](IoName("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
+  lazy val testIntInNode = InputNode[IO](IoName("intInputNode"), IntIoVariable[IO](0, 10000))
+
+  lazy val testSampleIndexies: SampleIndexies = SampleIndexies(
+    sampleId = SampleId(1000001),
+    sourceIndex = HnIndex(2000001),
+    targetIndex = HnIndex(2000002)
+  )
+
+  lazy val testHiddenEdge: HiddenEdge = HiddenEdge(
+    edgeType = EdgeType.LINK,
+    sourceId = HnId(3000001),
+    targetId = HnId(3000002),
+    samples = List(testSampleIndexies)
+  )
+
+  def makeAbstractNode(id: HnId = HnId(3000003)): AbstractNode[IO] = AbstractNode[IO](
+    id = id,
+    name = HnName.some(s"Abs Node $id"),
+    description = Description.some(s"Test Abstract Node, ID $id")
+  )
+
+  def makeConcreteNode(id: HnId = HnId(3000004)): ConcreteNode[IO] = ConcreteNode[IO](
+    id = id,
+    name = HnName.some(s"Con Node $id"),
+    description = Description.some(s"Test Concrete Node, ID $id"),
+    ioNode = testBoolInNode,
+    valueIndex = IoIndex(101)
+  )
+
+  def makeConcreteDcgNode(
+      id: HnId = HnId(3000005),
+      valueIndex: IoIndex =  IoIndex(102)
+  ): ConcreteDcgNode[IO] = ConcreteDcgNode[IO](
+    id = id,
+    name = HnName.some(s"Con DCG Node $id"),
+    ioNode = testBoolInNode,
+    valueIndex = valueIndex
+  )
+
+  def makeAbstractDcgNode(id: HnId = HnId(3000006)): AbstractDcgNode[IO] = AbstractDcgNode[IO](
+    id = id,
+    name = HnName.some(s"Abs DCG Node $id")
+  )
+
+  lazy val testDcgEdgeKey: DcgEdge.Key = DcgEdge.Key(
+    edgeType = EdgeType.LINK,
+    sourceId = HnId(3000007),
+    targetId = HnId(3000008)
+  )
+
+  lazy val testDcgEdge: DcgEdge =
+    val sample = testHiddenEdge.samples.head
+    DcgEdge(
+      key = testDcgEdgeKey,
+      samples = Map(sample.sampleId -> sample)
+    )

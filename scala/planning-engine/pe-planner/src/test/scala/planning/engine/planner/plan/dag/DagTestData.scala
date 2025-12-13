@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-08-22 |||||||||||*/
 
-package planning.engine.planner.dag
+package planning.engine.planner.plan.dag
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime

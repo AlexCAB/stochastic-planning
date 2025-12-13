@@ -15,7 +15,6 @@ package planning.engine.planner.map.dcg.nodes
 import cats.MonadThrow
 import planning.engine.common.values.node.{HnId, HnName}
 
-class AbstractCachedNode[F[_]: MonadThrow](
-    id: HnId,
-    name: Option[HnName]
-) extends CachedNode[F](id)
+trait DcgNode[F[_]: MonadThrow]:
+  def id: HnId
+  def name: Option[HnName]

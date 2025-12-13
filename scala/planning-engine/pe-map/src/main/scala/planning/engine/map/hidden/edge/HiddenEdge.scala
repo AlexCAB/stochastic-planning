@@ -27,6 +27,6 @@ final case class HiddenEdge(
 object HiddenEdge:
   final case class SampleIndexies(
       sampleId: SampleId,
-      source: HnIndex,
-      target: HnIndex
+      sourceIndex: HnIndex,
+      targetIndex: HnIndex
   )

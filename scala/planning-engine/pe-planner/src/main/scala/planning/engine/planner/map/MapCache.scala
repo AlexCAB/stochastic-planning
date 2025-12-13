@@ -18,20 +18,18 @@ import planning.engine.common.values.io.IoValue
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.map.MapGraphLake
-import planning.engine.planner.map.dcg.nodes.ConcreteCachedNode
+import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.edges.CachedEdge
-import planning.engine.planner.map.dcg.state.MapCacheState
-
-trait MapCacheLike[F[_]]:
-  def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteCachedNode[F]]], Set[IoValue])]
+import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.logic.MapBaseLogic
 
 class MapCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
-    stateCell: AtomicCell[F, MapCacheState[F]]
-) extends MapCacheLike[F]:
+    stateCell: AtomicCell[F, DcgState[F]]
+) extends MapBaseLogic[F](stateCell) with MapLike[F]:
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for
       subGraph <- mapGraph.loadSubgraphForIoValue(values.toList, loadedSamples.toList)
@@ -43,14 +41,14 @@ class MapCache[F[_]: {Async, LoggerFactory}](
       _ <- (loadedSampleId, subGraph.skippedSamples).assertNoSameElems("Loaded and skipped samples should not overlap")
     yield subGraph
 
-  override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteCachedNode[F]]], Set[IoValue])] =
+  override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     stateCell.evalModify: state =>
       for
-        (inCache, notLoaded) <- values.partition(state.ioValues.contains).pure
+        notLoaded <- values.filterNot(state.ioValues.contains).pure
         subGraph <- load(notLoaded, state.samplesData.keySet)
-        loadedNodes <- subGraph.concreteNodes.traverse(ConcreteCachedNode.apply)
+        loadedNodes <- subGraph.concreteNodes.traverse(ConcreteDcgNode.apply)
         stateWithNodes <- state.addConcreteNodes(loadedNodes)
-        loadedEdges <- subGraph.edges.traverse(CachedEdge.apply)
+        loadedEdges <- subGraph.edges.traverse(DcgEdge.apply)
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
         stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
         (foundNodes, notFoundValues) <- stateWithSamples.getConcreteForIoValues(values)
@@ -59,5 +57,5 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 object MapCache:
   def apply[F[_]: {Async, LoggerFactory}](mapGraph: MapGraphLake[F]): F[MapCache[F]] =
     for
-        state <- AtomicCell[F].of(MapCacheState.init[F]())
+        state <- AtomicCell[F].of(DcgState.init[F]())
     yield new MapCache(mapGraph, state)

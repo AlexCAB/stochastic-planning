@@ -68,6 +68,15 @@ final case class DcgState[F[_]: MonadThrow](
       concreteNodes = concreteNodes ++ nodes.map(n => n.id -> n).toMap
     )
 
+  def addAbstractNodes(nodes: List[AbstractDcgNode[F]]): F[DcgState[F]] =
+    for
+      allNewHdId <- nodes.map(_.id).pure
+      _ <- allNewHdId.assertDistinct("Duplicate abstract Node IDs detected")
+      _ <- (abstractNodes.keySet, allNewHdId).assertNoSameElems("Can't add abstract nodes that already exist")
+    yield this.copy(
+      abstractNodes = abstractNodes ++ nodes.map(n => n.id -> n).toMap
+    )  
+  
   def addEdges(newEdges: List[DcgEdge]): F[DcgState[F]] =
     for
       _ <- newEdges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
@@ -96,15 +105,19 @@ final case class DcgState[F[_]: MonadThrow](
       samplesData = samplesData ++ samples.map(s => s.id -> s).toMap
     )
 
-  def getConcreteForHnId(id: HnId): F[ConcreteDcgNode[F]] = concreteNodes.get(id) match
+  def concreteForHnId(id: HnId): F[ConcreteDcgNode[F]] = concreteNodes.get(id) match
     case Some(node) => node.pure
-    case None       => s"ConcreteCachedNode with HnId $id not found in cache".assertionError
+    case None       => s"ConcreteDcgNode with HnId $id not found in $concreteNodes".assertionError
+    
+  def abstractForHnId(id: HnId): F[AbstractDcgNode[F]] = abstractNodes.get(id) match
+    case Some(node) => node.pure
+    case None       => s"AbstractDcgNode with HnId $id not found in $abstractNodes".assertionError
 
-  def getConcreteForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
+  def concreteForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     for
       (found, notFoundValues) <- values.partition(ioValues.contains).pure
       foundNodes <- found.toList
-        .traverse(v => ioValues(v).toList.traverse(id => getConcreteForHnId(id)).map(n => v -> n.toSet))
+        .traverse(v => ioValues(v).toList.traverse(id => concreteForHnId(id)).map(n => v -> n.toSet))
     yield (foundNodes.toMap, notFoundValues)
 
 object DcgState:

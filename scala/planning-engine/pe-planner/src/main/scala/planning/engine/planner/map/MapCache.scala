@@ -51,7 +51,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         loadedEdges <- subGraph.edges.traverse(DcgEdge.apply)
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
         stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
-        (foundNodes, notFoundValues) <- stateWithSamples.getConcreteForIoValues(values)
+        (foundNodes, notFoundValues) <- stateWithSamples.concreteForIoValues(values)
       yield (stateWithSamples, (foundNodes, notFoundValues))
 
 object MapCache:

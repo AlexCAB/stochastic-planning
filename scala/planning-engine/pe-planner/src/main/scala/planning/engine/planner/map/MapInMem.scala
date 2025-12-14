@@ -27,7 +27,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     for
       state <- stateCell.get
-      (foundNodes, notFoundValues) <- state.getConcreteForIoValues(values)
+      (foundNodes, notFoundValues) <- state.concreteForIoValues(values)
     yield (foundNodes, notFoundValues)
 
 object MapInMem:

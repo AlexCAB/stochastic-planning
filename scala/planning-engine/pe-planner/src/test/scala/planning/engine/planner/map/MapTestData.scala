@@ -15,15 +15,17 @@ package planning.engine.planner.map
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Description
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.InputNode
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
+import planning.engine.map.samples.sample.SampleData
+import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
 
@@ -52,17 +54,33 @@ trait MapTestData:
     description = Description.some(s"Test Abstract Node, ID $id")
   )
 
-  def makeConcreteNode(id: HnId = HnId(3000004)): ConcreteNode[IO] = ConcreteNode[IO](
+  def makeConcreteNode(id: HnId = HnId(3000004), index: IoIndex = IoIndex(101)): ConcreteNode[IO] = ConcreteNode[IO](
     id = id,
     name = HnName.some(s"Con Node $id"),
     description = Description.some(s"Test Concrete Node, ID $id"),
     ioNode = testBoolInNode,
-    valueIndex = IoIndex(101)
+    valueIndex = index
+  )
+
+  def makeSampleData(id: SampleId = SampleId(1000002)): SampleData = SampleData(
+    id = id,
+    probabilityCount = 10L,
+    utility = 5.0,
+    name = Name.some(s"Sample Data $id"),
+    description = Description.some(s"Test Sample Data, ID $id")
+  )
+
+  lazy val testMapSubGraph: MapSubGraph[IO] = MapSubGraph[IO](
+    concreteNodes = List(makeConcreteNode(HnId(3000011))),
+    abstractNodes = List(makeAbstractNode(HnId(3000012))),
+    edges = List(testHiddenEdge.copy(sourceId = HnId(3000011), targetId = HnId(3000012))),
+    loadedSamples = List(makeSampleData(testSampleIndexies.sampleId)),
+    skippedSamples = List(SampleId(1000101))
   )
 
   def makeConcreteDcgNode(
       id: HnId = HnId(3000005),
-      valueIndex: IoIndex =  IoIndex(102)
+      valueIndex: IoIndex = IoIndex(102)
   ): ConcreteDcgNode[IO] = ConcreteDcgNode[IO](
     id = id,
     name = HnName.some(s"Con DCG Node $id"),
@@ -87,3 +105,11 @@ trait MapTestData:
       key = testDcgEdgeKey,
       samples = Map(sample.sampleId -> sample)
     )
+
+  def makeIoValue(
+      name: String = testBoolInNode.name.value,
+      index: Long = 2000003L
+  ): IoValue = IoValue(
+    name = IoName(name),
+    index = IoIndex(index)
+  )

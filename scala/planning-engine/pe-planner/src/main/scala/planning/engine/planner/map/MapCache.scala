@@ -20,6 +20,7 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
 import planning.engine.common.errors.*
+import planning.engine.common.validation.Validation
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
@@ -33,12 +34,9 @@ class MapCache[F[_]: {Async, LoggerFactory}](
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for
       subGraph <- mapGraph.loadSubgraphForIoValue(values.toList, loadedSamples.toList)
+      _ <- Validation.validate(subGraph)
       _ <- (values, subGraph.allIoValues).assertContainsAll("Superfluous nodes presented")
       _ <- subGraph.abstractNodes.assertEmpty("Abstract nodes should not be loaded when loading by IoValues")
-      edgesSampleId = subGraph.edges.flatMap(_.samples.map(_.sampleId)).toSet
-      _ <- (edgesSampleId, subGraph.allSampleId).assertSameElems("Loaded samples do not match samples in edges")
-      loadedSampleId = subGraph.loadedSamples.map(_.id)
-      _ <- (loadedSampleId, subGraph.skippedSamples).assertNoSameElems("Loaded and skipped samples should not overlap")
     yield subGraph
 
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =

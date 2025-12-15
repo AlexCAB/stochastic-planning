@@ -23,6 +23,8 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.config.MapConfig
 import planning.engine.map.data.MapMetadata
+import planning.engine.map.hidden.edge.HiddenEdge
+import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
@@ -56,14 +58,14 @@ trait MapGraphTestData:
 
   lazy val testHnIndex = HnIndex(1L)
 
-  def makeAbstractNode(id: Int): AbstractNode[IO] = AbstractNode[IO](
+  def makeAbstractNode(id: Long): AbstractNode[IO] = AbstractNode[IO](
     id = HnId(id),
     name = HnName.some("Abs Test Node"),
     description = Description.some("Abs Test Node Description")
   )
 
-  def makeConcreteNode(index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] = ConcreteNode[IO](
-    id = HnId(123),
+  def makeConcreteNode(id: Long, index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] = ConcreteNode[IO](
+    id = HnId(id),
     name = HnName.some("Con Test Node"),
     description = Description.some("Con Test Node Description"),
     ioNode = ioNode,
@@ -97,7 +99,7 @@ trait MapGraphTestData:
 
   lazy val testSample: Sample = Sample(data = testSampleData, edges = testSampleEdges)
 
-  lazy val testConcreteNode: ConcreteNode[IO] = makeConcreteNode(123L, boolInNode)
+  lazy val testConcreteNode: ConcreteNode[IO] = makeConcreteNode(231, 123L, boolInNode)
   lazy val testAbstractNode: AbstractNode[IO] = makeAbstractNode(321)
 
   lazy val testNextSampleEdge: NextSampleEdge[IO] = NextSampleEdge[IO](
@@ -131,4 +133,22 @@ trait MapGraphTestData:
   def makeTwoNoNameNewSamples(hnId1: HnId, hnId2: HnId): Sample.ListNew = Sample.ListNew.of(
     newSample.copy(name = None, edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
     newSample.copy(name = None, edges = List(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
+  )
+  
+  lazy val testSampleIndexies: SampleIndexies = SampleIndexies(
+    sampleId = SampleId(101),
+    sourceIndex = HnIndex(201),
+    targetIndex = HnIndex(202)
+  )
+
+  def makeHiddenEdge(
+      sourceId: HnId,
+      targetId: HnId,
+      sampleIds: List[SampleId],
+      edgeType: EdgeType = EdgeType.LINK
+  ): HiddenEdge = HiddenEdge(
+    edgeType = edgeType,
+    sourceId = sourceId,
+    targetId = targetId,
+    samples = sampleIds.map(sid => testSampleIndexies.copy(sampleId = sid))
   )

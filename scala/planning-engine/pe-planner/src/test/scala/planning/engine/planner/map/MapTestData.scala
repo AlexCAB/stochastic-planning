@@ -99,9 +99,9 @@ trait MapTestData:
     targetId = HnId(3000008)
   )
 
-  lazy val testDcgEdge: DcgEdge =
+  lazy val testDcgEdge: DcgEdge[IO] =
     val sample = testHiddenEdge.samples.head
-    DcgEdge(
+    DcgEdge[IO](
       key = testDcgEdgeKey,
       samples = Map(sample.sampleId -> sample)
     )

@@ -24,10 +24,13 @@ import planning.engine.planner.map.logic.MapBaseLogic
 class MapInMem[F[_]: {Async, LoggerFactory}](
     stateCell: AtomicCell[F, DcgState[F]]
 ) extends MapBaseLogic[F](stateCell) with MapLike[F]:
+  private val logger = LoggerFactory[F].getLogger
+  
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     for
       state <- stateCell.get
       (foundNodes, notFoundValues) <- state.concreteForIoValues(values)
+      _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)
 
 object MapInMem:

@@ -13,6 +13,7 @@
 package planning.engine.planner.map
 
 import cats.effect.IO
+import cats.effect.cps.*
 import planning.engine.common.validation.ValidationError
 import planning.engine.common.values.io.{IoIndex, IoValue}
 import planning.engine.common.values.node.HnId
@@ -21,35 +22,14 @@ import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.MapGraphLake
+import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
+import planning.engine.planner.map.dcg.state.DcgState
 
 class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory with MapTestData:
 
-  private class CaseData extends Case:
-    lazy val hnId1 = HnId(1)
-    lazy val hnId2 = HnId(2)
-    lazy val sampleId1 = SampleId(1001)
-    lazy val loadedSamples = List(SampleId(1001))
-
-    lazy val mapSubGraph = testMapSubGraph.copy(
-      concreteNodes = List(
-        makeConcreteNode(hnId1, IoIndex(101L)),
-        makeConcreteNode(hnId2, IoIndex(102L))
-      ),
-      abstractNodes = List(),
-      edges = List(
-        testHiddenEdge.copy(
-          sourceId = hnId1,
-          targetId = hnId2,
-          samples = List(testSampleIndexies.copy(sampleId = sampleId1))
-        )
-      ),
-      skippedSamples = List(),
-      loadedSamples = List(makeSampleData(sampleId1))
-    )
-
-    lazy val ioValues = mapSubGraph.concreteNodes.map(_.ioValue)
-
-    val mapGraphMock = stub[MapGraphLake[IO]]
+  private class CaseData extends Case with SimpleMemStateTestData:
+    private val mapGraphMock = stub[MapGraphLake[IO]]
     val mapCache = MapCache[IO](mapGraphMock).unsafeRunSync()
 
     def setMapGraphMock(
@@ -67,28 +47,69 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory with MapTestDa
 
   "MapCache.load(...)" should:
     "load map graph from cache" in newCase[CaseData]: (n, data) =>
-      data.setMapGraphMock(data.ioValues, data.loadedSamples, data.mapSubGraph)
-      data.mapCache.load(data.ioValues.toSet, data.loadedSamples.toSet).asserting(_ mustBe data.mapSubGraph)
-
-    "fail sub graph is failed" in newCase[CaseData]: (n, data) =>
-      data.setMapGraphMock(data.ioValues, data.loadedSamples, data.mapSubGraph.copy(concreteNodes = List()))
+      data.setMapGraphMock(data.ioValues, List(data.sampleId1), data.mapSubGraph)
 
       data.mapCache
-        .load(data.ioValues.toSet, data.loadedSamples.toSet)
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(n)
+        .asserting(_ mustBe data.mapSubGraph)
+
+    "fail sub graph is failed" in newCase[CaseData]: (n, data) =>
+      data.setMapGraphMock(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(concreteNodes = List()))
+
+      data.mapCache
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(n)
         .assertThrowsError[ValidationError](_.getMessage must startWith("Validation failed for MapSubGraph"))
 
     "fail if superfluous nodes presented" in newCase[CaseData]: (n, data) =>
       val invConNodes = data.mapSubGraph.concreteNodes :+ makeConcreteNode(HnId(-1), IoIndex(-2))
-      data.setMapGraphMock(data.ioValues, data.loadedSamples, data.mapSubGraph.copy(concreteNodes = invConNodes))
+      data.setMapGraphMock(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(concreteNodes = invConNodes))
 
       data.mapCache
-        .load(data.ioValues.toSet, data.loadedSamples.toSet)
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(n)
         .assertThrowsError[AssertionError](_.getMessage must startWith("Superfluous nodes presented"))
 
     "fail if abstract nodes none empty" in newCase[CaseData]: (n, data) =>
       val invNode = List(makeAbstractNode(HnId(-3)))
-      data.setMapGraphMock(data.ioValues, data.loadedSamples, data.mapSubGraph.copy(abstractNodes = invNode))
+      data.setMapGraphMock(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(abstractNodes = invNode))
 
       data.mapCache
-        .load(data.ioValues.toSet, data.loadedSamples.toSet)
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(n)
         .assertThrowsError[AssertionError](_.getMessage must startWith("Abstract nodes should not be loaded"))
+
+  "MapCache.getForIoValues(...)" should:
+    val notInMap = IoValue(testIntInNode.name, IoIndex(-1))
+
+    "get nodes from map graph and update empty cache" in newCase[CaseData]: (n, data) =>
+      val request = data.ioValues :+ notInMap
+      data.setMapGraphMock(request, List(), data.mapSubGraph)
+
+      async[IO]:
+        val (loaded, notFound) = data.mapCache.getForIoValues(request.toSet).logValue(n).await
+        loaded mustBe data.dcgNodes
+        notFound mustBe Set(notInMap)
+
+        val state = data.mapCache.getState.await
+        state.ioValues mustBe data.dcgState.ioValues
+        state.concreteNodes mustBe data.dcgState.concreteNodes
+        state.abstractNodes mustBe empty
+        state.edges mustBe data.dcgState.edges
+        state.forwardLinks mustBe data.dcgState.forwardLinks
+        state.backwardLinks mustBe data.dcgState.backwardLinks
+        state.forwardThen mustBe data.dcgState.forwardThen
+        state.backwardThen mustBe data.dcgState.backwardThen
+        state.samplesData mustBe data.dcgState.samplesData
+
+    "get nodes from cache" in newCase[CaseData]: (n, data) =>
+      data.setMapGraphMock(List(notInMap), data.dcgState.samplesData.keys.toList, MapSubGraph.emptySubGraph[IO])
+
+      async[IO]:
+        data.mapCache.setState(data.dcgState).await
+        val (loaded, notFound) = data.mapCache.getForIoValues(data.ioValues.toSet + notInMap).logValue(n).await
+
+        loaded mustBe data.dcgNodes
+        notFound mustBe Set(notInMap)
+        data.mapCache.getState.await mustBe data.dcgState // state should be updated if nothing loaded from map graph

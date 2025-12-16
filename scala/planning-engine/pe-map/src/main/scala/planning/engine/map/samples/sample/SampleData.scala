@@ -46,3 +46,11 @@ object SampleData:
         description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
       yield SampleData(id, probabilityCount, utility, name, description)
     case _ => s"Node is not sample data: $node".assertionError
+
+  def fromNew[F[_]: MonadThrow](id: SampleId, sampleNew: Sample.New): F[SampleData] = SampleData(
+    id = id,
+    probabilityCount = sampleNew.probabilityCount,
+    utility = sampleNew.utility,
+    name = sampleNew.name,
+    description = sampleNew.description
+  ).pure

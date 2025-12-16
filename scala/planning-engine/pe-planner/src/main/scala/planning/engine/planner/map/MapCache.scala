@@ -31,6 +31,8 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
     stateCell: AtomicCell[F, DcgState[F]]
 ) extends MapBaseLogic[F](stateCell) with MapLike[F]:
+  private val logger = LoggerFactory[F].getLogger
+  
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for
       subGraph <- mapGraph.loadSubgraphForIoValue(values.toList, loadedSamples.toList)
@@ -50,6 +52,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
         stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
         (foundNodes, notFoundValues) <- stateWithSamples.concreteForIoValues(values)
+        _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
 
 object MapCache:

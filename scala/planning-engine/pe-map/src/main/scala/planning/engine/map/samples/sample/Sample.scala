@@ -26,7 +26,21 @@ import planning.engine.common.values.StringVal.toStr
 final case class Sample(
     data: SampleData,
     edges: List[SampleEdge]
-):
+) extends Validation:
+  lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId)).toSet
+
+  lazy val validationName: String = s"Sample(id=${data.id}, name=${data.name.toStr})"
+
+  lazy val validationErrors: List[Throwable] =
+    val edgeIds = edges.map(e => (e.source.hnId, e.target.hnId))
+    val indexies = edges.flatMap(e => List(e.source, e.target)).groupBy(_.hnId).view.mapValues(_.map(_.value).distinct)
+    val invalidIndexies = indexies.filter((_, v) => v.size > 1)
+
+    validations(
+      edgeIds.isDistinct("Sample edges must be distinct, i.e. one edge between two nodes"),
+      invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies"
+    )
+
   override def toString: String = "Sample(" +
     s"id = ${data.id.value}, " +
     s"name = ${data.name.toStr}, " +
@@ -45,7 +59,7 @@ object Sample:
     lazy val hnIds: List[HnId] = edges.flatMap(e => List(e.source, e.target)).distinct
 
     lazy val validationName: String =
-      s"Sample(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
+      s"Sample.New(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
 
     lazy val validationErrors: List[Throwable] = validations(
       (probabilityCount > 0) -> "Probability count must be greater than 0",

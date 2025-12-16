@@ -27,7 +27,7 @@ final case class DcgState[F[_]: MonadThrow](
     ioValues: Map[IoValue, Set[HnId]],
     concreteNodes: Map[HnId, ConcreteDcgNode[F]],
     abstractNodes: Map[HnId, AbstractDcgNode[F]],
-    edges: Map[Key, DcgEdge],
+    edges: Map[Key, DcgEdge[F]],
     forwardLinks: Map[HnId, Set[HnId]],
     backwardLinks: Map[HnId, Set[HnId]],
     forwardThen: Map[HnId, Set[HnId]],
@@ -36,7 +36,13 @@ final case class DcgState[F[_]: MonadThrow](
 ):
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
 
-  private[state] def splitKeys(newEdges: List[DcgEdge]): F[(Set[Key], Set[Key])] =
+  private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
+    for
+      _ <- edges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
+      _ <- (allHnIds, edges.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
+    yield ()
+
+  private[state] def splitKeys(newEdges: List[DcgEdge[F]]): F[(Set[Key], Set[Key])] =
     newEdges.foldRight((Set[Key](), Set[Key]()).pure):
       case (e, acc) if e.key.edgeType.isLink => acc.map((ls, ts) => (ls + e.key, ts))
       case (e, acc) if e.key.edgeType.isThen => acc.map((ls, ts) => (ls, ts + e.key))
@@ -55,6 +61,15 @@ final case class DcgState[F[_]: MonadThrow](
             acc.updated(hnId, acc(hnId) ++ targets).pure
           case acc if !acc.contains(hnId) => (acc + (hnId -> targets)).pure
           case acc => s"Can't add duplicate links: $hnId -> ${acc(hnId).intersect(targets)}".assertionError
+
+  private[state] def joinEdges(oldEdges: Map[Key, DcgEdge[F]], newEdges: List[DcgEdge[F]]): F[Map[Key, DcgEdge[F]]] =
+    newEdges.foldRight(oldEdges.pure)((nEdge, accF) =>
+      for
+        acc <- accF
+        oEdge <- acc.get(nEdge.key).map(_.pure).getOrElse(s"Edge to merge not found for ${nEdge.key}".assertionError)
+        mEdge <- oEdge.join(nEdge)
+      yield acc.updated(nEdge.key, mEdge)
+    )
 
   def addConcreteNodes(nodes: List[ConcreteDcgNode[F]]): F[DcgState[F]] =
     for
@@ -75,12 +90,11 @@ final case class DcgState[F[_]: MonadThrow](
       _ <- (abstractNodes.keySet, allNewHdId).assertNoSameElems("Can't add abstract nodes that already exist")
     yield this.copy(
       abstractNodes = abstractNodes ++ nodes.map(n => n.id -> n).toMap
-    )  
-  
-  def addEdges(newEdges: List[DcgEdge]): F[DcgState[F]] =
+    )
+
+  def addEdges(newEdges: List[DcgEdge[F]]): F[DcgState[F]] =
     for
-      _ <- newEdges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
-      _ <- (allHnIds, newEdges.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
+      _ <- checkEdges(newEdges)
       (allLinkIds, allThenIds) <- splitKeys(newEdges)
       nEdges = newEdges.map(e => e.key -> e).toMap
       _ <- (nEdges.keys, edges.keys).assertNoSameElems("Can't add Edges that already exist")
@@ -90,6 +104,26 @@ final case class DcgState[F[_]: MonadThrow](
       nBackwardThen <- joinIds(backwardThen, makeBackward(allThenIds))
     yield this.copy(
       edges = edges ++ nEdges,
+      forwardLinks = nForwardLinks,
+      backwardLinks = nBackwardLinks,
+      forwardThen = nForwardThen,
+      backwardThen = nBackwardThen
+    )
+
+  def mergeEdges(list: List[DcgEdge[F]]): F[DcgState[F]] =
+    for
+      _ <- checkEdges(list)
+      (inSetEdges, outSetEdges) = list.partition(e => edges.contains(e.key))
+      joinedEdges <- joinEdges(edges, inSetEdges)
+      newEdges = outSetEdges.map(e => e.key -> e).toMap
+      _ <- (joinedEdges.keys, newEdges.keys).assertNoSameElems("Bug in partition of edges for merging")
+      (allLinkIds, allThenIds) <- splitKeys(outSetEdges)
+      nForwardLinks <- joinIds(forwardLinks, makeForward(allLinkIds))
+      nBackwardLinks <- joinIds(backwardLinks, makeBackward(allLinkIds))
+      nForwardThen <- joinIds(forwardThen, makeForward(allThenIds))
+      nBackwardThen <- joinIds(backwardThen, makeBackward(allThenIds))
+    yield this.copy(
+      edges = joinedEdges ++ newEdges,
       forwardLinks = nForwardLinks,
       backwardLinks = nBackwardLinks,
       forwardThen = nForwardThen,
@@ -108,7 +142,7 @@ final case class DcgState[F[_]: MonadThrow](
   def concreteForHnId(id: HnId): F[ConcreteDcgNode[F]] = concreteNodes.get(id) match
     case Some(node) => node.pure
     case None       => s"ConcreteDcgNode with HnId $id not found in $concreteNodes".assertionError
-    
+
   def abstractForHnId(id: HnId): F[AbstractDcgNode[F]] = abstractNodes.get(id) match
     case Some(node) => node.pure
     case None       => s"AbstractDcgNode with HnId $id not found in $abstractNodes".assertionError

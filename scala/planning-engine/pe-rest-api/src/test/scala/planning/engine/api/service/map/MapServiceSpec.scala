@@ -160,7 +160,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
 
         data.mockedGraph.addNewSamples
           .expects(expectedSampleNewList)
-          .returns(IO.pure(testResponse.addedSamples.map(_.id)))
+          .returns(IO.pure(testResponse.addedSamples.map(s => testSample.copy(data = testSampleData.copy(id = s.id)))))
           .once()
 
         data.mockedGraph.getSampleNames

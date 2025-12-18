@@ -24,30 +24,35 @@ import neotypes.model.types.{Relationship, Value}
 class SampleEdgeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    val sampleId1 = SampleId(100)
-    val sampleId2 = SampleId(200)
+    lazy val sampleId1 = SampleId(100)
+    lazy val sampleId2 = SampleId(200)
 
-    val newEdge = SampleEdge.New(
+    lazy val newEdge = SampleEdge.New(
       source = HnId(1),
       target = HnId(2),
       edgeType = EdgeType.THEN
     )
 
-    val expectedEdge1 = SampleEdge(
+    lazy val expectedEdge1 = SampleEdge(
       source = SampleEdge.End(newEdge.source, HnIndex(10)),
       target = SampleEdge.End(newEdge.target, HnIndex(20)),
       edgeType = newEdge.edgeType,
       sampleId = sampleId1
     )
 
-    val expectedEdge2 = SampleEdge(
+    lazy val expectedEdge2 = SampleEdge(
       source = SampleEdge.End(newEdge.source, HnIndex(30)),
       target = SampleEdge.End(newEdge.target, HnIndex(40)),
       edgeType = newEdge.edgeType,
       sampleId = sampleId2
     )
 
-    val rawEdge1 = Relationship(
+    lazy val indexiesMap1 = Map(
+      newEdge.source -> expectedEdge1.source.value,
+      newEdge.target -> expectedEdge1.target.value
+    )
+
+    lazy val rawEdge1 = Relationship(
       elementId = "element-1",
       relationshipType = Neo4j.THEN_LABEL,
       startNodeId = "start-1",
@@ -64,7 +69,7 @@ class SampleEdgeSpec extends UnitSpecWithData:
       )
     )
 
-    val rawEdge2 = Relationship(
+    lazy val rawEdge2 = Relationship(
       elementId = "element-2",
       relationshipType = Neo4j.THEN_LABEL,
       startNodeId = "start-2",
@@ -117,3 +122,9 @@ class SampleEdgeSpec extends UnitSpecWithData:
       SampleEdge
         .fromEdge[IO](data.newEdge.source, data.newEdge.target, data.rawEdge1).logValue(tn, "fromEdge")
         .asserting(_ mustEqual List(data.expectedEdge1, data.expectedEdge2))
+
+  "SampleEdge.fromNew(...)" should:
+    "return set of SampleEdge's" in newCase[CaseData]: (tn, data) =>
+      SampleEdge
+        .fromNew[IO](data.sampleId1, data.newEdge, data.indexiesMap1).logValue(tn, "fromNew")
+        .asserting(_ mustEqual data.expectedEdge1)

@@ -15,7 +15,7 @@ package planning.engine.integration.tests.database
 import cats.effect.{IO, Resource}
 import planning.engine.common.properties.*
 import planning.engine.common.values.node.{HnId, HnName}
-import planning.engine.common.values.text.{Description, Name}
+import planning.engine.common.values.text.Description
 import planning.engine.integration.tests.*
 import planning.engine.common.values.db.Neo4j.*
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
@@ -211,8 +211,8 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
 
         val conNodes1 = result.filter(_.node.ioNode.name == intInNode.name)
         conNodes1.map(_.node.valueIndex).toSet mustEqual Set(IoIndex(1L))
-        conNodes1.map(_.node.name) mustEqual List(Some(Name("find_con_1")), Some(Name("find_con_2")))
+        conNodes1.map(_.node.name) mustEqual List(Some(HnName("find_con_1")), Some(HnName("find_con_2")))
 
         val conNodes2 = result.filter(_.node.ioNode.name == intOutNode.name)
         conNodes2.map(_.node.valueIndex).toSet mustEqual Set(IoIndex(2L))
-        conNodes2.map(_.node.name) mustEqual List(Some(Name("find_con_3")))
+        conNodes2.map(_.node.name) mustEqual List(Some(HnName("find_con_3")))

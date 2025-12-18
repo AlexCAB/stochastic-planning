@@ -61,7 +61,7 @@ trait Neo4jDatabaseLike[F[_]]:
 
   def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
   def countHiddenNodes: F[Long]
-  def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])]
+  def createSamples(params: Sample.ListNew): F[(List[Sample], List[String])]
   def countSamples: F[Long]
   def getNextSampleEdge(currentNodeId: HnId, getIoNode: IoName => F[IoNode[F]]): F[List[NextSampleEdge[F]]]
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
@@ -176,7 +176,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
-  override def createSamples(params: Sample.ListNew): F[(List[SampleId], List[String])] =
+  override def createSamples(params: Sample.ListNew): F[(List[Sample], List[String])] =
     driver.transact(writeConf): tx =>
       def storeSamples: F[List[(SampleId, Sample.New)]] =
         for
@@ -193,26 +193,28 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       def addSampleEdge(
           samples: List[(SampleId, Sample.New)],
           hnInsToHnIndex: Map[HnId, List[HnIndex]]
-      ): F[List[String]] = samples
-        .foldRight((hnInsToHnIndex, List[String]()).pure):
-          case ((sampleId, sample), acc) =>
+      ): F[List[(SampleId, Sample.New, Map[HnId, HnIndex], List[String])]] = samples
+        .foldRight((hnInsToHnIndex, List[(SampleId, Sample.New, Map[HnId, HnIndex], List[String])]()).pure):
+          case ((sampleId, sample), accF) =>
             for
-              (hnIndex, edgeIds) <- acc
+              (hnIndex, edgeIds) <- accF
               (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
               edgesParams <- sample.edges.toSeq
                 .traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
               ids <- edgesParams.traverse: (e, p) =>
                 addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)
-            yield (newHnIndex, edgeIds ++ ids)
+            yield (newHnIndex, edgeIds :+ (sampleId, sample, sampleIndexies, ids))
         .map(_._2)
 
       for
         storedSamples <- storeSamples
         hnIndexies <- makeHnIndexies
         _ <- params.allEdges.traverse(e => addHiddenEdge(e.source.value, e.target.value, e.edgeType.toLabel)(tx))
-        edgeIds <- addSampleEdge(storedSamples, hnIndexies)
+        edgesAdded <- addSampleEdge(storedSamples, hnIndexies)
+        edgeIds = edgesAdded.flatMap(_._4)
         _ <- updateNumberOfSamplesQuery(storedSamples.size)(tx)
-      yield (storedSamples.map(_._1), edgeIds)
+        fullSamples <- edgesAdded.traverse((id, sample, indexies, _) => Sample.formNew(id, sample, indexies))
+      yield (fullSamples, edgeIds)
 
   override def countSamples: F[Long] = driver.transact(readConf)(tx => countSamplesQuery(tx))
 
@@ -261,7 +263,8 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
         edges <- sampleIds.traverse(sId => SampleEdge.fromEdgesBySampleId(rawEdges, sId).map(e => sId -> e))
         edgesMap = edges.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap
         _ <- (sampleIds, edgesMap.keys).assertSameElems("Not for all sample the edges were found")
-      yield sampleIds.map(sId => sId -> Sample(sampleDataMap(sId), edgesMap(sId))).toMap
+        samples <- sampleIds.traverse(sId => Sample.formDataMap(sId, sampleDataMap, edgesMap))
+      yield samples.map(s => s.data.id -> s).toMap
 
   override def findHiddenNodesByIoValues(values: List[(IoNode[F], IoIndex)]): F[List[ConcreteWithParentIds[F]]] =
     driver.transact(readConf): tx =>

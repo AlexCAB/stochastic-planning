@@ -40,7 +40,7 @@ trait MapGraphLake[F[_]]:
   def findHiddenNodesByNames(names: List[HnName]): F[Map[HnName, List[HiddenNode[F]]]]
   def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
   def countHiddenNodes: F[Long]
-  def addNewSamples(params: Sample.ListNew): F[List[SampleId]]
+  def addNewSamples(params: Sample.ListNew): F[List[Sample]]
   def countSamples: F[Long]
   def nextSampleEdges(currentNodeId: HnId): F[NextSampleEdgeMap[F]]
   def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]]
@@ -106,12 +106,12 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Counted total number of hidden nodes, count = $count")
     yield count
 
-  override def addNewSamples(params: Sample.ListNew): F[List[SampleId]] = skipIfEmpty(params.list, List[SampleId]()):
+  override def addNewSamples(params: Sample.ListNew): F[List[Sample]] = skipIfEmpty(params.list, List[Sample]()):
     for
       _ <- Validation.validateList(params.list)
-      (sampleIds, edgeIds) <- database.createSamples(params)
-      _ <- logger.info(s"Added observed samples, sampleIds = $sampleIds, edgeIds = $edgeIds for params = $params")
-    yield sampleIds
+      (sample, edgeIds) <- database.createSamples(params)
+      _ <- logger.info(s"Added observed samples, sample = $sample, edgeIds = $edgeIds for params = $params")
+    yield sample
 
   override def countSamples: F[Long] =
     for

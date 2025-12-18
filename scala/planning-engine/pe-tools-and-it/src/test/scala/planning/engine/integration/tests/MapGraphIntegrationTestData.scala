@@ -96,16 +96,14 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
 
   def initSampleInDb(neo4jdb: Neo4jDatabase[IO], params: Sample.ListNew): Resource[IO, TestSamples] = Resource.eval:
     for
-      (sampleIds, _) <- neo4jdb.createSamples(params).logValue("initSampleInDb", "sampleIds")
-      samples <- neo4jdb.getSamples(sampleIds)
-
+      samples <- neo4jdb
+        .createSamples(params).logValue("initSampleInDb", "sampleIds")
+        .map(_._1.map(s => s.data.id -> s).toMap)
       sortedSamples = samples.values.toList.sortBy(_.data.id.value)
       _ <- logInfo("initSampleInDb", s"Created samples:\n${sortedSamples.mkString("\n")}")
-      _ = samples.keySet mustEqual sampleIds.toSet
-      _ = samples.map(_._2.data.id).toSet mustEqual sampleIds.toSet
     yield TestSamples(
       allHnIds = params.list.flatMap(_.edges).toSet.flatMap(e => Set(e.source, e.target)),
-      allSampleIds = sampleIds.toSet,
+      allSampleIds = samples.keySet,
       samples = samples
     )
 

@@ -22,19 +22,103 @@ import planning.engine.common.values.sample.SampleId
 import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.properties.*
+import planning.engine.map.samples.sample.SampleEdge.End
 
 class SampleSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    val sampleId = SampleId(100)
+    lazy val sampleId = SampleId(100)
 
-    val newSample = Sample.New(
+    lazy val newSample = Sample.New(
       probabilityCount = 10,
       utility = 0.5,
       name = Name.some("SampleName"),
       description = Description.some("SampleDescription"),
       edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
     )
+
+    lazy val hnIndexMap = Map(
+      HnId(1) -> HnIndex(10),
+      HnId(2) -> HnIndex(20),
+      HnId(3) -> HnIndex(30)
+    )
+
+    def mkSampleEdge(e: SampleEdge.New): SampleEdge = SampleEdge(
+      sampleId = sampleId,
+      source = End(e.source, hnIndexMap(e.source)),
+      target = End(e.target, hnIndexMap(e.target)),
+      edgeType = e.edgeType
+    )
+
+    lazy val sample = Sample(
+      data = SampleData(
+        id = sampleId,
+        probabilityCount = newSample.probabilityCount,
+        utility = newSample.utility,
+        name = newSample.name,
+        description = newSample.description
+      ),
+      edges = newSample.edges.map(e => mkSampleEdge(e)).toSet
+    )
+
+    lazy val sampleDataMap = Map(sampleId -> sample.data)
+    lazy val edgesMap = Map(sampleId -> sample.edges.toList)
+
+  "Sample.allHnIds" should:
+    "return all HN IDs" in newCase[CaseData]: (_, data) =>
+      data.sample.allHnIds.pure[IO].asserting(_ mustEqual data.hnIndexMap.keySet)
+
+  "Sample.validationName" should:
+    "return validation name" in newCase[CaseData]: (_, data) =>
+      data.sample.validationName.pure[IO].asserting(_ mustEqual "Sample(id=SampleId(100), name=SampleName)")
+
+  "Sample.validationErrors" should:
+    "return no error for valid sample" in newCase[CaseData]: (_, data) =>
+      data.sample.validationErrors.pure[IO].asserting(_ mustBe empty)
+
+    "return error if conflicting HnIndex values" in newCase[CaseData]: (_, data) =>
+      val invalidEdge = SampleEdge(
+        sampleId = data.sampleId,
+        source = End(HnId(1), HnIndex(10)), // Conflicting index for HnId(1)
+        target = End(HnId(1), HnIndex(20)),
+        edgeType = EdgeType.LINK
+      )
+
+      data.sample.copy(edges = data.sample.edges + invalidEdge).validationErrors.pure[IO].asserting: errs =>
+        errs.size mustBe 1
+        errs.head.getMessage must include("Conflicting HnIndex values for")
+
+    "return error if not all edges have the same SampleId" in newCase[CaseData]: (_, data) =>
+      val invalidEdge = data.sample.edges.head.copy(sampleId = SampleId(-1))
+
+      data.sample.copy(edges = data.sample.edges + invalidEdge).validationErrors.pure[IO].asserting: errs =>
+        errs.size mustBe 1
+        errs.head.getMessage must include("All SampleEdges must have the same SampleId")
+
+  "Sample.formNew" should:
+    "create sample from New" in newCase[CaseData]: (tn, data) =>
+      Sample.formNew[IO](data.sampleId, data.newSample, data.hnIndexMap).logValue(tn, "validationName")
+        .asserting(_ mustEqual data.sample)
+
+  "Sample.formDataMap" should:
+    "create Sample from data map" in newCase[CaseData]: (tn, data) =>
+      Sample.formDataMap[IO](data.sampleId, data.sampleDataMap, data.edgesMap).logValue(tn, "formDataMap")
+        .asserting(_ mustEqual data.sample)
+
+    "fail if sample data missing in map" in newCase[CaseData]: (tn, data) =>
+      Sample.formDataMap[IO](data.sampleId, data.sampleDataMap, Map()).logValue(tn, "formDataMap")
+        .assertThrows[AssertionError]
+
+    "fail if edges missing in map" in newCase[CaseData]: (tn, data) =>
+      Sample.formDataMap[IO](data.sampleId, Map(), data.edgesMap).logValue(tn, "formDataMap")
+        .assertThrows[AssertionError]
+
+    "fail if edges have different sampleId" in newCase[CaseData]: (tn, data) =>
+      val edge = data.sample.edges.head
+      val invalidEdgesMap = Map(data.sampleId -> List(edge, edge))
+
+      Sample.formDataMap[IO](data.sampleId, data.sampleDataMap, invalidEdgesMap).logValue(tn, "formDataMap")
+        .assertThrows[AssertionError]
 
   "New.hnIds" should:
     "distinct list ofHnId" in newCase[CaseData]: (_, data) =>
@@ -43,7 +127,7 @@ class SampleSpec extends UnitSpecWithData:
   "New.validationName" should:
     "return validation name" in newCase[CaseData]: (tn, data) =>
       data.newSample.validationName.pure[IO].logValue(tn, "validationName")
-        .asserting(_ mustEqual "Sample(name=SampleName, probabilityCount=10, utility=0.5)")
+        .asserting(_ mustEqual "Sample.New(name=SampleName, probabilityCount=10, utility=0.5)")
 
   "New.validationErrors" should:
     "return empty list for valid data" in newCase[CaseData]: (_, data) =>

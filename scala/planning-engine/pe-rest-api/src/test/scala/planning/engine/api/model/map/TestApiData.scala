@@ -26,6 +26,7 @@ import planning.engine.map.config.MapConfig
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
+import planning.engine.map.samples.sample.{Sample, SampleData}
 
 trait TestApiData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -118,15 +119,17 @@ trait TestApiData:
     listStrIoVar.indexForValue(testConNodeVal2).unsafeRunSync()
   )
 
+  lazy val testNewSampleData: NewSampleData = NewSampleData(
+    probabilityCount = 10,
+    utility = 0.5,
+    name = Name.some("sample1"),
+    description = Description.some("Sample 1 description"),
+    edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN))
+  )
+
   lazy val testMapAddSamplesRequest = MapAddSamplesRequest(
     samples = List(
-      NewSampleData(
-        probabilityCount = 10,
-        utility = 0.5,
-        name = Name.some("sample1"),
-        description = Description.some("Sample 1 description"),
-        edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN))
-      ),
+      testNewSampleData,
       NewSampleData(
         probabilityCount = 20,
         utility = 0.8,
@@ -142,3 +145,13 @@ trait TestApiData:
     addedSamples = testMapAddSamplesRequest.samples.zipWithIndex
       .map((data, i) => ShortSampleData(SampleId(i), data.name))
   )
+
+  lazy val testSampleData: SampleData = SampleData(
+    id = SampleId(1),
+    probabilityCount = testNewSampleData.probabilityCount,
+    utility = testNewSampleData.utility,
+    name = testNewSampleData.name,
+    description = testNewSampleData.description
+  )
+
+  lazy val testSample: Sample = Sample(data = testSampleData, edges = Set())

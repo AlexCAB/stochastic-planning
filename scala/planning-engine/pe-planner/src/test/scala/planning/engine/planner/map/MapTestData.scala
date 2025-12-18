@@ -103,7 +103,10 @@ trait MapTestData:
     val sample = testHiddenEdge.samples.head
     DcgEdge[IO](
       key = testDcgEdgeKey,
-      samples = Map(sample.sampleId -> sample)
+      samples = Map(sample.sampleId -> DcgEdge.Indexies(
+        sourceIndex = HnIndex(2000003),
+        targetIndex = HnIndex(2000004)
+      ))
     )
 
   def makeIoValue(

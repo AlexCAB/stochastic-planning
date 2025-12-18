@@ -162,8 +162,12 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "MapGraphSpec.addNewSamples(...)" should:
     "add new samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val testSample = Sample.ListNew(list = List(newSample))
-        val expectedSampleIds = List(SampleId(1), SampleId(2))
+        val testSampleList = Sample.ListNew(list = List(newSample))
+
+        val expectedSamples = List(
+          testSample.copy(data = testSampleData.copy(id = SampleId(1))),
+          testSample.copy(data = testSampleData.copy(id = SampleId(2)))
+        )
 
         data.mockedDb.createSamples
           .when(*)
@@ -171,11 +175,11 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
             for
               _ <- IO.delay(params mustEqual testSample)
               _ <- logInfo(tn, s"Got params = $params")
-            yield (expectedSampleIds, List("edge1", "edge2"))
+            yield (expectedSamples, List("edge1", "edge2"))
           .once()
 
-        val resIds: List[SampleId] = data.mapGraph.addNewSamples(testSample).logValue(tn, "resIds").await
-        resIds mustEqual expectedSampleIds
+        val resIds: List[Sample] = data.mapGraph.addNewSamples(testSampleList).logValue(tn, "resIds").await
+        resIds mustEqual expectedSamples
 
   "MapGraphSpec.countSamples" should:
     "return total number of samples" in newCase[CaseData]: (_, data) =>

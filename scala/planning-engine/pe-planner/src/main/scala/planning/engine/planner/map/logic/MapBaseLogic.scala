@@ -27,12 +27,13 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](stateCell: AtomicCell[
   private[map] def getState: F[DcgState[F]] = stateCell.get
   private[map] def setState(state: DcgState[F]): F[Unit] = stateCell.set(state)
 
-  private[map] def addNewSamples(newSamples: => F[List[Sample]]): F[Set[SampleId]] = stateCell.evalModify: state =>
-    for
-      samples <- newSamples
-      _ <- Validation.validateList(samples)
-      _ <- (state.allHnIds, samples.flatMap(_.allHnIds)).assertContainsAll("New samples contain unknown HnIds")
-      dcgEdges <- samples.traverse(_.edges.traverse(DcgEdge.apply)).map(_.flatten)
-      stateWithEdges <- state.mergeEdges(dcgEdges)
-      stateWithSamples <- stateWithEdges.addSamples(samples.map(_.data))
-    yield (stateWithSamples, samples.map(_.data.id).toSet)
+  private[map] def addNewSamplesToCache(newSamples: => F[List[Sample]]): F[Map[SampleId, Sample]] = 
+    stateCell.evalModify: state =>
+      for
+        samples <- newSamples
+        _ <- Validation.validateList(samples)
+        _ <- (state.allHnIds, samples.flatMap(_.allHnIds)).assertContainsAll("New samples contain unknown HnIds")
+        dcgEdges <- samples.traverse(_.edges.toList.traverse(DcgEdge.apply)).map(_.flatten)
+        stateWithEdges <- state.mergeEdges(dcgEdges)
+        stateWithSamples <- stateWithEdges.addSamples(samples.map(_.data))
+      yield (stateWithSamples, samples.map(s => s.data.id -> s).toMap)

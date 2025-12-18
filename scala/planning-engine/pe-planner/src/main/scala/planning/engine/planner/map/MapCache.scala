@@ -22,6 +22,7 @@ import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.sample.SampleId
+import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.state.DcgState
@@ -54,6 +55,9 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         (foundNodes, notFoundValues) <- stateWithSamples.concreteForIoValues(values)
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
+
+  override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]] =
+    addNewSamplesToCache(mapGraph.addNewSamples(samples))
 
 object MapCache:
   def apply[F[_]: {Async, LoggerFactory}](mapGraph: MapGraphLake[F]): F[MapCache[F]] =

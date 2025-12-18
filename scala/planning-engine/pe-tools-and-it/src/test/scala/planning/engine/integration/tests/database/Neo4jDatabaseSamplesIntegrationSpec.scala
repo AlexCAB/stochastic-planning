@@ -45,7 +45,8 @@ class Neo4jDatabaseSamplesIntegrationSpec
     hnIds.size must be >= 3
 
     val params = makeFourNewSamples(hnIds.head, hnIds(1), hnIds(2))
-    val sampleIds = db.createSamples(params).logValue("addFourNewSamples", "created samples").map(_._1).unsafeRunSync()
+    val samples = db.createSamples(params).logValue("addFourNewSamples", "created samples").map(_._1).unsafeRunSync()
+    val sampleIds = samples.map(_.data.id)
     val nameMap = db.getSampleNames(sampleIds).logValue("addFourNewSamples", "sampleNames").unsafeRunSync()
 
     sampleIds
@@ -117,10 +118,24 @@ class Neo4jDatabaseSamplesIntegrationSpec
       sampleEdge.edgeType mustEqual edgeType
       sampleEdge.sampleId mustEqual sampleId
 
+  private def checkSamples(samples: List[Sample])(implicit neo4jdb: Neo4jDatabase[IO]): IO[Assertion] =
+    neo4jdb.getSamples(samples.map(_.data.id)).logValue("checkSamples", "fetchedSamples")
+      .map: fetchedSamples =>
+        samples.size mustEqual fetchedSamples.size
+        samples.foreach: sample =>
+          val fetchedSample= fetchedSamples
+            .getOrElse(sample.data.id, fail(s"Sample not found for id: ${sample.data.id}"))
+
+          fetchedSample.data mustEqual sample.data
+          fetchedSample.edges.toSet mustEqual sample.edges.toSet
+      .map(_ => succeed)
+
   "Neo4jDatabase.createSamples(...)" should:
     "create loop edge sample" in: (itDb, neo4jdb, nodes) =>
       given WithItDb.ItDb = itDb
+      given Neo4jDatabase[IO] = neo4jdb
       val init = new Init(nodes, neo4jdb)
+
       async[IO]:
         val params = Sample.ListNew.of(
           newSample.copy(edges = List(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge)))
@@ -128,8 +143,12 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         init.initIndexies
 
-        val (sampleIds, edgeIds): (List[SampleId], List[String]) = neo4jdb
+        val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("loop edge", "result").await
+
+        checkSamples(samples).await
+
+        val sampleIds = samples.map(_.data.id)
 
         sampleIds.size mustEqual 1
         edgeIds.size mustEqual 1
@@ -149,7 +168,9 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
     "create one edge sample" in: (itDb, neo4jdb, nodes) =>
       given WithItDb.ItDb = itDb
+      given Neo4jDatabase[IO] = neo4jdb
       val init = new Init(nodes, neo4jdb)
+
       async[IO]:
         val params = Sample.ListNew.of(
           newSample.copy(edges = List(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge)))
@@ -157,8 +178,12 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         init.initIndexies
 
-        val (sampleIds, edgeIds): (List[SampleId], List[String]) = neo4jdb
+        val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("one edge", "result").await
+
+        checkSamples(samples).await
+
+        val sampleIds = samples.map(_.data.id)
 
         sampleIds.size mustEqual 1
         edgeIds.size mustEqual 1
@@ -179,6 +204,8 @@ class Neo4jDatabaseSamplesIntegrationSpec
     "create two edge sample" in: (itDb, neo4jdb, nodes) =>
       given WithItDb.ItDb = itDb
       val init = new Init(nodes, neo4jdb)
+      given Neo4jDatabase[IO] = neo4jdb
+
       async[IO]:
         val params = Sample.ListNew.of(newSample.copy(edges =
           List(
@@ -189,8 +216,12 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         init.initIndexies
 
-        val (sampleIds, edgeIds): (List[SampleId], List[String]) = neo4jdb
+        val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("two edge", "result").await
+
+        checkSamples(samples).await
+
+        val sampleIds = samples.map(_.data.id)
 
         sampleIds.size mustEqual 1
         edgeIds.size mustEqual 2
@@ -220,7 +251,9 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
     "create three edge sample" in: (itDb, neo4jdb, nodes) =>
       given WithItDb.ItDb = itDb
+      given Neo4jDatabase[IO] = neo4jdb
       val init = new Init(nodes, neo4jdb)
+
       async[IO]:
         val params = Sample.ListNew.of(newSample.copy(edges =
           List(
@@ -232,8 +265,12 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         init.initIndexies
 
-        val (sampleIds, edgeIds): (List[SampleId], List[String]) = neo4jdb
+        val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("two edge", "result").await
+
+        checkSamples(samples).await
+
+        val sampleIds = samples.map(_.data.id)
 
         sampleIds.size mustEqual 1
         edgeIds.size mustEqual 3
@@ -276,9 +313,10 @@ class Neo4jDatabaseSamplesIntegrationSpec
       val init = new Init(nodes, neo4jdb)
       async[IO]:
         init.initIndexies
-        val sampleIds: List[SampleId] = init.sampleMap.keys.toList
+        val sampleId: SampleId = init.sampleMap.keys.toList.head
+        val name = init.sampleMap(sampleId).name.getOrElse(fail("Sample name is missing"))
         checkIndexesRise(init, sampleId = 4, hnIndex1 = 4, hnIndex2 = 3, hnIndex3 = 2).await
-        checkSampleNode(init, sampleIds.head, init.params.list.head.name.get).await
+        checkSampleNode(init, sampleId, name).await
 
   "Neo4jDatabase.countSamples" should:
     "return total number of samples" in: (itDb, neo4jdb, _) =>
@@ -423,7 +461,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           val groupedHnIndex = gotSample.edges
             .flatMap(e => List(e.source, e.target))
             .groupBy(_.hnId).view
-            .mapValues(_.map(_.value).distinct)
+            .mapValues(_.map(_.value))
 
           groupedHnIndex.foreach: (hnId, indexies) =>
             if indexies.size > 1 then

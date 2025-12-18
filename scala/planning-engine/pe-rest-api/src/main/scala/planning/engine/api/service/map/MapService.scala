@@ -112,7 +112,7 @@ class MapService[F[_]: {Async, LoggerFactory}](
       hnIdMap <- composeHnIdMap(foundHnIdMap, newConHnIds, newAbsHnIds)
       sampleNewList <- definition.toSampleNewList(hnIdMap)
       sampleIds <- graph.addNewSamples(sampleNewList)
-      sampleNameMap <- graph.getSampleNames(sampleIds)
+      sampleNameMap <- graph.getSampleNames(sampleIds.map(_.data.id))
       _ <- (sampleIds, sampleNameMap.keys).assertSameElems("Seems bug: not for all sampleIds names found")
     yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
 

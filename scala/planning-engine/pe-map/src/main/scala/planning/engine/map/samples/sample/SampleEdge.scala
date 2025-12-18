@@ -100,3 +100,20 @@ object SampleEdge:
         sampleId = sId
       )
     )
+    
+  def fromNew[F[_]: MonadThrow](sampleId: SampleId, edge: New, indexies: Map[HnId, HnIndex]): F[SampleEdge] = 
+    def getIndex(hnId: HnId): F[HnIndex] = indexies.get(hnId) match
+      case Some(id) => id.pure
+      case _        => s"Missing HnIndex for $hnId in $indexies".assertionError
+    
+    for
+        sourceValue <- getIndex(edge.source)
+        targetValue <- getIndex(edge.target)
+    yield SampleEdge(
+        source = End(edge.source, sourceValue),
+        target = End(edge.target, targetValue),
+        edgeType = edge.edgeType,
+        sampleId = sampleId
+    )
+      
+  

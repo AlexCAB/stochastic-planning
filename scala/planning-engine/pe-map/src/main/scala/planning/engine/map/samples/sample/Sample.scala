@@ -22,10 +22,11 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.StringVal.toStr
+import planning.engine.common.errors.*
 
 final case class Sample(
     data: SampleData,
-    edges: List[SampleEdge]
+    edges: Set[SampleEdge]
 ) extends Validation:
   lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId)).toSet
 
@@ -33,12 +34,12 @@ final case class Sample(
 
   lazy val validationErrors: List[Throwable] =
     val edgeIds = edges.map(e => (e.source.hnId, e.target.hnId))
-    val indexies = edges.flatMap(e => List(e.source, e.target)).groupBy(_.hnId).view.mapValues(_.map(_.value).distinct)
+    val indexies = edges.flatMap(e => List(e.source, e.target)).groupBy(_.hnId).view.mapValues(_.map(_.value)).toMap
     val invalidIndexies = indexies.filter((_, v) => v.size > 1)
 
     validations(
-      edgeIds.isDistinct("Sample edges must be distinct, i.e. one edge between two nodes"),
-      invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies"
+      invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies",
+      edges.map(_.sampleId).haveSameElems(Set(data.id), "All SampleEdges must have the same SampleId as SampleData")
     )
 
   override def toString: String = "Sample(" +
@@ -109,3 +110,25 @@ object Sample:
 
   object ListNew:
     def of(samples: New*): ListNew = ListNew(samples.toList)
+
+  def formNew[F[_]: MonadThrow](
+      id: SampleId,
+      newData: Sample.New,
+      hnIndexes: Map[HnId, HnIndex]
+  ): F[Sample] =
+    for
+      edges <- newData.edges.traverse(e => SampleEdge.fromNew[F](id, e, hnIndexes))
+      _ <- edges.assertDistinct(s"Duplicate edges found in sample id = $id")
+      data = newData.toSampleData(id)
+    yield Sample(data = data, edges = edges.toSet)
+
+  def formDataMap[F[_]: MonadThrow](
+      id: SampleId,
+      sampleDataMap: Map[SampleId, SampleData],
+      edgesMap: Map[SampleId, List[SampleEdge]]
+  ): F[Sample] =
+    for
+      data <- sampleDataMap.get(id).map(_.pure).getOrElse(s"SampleData not found for $id".assertionError)
+      edges <- edgesMap.get(id).map(_.pure).getOrElse(s"SampleEdges not found for $id".assertionError)
+      _ <- edges.assertDistinct(s"Duplicate edges found in sample id = $id")
+    yield Sample(data = data, edges = edges.toSet)

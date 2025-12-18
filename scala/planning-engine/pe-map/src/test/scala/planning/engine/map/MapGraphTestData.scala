@@ -90,7 +90,7 @@ trait MapGraphTestData:
     description = newSample.description
   )
 
-  lazy val testSampleEdges: List[SampleEdge] = List(SampleEdge(
+  lazy val testSampleEdges: Set[SampleEdge] = Set(SampleEdge(
     source = SampleEdge.End(HnId(1), HnIndex(10)),
     target = SampleEdge.End(HnId(2), HnIndex(20)),
     edgeType = EdgeType.LINK,

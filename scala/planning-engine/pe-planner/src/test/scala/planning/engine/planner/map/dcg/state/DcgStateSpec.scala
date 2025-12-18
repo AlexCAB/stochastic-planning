@@ -59,7 +59,7 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
 
   "DcgState.splitKeys(...)" should:
     "split keys" in newCase[CaseData]: (n, data) =>
-      def makeEdge(edgeType: EdgeType): DcgEdge = testDcgEdge.copy(key = testDcgEdge.key.copy(edgeType = edgeType))
+      def makeEdge(edgeType: EdgeType): DcgEdge[IO] = testDcgEdge.copy(key = testDcgEdge.key.copy(edgeType = edgeType))
 
       val edgeLink = makeEdge(EdgeType.LINK)
       val edgeThen = makeEdge(EdgeType.THEN)
@@ -172,11 +172,11 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
 
   "DcgState.addEdges(...)" should:
     val List(e1, e2, e3, e4) = List(
-      DcgEdge.Key(EdgeType.LINK, HnId(1), HnId(2)),
-      DcgEdge.Key(EdgeType.THEN, HnId(2), HnId(3)),
-      DcgEdge.Key(EdgeType.LINK, HnId(1), HnId(4)),
-      DcgEdge.Key(EdgeType.THEN, HnId(4), HnId(5))
-    ).map(k => testDcgEdge.copy(key = k))
+        DcgEdge.Key(EdgeType.LINK, HnId(1), HnId(2)),
+        DcgEdge.Key(EdgeType.THEN, HnId(2), HnId(3)),
+        DcgEdge.Key(EdgeType.LINK, HnId(1), HnId(4)),
+        DcgEdge.Key(EdgeType.THEN, HnId(4), HnId(5))
+      ).map[DcgEdge[IO]](k => testDcgEdge.copy(key = k))
 
     "add edges" in newCase[CaseData]: (n, data) =>
       async[IO]:

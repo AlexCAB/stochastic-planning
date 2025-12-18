@@ -68,7 +68,9 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
           )
         )
 
-        val sampleIds: List[SampleId] = data.graph.addNewSamples(params).logValue("multiple samples", "result").await
+        val sampleIds: List[SampleId] = data.graph
+          .addNewSamples(params).logValue("multiple samples", "result")
+          .await.map(_.data.id)
 
         sampleIds.size mustEqual 3
 
@@ -136,4 +138,8 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
         val result: Map[SampleId, Sample] = res.graph
           .getSamples(res.samples.allSampleIds.toList).logValue("get samples", "result").await
 
-        result mustEqual res.samples.samples
+        (result.keySet ++ res.samples.samples.keySet).foreach: sampleId =>
+          val gotSample = result.getOrElse(sampleId, fail(s"Sample $sampleId not found in result"))
+          val testSample = res.samples.samples.getOrElse(sampleId, fail(s"Sample $sampleId not found in test samples"))
+
+          gotSample mustEqual testSample

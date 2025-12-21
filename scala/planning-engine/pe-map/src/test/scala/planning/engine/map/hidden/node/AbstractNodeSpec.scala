@@ -20,9 +20,10 @@ import planning.engine.common.properties.PROP
 import cats.syntax.all.*
 import planning.engine.common.properties.*
 import neotypes.model.types.{Node, Value}
+import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
 
-class AbstractNodeSpec extends UnitSpecWithData:
+class AbstractNodeSpec extends UnitSpecWithData with ValidationCheck:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234)
@@ -76,10 +77,8 @@ class AbstractNodeSpec extends UnitSpecWithData:
         data.singleNode.equals(node2) mustEqual false
 
   "AbstractNode.validationErrors" should:
-    "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
-      data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
+    "return empty list for valid new node" in newCase[CaseData]: (tn, data) =>
+      data.newNode.checkNoValidationError(tn)
 
-    "return error if name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = HnName.some("")).validationErrors.pure[IO].asserting: errors =>
-        errors must have size 1
-        errors.head.getMessage mustEqual "Name must not be empty if defined"
+    "return error if name is empty" in newCase[CaseData]: (tn, data) =>
+      data.newNode.copy(name = HnName.some("")).checkOneValidationError("Name must not be empty if defined", tn)

@@ -28,7 +28,7 @@ final case class Sample(
     data: SampleData,
     edges: Set[SampleEdge]
 ) extends Validation:
-  lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId)).toSet
+  lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId))
 
   lazy val validationName: String = s"Sample(id=${data.id}, name=${data.name.toStr})"
 
@@ -37,9 +37,22 @@ final case class Sample(
     val indexies = edges.flatMap(e => List(e.source, e.target)).groupBy(_.hnId).view.mapValues(_.map(_.value)).toMap
     val invalidIndexies = indexies.filter((_, v) => v.size > 1)
 
+    val nodesNeighbours = (edgeIds ++ edgeIds.flatMap(e => Set((e._2, e._1))))
+      .groupBy(_._1).view.mapValues(_.map(_._2))
+      .toMap
+
+    def findConnectedLoop(start: HnId, visited: Set[HnId]): Set[HnId] = nodesNeighbours(start)
+      .foldLeft(visited + start): (acc, nId) =>
+        println(s"I: acc = $acc, nId = $nId")
+        if acc.contains(nId) then acc else findConnectedLoop(nId, acc)
+
+    val connectedNodes = if allHnIds.nonEmpty then findConnectedLoop(allHnIds.head, Set()) else Set()
     validations(
+      // Sample without edges no sense since by design it must reflect an relationship between HNs
+      edges.nonEmpty -> "At least one SampleEdge must be defined",
       invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies",
-      edges.map(_.sampleId).haveSameElems(Set(data.id), "All SampleEdges must have the same SampleId as SampleData")
+      edges.map(_.sampleId).haveSameElems(Set(data.id), "All SampleEdges must have the same SampleId as SampleData"),
+      connectedNodes.haveSameElems(allHnIds, "All HnIds must be connected in the Sample edges")
     )
 
   override def toString: String = "Sample(" +

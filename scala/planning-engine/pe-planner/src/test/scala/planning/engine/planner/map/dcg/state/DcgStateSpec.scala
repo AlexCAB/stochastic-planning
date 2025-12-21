@@ -17,7 +17,7 @@ import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.MapTestData
 import planning.engine.planner.map.dcg.edges.DcgEdge
@@ -29,19 +29,43 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
 
     lazy val emptyDcgState: DcgState[IO] = DcgState.init()
 
+    lazy val hnId1 = HnId(1)
+    lazy val hnId2 = HnId(2)
+    lazy val hnId3 = HnId(3)
+    lazy val hnId4 = HnId(4)
+    lazy val hnId5 = HnId(5)
+
     lazy val keys = Set(
-      makeKey(HnId(1), HnId(2)),
-      makeKey(HnId(1), HnId(3)),
-      makeKey(HnId(2), HnId(2))
+      makeKey(hnId1, hnId2),
+      makeKey(hnId1, hnId3),
+      makeKey(hnId2, hnId2)
     )
 
-    lazy val absNodes = List(HnId(1), HnId(2), HnId(3)).map(id => makeAbstractDcgNode(id = id))
-    lazy val conNodes = List(HnId(4), HnId(5)).map(id => makeConcreteDcgNode(id = id))
+    lazy val absNodes = List(hnId1, hnId2, hnId3).map(id => makeAbstractDcgNode(id = id))
+    lazy val conNodes = List(hnId4, hnId5).map(id => makeConcreteDcgNode(id = id))
 
     lazy val stateWithNodes: DcgState[IO] = emptyDcgState
       .addAbstractNodes(absNodes)
       .flatMap(_.addConcreteNodes(conNodes))
       .unsafeRunSync()
+
+    lazy val sampleId1 = SampleId(1001)
+    lazy val sampleId2 = SampleId(1002)
+
+    lazy val indexiesMap = Map(
+      hnId1 -> HnIndex(101),
+      hnId2 -> HnIndex(102),
+      hnId3 -> HnIndex(103),
+      hnId4 -> HnIndex(104),
+    )
+
+    lazy val dcgEdges = List(
+      makeDcgEdge(sampleId1, hnId1, hnId2, indexiesMap)
+        .join(makeDcgEdge(sampleId2, hnId1, hnId2, indexiesMap))
+        .unsafeRunSync(),
+      makeDcgEdge(sampleId1, hnId2, hnId3, indexiesMap),
+      makeDcgEdge(sampleId2, hnId2, hnId4, indexiesMap)
+    )
 
   "DcgState.allHnIds" should:
     "return all HnIds" in newCase[CaseData]: (n, data) =>
@@ -56,6 +80,10 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
       async[IO]:
         logInfo(n, s"state: $state").await
         state.allHnIds mustBe Set(testConcreteNode.id, testAbstractNode.id)
+
+  "DcgState.checkEdges(...)" should:
+    "check edges and return no error for valid" in newCase[CaseData]: (n, data) =>
+      data.stateWithNodes.checkEdges(data.dcgEdges).logValue(n).assertNoException
 
   "DcgState.splitKeys(...)" should:
     "split keys" in newCase[CaseData]: (n, data) =>

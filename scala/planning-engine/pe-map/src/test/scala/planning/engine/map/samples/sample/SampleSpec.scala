@@ -22,9 +22,10 @@ import planning.engine.common.values.sample.SampleId
 import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.properties.*
+import planning.engine.common.validation.ValidationCheck
 import planning.engine.map.samples.sample.SampleEdge.End
 
-class SampleSpec extends UnitSpecWithData:
+class SampleSpec extends UnitSpecWithData with ValidationCheck:
 
   private class CaseData extends Case:
     lazy val sampleId = SampleId(100)
@@ -69,14 +70,17 @@ class SampleSpec extends UnitSpecWithData:
       data.sample.allHnIds.pure[IO].asserting(_ mustEqual data.hnIndexMap.keySet)
 
   "Sample.validationName" should:
-    "return validation name" in newCase[CaseData]: (_, data) =>
-      data.sample.validationName.pure[IO].asserting(_ mustEqual "Sample(id=SampleId(100), name=SampleName)")
+    "return validation name" in newCase[CaseData]: (tn, data) =>
+      data.sample.checkValidationName("Sample(id=SampleId(100), name=SampleName)", tn)
 
   "Sample.validationErrors" should:
-    "return no error for valid sample" in newCase[CaseData]: (_, data) =>
-      data.sample.validationErrors.pure[IO].asserting(_ mustBe empty)
+    "return no error for valid sample" in newCase[CaseData]: (tn, data) =>
+      data.sample.checkNoValidationError(tn)
 
-    "return error if conflicting HnIndex values" in newCase[CaseData]: (_, data) =>
+    "return error if no edges defined" in newCase[CaseData]: (tn, data) =>
+      data.sample.copy(edges = Set()).checkOneOfValidationErrors("At least one SampleEdge must be defined", tn)
+
+    "return error if conflicting HnIndex values" in newCase[CaseData]: (tn, data) =>
       val invalidEdge = SampleEdge(
         sampleId = data.sampleId,
         source = End(HnId(1), HnIndex(10)), // Conflicting index for HnId(1)
@@ -84,16 +88,25 @@ class SampleSpec extends UnitSpecWithData:
         edgeType = EdgeType.LINK
       )
 
-      data.sample.copy(edges = data.sample.edges + invalidEdge).validationErrors.pure[IO].asserting: errs =>
-        errs.size mustBe 1
-        errs.head.getMessage must include("Conflicting HnIndex values for")
+      data.sample.copy(edges = data.sample.edges + invalidEdge)
+        .checkOneValidationError("Conflicting HnIndex values for", tn)
 
-    "return error if not all edges have the same SampleId" in newCase[CaseData]: (_, data) =>
+    "return error if not all edges have the same SampleId" in newCase[CaseData]: (tn, data) =>
       val invalidEdge = data.sample.edges.head.copy(sampleId = SampleId(-1))
 
-      data.sample.copy(edges = data.sample.edges + invalidEdge).validationErrors.pure[IO].asserting: errs =>
-        errs.size mustBe 1
-        errs.head.getMessage must include("All SampleEdges must have the same SampleId")
+      data.sample.copy(edges = data.sample.edges + invalidEdge)
+        .checkOneValidationError("All SampleEdges must have the same SampleId", tn)
+
+    "return error if HnIds are not connected" in newCase[CaseData]: (tn, data) =>
+      val isolatedEdge = SampleEdge(
+        sampleId = data.sampleId,
+        source = End(HnId(4), HnIndex(40)),
+        target = End(HnId(5), HnIndex(50)),
+        edgeType = EdgeType.LINK
+      )
+
+      data.sample.copy(edges = data.sample.edges + isolatedEdge)
+        .checkOneValidationError("All HnIds must be connected in the Sample edges", tn)
 
   "Sample.formNew" should:
     "create sample from New" in newCase[CaseData]: (tn, data) =>

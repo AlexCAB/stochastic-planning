@@ -22,10 +22,11 @@ import planning.engine.common.properties.*
 import planning.engine.map.io.node.InputNode
 import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
+import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 
-class ConcreteNodeSpec extends UnitSpecWithData:
+class ConcreteNodeSpec extends UnitSpecWithData with ValidationCheck:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234L)
@@ -90,15 +91,11 @@ class ConcreteNodeSpec extends UnitSpecWithData:
           data.singleNode.equals(node2) mustEqual false
 
   "ConcreteNode.validationErrors" should:
-    "return empty list for valid new node" in newCase[CaseData]: (_, data) =>
-      data.newNode.validationErrors.pure[IO].asserting(_ mustBe empty)
+    "return empty list for valid new node" in newCase[CaseData]: (tn, data) =>
+      data.newNode.checkNoValidationError(tn)
 
-    "return error if var name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(name = HnName.some("")).validationErrors.pure[IO].asserting: errors =>
-        errors must have size 1
-        errors.head.getMessage mustEqual "Name must not be empty if defined"
+    "return error if var name is empty" in newCase[CaseData]: (tn, data) =>
+      data.newNode.copy(name = HnName.some("")).checkOneValidationError("Name must not be empty if defined", tn)
 
-    "return error if IO node name is empty" in newCase[CaseData]: (_, data) =>
-      data.newNode.copy(ioNodeName = IoName("")).validationErrors.pure[IO].asserting: errors =>
-        errors must have size 1
-        errors.head.getMessage mustEqual "IoNode name must not be empty"
+    "return error if IO node name is empty" in newCase[CaseData]: (tn, data) =>
+      data.newNode.copy(ioNodeName = IoName("")).checkOneValidationError("IoNode name must not be empty", tn)

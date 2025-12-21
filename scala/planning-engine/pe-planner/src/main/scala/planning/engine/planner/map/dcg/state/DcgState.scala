@@ -36,10 +36,14 @@ final case class DcgState[F[_]: MonadThrow](
 ):
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
 
-  private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
+    private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
     for
       _ <- edges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
       _ <- (allHnIds, edges.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
+      groupedSampleIds = edges.flatMap(e => e.samples.map((sId, _) => (sId, e.key.sourceId, e.key.targetId)))
+        .groupBy(e => (e._2, e._3)).view.mapValues(_.map(_._1)).toList
+      _ <- groupedSampleIds.traverse: (hnIds, sampleIds) =>
+        sampleIds.assertDistinct(s"Duplicate SampleIds for Edge between HnIds $hnIds detected: $sampleIds")
     yield ()
 
   private[state] def splitKeys(newEdges: List[DcgEdge[F]]): F[(Set[Key], Set[Key])] =

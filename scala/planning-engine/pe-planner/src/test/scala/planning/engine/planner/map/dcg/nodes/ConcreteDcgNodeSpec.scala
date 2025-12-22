@@ -16,11 +16,11 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.map.hidden.node.ConcreteNode
-import planning.engine.planner.map.MapTestData
+import planning.engine.planner.map.test.data.MapNodeTestData
 
-class ConcreteDcgNodeSpec extends UnitSpecWithData with MapTestData:
+class ConcreteDcgNodeSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case:
+  private class CaseData extends Case with MapNodeTestData:
     lazy val concreteNode: ConcreteNode[IO] = makeConcreteNode()
 
   "ConcreteDcgNode.apply(...)" should:

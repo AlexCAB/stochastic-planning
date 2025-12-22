@@ -21,10 +21,9 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.samples.sample.SampleEdge
-import planning.engine.planner.map.MapTestData
 import planning.engine.planner.map.dcg.edges.DcgEdge.Indexies
 
-class DcgEdgeSpec extends UnitSpecWithData with MapTestData:
+class DcgEdgeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val hiddenEdge: HiddenEdge = HiddenEdge(

@@ -35,7 +35,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
       utility = 0.5,
       name = Name.some("SampleName"),
       description = Description.some("SampleDescription"),
-      edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+      edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
     )
 
     lazy val hnIndexMap = Map(
@@ -151,7 +151,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         probabilityCount = 0, // Invalid count
         name = Name.some(""), // Empty name
         description = Description.some(""), // Empty description
-        edges = List() // No edges
+        edges = Set() // No edges
       )
 
       invalidSample.validationErrors.pure[IO].logValue(tn, "validationErrors").asserting(_.size mustEqual 4)
@@ -215,7 +215,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
   "New.toQueryParams" should:
     "return correct aggregate values" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val newSample2 = data.newSample.copy(edges = List(SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)))
+        val newSample2 = data.newSample.copy(edges = Set(SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)))
         val newSamples = Sample.ListNew.of(data.newSample, newSample2)
 
         newSamples.allEdges mustEqual List(

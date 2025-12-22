@@ -30,7 +30,8 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 ) extends MapBaseLogic[F](dcgStateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
-  private[map] def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
+  private[map] override def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
+  private[map] def getIdsCount: F[IdsCountState] = idsCountCell.get
 
   private[map] def buildSamples(newSamples: Sample.ListNew): F[List[Sample]] =
     for

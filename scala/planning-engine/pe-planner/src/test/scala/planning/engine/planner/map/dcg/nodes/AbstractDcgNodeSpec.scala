@@ -16,11 +16,11 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.map.hidden.node.AbstractNode
-import planning.engine.planner.map.MapTestData
+import planning.engine.planner.map.test.data.MapNodeTestData
 
-class AbstractDcgNodeSpec extends UnitSpecWithData with MapTestData:
+class AbstractDcgNodeSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case:
+  private class CaseData extends Case with MapNodeTestData:
     lazy val abstractNode: AbstractNode[IO] = makeAbstractNode()
 
   "AbstractDcgNode.apply(...)" should:

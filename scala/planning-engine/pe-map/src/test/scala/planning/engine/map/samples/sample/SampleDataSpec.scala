@@ -29,7 +29,7 @@ class SampleDataSpec extends UnitSpecWithData:
       utility = 0.75,
       name = Name.some("Sample Node"),
       description = Description.some("This is a sample node for testing."),
-      edges = List.empty
+      edges = Set.empty
     )
 
     val sampleData = SampleData(

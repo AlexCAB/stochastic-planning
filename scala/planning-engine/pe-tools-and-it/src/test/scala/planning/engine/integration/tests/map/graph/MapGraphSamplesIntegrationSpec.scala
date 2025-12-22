@@ -57,10 +57,10 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
         val nextHnIndex3: Long = getNextHnIndex(hnId3).logValue("multiple samples", "nextHnIndex3").await
 
         val params = Sample.ListNew.of(
-          newSample.copy(edges = List(SampleEdge.New(hnId1, hnId2, thenEdge))),
-          newSample.copy(edges = List(SampleEdge.New(hnId1, hnId2, thenEdge), SampleEdge.New(hnId2, hnId3, linkEdge))),
+          newSample.copy(edges = Set(SampleEdge.New(hnId1, hnId2, thenEdge))),
+          newSample.copy(edges = Set(SampleEdge.New(hnId1, hnId2, thenEdge), SampleEdge.New(hnId2, hnId3, linkEdge))),
           newSample.copy(edges =
-            List(
+            Set(
               SampleEdge.New(hnId1, hnId2, thenEdge),
               SampleEdge.New(hnId2, hnId3, linkEdge),
               SampleEdge.New(hnId3, hnId1, thenEdge)

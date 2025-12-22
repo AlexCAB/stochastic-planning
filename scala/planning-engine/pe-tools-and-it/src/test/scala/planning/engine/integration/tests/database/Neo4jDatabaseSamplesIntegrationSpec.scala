@@ -138,7 +138,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(
-          newSample.copy(edges = List(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge)))
+          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge)))
         )
 
         init.initIndexies
@@ -173,7 +173,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(
-          newSample.copy(edges = List(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge)))
+          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge)))
         )
 
         init.initIndexies
@@ -208,7 +208,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(newSample.copy(edges =
-          List(
+          Set(
             SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge),
             SampleEdge.New(init.hnId2, init.hnId3, init.linkEdge)
           )
@@ -256,7 +256,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(newSample.copy(edges =
-          List(
+          Set(
             SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge),
             SampleEdge.New(init.hnId2, init.hnId3, init.linkEdge),
             SampleEdge.New(init.hnId3, init.hnId1, init.thenEdge)

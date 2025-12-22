@@ -79,7 +79,7 @@ trait MapGraphTestData:
     utility = 0.5,
     name = Name.some("sample-1"),
     description = Description.some("This is a test sample"),
-    edges = List(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+    edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
   )
 
   lazy val testSampleData: SampleData = SampleData(
@@ -111,18 +111,18 @@ trait MapGraphTestData:
   )
 
   def makeFourNewSamples(hnId1: HnId, hnId2: HnId, hnId3: HnId): Sample.ListNew = Sample.ListNew.of(
-    newSample.copy(name = Name.some("loop-sample-1"), edges = List(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
-    newSample.copy(name = Name.some("one-edge-sample-1"), edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
+    newSample.copy(name = Name.some("loop-sample-1"), edges = Set(SampleEdge.New(hnId1, hnId1, EdgeType.THEN))),
+    newSample.copy(name = Name.some("one-edge-sample-1"), edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.LINK))),
     newSample.copy(
       name = Name.some("two-edge-sample-1"),
-      edges = List(
+      edges = Set(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK)
       )
     ),
     newSample.copy(
       name = Name.some("three-edge-sample-1"),
-      edges = List(
+      edges = Set(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK),
         SampleEdge.New(hnId3, hnId1, EdgeType.THEN)
@@ -131,8 +131,8 @@ trait MapGraphTestData:
   )
 
   def makeTwoNoNameNewSamples(hnId1: HnId, hnId2: HnId): Sample.ListNew = Sample.ListNew.of(
-    newSample.copy(name = None, edges = List(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
-    newSample.copy(name = None, edges = List(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
+    newSample.copy(name = None, edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
+    newSample.copy(name = None, edges = Set(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
   )
   
   lazy val testSampleIndexies: SampleIndexies = SampleIndexies(

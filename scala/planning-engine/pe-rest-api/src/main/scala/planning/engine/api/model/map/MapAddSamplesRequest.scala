@@ -73,7 +73,7 @@ final case class MapAddSamplesRequest(
         targetHnIds <- getHnId(raw.targetHnName)
       yield SampleEdge.New(source = sourceHnIds, target = targetHnIds, edgeType = raw.edgeType)
 
-    def makeSample(raw: NewSampleData, edges: List[SampleEdge.New]): Sample.New = Sample
+    def makeSample(raw: NewSampleData, edges: Set[SampleEdge.New]): Sample.New = Sample
       .New(
         probabilityCount = raw.probabilityCount,
         utility = raw.utility,
@@ -83,7 +83,7 @@ final case class MapAddSamplesRequest(
       )
 
     samples
-      .traverse(raw => raw.edges.traverse(makeEdge).map(edges => makeSample(raw, edges)))
+      .traverse(raw => raw.edges.traverse(makeEdge).map(edges => makeSample(raw, edges.toSet)))
       .map(sl => Sample.ListNew(sl))
 
 object MapAddSamplesRequest:

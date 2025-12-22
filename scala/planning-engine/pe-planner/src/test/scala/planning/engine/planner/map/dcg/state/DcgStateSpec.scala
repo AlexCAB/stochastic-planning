@@ -19,13 +19,13 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.MapTestData
+import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.edges.DcgEdge.Indexies
 
-class DcgStateSpec extends UnitSpecWithData with MapTestData:
+class DcgStateSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case:
+  private class CaseData extends Case with MapDcgNodeTestData with MapSampleTestData:
     def makeKey(sId: HnId, tId: HnId, edgeType: EdgeType = EdgeType.LINK): DcgEdge.Key =
       DcgEdge.Key(edgeType, sourceId = sId, targetId = tId)
 
@@ -81,10 +81,16 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
     lazy val dcgEdge = dcgEdges.head
     lazy val stateWithEdges = stateWithNodes.addEdges(dcgEdges).unsafeRunSync()
 
+    lazy val List(n1, n2, n3) = List((1, 101), (2, 101), (3, 102)).map:
+      case (id, ioIdx) => makeConcreteDcgNode(id = HnId(id), valueIndex = IoIndex(ioIdx))
+
+    lazy val List(s1, s2, s3) = List(1, 2, 3).map(id => makeSampleData(id = SampleId(id)))
+    lazy val nodes = List(1, 2, 3).map(id => makeAbstractDcgNode(id = HnId(id)))
+
   "DcgState.allHnIds" should:
     "return all HnIds" in newCase[CaseData]: (tn, data) =>
-      val testConcreteNode = makeConcreteDcgNode()
-      val testAbstractNode = makeAbstractDcgNode()
+      val testConcreteNode = data.makeConcreteDcgNode()
+      val testAbstractNode = data.makeAbstractDcgNode()
 
       val state = data.emptyDcgState.copy(
         concreteNodes = Map(testConcreteNode.id -> testConcreteNode),
@@ -94,11 +100,11 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
       async[IO]:
         logInfo(tn, s"state: $state").await
         state.allHnIds mustBe Set(testConcreteNode.id, testAbstractNode.id)
-        
+
   "DcgState.allSampleIds" should:
     "return all SampleIds" in newCase[CaseData]: (tn, data) =>
-      val testSample1 = makeSampleData(SampleId(5001))
-      val testSample2 = makeSampleData(SampleId(5002))
+      val testSample1 = data.makeSampleData(SampleId(5001))
+      val testSample2 = data.makeSampleData(SampleId(5002))
 
       val state = data.emptyDcgState.copy(
         samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2)
@@ -107,7 +113,7 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
       async[IO]:
         logInfo(tn, s"state: $state").await
         state.allSampleIds mustBe Set(testSample1.id, testSample2.id)
-  
+
   "DcgState.checkEdges(...)" should:
     "check edges and return no error for valid" in newCase[CaseData]: (tn, data) =>
       data.stateWithNodes.checkEdges(data.dcgEdges).logValue(tn).assertNoException
@@ -192,51 +198,47 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
       data.emptyDcgState.joinIds(oldIds, newIds).logValue(tn).assertThrows[AssertionError]
 
   "DcgState.addConcreteNodes(...)" should:
-    val List(n1, n2, n3) = List((1, 101), (2, 101), (3, 102)).map:
-      case (id, ioIdx) => makeConcreteDcgNode(id = HnId(id), valueIndex = IoIndex(ioIdx))
-
     "add concrete nodes" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.emptyDcgState.addConcreteNodes(List(n1, n2, n3)).await
+        val state = data.emptyDcgState.addConcreteNodes(List(data.n1, data.n2, data.n3)).await
         logInfo(tn, s"state: $state").await
 
-        state.ioValues mustBe Map(n1.ioValue -> Set(n1.id, n2.id), n3.ioValue -> Set(n3.id))
-        state.concreteNodes mustBe List(n1, n2, n3).map(n => n.id -> n).toMap
+        state.ioValues mustBe Map(data.n1.ioValue -> Set(data.n1.id, data.n2.id), data.n3.ioValue -> Set(data.n3.id))
+        state.concreteNodes mustBe List(data.n1, data.n2, data.n3).map(n => n.id -> n).toMap
 
     "fail if node IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addConcreteNodes(List(n1, n1)).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgState.addConcreteNodes(List(data.n1, data.n1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if ioValues already exist" in newCase[CaseData]: (tn, data) =>
       data
-        .emptyDcgState.addConcreteNodes(List(n1))
-        .flatMap(stateWithN1 => stateWithN1.addConcreteNodes(List(n2)))
+        .emptyDcgState.addConcreteNodes(List(data.n1))
+        .flatMap(stateWithN1 => stateWithN1.addConcreteNodes(List(data.n2)))
         .logValue(tn)
         .assertThrows[AssertionError]
 
     "fail if concrete nodes that already exist" in newCase[CaseData]: (tn, data) =>
       data
-        .emptyDcgState.copy(concreteNodes = Map(n1.id -> n1))
-        .addConcreteNodes(List(n1))
+        .emptyDcgState.copy(concreteNodes = Map(data.n1.id -> data.n1))
+        .addConcreteNodes(List(data.n1))
         .logValue(tn)
         .assertThrows[AssertionError]
 
     "DcgState.addAbstractNodes(...)" should:
-      val nodes = List(1, 2, 3).map(id => makeAbstractDcgNode(id = HnId(id)))
-
       "add abstract nodes" in newCase[CaseData]: (tn, data) =>
         async[IO]:
-          val state = data.emptyDcgState.addAbstractNodes(nodes).await
+          val state = data.emptyDcgState.addAbstractNodes(data.nodes).await
           logInfo(tn, s"state: $state").await
 
-          state.abstractNodes mustBe nodes.map(n => n.id -> n).toMap
+          state.abstractNodes mustBe data.nodes.map(n => n.id -> n).toMap
 
       "fail if node IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-        data.emptyDcgState.addAbstractNodes(List(nodes.head, nodes.head)).logValue(tn).assertThrows[AssertionError]
+        data.emptyDcgState.addAbstractNodes(List(data.nodes.head, data.nodes.head)).logValue(tn)
+          .assertThrows[AssertionError]
 
       "fail if abstract nodes that already exist" in newCase[CaseData]: (tn, data) =>
         data
-          .emptyDcgState.copy(abstractNodes = Map(n1.id -> nodes.head))
-          .addAbstractNodes(List(nodes.head))
+          .emptyDcgState.copy(abstractNodes = Map(data.n1.id -> data.nodes.head))
+          .addAbstractNodes(List(data.nodes.head))
           .logValue(tn)
           .assertThrows[AssertionError]
 
@@ -298,20 +300,19 @@ class DcgStateSpec extends UnitSpecWithData with MapTestData:
         )
 
   "DcgState.addSamples(...)" should:
-    val List(s1, s2, s3) = List(1, 2, 3).map(id => makeSampleData(id = SampleId(id)))
-
     "add samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.emptyDcgState.addSamples(List(s1, s2, s3)).await
+        val state = data.emptyDcgState.addSamples(List(data.s1, data.s2, data.s3)).await
         logInfo(tn, s"state: $state").await
 
-        state.samplesData mustBe List(s1, s2, s3).map(s => s.id -> s).toMap
+        state.samplesData mustBe List(data.s1, data.s2, data.s3).map(s => s.id -> s).toMap
 
     "fail if sample IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addSamples(List(s1, s1)).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgState.addSamples(List(data.s1, data.s1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if samples that already exist" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addSamples(List(s1)).flatMap(_.addSamples(List(s1))).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgState.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
+        .logValue(tn).assertThrows[AssertionError]
 
   "DcgState.concreteForHnId(...)" should:
     "get concrete node for HnId" in newCase[CaseData]: (tn, data) =>

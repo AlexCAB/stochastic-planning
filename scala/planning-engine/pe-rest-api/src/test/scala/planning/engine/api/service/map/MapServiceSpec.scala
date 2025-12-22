@@ -121,7 +121,7 @@ class MapServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApi
               utility = sampleData.utility,
               name = sampleData.name,
               description = sampleData.description,
-              edges = sampleData.edges.map(edge =>
+              edges = sampleData.edges.toSet.map(edge =>
                 SampleEdge.New(
                   source = testHnIdMap(edge.sourceHnName),
                   target = testHnIdMap(edge.targetHnName),

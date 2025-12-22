@@ -30,7 +30,7 @@ final case class IdsCountState(
     val newState = copy(nextSampleId = nextSampleId + n)
     (newState, sampleIds)
 
-  def getNextHnIndexes(hnIds: List[HnId]): (IdsCountState, Map[HnId, HnIndex]) =
+  def getNextHnIndexes(hnIds: Set[HnId]): (IdsCountState, Map[HnId, HnIndex]) =
     val (result, updatedCounts) = hnIds.foldRight((Map[HnId, HnIndex](), nextHnIndexMap)):
       case (hnId, (acc, count)) =>
         val i = count.getOrElse(hnId, 1L)

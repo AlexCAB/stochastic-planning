@@ -199,7 +199,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
             for
               (hnIndex, edgeIds) <- accF
               (newHnIndex, sampleIndexies) <- sample.findHnIndexies[F](hnIndex)
-              edgesParams <- sample.edges.toSeq
+              edgesParams <- sample.edges.toList
                 .traverse(e => e.toQueryParams(sampleId, sampleIndexies).map(p => (e, p)))
               ids <- edgesParams.traverse: (e, p) =>
                 addSampleEdgeQuery(e.source.value, e.target.value, e.edgeType.toLabel, p._1, p._2)(tx)

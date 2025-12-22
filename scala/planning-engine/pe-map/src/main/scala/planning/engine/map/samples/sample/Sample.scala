@@ -42,9 +42,7 @@ final case class Sample(
       .toMap
 
     def findConnectedLoop(start: HnId, visited: Set[HnId]): Set[HnId] = nodesNeighbours(start)
-      .foldLeft(visited + start): (acc, nId) =>
-        println(s"I: acc = $acc, nId = $nId")
-        if acc.contains(nId) then acc else findConnectedLoop(nId, acc)
+      .foldLeft(visited + start)((acc, nId) => if acc.contains(nId) then acc else findConnectedLoop(nId, acc))
 
     val connectedNodes = if allHnIds.nonEmpty then findConnectedLoop(allHnIds.head, Set()) else Set()
     validations(
@@ -68,9 +66,9 @@ object Sample:
       utility: Double,
       name: Option[Name],
       description: Option[Description],
-      edges: List[SampleEdge.New]
+      edges: Set[SampleEdge.New]
   ) extends Validation:
-    lazy val hnIds: List[HnId] = edges.flatMap(e => List(e.source, e.target)).distinct
+    lazy val hnIds: Set[HnId] = edges.flatMap(e => List(e.source, e.target))
 
     lazy val validationName: String =
       s"Sample.New(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
@@ -130,7 +128,7 @@ object Sample:
       hnIndexes: Map[HnId, HnIndex]
   ): F[Sample] =
     for
-      edges <- newData.edges.traverse(e => SampleEdge.fromNew[F](id, e, hnIndexes))
+      edges <- newData.edges.toList.traverse(e => SampleEdge.fromNew[F](id, e, hnIndexes))
       _ <- edges.assertDistinct(s"Duplicate edges found in sample id = $id")
       data = newData.toSampleData(id)
     yield Sample(data = data, edges = edges.toSet)

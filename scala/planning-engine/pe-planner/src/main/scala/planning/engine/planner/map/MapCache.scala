@@ -34,7 +34,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 ) extends MapBaseLogic[F](stateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
-  private[map] def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
+  private[map] override def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
   
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for

@@ -23,7 +23,7 @@ val catsEffectVersion = "3.6.3"
 val scalatestVersion = "3.2.19"
 val catsEffectTestingScalatestVersion = "1.6.0"
 val catsEffectCpsVersion = "0.3.0"
-val scalamockVersion = "7.3.1"
+val scalamockVersion = "7.5.2"
 
 // Subprojects settings
 

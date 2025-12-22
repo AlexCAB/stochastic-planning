@@ -24,11 +24,19 @@ import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.edges.DcgEdge
 
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](stateCell: AtomicCell[F, DcgState[F]]):
-  private[map] def getState: F[DcgState[F]] = stateCell.get
-  private[map] def setState(state: DcgState[F]): F[Unit] = stateCell.set(state)
+  private[map] def stateUpdated(state: DcgState[F]): F[Unit]
 
-  private[map] def addNewSamplesToCache(newSamples: => F[List[Sample]]): F[Map[SampleId, Sample]] = 
-    stateCell.evalModify: state =>
+  private[map] def getMapState: F[DcgState[F]] = stateCell.get
+  private[map] def setMapState(state: DcgState[F]): F[Unit] = stateCell.set(state)
+
+  private[map] def modifyMapState[R](proc: DcgState[F] => F[(DcgState[F], R)]): F[R] =
+    for
+      (state, res) <- stateCell.evalModify(s => proc(s).map((ns, r) => (ns, (ns, r))))
+      _ <- stateUpdated(state)
+    yield res
+
+  private[map] def addNewSamplesToCache(newSamples: => F[List[Sample]]): F[Map[SampleId, Sample]] =
+    modifyMapState: state =>
       for
         samples <- newSamples
         _ <- Validation.validateList(samples)

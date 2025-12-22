@@ -28,7 +28,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory with MapTestDa
   "MapInMem.getForIoValues(...)" should:
     "get nodes for io values from in-memory state" in newCase[CaseData]: (n, data) =>
       async[IO]:
-        data.mapInMem.setState(data.dcgState).await
+        data.mapInMem.setMapState(data.dcgState).await
         
         val (foundNodes, notFoundValues) = data.mapInMem
           .getForIoValues(data.ioValues.toSet + data.notInMap)

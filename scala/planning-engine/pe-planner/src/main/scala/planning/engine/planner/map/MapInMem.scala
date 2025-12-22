@@ -30,6 +30,8 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 ) extends MapBaseLogic[F](dcgStateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
+  private[map] def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
+
   private[map] def buildSamples(newSamples: Sample.ListNew): F[List[Sample]] =
     for
       sampleIds <- idsCountCell.modify(_.getNextSampleIds(newSamples.list.size))
@@ -43,7 +45,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     for
-      state <- dcgStateCell.get
+      state <- getMapState
       (foundNodes, notFoundValues) <- state.concreteForIoValues(values)
       _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)

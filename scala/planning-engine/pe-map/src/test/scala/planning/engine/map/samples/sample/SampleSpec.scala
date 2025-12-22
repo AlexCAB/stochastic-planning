@@ -92,7 +92,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         .checkOneValidationError("Conflicting HnIndex values for", tn)
 
     "return error if not all edges have the same SampleId" in newCase[CaseData]: (tn, data) =>
-      val invalidEdge = data.sample.edges.head.copy(sampleId = SampleId(-1))
+      val invalidEdge = data.sample.edges.head.copy(sampleId = SampleId(-1)) 
 
       data.sample.copy(edges = data.sample.edges + invalidEdge)
         .checkOneValidationError("All SampleEdges must have the same SampleId", tn)

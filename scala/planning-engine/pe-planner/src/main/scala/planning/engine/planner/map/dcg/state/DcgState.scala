@@ -35,6 +35,7 @@ final case class DcgState[F[_]: MonadThrow](
     samplesData: Map[SampleId, SampleData]
 ):
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
+  lazy val allSampleIds: Set[SampleId] = samplesData.keySet
 
     private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
     for

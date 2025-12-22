@@ -92,7 +92,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory with MapTestDa
         loaded mustBe data.dcgNodes
         notFound mustBe Set(notInMap)
 
-        val state = data.mapCache.getState.await
+        val state = data.mapCache.getMapState.await
         state.ioValues mustBe data.dcgState.ioValues
         state.concreteNodes mustBe data.dcgState.concreteNodes
         state.abstractNodes mustBe empty
@@ -107,9 +107,9 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory with MapTestDa
       data.setMapGraphMock(List(notInMap), data.dcgState.samplesData.keys.toList, MapSubGraph.emptySubGraph[IO])
 
       async[IO]:
-        data.mapCache.setState(data.dcgState).await
+        data.mapCache.setMapState(data.dcgState).await
         val (loaded, notFound) = data.mapCache.getForIoValues(data.ioValues.toSet + notInMap).logValue(n).await
 
         loaded mustBe data.dcgNodes
         notFound mustBe Set(notInMap)
-        data.mapCache.getState.await mustBe data.dcgState // state should be updated if nothing loaded from map graph
+        data.mapCache.getMapState.await mustBe data.dcgState // state should be updated if nothing loaded from map graph

@@ -33,6 +33,8 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     stateCell: AtomicCell[F, DcgState[F]]
 ) extends MapBaseLogic[F](stateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
+
+  private[map] def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
   
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for
@@ -43,7 +45,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     yield subGraph
 
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
-    stateCell.evalModify: state =>
+    modifyMapState: state =>
       for
         notLoaded <- values.filterNot(state.ioValues.contains).pure
         subGraph <- load(notLoaded, state.samplesData.keySet)

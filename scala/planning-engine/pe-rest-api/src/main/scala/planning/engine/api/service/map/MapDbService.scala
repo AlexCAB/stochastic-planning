@@ -18,24 +18,16 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
 import cats.syntax.all.*
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
-import planning.engine.common.errors.{assertDistinct, assertSameElems, assertionError}
+import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.config.MapConfig
 
-trait MapServiceLike[F[_]]:
-  def getState: F[Option[(MapGraphLake[F], DbName)]]
-  def reset(): F[MapResetResponse]
-  def init(request: MapInitRequest): F[MapInfoResponse]
-  def load(request: MapLoadRequest): F[MapInfoResponse]
-  def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse]
-
-class MapService[F[_]: {Async, LoggerFactory}](
+class MapDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]]
-) extends MapServiceLike[F]:
+) extends MapServiceBase[F] with MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
@@ -86,22 +78,6 @@ class MapService[F[_]: {Async, LoggerFactory}](
     case Some((mapGraph, dbName)) => initError(mapGraph, dbName)
 
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = withGraph: graph =>
-    def composeHnIdMap(
-        foundHnIdMap: Map[HnName, List[HnId]],
-        newConHnIds: Map[HnId, Option[HnName]],
-        newAbsHnIds: Map[HnId, Option[HnName]]
-    ): F[Map[HnName, HnId]] =
-      for
-        foundIds <- foundHnIdMap.toList.traverse:
-          case (name, id :: Nil) => (name -> id).pure
-          case (name, ids)       => s"Expect exactly one variable with name $name, but got: $ids".assertionError
-        newIds <- (newConHnIds.toList ++ newAbsHnIds.toList).traverse:
-          case (id, Some(name)) => (name -> id).pure
-          case (id, _)          => s"No name found for hnId: $id".assertionError
-        allHnNames = foundIds ++ newIds
-        _ <- allHnNames.map(_._1).assertDistinct(s"Hn names must be distinct")
-      yield allHnNames.toMap
-
     for
       _ <- Validation.validate(definition)
       _ <- Validation.validateList(definition.samples)
@@ -116,12 +92,12 @@ class MapService[F[_]: {Async, LoggerFactory}](
       _ <- (sampleIds, sampleNameMap.keys).assertSameElems("Seems bug: not for all sampleIds names found")
     yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
 
-object MapService:
+object MapDbService:
   def apply[F[_]: {Async, LoggerFactory}](
       config: MapConfig,
       builder: MapBuilderLike[F]
-  ): Resource[F, MapService[F]] = Resource.eval(
+  ): Resource[F, MapDbService[F]] = Resource.eval(
     AtomicCell[F].of[Option[(MapGraphLake[F], DbName)]](None).map(mgState =>
-      new MapService[F](config, builder, mgState)
+      new MapDbService[F](config, builder, mgState)
     )
   )

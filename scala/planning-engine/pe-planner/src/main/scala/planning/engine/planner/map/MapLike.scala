@@ -12,11 +12,19 @@
 
 package planning.engine.planner.map
 
-import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.io.{IoName, IoValue}
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
+import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
 
 trait MapLike[F[_]]:
-  def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])]
+  def getIoNode(name: IoName): F[IoNode[F]]
+  def addNewConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]]
+  def addNewAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]]
   def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]]
+  def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
+  def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])]
+  def reset(): F[Unit]

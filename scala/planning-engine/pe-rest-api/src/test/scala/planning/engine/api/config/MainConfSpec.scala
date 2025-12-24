@@ -47,9 +47,9 @@ class MainConfSpec extends UnitSpecWithData:
 
   "MainConf.formConfig(...)" should:
     "load MainConf from valid configuration" in newCase[CaseData]: (tn, data) =>
-      MainConf.formConfig[IO](data.validConfig)
+      MainWithDbConf.formConfig[IO](data.validConfig)
         .logValue(tn, "MainConf")
-        .asserting(_ mustEqual MainConf(
+        .asserting(_ mustEqual MainWithDbConf(
           db = DbConf(Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password")),
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           mapGraph = MapConfig(

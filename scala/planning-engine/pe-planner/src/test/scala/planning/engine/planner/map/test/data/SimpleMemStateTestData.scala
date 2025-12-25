@@ -60,7 +60,7 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
     makeSample(sampleId4, hnId3, hnId4)
   )
 
-  lazy val initialDcgState: DcgState[IO] = DcgState.init[IO]()
+  lazy val initialDcgState: DcgState[IO] = DcgState.empty[IO]
     .addAbstractNodes(absDcgNodes)
     .flatMap(_.addConcreteNodes(conDcgNodes))
     .unsafeRunSync()

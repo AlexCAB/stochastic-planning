@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg.state
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.IoValue
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.edges.DcgEdge.Key
 import planning.engine.common.errors.*
@@ -36,8 +36,19 @@ final case class DcgState[F[_]: MonadThrow](
 ):
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
   lazy val allSampleIds: Set[SampleId] = samplesData.keySet
+  
+  lazy val isEmpty: Boolean =
+    ioValues.isEmpty &&
+    concreteNodes.isEmpty &&
+    abstractNodes.isEmpty &&
+    edges.isEmpty &&
+    forwardLinks.isEmpty &&
+    backwardLinks.isEmpty &&
+    forwardThen.isEmpty &&
+    backwardThen.isEmpty &&
+    samplesData.isEmpty
 
-    private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
+  private[state] def checkEdges(edges: List[DcgEdge[F]]): F[Unit] =
     for
       _ <- edges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
       _ <- (allHnIds, edges.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
@@ -159,8 +170,13 @@ final case class DcgState[F[_]: MonadThrow](
         .traverse(v => ioValues(v).toList.traverse(id => concreteForHnId(id)).map(n => v -> n.toSet))
     yield (foundNodes.toMap, notFoundValues)
 
+  def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, List[HnId]]] =
+    for
+      grouped <- (concreteNodes.values ++ abstractNodes.values).groupBy(_.name).pure
+    yield names.map(n => n -> grouped.get(Some(n)).map(_.toList.map(_.id)).getOrElse(List())).toMap
+
 object DcgState:
-  def init[F[_]: MonadThrow](): DcgState[F] = new DcgState[F](
+  def empty[F[_]: MonadThrow]: DcgState[F] = new DcgState[F](
     ioValues = Map(),
     concreteNodes = Map(),
     abstractNodes = Map(),

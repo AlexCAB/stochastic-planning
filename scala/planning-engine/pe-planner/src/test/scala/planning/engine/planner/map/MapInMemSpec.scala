@@ -50,6 +50,21 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         counts.nextSampleId mustBe 3L
         counts.nextHnIndexMap mustBe Map(HnId(2) -> 3, HnId(1) -> 2, HnId(3) -> 2)
 
+  "MapInMem.init(...)" should: 
+    "initialize in-memory map state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).logValue(tn).await
+
+        val infoState = data.mapInMem.getMapInfo.logValue(tn).await
+        val dcgState = data.mapInMem.getMapState.logValue(tn).await
+        val idsCountState = data.mapInMem.getIdsCount.logValue(tn).await
+
+        infoState.metadata mustBe data.testMetadata
+        infoState.inNodes mustBe data.testInNodes.map(n => n.name -> n).toMap
+        infoState.outNodes mustBe data.testOutNodes.map(n => n.name -> n).toMap
+        dcgState.isEmpty mustBe true
+        idsCountState.isInit mustBe true
+
   "MapInMem.getForIoValues(...)" should:
     "get nodes for io values from in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:

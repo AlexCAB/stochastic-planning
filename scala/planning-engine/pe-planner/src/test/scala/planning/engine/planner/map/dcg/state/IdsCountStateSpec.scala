@@ -26,6 +26,20 @@ class IdsCountStateSpec extends AnyWordSpecLike with Matchers:
   lazy val hnId4 = HnId(4)
   lazy val hnId5 = HnId(5)
 
+  "IdsCountState.isInit" should:
+    "be true for initial state" in:
+      initState.isInit mustBe true
+
+    "be false for non-initial state" in:
+      val (state1, _) = initState.getNextHdIds(1)
+      state1.isInit mustBe false
+
+      val (state2, _) = initState.getNextSampleIds(1)
+      state2.isInit mustBe false
+
+      val (state3, _) = initState.getNextHnIndexes(Set(hnId1))
+      state3.isInit mustBe false
+
   "IdsCountState.getNextHdIds(...)" should:
     "get next hd ids and update state" in:
       val (state1, hdIds1) = initState.getNextHdIds(3)

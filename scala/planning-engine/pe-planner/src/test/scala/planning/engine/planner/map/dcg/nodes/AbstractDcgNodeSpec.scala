@@ -22,12 +22,25 @@ class AbstractDcgNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with MapNodeTestData:
     lazy val abstractNode: AbstractNode[IO] = makeAbstractNode()
+    lazy val absNodeNew = AbstractNode.New(
+      name = abstractNode.name,
+      description = abstractNode.description
+    )
 
-  "AbstractDcgNode.apply(...)" should:
-    "crete AbstractDcgNode correctly from AbstractNode" in newCase[CaseData]: (n, data) =>
+  "AbstractDcgNode.apply(AbstractNode)" should:
+    "crete AbstractDcgNode correctly from AbstractNode" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val absNode = AbstractDcgNode[IO](data.abstractNode).await
-        logInfo(n, s"absNode: $absNode").await
+        logInfo(tn, s"absNode: $absNode").await
+
+        absNode.id mustBe data.abstractNode.id
+        absNode.name mustBe data.abstractNode.name
+
+  "AbstractDcgNode.apply(HnId, AbstractNode.New)" should:
+    "crete AbstractDcgNode correctly from AbstractNode.New" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val absNode = AbstractDcgNode[IO](data.abstractNode.id, data.absNodeNew).await
+        logInfo(tn, s"absNode: $absNode").await
 
         absNode.id mustBe data.abstractNode.id
         absNode.name mustBe data.abstractNode.name

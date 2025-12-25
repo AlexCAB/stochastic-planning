@@ -19,8 +19,8 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.Sample
-import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
-import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState}
+import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
+import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnId, HnName}
@@ -32,12 +32,14 @@ trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit]
 
 class MapInMem[F[_]: {Async, LoggerFactory}](
+    mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, DcgState[F]],
     idsCountCell: AtomicCell[F, IdsCountState]
 ) extends MapBaseLogic[F](dcgStateCell) with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] override def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
+  private[map] def getMapInfo: F[MapInfoState[F]] = mapInfoCell.get
   private[map] def getIdsCount: F[IdsCountState] = idsCountCell.get
 
   private[map] def buildSamples(newSamples: Sample.ListNew): F[List[Sample]] =
@@ -51,18 +53,56 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       samples <- sampleWithHnIndexMap.traverse((id, sample, indexes) => Sample.formNew(id, sample, indexes))
     yield samples
 
-  override def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit] = ???
+  override def init(
+      metadata: MapMetadata,
+      inNodes: List[InputNode[F]],
+      outNodes: List[OutputNode[F]]
+  ): F[Unit] = mapInfoCell.evalModify(info =>
+    if info.isEmpty then 
+      for 
+        info <-  MapInfoState[F](metadata, inNodes, outNodes)
+        _ <- dcgStateCell.set(DcgState.empty[F])
+        _ <- idsCountCell.set(IdsCountState.init)
+        _ <-logger.info(s"Initialized MapInMem with metadata: $metadata")
+      yield (info, ())
+    else
+      s"MapInMem is already initialized and cannot be initialized again".assertionError
+  )
 
-  override def getIoNode(name: IoName): F[IoNode[F]] = ???
+  override def getIoNode(name: IoName): F[IoNode[F]] =
+    for
+      info <- getMapInfo
+      node <- info.getIoNode(name)
+      _ <- logger.info(s"Got IO node from MapInMem: $node")
+    yield node
 
-  override def addNewConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
+  override def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
+    for
+      hnIdIds <- idsCountCell.modify(_.getNextHdIds(nodes.list.size))
+      _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match concrete nodes count")
+      dsgNodes <- nodes.list.zip(hnIdIds).traverse((node, hnId) => ConcreteDcgNode(hnId, node, getIoNode))
+      _ <- modifyMapState(_.addConcreteNodes(dsgNodes).map(ns => (ns, ())))
+      _ <- logger.info(s"Added new concrete nodes to MapInMem: ${nodes.list.zip(hnIdIds)}")
+    yield dsgNodes.map(n => n.id -> n.name).toMap
 
-  override def addNewAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
+  override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
+    for
+      hnIdIds <- idsCountCell.modify(_.getNextHdIds(nodes.list.size))
+      _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match abstract nodes count")
+      dsgNodes <- nodes.list.zip(hnIdIds).traverse((node, hnId) => AbstractDcgNode(hnId, node))
+      _ <- modifyMapState(_.addAbstractNodes(dsgNodes).map(ns => (ns, ())))
+      _ <- logger.info(s"Added new abstract nodes to MapInMem: ${nodes.list.zip(hnIdIds)}")
+    yield dsgNodes.map(n => n.id -> n.name).toMap
 
   override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]] =
     addNewSamplesToCache(buildSamples(samples))
 
-  override def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]] = ???
+  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, List[HnId]]] =
+    for
+      state <- getMapState
+      result <- state.findHnIdsByNames(names)
+      _ <- logger.info(s"Found HnIds by names in mem: $result")
+    yield result
 
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     for
@@ -73,13 +113,17 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 
   override def reset(): F[Unit] =
     for
-      _ <- dcgStateCell.set(DcgState.init[F]())
+      info <- getMapInfo
+      _ <- mapInfoCell.set(MapInfoState.empty[F])
+      _ <- dcgStateCell.set(DcgState.empty[F])
       _ <- idsCountCell.set(IdsCountState.init)
+      _ <- logger.info(s"Resetting MapInMem with current MapInfoState: $info")
     yield ()
 
 object MapInMem:
   def apply[F[_]: {Async, LoggerFactory}](): F[MapInMem[F]] =
     for
-      dcgState <- AtomicCell[F].of(DcgState.init[F]())
+      mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
+      dcgState <- AtomicCell[F].of(DcgState.empty[F])
       idsCount <- AtomicCell[F].of(IdsCountState.init)
-    yield new MapInMem(dcgState, idsCount)
+    yield new MapInMem(mapInfo, dcgState, idsCount)

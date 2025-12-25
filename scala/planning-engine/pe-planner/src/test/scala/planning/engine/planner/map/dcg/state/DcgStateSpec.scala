@@ -14,10 +14,11 @@ package planning.engine.planner.map.dcg.state
 
 import cats.effect.IO
 import cats.effect.cps.*
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdge
@@ -29,7 +30,7 @@ class DcgStateSpec extends UnitSpecWithData:
     def makeKey(sId: HnId, tId: HnId, edgeType: EdgeType = EdgeType.LINK): DcgEdge.Key =
       DcgEdge.Key(edgeType, sourceId = sId, targetId = tId)
 
-    lazy val emptyDcgState: DcgState[IO] = DcgState.init()
+    lazy val emptyDcgState: DcgState[IO] = DcgState.empty[IO]
 
     lazy val hnId1 = HnId(1)
     lazy val hnId2 = HnId(2)
@@ -106,13 +107,19 @@ class DcgStateSpec extends UnitSpecWithData:
       val testSample1 = data.makeSampleData(SampleId(5001))
       val testSample2 = data.makeSampleData(SampleId(5002))
 
-      val state = data.emptyDcgState.copy(
-        samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2)
-      )
+      val state = data.emptyDcgState
+        .copy(samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2))
 
       async[IO]:
         logInfo(tn, s"state: $state").await
         state.allSampleIds mustBe Set(testSample1.id, testSample2.id)
+
+  "DcgState.isEmpty" should:
+    "return true for empty state" in newCase[CaseData]: (tn, data) =>
+      data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
+
+    "return false for non empty state" in newCase[CaseData]: (tn, data) =>
+      data.stateWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
 
   "DcgState.checkEdges(...)" should:
     "check edges and return no error for valid" in newCase[CaseData]: (tn, data) =>
@@ -347,3 +354,14 @@ class DcgStateSpec extends UnitSpecWithData:
 
         map mustBe Map(ioValue1 -> data.conNodes.filter(_.ioValue == ioValue1).toSet)
         notFound mustBe Set(ioValue2)
+
+  "DcgState.findHnIdsByNames(...)" should:
+    "find HnIds by names" in newCase[CaseData]: (tn, data) =>
+      val name1 = data.absNodes.head.name.get
+      val name2 = HnName("unknown_name")
+
+      async[IO]:
+        val result = data.stateWithNodes.findHnIdsByNames(Set(name1, name2)).await
+        logInfo(tn, s"result: $result").await
+
+        result mustBe Map(name1 -> data.absNodes.filter(_.name.contains(name1)).map(_.id), name2 -> List())

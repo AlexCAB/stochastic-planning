@@ -42,6 +42,6 @@ object MapInfoResponse:
       numInputNodes = knowledgeGraph.ioNodes.values.count(_.isInstanceOf[InputNode[?]])
       numOutputNodes = knowledgeGraph.ioNodes.values.count(_.isInstanceOf[OutputNode[?]])
     yield MapInfoResponse(dbName, mapName, numInputNodes, numOutputNodes, numHiddenNodes)
-  
+
   def emptyInMem[F[_]: Async](): F[MapInfoResponse] =
     MapInfoResponse(DbName("in-mem"), Name.some("Not implemented for in memory map"), 0L, 0L, 0L).pure[F]

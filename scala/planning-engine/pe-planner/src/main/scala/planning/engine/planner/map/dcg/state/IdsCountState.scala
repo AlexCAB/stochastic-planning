@@ -20,6 +20,8 @@ final case class IdsCountState(
     nextSampleId: Long,
     nextHnIndexMap: Map[HnId, Long]
 ):
+  lazy val isInit: Boolean = nextHdId == 1L && nextSampleId == 1L && nextHnIndexMap.isEmpty
+    
   def getNextHdIds(n: Long): (IdsCountState, List[HnId]) =
     val hnIds = (nextHdId until (nextHdId + n)).toList.map(HnId.apply)
     val newState = copy(nextHdId = nextHdId + n)

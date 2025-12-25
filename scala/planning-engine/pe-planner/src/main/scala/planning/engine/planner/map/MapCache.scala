@@ -56,7 +56,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
   override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]] =
     addNewSamplesToCache(mapGraph.addNewSamples(samples))
 
-  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, List[HnId]]] = ???
+  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] = ???
 
   override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
     modifyMapState: state =>

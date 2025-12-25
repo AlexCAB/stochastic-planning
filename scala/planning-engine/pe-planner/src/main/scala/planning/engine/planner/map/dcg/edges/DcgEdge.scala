@@ -53,7 +53,14 @@ object DcgEdge:
       .toMap
   ).pure
 
-  def apply[F[_]: MonadThrow](edge: SampleEdge): F[DcgEdge[F]] = DcgEdge(
-    key = Key(edgeType = edge.edgeType, sourceId = edge.source.hnId, targetId = edge.target.hnId),
-    samples = Map(edge.sampleId -> Indexies(sourceIndex = edge.source.value, targetIndex = edge.target.value))
-  ).pure
+  def apply[F[_]: MonadThrow](key: Key, edges: List[SampleEdge]): F[DcgEdge[F]] =
+    for
+      _ <- edges.assertNonEmpty("SampleEdges list is empty")
+      edgeKeys = edges.map(e => (e.edgeType, e.source.hnId, e.target.hnId)).toSet
+      keyValues = Set((key.edgeType, key.sourceId, key.targetId))
+      _ <- (edgeKeys, keyValues).assertSameElems(s"Edge keys from SampleEdges do not match the provided Key: $key")
+      _ <- edges.map(_.sampleId).assertDistinct("Duplicate SampleIds in SampleEdges detected")
+      _ <- edges.map(_.source.value).assertDistinct("Duplicate Source value in SampleEdges detected")
+      _ <- edges.map(_.target.value).assertDistinct("Duplicate Target value in SampleEdges detected")
+      samples = edges.map(e => e.sampleId -> Indexies(e.source.value, e.target.value)).toMap
+    yield DcgEdge(key, samples)

@@ -170,10 +170,11 @@ final case class DcgState[F[_]: MonadThrow](
         .traverse(v => ioValues(v).toList.traverse(id => concreteForHnId(id)).map(n => v -> n.toSet))
     yield (foundNodes.toMap, notFoundValues)
 
-  def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, List[HnId]]] =
+  def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] =
     for
-      grouped <- (concreteNodes.values ++ abstractNodes.values).groupBy(_.name).pure
-    yield names.map(n => n -> grouped.get(Some(n)).map(_.toList.map(_.id)).getOrElse(List())).toMap
+      allNodes <- (concreteNodes.values ++ abstractNodes.values).pure[F]
+      grouped = allNodes.filter(n => n.name.isDefined && names.contains(n.name.get)).groupBy(_.name.get)
+    yield grouped.view.mapValues(_.map(_.id).toSet).toMap
 
 object DcgState:
   def empty[F[_]: MonadThrow]: DcgState[F] = new DcgState[F](

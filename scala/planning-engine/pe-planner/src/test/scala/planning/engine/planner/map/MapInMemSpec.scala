@@ -16,8 +16,9 @@ import cats.effect.IO
 import cats.effect.cps.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.HnId
+import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 
 class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
@@ -50,7 +51,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         counts.nextSampleId mustBe 3L
         counts.nextHnIndexMap mustBe Map(HnId(2) -> 3, HnId(1) -> 2, HnId(3) -> 2)
 
-  "MapInMem.init(...)" should: 
+  "MapInMem.init(...)" should:
     "initialize in-memory map state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).logValue(tn).await
@@ -65,6 +66,88 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         dcgState.isEmpty mustBe true
         idsCountState.isInit mustBe true
 
+    "fail if initialized more than once" in newCase[CaseData]: (tn, data) =>
+      data.mapInMem
+        .init(data.testMetadata, data.testInNodes, data.testOutNodes)
+        .flatMap(_ => data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("MapInMem is already initialized"))
+
+  "MapInMem.getIoNode(...)" should:
+    "get io node by name from in-memory state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).await
+
+        val inNode = data.mapInMem.getIoNode(data.testInNodes.head.name).logValue(tn).await
+        val outNode = data.mapInMem.getIoNode(data.testOutNodes.head.name).logValue(tn).await
+
+        inNode mustBe data.testInNodes.head
+        outNode mustBe data.testOutNodes.head
+
+    "fail if io node name not found" in newCase[CaseData]: (tn, data) =>
+      data.mapInMem
+        .init(data.testMetadata, data.testInNodes, data.testOutNodes)
+        .flatMap(_ => data.mapInMem.getIoNode(IoName("unknown_node")))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include(s"IO node with name"))
+
+  "MapInMem.addNewConcreteNodes(...)" should:
+    "add new concrete nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).await
+
+        val result = data.mapInMem.addNewConcreteNodes(data.concreteNodesNew).logValue(tn).await
+        val state = data.mapInMem.getMapState.logValue(tn).await
+
+        val nodeWithHdId = data.concreteNodesNew.list
+          .map(node => result.find((_, nn) => nn == node.name).getOrElse(fail(s"Node not found: $node"))._1 -> node)
+          .toMap
+
+        result.keySet mustBe state.allHnIds
+        result.values.toSet mustBe data.concreteNodesNew.list.map(_.name).toSet
+        state.ioValues mustBe nodeWithHdId.map((id, n) => IoValue(n.ioNodeName, n.valueIndex) -> Set(id))
+        state.concreteNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
+
+  "MapInMem.addNewAbstractNodes(...)" should:
+    "add new abstract nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val result = data.mapInMem.addNewAbstractNodes(data.abstractNodesNew).logValue(tn).await
+        val state = data.mapInMem.getMapState.logValue(tn).await
+
+        val nodeWithHdId = data.abstractNodesNew.list
+          .map(node => result.find((_, nn) => nn == node.name).getOrElse(fail(s"Node not found: $node"))._1 -> node)
+          .toMap
+
+        result.keySet mustBe state.allHnIds
+        result.values.toSet mustBe data.abstractNodesNew.list.map(_.name).toSet
+        state.abstractNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
+
+  "MapInMem.addNewSamples(...)" should:
+    "add new samples to in-memory state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.mapInMem.setMapState(data.initialDcgState).await
+
+        val result = data.mapInMem.addNewSamples(data.sampleListNew).logValue(tn).await
+        val state = data.mapInMem.getMapState.logValue(tn).await
+
+        result.view.map((_, s) => s.data.name).toSet mustBe data.sampleListNew.list.map(_.name).toSet
+        result.keySet mustBe state.allSampleIds
+
+  "MapInMem.findHnIdsByNames(...)" should:
+    "find HnIds by names from in-memory state" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        data.mapInMem.setMapState(data.dcgStateFromSubGraph).await
+
+        val expectedResult = data.conNodes
+          .groupBy(n => n.name.getOrElse(fail(s"Node name is not defined, n = $n")))
+          .map((name, nodes) => name -> nodes.map(_.id).toSet)
+
+        val result = data.mapInMem
+          .findHnIdsByNames(expectedResult.keySet)
+          .logValue(tn).await
+
+        result mustBe expectedResult
+
   "MapInMem.getForIoValues(...)" should:
     "get nodes for io values from in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
@@ -77,13 +160,17 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         foundNodes mustBe data.conDcgNodesMap
         notFoundValues mustBe Set(data.testNotInMap)
 
-  "MapInMem.addNewSamples(...)" should:
-    "add new samples to in-memory state" in newCase[CaseData]: (tn, data) =>
+  "MapInMem.reset()"  should:
+    "reset in-memory map state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        data.mapInMem.setMapState(data.initialDcgState).await
+        data.mapInMem.setMapState(data.dcgStateFromSubGraph).await
 
-        val result = data.mapInMem.addNewSamples(data.sampleListNew).logValue(tn).await
-        val state = data.mapInMem.getMapState.logValue(tn).await
+        data.mapInMem.reset().await
 
-        result.view.map((_, s) => s.data.name).toSet mustBe data.sampleListNew.list.map(_.name).toSet
-        result.keySet mustBe state.allSampleIds
+        val infoState = data.mapInMem.getMapInfo.logValue(tn).await
+        val dcgState = data.mapInMem.getMapState.logValue(tn).await
+        val idsCountState = data.mapInMem.getIdsCount.logValue(tn).await
+
+        infoState mustBe MapInfoState.empty[IO]
+        dcgState mustBe DcgState.empty[IO]
+        idsCountState mustBe IdsCountState.init

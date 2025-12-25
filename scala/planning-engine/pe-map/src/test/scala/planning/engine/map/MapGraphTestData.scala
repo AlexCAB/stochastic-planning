@@ -134,7 +134,7 @@ trait MapGraphTestData:
     newSample.copy(name = None, edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
     newSample.copy(name = None, edges = Set(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
   )
-  
+
   lazy val testSampleIndexies: SampleIndexies = SampleIndexies(
     sampleId = SampleId(101),
     sourceIndex = HnIndex(201),

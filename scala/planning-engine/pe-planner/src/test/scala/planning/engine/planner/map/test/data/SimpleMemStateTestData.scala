@@ -22,6 +22,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
@@ -43,6 +44,7 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
   lazy val sampleId2 = SampleId(1002)
   lazy val sampleId3 = SampleId(1003)
   lazy val sampleId4 = SampleId(1004)
+  lazy val sampleId5 = SampleId(1005)
 
   lazy val conNodes = List(hnId1, hnId2).map(id => makeConcreteNode(id = id))
   lazy val absNodes = List(hnId3, hnId4).map(id => makeAbstractNode(id = id))
@@ -52,12 +54,13 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
 
   lazy val initSamples = List(
     makeSample(sampleId1, hnId1, hnId2),
-    makeSample(sampleId2, hnId2, hnId1)
+    makeSample(sampleId2, hnId2, hnId1),
+    makeSample(sampleId3, hnId2, hnId1),
   )
 
   lazy val newSamples = List(
-    makeSample(sampleId3, hnId2, hnId1),
-    makeSample(sampleId4, hnId3, hnId4)
+    makeSample(sampleId4, hnId2, hnId1),
+    makeSample(sampleId5, hnId3, hnId4)
   )
 
   lazy val initialDcgState: DcgState[IO] = DcgState.empty[IO]
@@ -102,3 +105,9 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
     makeNewSampleData(hnId1, hnId2, name = Name.some("New Sample 01")),
     makeNewSampleData(hnId2, hnId3, name = Name.some("New Sample 02"))
   ))
+
+  lazy val concreteNodesNew = ConcreteNode
+    .ListNew(conNodes.map(n => ConcreteNode.New(n.name, n.description, n.ioNode.name, n.valueIndex)))
+
+  lazy val abstractNodesNew = AbstractNode
+    .ListNew(absNodes.map(n => AbstractNode.New(n.name, n.description)))

@@ -30,4 +30,4 @@ object MapResetResponse:
   implicit val decoder: Decoder[MapResetResponse] = deriveDecoder[MapResetResponse]
   implicit val encoder: Encoder[MapResetResponse] = deriveEncoder[MapResetResponse]
 
-  def emptyInMem[F[_]: Async](): F[MapResetResponse] = MapResetResponse(Some(DbName("in-mem")), None).pure[F]
+  def emptyInMem[F[_]: Async]: F[MapResetResponse] = MapResetResponse(Some(DbName("in-mem")), None).pure[F]

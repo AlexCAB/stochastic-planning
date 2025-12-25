@@ -22,6 +22,7 @@ import planning.engine.planner.map.dcg.state.DcgState
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.edges.DcgEdge.Key
 
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](stateCell: AtomicCell[F, DcgState[F]]):
   private[map] def stateUpdated(state: DcgState[F]): F[Unit]
@@ -41,7 +42,8 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](stateCell: AtomicCell[
         samples <- newSamples
         _ <- Validation.validateList(samples)
         _ <- (state.allHnIds, samples.flatMap(_.allHnIds)).assertContainsAll("New samples contain unknown HnIds")
-        dcgEdges <- samples.traverse(_.edges.toList.traverse(DcgEdge.apply)).map(_.flatten)
+        allEdges = samples.flatMap(_.edges.toList).groupBy(e => Key(e.edgeType, e.source.hnId, e.target.hnId)).toList
+        dcgEdges <- allEdges.traverse((k, es) => DcgEdge(k, es))
         stateWithEdges <- state.mergeEdges(dcgEdges)
         stateWithSamples <- stateWithEdges.addSamples(samples.map(_.data))
       yield (stateWithSamples, samples.map(s => s.data.id -> s).toMap)

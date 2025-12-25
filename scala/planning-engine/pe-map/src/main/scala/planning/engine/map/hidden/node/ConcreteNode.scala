@@ -32,7 +32,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
     ioNode: IoNode[F],
     valueIndex: IoIndex
 ) extends HiddenNode[F]:
-  
+
   lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
 
   override def toString: String = s"ConcreteHiddenNode(" +

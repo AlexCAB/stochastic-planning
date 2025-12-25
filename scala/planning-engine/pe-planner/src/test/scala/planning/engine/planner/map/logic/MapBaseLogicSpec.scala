@@ -75,15 +75,17 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
           
           val dcgEdges = data
             .initSamples.flatMap(_.edges)
-            .traverse(e => DcgEdge[IO](e)).await.map(e => e.key -> e).toMap
+            .groupBy(e => DcgEdge.Key(e.edgeType, e.source.hnId, e.target.hnId))
+            .toList
+            .traverse((k, es) => DcgEdge[IO](k, es)).await.map(e => e.key -> e).toMap
 
           result mustBe data.initSamples.map(s => s.data.id -> s).toMap
           state.ioValues mustBe data.conNodes.map(n => n.ioValue -> Set(n.id)).toMap
           state.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
           state.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
           state.edges mustBe dcgEdges
-          state.forwardLinks mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId3))
-          state.backwardLinks mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId3 -> Set(data.hnId2))
+          state.forwardLinks mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
+          state.backwardLinks mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
           state.forwardThen mustBe Map.empty
           state.backwardThen mustBe Map.empty
           state.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap

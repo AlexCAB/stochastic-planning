@@ -58,12 +58,12 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]]
   ): F[Unit] = mapInfoCell.evalModify(info =>
-    if info.isEmpty then 
-      for 
-        info <-  MapInfoState[F](metadata, inNodes, outNodes)
+    if info.isEmpty then
+      for
+        info <- MapInfoState[F](metadata, inNodes, outNodes)
         _ <- dcgStateCell.set(DcgState.empty[F])
         _ <- idsCountCell.set(IdsCountState.init)
-        _ <-logger.info(s"Initialized MapInMem with metadata: $metadata")
+        _ <- logger.info(s"Initialized MapInMem with metadata: $metadata")
       yield (info, ())
     else
       s"MapInMem is already initialized and cannot be initialized again".assertionError
@@ -97,7 +97,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
   override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]] =
     addNewSamplesToCache(buildSamples(samples))
 
-  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, List[HnId]]] =
+  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] =
     for
       state <- getMapState
       result <- state.findHnIdsByNames(names)

@@ -15,28 +15,22 @@ package planning.engine.api.service.map
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.model.map.{
-  MapAddSamplesRequest,
-  MapAddSamplesResponse,
-  MapInfoResponse,
-  MapInitRequest,
-  MapLoadRequest,
-  MapResetResponse
-}
+import planning.engine.api.model.map.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.map.MapInMemLike
 import planning.engine.common.errors.*
 
-class MapInMemService[F[_]: {Async, LoggerFactory}](map: MapInMemLike[F]) extends MapServiceBase[F]
-    with MapServiceLike[F]:
-  def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure
+class MapInMemService[F[_]: {Async, LoggerFactory}](map: MapInMemLike[F])
+    extends MapServiceBase[F] with MapServiceLike[F]:
 
-  def load(request: MapLoadRequest): F[MapInfoResponse] =
+  override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure
+
+  override def load(request: MapLoadRequest): F[MapInfoResponse] =
     "Load operation is not supported in in-memory map service".assertionError
 
-  def init(request: MapInitRequest): F[MapInfoResponse] =
+  override def init(request: MapInitRequest): F[MapInfoResponse] =
     for
       metadata <- request.toMetadata
       inputNodes <- request.toInputNodes
@@ -49,9 +43,9 @@ class MapInMemService[F[_]: {Async, LoggerFactory}](map: MapInMemLike[F]) extend
       numOutputNodes = outputNodes.size
     )
 
-  def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem())
+  override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])
 
-  def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] =
+  override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] =
     for
       _ <- Validation.validate(definition)
       _ <- Validation.validateList(definition.samples)

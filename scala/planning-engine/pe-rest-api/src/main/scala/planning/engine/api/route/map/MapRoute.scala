@@ -21,9 +21,10 @@ import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
 import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.circe.*
+import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.route.RouteBase
 
-class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends RouteBase[F] with Http4sDsl[F]:
+class MapRoute[F[_]: {Concurrent, LoggerFactory}](service: MapServiceLike[F]) extends RouteBase[F] with Http4sDsl[F]:
   import MapInitRequest.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
@@ -48,5 +49,5 @@ class MapRoute[F[_]: Concurrent](service: MapServiceLike[F]) extends RouteBase[F
       yield response
 
 object MapRoute:
-  def apply[F[_]: Concurrent](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =
+  def apply[F[_]: {Concurrent, LoggerFactory}](service: MapServiceLike[F]): Resource[F, MapRoute[F]] =
     Resource.eval(MonadThrow[F].pure(new MapRoute[F](service)))

@@ -21,6 +21,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.samples.sample.SampleEdge
+import planning.engine.map.samples.sample.SampleEdge.End
 import planning.engine.planner.map.dcg.edges.DcgEdge.Indexies
 
 class DcgEdgeSpec extends UnitSpecWithData:
@@ -61,6 +62,12 @@ class DcgEdgeSpec extends UnitSpecWithData:
         .toMap
     )
 
+    lazy val key = DcgEdge.Key(
+      edgeType = sampleEdge.edgeType,
+      sourceId = sampleEdge.source.hnId,
+      targetId = sampleEdge.target.hnId
+    )
+
   "DcgEdge.hnIds" should:
     "return correct set of HnIds" in newCase[CaseData]: (tn, data) =>
       data.dcgEdge.pure[IO].logValue(tn).asserting(_.hnIds mustBe Set(
@@ -94,6 +101,32 @@ class DcgEdgeSpec extends UnitSpecWithData:
     "crete DcgEdge correctly from HiddenEdge" in newCase[CaseData]: (tn, data) =>
       DcgEdge[IO](data.hiddenEdge).logValue(tn).asserting(_ mustBe data.dcgEdge)
 
-  "DcgEdge.apply(SampleEdge)" should:
-    "crete DcgEdge correctly from SampleEdge" in newCase[CaseData]: (tn, data) =>
-      DcgEdge[IO](data.sampleEdge).logValue(tn).asserting(_ mustBe data.dcgEdge)
+  "DcgEdge.apply(Key, List[SampleEdge])" should:
+    "crete DcgEdge correctly from Key, List[SampleEdge]" in newCase[CaseData]: (tn, data) =>
+      DcgEdge[IO](data.key, List(data.sampleEdge)).logValue(tn).asserting(_ mustBe data.dcgEdge)
+
+    "fail if key not match" in newCase[CaseData]: (tn, data) =>
+      DcgEdge[IO](data.key, List(data.sampleEdge.copy(source = End(HnId(-1), HnIndex(-1))))).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Edge keys from SampleEdges do not"))
+
+    "fail if duplicate SampleIds" in newCase[CaseData]: (tn, data) =>
+      DcgEdge[IO](data.key, List(data.sampleEdge, data.sampleEdge)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate SampleIds in SampleEdges"))
+
+    "fail if empty SampleEdges" in newCase[CaseData]: (tn, data) =>
+      DcgEdge[IO](data.key, List()).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("SampleEdges list is empty"))
+
+    "fail if Duplicate Source value" in newCase[CaseData]: (tn, data) =>
+      val sampleEdge2 = data.sampleEdge.copy(sampleId = SampleId(12))
+      DcgEdge[IO](data.key, List(data.sampleEdge, sampleEdge2)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Source value in SampleEdges"))
+
+    "fail if Duplicate Target value" in newCase[CaseData]: (tn, data) =>
+      val sampleEdge2 = data.sampleEdge.copy(
+        sampleId = SampleId(12),
+        source = End(data.sampleEdge.source.hnId, HnIndex(999)),
+        target = data.sampleEdge.target
+      )
+      DcgEdge[IO](data.key, List(data.sampleEdge, sampleEdge2)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Target value in SampleEdges"))

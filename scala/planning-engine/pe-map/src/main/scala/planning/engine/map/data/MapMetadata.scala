@@ -36,5 +36,5 @@ object MapMetadata:
         description <- node.getOptional[F, String](PROP.DESCRIPTION).flatMap(Description.fromString)
       yield MapMetadata(name, description)
     case _ => s"Not a root node, $node".assertionError
-    
+
   lazy val empty: MapMetadata = MapMetadata(None, None)

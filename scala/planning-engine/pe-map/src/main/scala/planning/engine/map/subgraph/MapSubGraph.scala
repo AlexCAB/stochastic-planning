@@ -51,8 +51,8 @@ final case class MapSubGraph[F[_]: MonadThrow](
       allSamplesIds.isDistinct("Sample IDs must be distinct"),
       allSamplesIds.haveSameElems(allEdgeSamplesIds, "All edge sample IDs must exist in loaded or skipped samples")
     )
-    
-object MapSubGraph: 
+
+object MapSubGraph:
   def emptySubGraph[F[_]: MonadThrow]: MapSubGraph[F] = MapSubGraph[F](
     concreteNodes = List.empty,
     abstractNodes = List.empty,

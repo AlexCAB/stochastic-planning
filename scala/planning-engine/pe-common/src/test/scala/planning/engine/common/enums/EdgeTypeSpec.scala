@@ -44,14 +44,14 @@ class EdgeTypeSpec extends AnyWordSpecLike with Matchers with EitherValues:
 
   "EdgeType.isThen" should:
     "return true for THEN link" in:
-        EdgeType.THEN.isThen mustBe true
-        
+      EdgeType.THEN.isThen mustBe true
+
     "return false for LINK link" in:
-        EdgeType.LINK.isThen mustBe false
-        
+      EdgeType.LINK.isThen mustBe false
+
   "EdgeType.isLink" should:
     "return true for LINK link" in:
-        EdgeType.LINK.isLink mustBe true
-        
+      EdgeType.LINK.isLink mustBe true
+
     "return false for THEN link" in:
-        EdgeType.THEN.isLink mustBe false
+      EdgeType.THEN.isLink mustBe false

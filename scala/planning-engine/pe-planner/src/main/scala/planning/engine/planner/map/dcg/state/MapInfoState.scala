@@ -29,7 +29,7 @@ final case class MapInfoState[F[_]: MonadThrow](
 
   def getIoNode(name: IoName): F[IoNode[F]] = allIoNodes.get(name) match
     case Some(node) => node.pure
-    case _          => s"Input node with name $name not found".assertionError
+    case _          => s"IO node with name $name not found".assertionError
 
   override def toString: String =
     s"""MapInfoState(

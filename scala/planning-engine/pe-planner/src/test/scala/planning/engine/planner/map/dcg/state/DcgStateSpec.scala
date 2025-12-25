@@ -364,4 +364,4 @@ class DcgStateSpec extends UnitSpecWithData:
         val result = data.stateWithNodes.findHnIdsByNames(Set(name1, name2)).await
         logInfo(tn, s"result: $result").await
 
-        result mustBe Map(name1 -> data.absNodes.filter(_.name.contains(name1)).map(_.id), name2 -> List())
+        result mustBe Map(name1 -> data.absNodes.filter(_.name.contains(name1)).map(_.id).toSet)

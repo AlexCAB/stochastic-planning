@@ -173,7 +173,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
           .when(*)
           .onCall: params =>
             for
-              _ <- IO.delay(params mustEqual testSample)
+              _ <- IO.delay(params mustEqual testSampleList)
               _ <- logInfo(tn, s"Got params = $params")
             yield (expectedSamples, List("edge1", "edge2"))
           .once()

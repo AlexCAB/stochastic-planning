@@ -19,9 +19,12 @@ import org.http4s.dsl.Http4sDsl
 import io.circe.syntax.EncoderOps
 import cats.syntax.all.*
 import org.http4s.circe.*
+import org.typelevel.log4cats.LoggerFactory
 
-trait RouteBase[F[_]: Concurrent]:
+trait RouteBase[F[_]: {Concurrent, LoggerFactory}]:
   self: Http4sDsl[F] =>
+
+  private val logger = LoggerFactory[F].getLogger
 
   private def throwableToJson(err: Throwable): Json = Json.obj(
     "error" -> Json.fromString(err.getMessage),
@@ -31,4 +34,8 @@ trait RouteBase[F[_]: Concurrent]:
   extension [T](result: F[T])
     def response(implicit encoder: Encoder[T]): F[Response[F]] = result
       .flatMap(info => Ok(info.asJson))
-      .recoverWith(err => InternalServerError(throwableToJson(err)))
+      .recoverWith: err =>
+        for
+          _ <- logger.error(err)("Error processing request: ")
+          response <- InternalServerError(throwableToJson(err))
+        yield response

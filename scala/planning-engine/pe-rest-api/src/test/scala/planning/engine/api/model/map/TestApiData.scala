@@ -21,12 +21,12 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.io.IoName
-import planning.engine.common.values.node.HnName
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.config.MapConfig
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
-import planning.engine.map.samples.sample.{Sample, SampleData}
+import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 
 trait TestApiData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -155,3 +155,39 @@ trait TestApiData:
   )
 
   lazy val testSample: Sample = Sample(data = testSampleData, edges = Set())
+
+  lazy val testHnIdMap = Map(
+    testConNodeDef1.name -> HnId(101L),
+    testConNodeDef2.name -> HnId(102L),
+    testAbsNodeDef1.name -> HnId(103L),
+    testAbsNodeDef2.name -> HnId(104L)
+  )
+
+  lazy val findHnIdsByNamesRes: Map[HnName, List[HnId]] = Map(
+    testConNodeDef1.name -> List(testHnIdMap(testConNodeDef1.name)),
+    testAbsNodeDef1.name -> List(testHnIdMap(testAbsNodeDef1.name))
+  )
+
+  lazy val newConcreteNodesRes = Map(testHnIdMap(testConNodeDef2.name) -> Some(testConNodeDef2.name))
+  lazy val newAbstractNodesRes = Map(testHnIdMap(testAbsNodeDef2.name) -> Some(testAbsNodeDef2.name))
+
+  lazy val expectedSampleNewList = Sample.ListNew(
+    testMapAddSamplesRequest.samples.map: sampleData =>
+      Sample.New(
+        probabilityCount = sampleData.probabilityCount,
+        utility = sampleData.utility,
+        name = sampleData.name,
+        description = sampleData.description,
+        edges = sampleData.edges.toSet.map(edge =>
+          SampleEdge.New(
+            source = testHnIdMap(edge.sourceHnName),
+            target = testHnIdMap(edge.targetHnName),
+            edgeType = edge.edgeType
+          )
+        )
+      )
+  )
+
+  lazy val testResponse = MapAddSamplesResponse(
+    testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name))
+  )

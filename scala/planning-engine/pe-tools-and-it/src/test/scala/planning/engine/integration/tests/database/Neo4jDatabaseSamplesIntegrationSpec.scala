@@ -123,7 +123,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
       .map: fetchedSamples =>
         samples.size mustEqual fetchedSamples.size
         samples.foreach: sample =>
-          val fetchedSample= fetchedSamples
+          val fetchedSample = fetchedSamples
             .getOrElse(sample.data.id, fail(s"Sample not found for id: ${sample.data.id}"))
 
           fetchedSample.data mustEqual sample.data

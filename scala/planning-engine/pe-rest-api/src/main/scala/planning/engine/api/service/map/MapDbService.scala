@@ -85,10 +85,10 @@ class MapDbService[F[_]: {Async, LoggerFactory}](
       (listNewCon, listNewAbs) <- definition.listNewNotFoundHn(foundHnIdMap.keySet, graph.getIoNode)
       newConHnIds <- graph.newConcreteNodes(listNewCon)
       newAbsHnIds <- graph.newAbstractNodes(listNewAbs)
-      hnIdMap <- composeHnIdMap(foundHnIdMap, newConHnIds, newAbsHnIds)
+      hnIdMap <- composeHnIdMap(foundHnIdMap.map((k, v) => k -> v.toSet), newConHnIds, newAbsHnIds)
       sampleNewList <- definition.toSampleNewList(hnIdMap)
-      sampleIds <- graph.addNewSamples(sampleNewList)
-      sampleNameMap <- graph.getSampleNames(sampleIds.map(_.data.id))
+      sampleIds <- graph.addNewSamples(sampleNewList).map(_.map(_.data.id))
+      sampleNameMap <- graph.getSampleNames(sampleIds)
       _ <- (sampleIds, sampleNameMap.keys).assertSameElems("Seems bug: not for all sampleIds names found")
     yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
 

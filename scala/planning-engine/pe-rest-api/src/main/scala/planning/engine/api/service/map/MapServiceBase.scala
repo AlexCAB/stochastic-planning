@@ -19,15 +19,15 @@ import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.errors.*
 
 abstract class MapServiceBase[F[_]: {Async, LoggerFactory}]:
-  protected def composeHnIdMap(
-      foundHnIdMap: Map[HnName, List[HnId]],
+  private[map] def composeHnIdMap(
+      foundHnIdMap: Map[HnName, Set[HnId]],
       newConHnIds: Map[HnId, Option[HnName]],
       newAbsHnIds: Map[HnId, Option[HnName]]
   ): F[Map[HnName, HnId]] =
     for
       foundIds <- foundHnIdMap.toList.traverse:
-        case (name, id :: Nil) => (name -> id).pure
-        case (name, ids)       => s"Expect exactly one variable with name $name, but got: $ids".assertionError
+        case (name, ids) if ids.size == 1 => (name -> ids.head).pure
+        case (name, ids) => s"Expect exactly one variable with name $name, but got: $ids".assertionError
       newIds <- (newConHnIds.toList ++ newAbsHnIds.toList).traverse:
         case (id, Some(name)) => (name -> id).pure
         case (id, _)          => s"No name found for hnId: $id".assertionError

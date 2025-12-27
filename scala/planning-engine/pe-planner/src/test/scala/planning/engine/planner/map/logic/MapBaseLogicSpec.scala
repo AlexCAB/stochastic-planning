@@ -23,16 +23,18 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
     val stateUpdatedStub = stubFunction[DcgState[IO], IO[Unit]]
+    val visualizationStub = stub[MapVisualizationLike[IO]]
+
     val changedDcgState = initialDcgState.copy(ioValues = Map(testIoValue -> Set()))
     val dcgStateCell: AtomicCell[IO, DcgState[IO]] = AtomicCell[IO].of(initialDcgState).unsafeRunSync()
 
-    val mapBaseLogic = new MapBaseLogic[IO](dcgStateCell):
-      override private[map] def stateUpdated(state: DcgState[IO]): IO[Unit] = stateUpdatedStub(state)
+    val mapBaseLogic = new MapBaseLogic[IO](visualizationStub, dcgStateCell) {}
 
   "MapBaseLogic.getMapState" should:
     "get current map state" in newCase[CaseData]: (tn, data) =>
@@ -47,7 +49,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "MapBaseLogic.modifyMapState(...)" should:
     "modify map state and call stateUpdated" in newCase[CaseData]: (tn, data) =>
-      data.stateUpdatedStub.when(data.changedDcgState).returning(IO.unit).once()
+      data.visualizationStub.stateUpdated.when(data.changedDcgState).returning(IO.unit).once()
 
       async[IO]:
         val result = data.mapBaseLogic
@@ -60,7 +62,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
     "MapBaseLogic.addNewSamplesToCache(...)" should:
       "add new samples to the map state" in newCase[CaseData]: (tn, data) =>
-        data.stateUpdatedStub.when(*)
+        data.visualizationStub.stateUpdated.when(*)
           .onCall: state =>
             for
               _ <- logInfo(tn, s"State updated called with $state")

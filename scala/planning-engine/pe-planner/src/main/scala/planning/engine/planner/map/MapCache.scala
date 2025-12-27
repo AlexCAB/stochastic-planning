@@ -30,14 +30,14 @@ import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.state.DcgState
 import planning.engine.planner.map.logic.MapBaseLogic
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
+    visualization: MapVisualizationLike[F],
     stateCell: AtomicCell[F, DcgState[F]]
-) extends MapBaseLogic[F](stateCell) with MapLike[F]:
+) extends MapBaseLogic[F](visualization, stateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
-
-  private[map] override def stateUpdated(state: DcgState[F]): F[Unit] = Async[F].unit
 
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
     for
@@ -48,7 +48,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     yield subGraph
 
   override def getIoNode(name: IoName): F[IoNode[F]] = ???
-  
+
   override def addNewConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
 
   override def addNewAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
@@ -75,7 +75,10 @@ class MapCache[F[_]: {Async, LoggerFactory}](
   override def reset(): F[Unit] = ???
 
 object MapCache:
-  def apply[F[_]: {Async, LoggerFactory}](mapGraph: MapGraphLake[F]): F[MapCache[F]] =
+  def apply[F[_]: {Async, LoggerFactory}](
+      mapGraph: MapGraphLake[F],
+      visualization: MapVisualizationLike[F]
+  ): F[MapCache[F]] =
     for
         state <- AtomicCell[F].of(DcgState.empty[F])
-    yield new MapCache(mapGraph, state)
+    yield new MapCache(mapGraph, visualization, state)

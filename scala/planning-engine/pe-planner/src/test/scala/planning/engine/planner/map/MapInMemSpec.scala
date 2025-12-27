@@ -20,11 +20,13 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
-    val mapInMem = MapInMem[IO]().unsafeRunSync()
+    val visualizationStub = stub[MapVisualizationLike[IO]]
+    val mapInMem = MapInMem[IO](visualizationStub).unsafeRunSync()
 
   "MapInMem.buildSamples(...)" should:
     "build samples from naw samples" in newCase[CaseData]: (tn, data) =>
@@ -94,6 +96,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewConcreteNodes(...)" should:
     "add new concrete nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
+        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
         data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).await
 
         val result = data.mapInMem.addNewConcreteNodes(data.concreteNodesNew).logValue(tn).await
@@ -111,6 +114,8 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewAbstractNodes(...)" should:
     "add new abstract nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
+        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
+        
         val result = data.mapInMem.addNewAbstractNodes(data.abstractNodesNew).logValue(tn).await
         val state = data.mapInMem.getMapState.logValue(tn).await
 
@@ -125,6 +130,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewSamples(...)" should:
     "add new samples to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
+        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
         data.mapInMem.setMapState(data.initialDcgState).await
 
         val result = data.mapInMem.addNewSamples(data.sampleListNew).logValue(tn).await
@@ -160,7 +166,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         foundNodes mustBe data.conDcgNodesMap
         notFoundValues mustBe Set(data.testNotInMap)
 
-  "MapInMem.reset()"  should:
+  "MapInMem.reset()" should:
     "reset in-memory map state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         data.mapInMem.setMapState(data.dcgStateFromSubGraph).await

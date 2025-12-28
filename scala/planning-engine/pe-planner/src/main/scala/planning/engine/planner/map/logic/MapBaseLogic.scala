@@ -23,10 +23,10 @@ import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.edges.DcgEdge.Key
-import planning.engine.planner.map.visualization.MapVisualizationLike
+import planning.engine.planner.map.visualization.MapVisInLike
 
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
-    visualization: MapVisualizationLike[F],
+    visualization: MapVisInLike[F],
     stateCell: AtomicCell[F, DcgState[F]]
 ):
   private[map] def getMapState: F[DcgState[F]] = stateCell.get

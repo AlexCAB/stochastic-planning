@@ -12,8 +12,8 @@
 
 //  Versions
 
-val http4sVersion = "1.0.0-M44"
-val circeVersion = "0.14.12"
+val http4sVersion = "1.0.0-M45"
+val circeVersion = "0.14.15"
 
 // Subprojects settings
 

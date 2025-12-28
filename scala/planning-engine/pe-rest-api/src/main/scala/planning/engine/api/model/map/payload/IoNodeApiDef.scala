@@ -27,7 +27,7 @@ final case class ListStrIoNodeDef(name: IoName, elements: List[String]) extends 
 
 object IoNodeApiDef:
   import io.circe.generic.auto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   given Encoder[IoNodeApiDef] = new Encoder[IoNodeApiDef]:
     final def apply(data: IoNodeApiDef): Json = data match

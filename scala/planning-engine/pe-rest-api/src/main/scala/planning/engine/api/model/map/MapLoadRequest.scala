@@ -19,7 +19,7 @@ final case class MapLoadRequest(dbName: DbName)
 
 object MapLoadRequest:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   implicit val decoder: Decoder[MapLoadRequest] = deriveDecoder[MapLoadRequest]
   implicit val encoder: Encoder[MapLoadRequest] = deriveEncoder[MapLoadRequest]

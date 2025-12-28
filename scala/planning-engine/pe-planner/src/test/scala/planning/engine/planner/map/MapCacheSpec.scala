@@ -27,13 +27,13 @@ import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
 import planning.engine.planner.map.dcg.state.DcgState
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
-import planning.engine.planner.map.visualization.MapVisualizationLike
+import planning.engine.planner.map.visualization.MapVisInLike
 
 class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
     val mapGraphStub = stub[MapGraphLake[IO]]
-    val visualizationStub = stub[MapVisualizationLike[IO]]
+    val visualizationStub = stub[MapVisInLike[IO]]
     val mapCache = MapCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
 
     def setLoadSubgraphForIoValue(

@@ -53,7 +53,7 @@ final case class MapInitRequest(
 
 object MapInitRequest:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   implicit val decoder: Decoder[MapInitRequest] = deriveDecoder[MapInitRequest]
   implicit val encoder: Encoder[MapInitRequest] = deriveEncoder[MapInitRequest]

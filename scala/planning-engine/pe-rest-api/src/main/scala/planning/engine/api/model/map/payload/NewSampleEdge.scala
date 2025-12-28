@@ -24,8 +24,8 @@ final case class NewSampleEdge(
 
 object NewSampleEdge:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
-  import planning.engine.api.model.enums.*
+  import planning.engine.api.model.json.values.*
+  import planning.engine.api.model.json.enums.*
 
   implicit val decoder: Decoder[NewSampleEdge] = deriveDecoder[NewSampleEdge]
   implicit val encoder: Encoder[NewSampleEdge] = deriveEncoder[NewSampleEdge]

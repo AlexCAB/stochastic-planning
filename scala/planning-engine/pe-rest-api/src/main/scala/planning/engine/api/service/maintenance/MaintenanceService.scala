@@ -13,12 +13,11 @@
 package planning.engine.api.service.maintenance
 
 import cats.effect.{Async, Resource}
-import cats.effect.std.{Env, CountDownLatch}
+import cats.effect.std.{CountDownLatch, Env}
 import planning.engine.api.model.maintenance.HealthResponse
-import planning.engine.api.model.enums.Status
 import org.typelevel.log4cats.LoggerFactory
-
 import cats.syntax.all.*
+import planning.engine.api.model.maintenance.HealthResponse.Status
 
 trait MaintenanceServiceLike[F[_]]:
   def getHealth: F[HealthResponse]

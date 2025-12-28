@@ -18,6 +18,9 @@ import planning.engine.common.UnitSpecWithData
 import com.comcast.ip4s.{Host, Port}
 import planning.engine.database.Neo4jConf
 import planning.engine.map.config.MapConfig
+import planning.engine.planner.config.MapVisualizationConfig
+
+import scala.concurrent.duration.DurationInt
 
 class MainConfSpec extends UnitSpecWithData:
 
@@ -42,10 +45,14 @@ class MainConfSpec extends UnitSpecWithData:
         |  init-sample-count = 3
         |  init-next-hn-index = 4
         |}
+        |planner.map.visualization {
+        |  enabled = false
+        |  long-pull-timeout = 1 minute
+        |}
         |""".stripMargin
     )
 
-  "MainConf.formConfig(...)" should:
+  "MainConfSpec.formConfig(...)" should:
     "load MainConf from valid configuration" in newCase[CaseData]: (tn, data) =>
       MainWithDbConf.formConfig[IO](data.validConfig)
         .logValue(tn, "MainConf")
@@ -57,5 +64,9 @@ class MainConfSpec extends UnitSpecWithData:
             initNextSampleId = 2L,
             initSampleCount = 3L,
             initNextHnIndex = 4L
+          ),
+          visualization = MapVisualizationConfig(
+            enabled = false,
+            longPullTimeout = 1.minute
           )
         ))

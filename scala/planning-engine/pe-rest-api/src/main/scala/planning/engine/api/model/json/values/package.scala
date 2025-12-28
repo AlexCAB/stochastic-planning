@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-08 |||||||||||*/
 
-package planning.engine.api.model
+package planning.engine.api.model.json
 
 import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import planning.engine.common.values.text.{Description, Name}

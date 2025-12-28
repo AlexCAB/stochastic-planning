@@ -37,5 +37,5 @@ object MainRestWithDb extends AppBase:
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints
 
-      _ <- buildServer(mainConf.server, rootRoute)
+      _ <- buildServer(mainConf.server, _ => rootRoute)
     yield maintenanceService

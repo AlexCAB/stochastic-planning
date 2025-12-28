@@ -23,7 +23,7 @@ final case class ShortSampleData(
 
 object ShortSampleData:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   implicit val decoder: Decoder[ShortSampleData] = deriveDecoder[ShortSampleData]
   implicit val encoder: Encoder[ShortSampleData] = deriveEncoder[ShortSampleData]

@@ -19,8 +19,10 @@ import planning.engine.api.app.AppBase
 import planning.engine.api.config.MainInMemConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
+import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapInMemService
+import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.planner.map.MapInMem
 import planning.engine.planner.map.visualization.MapVisualization
 
@@ -28,8 +30,9 @@ object MainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
       mainConf <- MainInMemConf.default[IO]
-      visualization <- Resource.eval(MapVisualization[IO]())
-      map <- Resource.eval(MapInMem[IO](visualization))
+
+      visualization <- MapVisualization[IO](mainConf.visualization)
+      map <- MapInMem[IO](visualization)
 
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute[IO](maintenanceService)
@@ -37,7 +40,10 @@ object MainRestInMem extends AppBase:
       mapService <- MapInMemService[IO](map)
       mapRoute <- MapRoute[IO](mapService)
 
+      visualizationService <- VisualizationService[IO]()
+      visualizationRoute <- VisualizationRoute[IO](visualizationService)
+
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints
 
-      _ <- buildServer(mainConf.server, rootRoute)
+      _ <- buildServer(mainConf.server, ws => rootRoute <+> visualizationRoute.endpoints(ws))
     yield maintenanceService

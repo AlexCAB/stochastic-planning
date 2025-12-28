@@ -12,6 +12,7 @@
 
 package planning.engine.planner.map
 
+import cats.effect.Resource
 import cats.effect.kernel.Async
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
@@ -27,13 +28,13 @@ import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import planning.engine.planner.map.visualization.MapVisualizationLike
+import planning.engine.planner.map.visualization.MapVisInLike
 
 trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit]
 
 class MapInMem[F[_]: {Async, LoggerFactory}](
-    visualization: MapVisualizationLike[F],
+    visualization: MapVisInLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, DcgState[F]],
     idsCountCell: AtomicCell[F, IdsCountState]
@@ -123,9 +124,12 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     yield ()
 
 object MapInMem:
-  def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
+  def init[F[_]: {Async, LoggerFactory}](visualization: MapVisInLike[F]): F[MapInMem[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
       dcgState <- AtomicCell[F].of(DcgState.empty[F])
       idsCount <- AtomicCell[F].of(IdsCountState.init)
     yield new MapInMem(visualization, mapInfo, dcgState, idsCount)
+
+  def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisInLike[F]): Resource[F, MapInMem[F]] =
+    Resource.eval(init(visualization))

@@ -15,14 +15,15 @@
 val slf4jVersion = "2.0.17"
 val logbackVersion = "1.5.18"
 val log4catsSlf4jVersion = "2.7.0"
-val pureConfigCoreVersion = "0.17.8"
+val pureConfigCoreVersion = "0.17.9"
 val catsCoreVersion = "2.13.0"
 val neo4jJavaDriverVersion = "5.28.5"
 val neoTypesCatsVersion = "1.2.2"
 val catsEffectVersion = "3.6.3"
+val fs2Version = "3.12.0"
 val scalatestVersion = "3.2.19"
-val catsEffectTestingScalatestVersion = "1.6.0"
-val catsEffectCpsVersion = "0.3.0"
+val catsEffectTestingScalatestVersion = "1.7.0"
+val catsEffectCpsVersion = "0.5.0"
 val scalamockVersion = "7.5.2"
 
 // Subprojects settings
@@ -42,6 +43,8 @@ libraryDependencies ++= Seq(
 
   "org.typelevel" %% "cats-core" % catsCoreVersion,
   "org.typelevel" %% "cats-effect" % catsEffectVersion,
+
+  "co.fs2" %% "fs2-core" % fs2Version,
 
   "org.neo4j.driver" % "neo4j-java-driver" % neo4jJavaDriverVersion,
 

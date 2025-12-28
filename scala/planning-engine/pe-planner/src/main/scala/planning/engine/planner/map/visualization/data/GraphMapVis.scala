@@ -8,13 +8,8 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-04-19 |||||||||||*/
+| created: 2025-12-27 |||||||||||*/
 
-package planning.engine.api.model.enums
+package planning.engine.planner.map.visualization.data
 
-import io.circe.derivation.{Configuration, ConfiguredEnumCodec}
-
-given Configuration = Configuration.default
-
-enum Status derives ConfiguredEnumCodec:
-  case OK, UNKNOWN, ERROR
+class GraphMapVis

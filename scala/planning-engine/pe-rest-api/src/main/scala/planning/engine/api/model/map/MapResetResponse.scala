@@ -25,7 +25,7 @@ final case class MapResetResponse(
 
 object MapResetResponse:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   implicit val decoder: Decoder[MapResetResponse] = deriveDecoder[MapResetResponse]
   implicit val encoder: Encoder[MapResetResponse] = deriveEncoder[MapResetResponse]

@@ -23,13 +23,13 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.state.DcgState
-import planning.engine.planner.map.visualization.MapVisualizationLike
+import planning.engine.planner.map.visualization.MapVisInLike
 
 class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
     val stateUpdatedStub = stubFunction[DcgState[IO], IO[Unit]]
-    val visualizationStub = stub[MapVisualizationLike[IO]]
+    val visualizationStub = stub[MapVisInLike[IO]]
 
     val changedDcgState = initialDcgState.copy(ioValues = Map(testIoValue -> Set()))
     val dcgStateCell: AtomicCell[IO, DcgState[IO]] = AtomicCell[IO].of(initialDcgState).unsafeRunSync()

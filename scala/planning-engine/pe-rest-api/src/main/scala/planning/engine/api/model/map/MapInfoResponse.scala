@@ -30,7 +30,7 @@ final case class MapInfoResponse(
 
 object MapInfoResponse:
   import io.circe.generic.semiauto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   implicit val decoder: Decoder[MapInfoResponse] = deriveDecoder[MapInfoResponse]
   implicit val encoder: Encoder[MapInfoResponse] = deriveEncoder[MapInfoResponse]

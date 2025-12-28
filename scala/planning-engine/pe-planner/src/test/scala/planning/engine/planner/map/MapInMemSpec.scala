@@ -20,13 +20,13 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
-import planning.engine.planner.map.visualization.MapVisualizationLike
+import planning.engine.planner.map.visualization.MapVisInLike
 
 class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
-    val visualizationStub = stub[MapVisualizationLike[IO]]
-    val mapInMem = MapInMem[IO](visualizationStub).unsafeRunSync()
+    val visualizationStub = stub[MapVisInLike[IO]]
+    val mapInMem = MapInMem.init[IO](visualizationStub).unsafeRunSync()
 
   "MapInMem.buildSamples(...)" should:
     "build samples from naw samples" in newCase[CaseData]: (tn, data) =>

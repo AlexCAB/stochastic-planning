@@ -30,7 +30,6 @@ class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with Te
     "get map state from in-mem map" in newCase[CaseData]: (tn, data) =>
       data.service.getState.logValue(tn).asserting(_ mustBe None)
 
-
   "MapInMemService.load(...)" should:
     "load map into in-mem map" in newCase[CaseData]: (tn, data) =>
       data.service
@@ -58,7 +57,7 @@ class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with Te
         (() => data.mapInMemStub.reset()).when().returning(IO.unit).once()
         data.service.reset().logValue(tn).await mustBe MapResetResponse.emptyInMem[IO].await
 
-  "MapService.addSamples(...)" should :
+  "MapService.addSamples(...)" should:
     "add new samples to the map" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val addedSamples = testResponse.addedSamples
@@ -70,7 +69,7 @@ class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with Te
           .onCall: name =>
             ioNodes.get(name) match
               case Some(node) => IO.pure(node)
-              case None => fail(s"No IoNode found for name: $name")
+              case None       => fail(s"No IoNode found for name: $name")
           .once()
 
         data.mapInMemStub.findHnIdsByNames

@@ -12,8 +12,9 @@
 
 package planning.engine.api.model.maintenance
 
-import planning.engine.api.model.enums.Status
-import io.circe.{Encoder, Decoder}
+import io.circe.derivation.{Configuration, ConfiguredEnumCodec}
+import planning.engine.api.model.maintenance.HealthResponse.Status
+import io.circe.{Decoder, Encoder}
 
 final case class HealthResponse(status: Status, version: String)
 
@@ -22,3 +23,8 @@ object HealthResponse:
 
   implicit val decoder: Decoder[HealthResponse] = deriveDecoder[HealthResponse]
   implicit val encoder: Encoder[HealthResponse] = deriveEncoder[HealthResponse]
+
+  given Configuration = Configuration.default
+
+  enum Status derives ConfiguredEnumCodec:
+    case OK, UNKNOWN, ERROR

@@ -53,7 +53,7 @@ final case class AbstractNodeDef(name: HnName, description: Option[Description])
 
 object HiddenNodeDef:
   import io.circe.generic.auto.*
-  import planning.engine.api.model.values.*
+  import planning.engine.api.model.json.values.*
 
   given Encoder[HiddenNodeDef] = new Encoder[HiddenNodeDef]:
     final def apply(data: HiddenNodeDef): Json = data match

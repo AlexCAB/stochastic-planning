@@ -25,15 +25,15 @@ import planning.engine.map.MapGraphLake
 import planning.engine.map.samples.sample.Sample
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
-import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
-import planning.engine.planner.map.visualization.MapVisInLike
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
     val mapGraphStub = stub[MapGraphLake[IO]]
-    val visualizationStub = stub[MapVisInLike[IO]]
+    val visualizationStub = stub[MapVisualizationLike[IO]]
     val mapCache = MapCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
 
     def setLoadSubgraphForIoValue(
@@ -58,8 +58,8 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
         yield result
       .once()
 
-    def setStateUpdated(expectedState: DcgState[IO]): Unit =
-      visualizationStub.stateUpdated.when(expectedState).returns(IO.unit).once()
+    def setStateUpdated(expectedInfo: MapInfoState[IO], expectedState: DcgState[IO]): Unit =
+      visualizationStub.stateUpdated.when(expectedInfo, expectedState).returns(IO.unit).once()
 
   "MapCache.load(...)" should:
     "load map graph from cache" in newCase[CaseData]: (tn, data) =>
@@ -108,9 +108,11 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
     "get nodes from map graph and update empty cache" in newCase[CaseData]: (tn, data) =>
       val request = data.ioValues :+ data.testNotInMap
       data.setLoadSubgraphForIoValue(request, List(), data.mapSubGraph)
-      data.setStateUpdated(data.dcgStateFromSubGraph)
+      data.setStateUpdated(data.testMapInfoState, data.dcgStateFromSubGraph)
 
       async[IO]:
+        data.mapCache.setMapInfo(data.testMapInfoState).await
+
         val (loaded, notFound) = data.mapCache.getForIoValues(request.toSet).logValue(tn).await
         loaded mustBe data.conDcgNodesMap
         notFound mustBe Set(data.testNotInMap)
@@ -133,9 +135,10 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
         MapSubGraph.emptySubGraph[IO]
       )
 
-      data.setStateUpdated(data.dcgStateFromSubGraph)
+      data.setStateUpdated(data.testMapInfoState, data.dcgStateFromSubGraph)
 
       async[IO]:
+        data.mapCache.setMapInfo(data.testMapInfoState).await
         data.mapCache.setMapState(data.dcgStateFromSubGraph).await
 
         val (loaded, notFound) = data.mapCache
@@ -148,7 +151,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapCache.addNewSamples(...)" should:
     "add new samples to map graph and update cache" in newCase[CaseData]: (tn, data) =>
       data.setAddNewSamples(data.sampleListNew, data.newSamples)
-      data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
+      data.visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
 
       async[IO]:
         data.mapCache.setMapState(data.initialDcgState).await

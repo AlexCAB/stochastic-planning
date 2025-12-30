@@ -20,13 +20,15 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
-import planning.engine.planner.map.visualization.MapVisInLike
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
-    val visualizationStub = stub[MapVisInLike[IO]]
+    val visualizationStub = stub[MapVisualizationLike[IO]]
     val mapInMem = MapInMem.init[IO](visualizationStub).unsafeRunSync()
+
+    def setMapVisStab() = visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
 
   "MapInMem.buildSamples(...)" should:
     "build samples from naw samples" in newCase[CaseData]: (tn, data) =>
@@ -56,6 +58,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.init(...)" should:
     "initialize in-memory map state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
+        data.setMapVisStab()
         data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).logValue(tn).await
 
         val infoState = data.mapInMem.getMapInfo.logValue(tn).await
@@ -69,6 +72,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         idsCountState.isInit mustBe true
 
     "fail if initialized more than once" in newCase[CaseData]: (tn, data) =>
+      data.setMapVisStab()
       data.mapInMem
         .init(data.testMetadata, data.testInNodes, data.testOutNodes)
         .flatMap(_ => data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes))
@@ -78,7 +82,8 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.getIoNode(...)" should:
     "get io node by name from in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).await
+        data.visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
+        data.mapInMem.setMapInfo(data.testMapInfoState).await
 
         val inNode = data.mapInMem.getIoNode(data.testInNodes.head.name).logValue(tn).await
         val outNode = data.mapInMem.getIoNode(data.testOutNodes.head.name).logValue(tn).await
@@ -87,6 +92,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         outNode mustBe data.testOutNodes.head
 
     "fail if io node name not found" in newCase[CaseData]: (tn, data) =>
+      data.setMapVisStab()
       data.mapInMem
         .init(data.testMetadata, data.testInNodes, data.testOutNodes)
         .flatMap(_ => data.mapInMem.getIoNode(IoName("unknown_node")))
@@ -96,8 +102,8 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewConcreteNodes(...)" should:
     "add new concrete nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
-        data.mapInMem.init(data.testMetadata, data.testInNodes, data.testOutNodes).await
+        data.setMapVisStab()
+        data.mapInMem.setMapInfo(data.testMapInfoState).await
 
         val result = data.mapInMem.addNewConcreteNodes(data.concreteNodesNew).logValue(tn).await
         val state = data.mapInMem.getMapState.logValue(tn).await
@@ -114,8 +120,8 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewAbstractNodes(...)" should:
     "add new abstract nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
-        
+        data.setMapVisStab()
+
         val result = data.mapInMem.addNewAbstractNodes(data.abstractNodesNew).logValue(tn).await
         val state = data.mapInMem.getMapState.logValue(tn).await
 
@@ -130,7 +136,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapInMem.addNewSamples(...)" should:
     "add new samples to in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        data.visualizationStub.stateUpdated.when(*).returns(IO.unit).once()
+        data.setMapVisStab()
         data.mapInMem.setMapState(data.initialDcgState).await
 
         val result = data.mapInMem.addNewSamples(data.sampleListNew).logValue(tn).await

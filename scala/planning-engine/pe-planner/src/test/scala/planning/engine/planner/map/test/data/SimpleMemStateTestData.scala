@@ -27,7 +27,7 @@ import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
-import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 
 trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with MapDcgNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -55,7 +55,7 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
   lazy val initSamples = List(
     makeSample(sampleId1, hnId1, hnId2),
     makeSample(sampleId2, hnId2, hnId1),
-    makeSample(sampleId3, hnId2, hnId1),
+    makeSample(sampleId3, hnId2, hnId1)
   )
 
   lazy val newSamples = List(
@@ -111,3 +111,9 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
 
   lazy val abstractNodesNew = AbstractNode
     .ListNew(absNodes.map(n => AbstractNode.New(n.name, n.description)))
+
+  lazy val testMapInfoState: MapInfoState[IO] = MapInfoState[IO](
+    metadata = testMetadata,
+    inNodes = testInNodes.map(n => n.name -> n).toMap,
+    outNodes = testOutNodes.map(n => n.name -> n).toMap
+  )

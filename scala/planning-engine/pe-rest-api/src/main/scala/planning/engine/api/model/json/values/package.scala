@@ -17,7 +17,7 @@ import planning.engine.common.values.text.{Description, Name}
 import cats.syntax.all.*
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.HnName
+import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.{LongVal, StringVal}
 
@@ -51,6 +51,9 @@ package object values:
 
   implicit val encodeDbName: Encoder[DbName] = encodeStringVal[DbName]
   implicit val decodeDbName: Decoder[DbName] = decodeStringVal[DbName](DbName.apply)
+
+  implicit val encodeHnId: Encoder[HnId] = encodeLongVal[HnId]
+  implicit val decodeHnId: Decoder[HnId] = decodeLongVal[HnId](HnId.apply)
 
   implicit val encodeSampleId: Encoder[SampleId] = encodeLongVal[SampleId]
   implicit val decodeSampleId: Decoder[SampleId] = decodeLongVal[SampleId](SampleId.apply)

@@ -32,11 +32,7 @@ final case class MapInfoState[F[_]: MonadThrow](
     case _          => s"IO node with name $name not found".assertionError
 
   override def toString: String =
-    s"""MapInfoState(
-       | metadata=$metadata, 
-       | inNodes=[${inNodes.keys.mkString(", ")}], 
-       | outNodes=[${outNodes.keys.mkString(", ")}]
-       |)""".stripMargin
+    s"MapInfoState(name = ${metadata.name}, inNodes = ${inNodes.size}, outNodes = ${outNodes.size})"
 
 object MapInfoState:
   def empty[F[_]: MonadThrow]: MapInfoState[F] = new MapInfoState[F](MapMetadata.empty, Map.empty, Map.empty)

@@ -28,15 +28,16 @@ import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.logic.MapBaseLogic
-import planning.engine.planner.map.visualization.MapVisInLike
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
-    visualization: MapVisInLike[F],
+    visualization: MapVisualizationLike[F],
+    mapInfoCell: AtomicCell[F, MapInfoState[F]],
     stateCell: AtomicCell[F, DcgState[F]]
-) extends MapBaseLogic[F](visualization, stateCell) with MapLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
@@ -77,8 +78,9 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 object MapCache:
   def apply[F[_]: {Async, LoggerFactory}](
       mapGraph: MapGraphLake[F],
-      visualization: MapVisInLike[F]
+      visualization: MapVisualizationLike[F]
   ): F[MapCache[F]] =
     for
-        state <- AtomicCell[F].of(DcgState.empty[F])
-    yield new MapCache(mapGraph, visualization, state)
+      mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
+      state <- AtomicCell[F].of(DcgState.empty[F])
+    yield new MapCache(mapGraph, visualization, mapInfo, state)

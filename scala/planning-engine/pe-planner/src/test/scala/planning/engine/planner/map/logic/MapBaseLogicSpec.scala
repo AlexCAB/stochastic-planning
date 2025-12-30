@@ -22,19 +22,20 @@ import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.planner.map.dcg.state.DcgState
-import planning.engine.planner.map.visualization.MapVisInLike
+import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
     val stateUpdatedStub = stubFunction[DcgState[IO], IO[Unit]]
-    val visualizationStub = stub[MapVisInLike[IO]]
+    val visualizationStub = stub[MapVisualizationLike[IO]]
 
     val changedDcgState = initialDcgState.copy(ioValues = Map(testIoValue -> Set()))
+    val mapInfoCell: AtomicCell[IO, MapInfoState[IO]] = AtomicCell[IO].of(testMapInfoState).unsafeRunSync()
     val dcgStateCell: AtomicCell[IO, DcgState[IO]] = AtomicCell[IO].of(initialDcgState).unsafeRunSync()
 
-    val mapBaseLogic = new MapBaseLogic[IO](visualizationStub, dcgStateCell) {}
+    val mapBaseLogic = new MapBaseLogic[IO](visualizationStub, mapInfoCell, dcgStateCell) {}
 
   "MapBaseLogic.getMapState" should:
     "get current map state" in newCase[CaseData]: (tn, data) =>
@@ -49,7 +50,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "MapBaseLogic.modifyMapState(...)" should:
     "modify map state and call stateUpdated" in newCase[CaseData]: (tn, data) =>
-      data.visualizationStub.stateUpdated.when(data.changedDcgState).returning(IO.unit).once()
+      data.visualizationStub.stateUpdated.when(data.testMapInfoState, data.changedDcgState).returning(IO.unit).once()
 
       async[IO]:
         val result = data.mapBaseLogic
@@ -62,10 +63,11 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
     "MapBaseLogic.addNewSamplesToCache(...)" should:
       "add new samples to the map state" in newCase[CaseData]: (tn, data) =>
-        data.visualizationStub.stateUpdated.when(*)
-          .onCall: state =>
+        data.visualizationStub.stateUpdated.when(*, *)
+          .onCall: (info, state) =>
             for
               _ <- logInfo(tn, s"State updated called with $state")
+              _ <- IO.delay(info mustBe data.testMapInfoState)
               _ <- IO.delay(state.allHnIds mustBe data.allHnId)
               _ <- IO.delay(state.allSampleIds mustBe data.initSamples.map(_.data.id).toSet)
             yield ()

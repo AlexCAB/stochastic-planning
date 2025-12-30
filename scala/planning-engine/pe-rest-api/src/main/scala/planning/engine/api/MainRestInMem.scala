@@ -24,24 +24,23 @@ import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapInMemService
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.planner.map.MapInMem
-import planning.engine.planner.map.visualization.MapVisualization
+
 
 object MainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
       mainConf <- MainInMemConf.default[IO]
 
-      visualization <- MapVisualization[IO](mainConf.visualization)
-      map <- MapInMem[IO](visualization)
+      visualizationService <- VisualizationService[IO]()
+      visualizationRoute <- VisualizationRoute[IO](visualizationService)
+
+      map <- MapInMem[IO](visualizationService)
 
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute[IO](maintenanceService)
 
       mapService <- MapInMemService[IO](map)
       mapRoute <- MapRoute[IO](mapService)
-
-      visualizationService <- VisualizationService[IO]()
-      visualizationRoute <- VisualizationRoute[IO](visualizationService)
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints
 

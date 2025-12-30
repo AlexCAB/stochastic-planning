@@ -36,9 +36,8 @@ final case class DcgState[F[_]: MonadThrow](
 ):
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
   lazy val allSampleIds: Set[SampleId] = samplesData.keySet
-  
-  lazy val isEmpty: Boolean =
-    ioValues.isEmpty &&
+
+  lazy val isEmpty: Boolean = ioValues.isEmpty &&
     concreteNodes.isEmpty &&
     abstractNodes.isEmpty &&
     edges.isEmpty &&
@@ -175,6 +174,9 @@ final case class DcgState[F[_]: MonadThrow](
       allNodes <- (concreteNodes.values ++ abstractNodes.values).pure[F]
       grouped = allNodes.filter(n => n.name.isDefined && names.contains(n.name.get)).groupBy(_.name.get)
     yield grouped.view.mapValues(_.map(_.id).toSet).toMap
+
+  override def toString: String =
+    s"DcgState(concreteNodes = ${concreteNodes.keys}, abstractNodes = ${abstractNodes.keys})"
 
 object DcgState:
   def empty[F[_]: MonadThrow]: DcgState[F] = new DcgState[F](

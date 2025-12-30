@@ -28,20 +28,18 @@ import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import planning.engine.planner.map.visualization.MapVisInLike
+import planning.engine.planner.map.visualization.MapVisualizationLike
 
 trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit]
 
 class MapInMem[F[_]: {Async, LoggerFactory}](
-    visualization: MapVisInLike[F],
+    visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, DcgState[F]],
     idsCountCell: AtomicCell[F, IdsCountState]
-) extends MapBaseLogic[F](visualization, dcgStateCell) with MapInMemLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
-
-  private[map] def getMapInfo: F[MapInfoState[F]] = mapInfoCell.get
   private[map] def getIdsCount: F[IdsCountState] = idsCountCell.get
 
   private[map] def buildSamples(newSamples: Sample.ListNew): F[List[Sample]] =
@@ -65,6 +63,8 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
         info <- MapInfoState[F](metadata, inNodes, outNodes)
         _ <- dcgStateCell.set(DcgState.empty[F])
         _ <- idsCountCell.set(IdsCountState.init)
+        state <- dcgStateCell.get
+        _ <- visualization.stateUpdated(info, state)
         _ <- logger.info(s"Initialized MapInMem with metadata: $metadata")
       yield (info, ())
     else
@@ -124,12 +124,12 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     yield ()
 
 object MapInMem:
-  def init[F[_]: {Async, LoggerFactory}](visualization: MapVisInLike[F]): F[MapInMem[F]] =
+  def init[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
       dcgState <- AtomicCell[F].of(DcgState.empty[F])
       idsCount <- AtomicCell[F].of(IdsCountState.init)
     yield new MapInMem(visualization, mapInfo, dcgState, idsCount)
 
-  def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisInLike[F]): Resource[F, MapInMem[F]] =
+  def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): Resource[F, MapInMem[F]] =
     Resource.eval(init(visualization))

@@ -29,12 +29,12 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.common.errors.assertionError
 import planning.engine.map.data.MapMetadata
 
-class MapDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
+class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 
   private class CaseData extends Case:
     lazy val testNumOfHiddenNodes = 5L
     lazy val mockBuilder = mock[MapBuilderLike[IO]]
-    lazy val emptyService = MapDbService(testConfig, mockBuilder).use(_.pure).unsafeRunSync()
+    lazy val emptyService = MapWithDbService(testConfig, mockBuilder).use(_.pure).unsafeRunSync()
 
     def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): MapGraphLake[IO] =
       val ioNodes = (inNodes ++ outNodes).map(node => node.name -> node).toMap
@@ -46,7 +46,7 @@ class MapDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestA
 
     lazy val mockedGraph = mock[MapGraphLake[IO]]
     lazy val service =
-      new MapDbService(testConfig, mockBuilder, AtomicCell[IO].of(Some((mockedGraph, testDbName))).unsafeRunSync())
+      new MapWithDbService(testConfig, mockBuilder, AtomicCell[IO].of(Some((mockedGraph, testDbName))).unsafeRunSync())
 
   "MapService.reset(...)" should:
     "reset map graph" in newCase[CaseData]: (tn, data) =>

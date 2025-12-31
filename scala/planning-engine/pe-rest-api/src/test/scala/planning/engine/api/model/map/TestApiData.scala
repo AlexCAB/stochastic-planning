@@ -16,17 +16,23 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import io.circe.Json
 import planning.engine.api.model.map.payload.*
+import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.io.IoName
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.map.config.MapConfig
+import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
+import planning.engine.planner.map.dcg.state.DcgState
+import planning.engine.planner.map.dcg.nodes.*
+import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.state.MapInfoState
 
 trait TestApiData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -190,4 +196,62 @@ trait TestApiData:
 
   lazy val testResponse = MapAddSamplesResponse(
     testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name))
+  )
+
+  lazy val testConcreteDcgNode = ConcreteDcgNode[IO](
+    id = HnId(3000005),
+    name = Some(HnName("boolOutputNode")),
+    description = Description.some("Concrete Dcg Node for bool output"),
+    ioNode = booleanIoNode,
+    valueIndex = IoIndex(2000001)
+  )
+
+  lazy val testAbstractDcgNode = AbstractDcgNode[IO](
+    id = HnId(3000007),
+    name = Some(HnName("abstractNode1")),
+    description = Description.some("Abstract Dcg Node 1")
+  )
+
+  lazy val testDcgEdge = DcgEdge[IO](
+    key = DcgEdge.Key(
+      sourceId = testConcreteDcgNode.id,
+      targetId = testAbstractDcgNode.id,
+      edgeType = EdgeType.THEN
+    ),
+    samples = Map(
+      testSampleData.id -> DcgEdge.Indexies(
+        sourceIndex = HnIndex(2000001),
+        targetIndex = HnIndex(3000001)
+      )
+    )
+  )
+
+  lazy val testDcgState = DcgState[IO](
+    ioValues = Map(testConcreteDcgNode.ioValue -> Set(testConcreteDcgNode.id)),
+    concreteNodes = Map(testConcreteDcgNode.id -> testConcreteDcgNode),
+    abstractNodes = Map(testAbstractDcgNode.id -> testAbstractDcgNode),
+    edges = Map(testDcgEdge.key -> testDcgEdge),
+    forwardLinks = Map(testConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
+    backwardLinks = Map(testAbstractDcgNode.id -> Set(testConcreteDcgNode.id)),
+    forwardThen = Map(testConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
+    backwardThen = Map(testAbstractDcgNode.id -> Set(testConcreteDcgNode.id)),
+    samplesData = Map(testSampleData.id -> testSampleData)
+  )
+
+  lazy val testMapInfoState = MapInfoState[IO](
+    metadata = MapMetadata(Name.some("Test Map"), Description.some("A map used for testing MapInfoState")),
+    inNodes = Map(booleanIoNode.name -> booleanIoNode),
+    outNodes = Map(intIoNode.name -> intIoNode)
+  )
+
+  lazy val testMapVisualizationMsg = MapVisualizationMsg(
+    inNodes = testMapInfoState.inNodes.keySet,
+    outNodes = testMapInfoState.outNodes.keySet,
+    ioValues = testDcgState.ioValues.toList.map((k, v) => (k.name, v)),
+    concreteNodes = testDcgState.concreteNodes.keySet,
+    abstractNodes = testDcgState.abstractNodes.keySet,
+    forwardLinks = testDcgState.forwardLinks.toList,
+    backwardLinks = testDcgState.backwardLinks.toList,
+    forwardThen = testDcgState.forwardThen.toList,
+    backwardThen = testDcgState.backwardThen.toList
   )

@@ -20,7 +20,7 @@ import planning.engine.api.config.MainWithDbConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
-import planning.engine.api.service.map.MapDbService
+import planning.engine.api.service.map.MapWithDbService
 import planning.engine.map.MapBuilder
 
 object MainRestWithDb extends AppBase:
@@ -32,7 +32,7 @@ object MainRestWithDb extends AppBase:
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute(maintenanceService)
 
-      mapService <- MapDbService[IO](mainConf.mapGraph, builder)
+      mapService <- MapWithDbService[IO](mainConf.mapGraph, builder)
       mapRoute <- MapRoute(mapService)
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints

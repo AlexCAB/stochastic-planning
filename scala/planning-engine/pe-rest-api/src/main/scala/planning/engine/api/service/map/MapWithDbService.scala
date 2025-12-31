@@ -23,7 +23,7 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.config.MapConfig
 
-class MapDbService[F[_]: {Async, LoggerFactory}](
+class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]]
@@ -92,12 +92,12 @@ class MapDbService[F[_]: {Async, LoggerFactory}](
       _ <- (sampleIds, sampleNameMap.keys).assertSameElems("Seems bug: not for all sampleIds names found")
     yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
 
-object MapDbService:
+object MapWithDbService:
   def apply[F[_]: {Async, LoggerFactory}](
       config: MapConfig,
       builder: MapBuilderLike[F]
-  ): Resource[F, MapDbService[F]] = Resource.eval(
+  ): Resource[F, MapWithDbService[F]] = Resource.eval(
     AtomicCell[F].of[Option[(MapGraphLake[F], DbName)]](None).map(mgState =>
-      new MapDbService[F](config, builder, mgState)
+      new MapWithDbService[F](config, builder, mgState)
     )
   )

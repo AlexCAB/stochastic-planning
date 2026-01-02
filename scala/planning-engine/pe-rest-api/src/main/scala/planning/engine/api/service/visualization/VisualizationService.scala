@@ -39,7 +39,7 @@ class VisualizationService[F[_]: {Async, LoggerFactory}](
     .map((info, state) => MapVisualizationMsg.fromState(info, state))
 
   override val mapReceiveWs: Pipe[F, String, Unit] =
-    in => in.evalMap(frameIn => logger.info("Ping received: " + frameIn))
+    in => in.evalMap(frameIn => logger.info("Pong received: " + frameIn))
 
   override def stateUpdated(info: MapInfoState[F], state: DcgState[F]): F[Unit] =
     if config.mapEnabled then

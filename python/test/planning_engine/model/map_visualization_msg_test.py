@@ -13,6 +13,7 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2026-01-01 ||||||||||"""
 
 import unittest
+import json
 
 from planning_engine.model.map_visualization_msg import MapVisualizationMsg
 
@@ -20,6 +21,32 @@ from planning_engine.model.map_visualization_msg import MapVisualizationMsg
 class TestMapVisualizationMsg(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestMapVisualizationMsg, self).__init__(*args, **kwargs)
+
+        self.empty_raw_json = (
+            '{'
+            '  "inNodes": [],'
+            '  "outNodes": [],'
+            '  "ioValues": [],'
+            '  "concreteNodes": [],'
+            '  "abstractNodes": [],'
+            '  "forwardLinks": [],'
+            '  "backwardLinks": [],'
+            '  "forwardThen": [],'
+            '  "backwardThen": []'
+            '}')
+
+        self.filled_raw_json = (
+            '{'
+            '  "inNodes": ["Input1", "Input2"],'
+            '  "outNodes": ["Output1"],'
+            '  "ioValues": [["Input1", [1, 2]], ["Output1", [3]]],'
+            '  "concreteNodes": [1, 2, 3],'
+            '  "abstractNodes": [4, 5],'
+            '  "forwardLinks": [[1, [2]], [2, [3]]],'
+            '  "backwardLinks": [[3, [2]], [2, [1]]],'
+            '  "forwardThen": [[1, [4]], [2, [5]]],'
+            '  "backwardThen": [[4, [1]], [5, [2]]]'
+            '}')
 
         self.json_data = {
             "inNodes": ["Input1", "Input2"],
@@ -59,11 +86,13 @@ class TestMapVisualizationMsg(unittest.TestCase):
     def test_creates_instance_with_valid_parameters(self):
         self.validate(self.msg)
 
-    def test_from_json_with_valid_json(self):
-        self.validate(MapVisualizationMsg.from_json(self.json_data))
+    def test_from_empty_raw_json_with_valid_json(self):
+        data = MapVisualizationMsg.from_raw_json(self.empty_raw_json)
+        self.assertEqual(data.in_nodes, set([]))
+        self.assertEqual(data.out_nodes, set([]))
 
-    def test_to_json(self):
-        self.assertEqual(MapVisualizationMsg.from_json(self.msg.to_json()), self.msg)
+    def test_from_filled_raw_json_with_valid_json(self):
+        self.validate(MapVisualizationMsg.from_raw_json(self.filled_raw_json))
 
 
 if __name__ == '__main__':

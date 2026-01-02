@@ -13,9 +13,9 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2025-07-16 ||||||||||"""
 
 import logging
-from typing import Dict, Any, List, Callable, Optional
-
 import requests
+
+from typing import Dict, Any, List, Callable, Optional
 from requests import Response
 from websocket import WebSocketApp, ABNF
 
@@ -95,7 +95,7 @@ class PeClient:
             self,
             on_open: Callable[[WebSocketApp], None],
             on_message: Callable[[WebSocketApp, MapVisualizationMsg], None],
-            on_ping: Optional[Callable[[WebSocketApp], None]]
+            on_ping: Optional[Callable[[WebSocketApp], None]] = None
     ) -> WebSocketApp:
         def on_open_wrapper(ws_app: WebSocketApp):
             ws_app.send_text("Connection established for map visualization")
@@ -105,8 +105,8 @@ class PeClient:
         def on_message_wrapper(ws_app: WebSocketApp, message: Any):
             assert message, "WebSocket message should not be empty"
             assert isinstance(message, str), "WebSocket message should be a string"
-            self.logger.info("WebSocket message received for map visualization")
-            msg_json = MapVisualizationMsg.from_json_dicts(message)
+            self.logger.info(f"WebSocket message received for map visualization, data: {message}")
+            msg_json = MapVisualizationMsg.from_raw_json(message)
             on_message(ws_app, msg_json)
 
         def on_ping_wrapper(wsapp, data):

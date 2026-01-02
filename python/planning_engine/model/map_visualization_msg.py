@@ -12,14 +12,18 @@ r"""|||||||||||||||||||||||||||||||
 | website: github.com/alexcab |||||
 | created: 2025-12-31 ||||||||||"""
 
-from typing import Dict, Any, Optional, Set, Tuple
+from typing import Dict, Any, Set
+import json
 
 
 class MapVisualizationMsg:
 
     @staticmethod
-    def from_json(json_data: Dict[str, Any]) -> MapVisualizationMsg:
-        assert json_data, "JSON data should not be empty"
+    def from_raw_json(json_str: str) -> MapVisualizationMsg:
+        assert json_str, "JSON data should not be empty"
+
+        json_data = json.loads(json_str)
+
         assert 'inNodes' in json_data, "Input nodes should be defined in JSON data"
         assert 'outNodes' in json_data, "Output nodes should be defined in JSON data"
         assert 'ioValues' in json_data, "IO values should be defined in JSON data"
@@ -33,13 +37,13 @@ class MapVisualizationMsg:
         return MapVisualizationMsg(
             in_nodes=set(json_data['inNodes']),
             out_nodes=set(json_data['outNodes']),
-            io_values={k: set(v) for k, v in json_data['ioValues'].items()},
+            io_values={str(e[0]): set(e[1]) for e in json_data['ioValues']},
             concrete_nodes=set(json_data['concreteNodes']),
             abstract_nodes=set(json_data['abstractNodes']),
-            forward_links={int(k): set(v) for k, v in json_data['forwardLinks'].items()},
-            backward_links={int(k): set(v) for k, v in json_data['backwardLinks'].items()},
-            forward_then={int(k): set(v) for k, v in json_data['forwardThen'].items()},
-            backward_then={int(k): set(v) for k, v in json_data['backwardThen'].items()}
+            forward_links={int(e[0]): set(e[1]) for e in json_data['forwardLinks']},
+            backward_links={int(e[0]): set(e[1]) for e in json_data['backwardLinks']},
+            forward_then={int(e[0]): set(e[1]) for e in json_data['forwardThen']},
+            backward_then={int(e[0]): set(e[1]) for e in json_data['backwardThen']}
         )
 
     def __init__(
@@ -53,11 +57,11 @@ class MapVisualizationMsg:
             backward_links: Dict[int, Set[int]],
             forward_then: Dict[int, Set[int]],
             backward_then: Dict[int, Set[int]]):
-        assert in_nodes, "Input nodes should be defined"
+        assert in_nodes is not None, "Input nodes should be defined"
         assert isinstance(in_nodes, set), "Input nodes should be a set"
-        assert out_nodes, "Output nodes should be defined"
+        assert out_nodes is not None, "Output nodes should be defined"
         assert isinstance(out_nodes, set), "Output nodes should be a set"
-        assert io_values, "IO values should be defined"
+        assert io_values is not None, "IO values should be defined"
         assert isinstance(io_values, dict), "IO values should be a dictionary"
         assert concrete_nodes is not None, "Concrete nodes should be defined"
         assert isinstance(concrete_nodes, set), "Concrete nodes should be a set"
@@ -94,19 +98,6 @@ class MapVisualizationMsg:
             and self.forward_then == other.forward_then \
             and self.backward_then == other.backward_then
 
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "inNodes": list(self.in_nodes),
-            "outNodes": list(self.out_nodes),
-            "ioValues": {k: list(v) for k, v in self.io_values.items()},
-            "concreteNodes": list(self.concrete_nodes),
-            "abstractNodes": list(self.abstract_nodes),
-            "forwardLinks": {str(k): list(v) for k, v in self.forward_links.items()},
-            "backwardLinks": {str(k): list(v) for k, v in self.backward_links.items()},
-            "forwardThen": {str(k): list(v) for k, v in self.forward_then.items()},
-            "backwardThen": {str(k): list(v) for k, v in self.backward_then.items()}
-        }
-
     def __str__(self):
         return (
             f"MapVisualizationMsg(\n"
@@ -121,3 +112,6 @@ class MapVisualizationMsg:
             f"    backward_then = {self.backward_then}\n"
             f")"
         )
+
+    def __repr__(self):
+        return self.__str__()

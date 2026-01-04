@@ -109,10 +109,10 @@ class PeClient:
             msg_json = MapVisualizationMsg.from_raw_json(message)
             on_message(ws_app, msg_json)
 
-        def on_ping_wrapper(wsapp, data):
-            wsapp.send(data="pong", opcode=ABNF.OPCODE_PONG)
+        def on_ping_wrapper(ws_app):
+            ws_app.send(data="pong", opcode=ABNF.OPCODE_PONG)
             if on_ping:
-                on_ping(wsapp)
+                on_ping(ws_app)
 
         return WebSocketApp(
             url=self.conf.ws_base + PeClient.PATH_MAP_VIS,

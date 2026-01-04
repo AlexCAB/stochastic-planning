@@ -1,5 +1,6 @@
 # Venv
 .venv
+poetry.lock
 
 # IDE
 .idea

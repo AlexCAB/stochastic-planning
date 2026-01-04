@@ -13,9 +13,10 @@ r"""|||||||||||||||||||||||||||||||
 | created: 2026-01-01 ||||||||||"""
 
 import unittest
-import json
+import networkx as nx
 
 from planning_engine.model.map_visualization_msg import MapVisualizationMsg
+from networkx import DiGraph
 
 
 class TestMapVisualizationMsg(unittest.TestCase):
@@ -29,10 +30,8 @@ class TestMapVisualizationMsg(unittest.TestCase):
             '  "ioValues": [],'
             '  "concreteNodes": [],'
             '  "abstractNodes": [],'
-            '  "forwardLinks": [],'
-            '  "backwardLinks": [],'
-            '  "forwardThen": [],'
-            '  "backwardThen": []'
+            '  "linkEdges": [],'
+            '  "thenEdges": []'
             '}')
 
         self.filled_raw_json = (
@@ -42,23 +41,9 @@ class TestMapVisualizationMsg(unittest.TestCase):
             '  "ioValues": [["Input1", [1, 2]], ["Output1", [3]]],'
             '  "concreteNodes": [1, 2, 3],'
             '  "abstractNodes": [4, 5],'
-            '  "forwardLinks": [[1, [2]], [2, [3]]],'
-            '  "backwardLinks": [[3, [2]], [2, [1]]],'
-            '  "forwardThen": [[1, [4]], [2, [5]]],'
-            '  "backwardThen": [[4, [1]], [5, [2]]]'
+            '  "linkEdges": [[1, [2, 4]], [2, [3]]],'
+            '  "thenEdges": [[3, [2]], [2, [1, 5]]]'
             '}')
-
-        self.json_data = {
-            "inNodes": ["Input1", "Input2"],
-            "outNodes": ["Output1"],
-            "ioValues": {"Input1": [1, 2], "Output1": [3]},
-            "concreteNodes": [1, 2, 3],
-            "abstractNodes": [4, 5],
-            "forwardLinks": {"1": [2], "2": [3]},
-            "backwardLinks": {"3": [2], "2": [1]},
-            "forwardThen": {"1": [4], "2": [5]},
-            "backwardThen": {"4": [1], "5": [2]}
-        }
 
         self.msg = MapVisualizationMsg(
             in_nodes={"Input1", "Input2"},
@@ -66,10 +51,8 @@ class TestMapVisualizationMsg(unittest.TestCase):
             io_values={"Input1": {1, 2}, "Output1": {3}},
             concrete_nodes={1, 2, 3},
             abstract_nodes={4, 5},
-            forward_links={1: {2}, 2: {3}},
-            backward_links={3: {2}, 2: {1}},
-            forward_then={1: {4}, 2: {5}},
-            backward_then={4: {1}, 5: {2}}
+            link_edges={1: {2, 4}, 2: {3}},
+            then_edges={3: {2}, 2: {1, 5}}
         )
 
     def validate(self, msg):
@@ -78,10 +61,8 @@ class TestMapVisualizationMsg(unittest.TestCase):
         self.assertEqual(msg.io_values, {"Input1": {1, 2}, "Output1": {3}})
         self.assertEqual(msg.concrete_nodes, {1, 2, 3})
         self.assertEqual(msg.abstract_nodes, {4, 5})
-        self.assertEqual(msg.forward_links, {1: {2}, 2: {3}})
-        self.assertEqual(msg.backward_links, {3: {2}, 2: {1}})
-        self.assertEqual(msg.forward_then, {1: {4}, 2: {5}})
-        self.assertEqual(msg.backward_then, {4: {1}, 5: {2}})
+        self.assertEqual(msg.link_edges, {1: {2, 4}, 2: {3}})
+        self.assertEqual(msg.then_edges, {3: {2}, 2: {1, 5}})
 
     def test_creates_instance_with_valid_parameters(self):
         self.validate(self.msg)
@@ -93,6 +74,20 @@ class TestMapVisualizationMsg(unittest.TestCase):
 
     def test_from_filled_raw_json_with_valid_json(self):
         self.validate(MapVisualizationMsg.from_raw_json(self.filled_raw_json))
+
+    def test_to_graph(self):
+        msg: MapVisualizationMsg = self.msg
+        graph: DiGraph = self.msg.to_graph(graph=nx.DiGraph())
+
+        io_values = set([(s, t) for s, ts in msg.io_values.items() for t in ts])
+        link_edges = set([(s, t) for s, ts in msg.link_edges.items() for t in ts])
+        then_edges = set([(s, t) for s, ts in msg.then_edges.items() for t in ts])
+
+        expected_nodes = msg.in_nodes | msg.out_nodes | msg.concrete_nodes | msg.abstract_nodes
+        expected_edges = io_values | link_edges | then_edges
+
+        self.assertEqual(set(graph.nodes), expected_nodes)
+        self.assertEqual(set(graph.edges), expected_edges)
 
 
 if __name__ == '__main__':

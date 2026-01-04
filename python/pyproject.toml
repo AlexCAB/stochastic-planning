@@ -5,9 +5,10 @@ description = "Support code for stochastic planning research"
 authors = ["CAB <cabemailbox@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.14"
+python = "^3.13"
 neo4j = "^5.27.0"
 pyyed = "^1.5.0"
 networkx = "^3.4.2"
@@ -16,6 +17,9 @@ lxml = "^5.3.1"
 requests = "^2.32.4"
 pyvis = "^0.3.2"
 websocket-client = "^1.9.0"
+graphistry = "^0.50.0"
+plotly = "^6.5.0"
+matplotlib = "^3.10.8"
 
 
 [build-system]

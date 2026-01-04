@@ -80,7 +80,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 
   override def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
     for
-      hnIdIds <- idsCountCell.modify(_.getNextHdIds(nodes.list.size))
+      hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
       _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match concrete nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds)
         .traverse((node, hnId) => ConcreteDcgNode(hnId, node, n => getMapInfo.flatMap(_.getIoNode(n))))
@@ -90,7 +90,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
 
   override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
     for
-      hnIdIds <- idsCountCell.modify(_.getNextHdIds(nodes.list.size))
+      hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
       _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match abstract nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds).traverse((node, hnId) => AbstractDcgNode(hnId, node))
       _ <- modifyMapState(_.addAbstractNodes(dsgNodes).map(ns => (ns, ())))

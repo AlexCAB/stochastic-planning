@@ -1,25 +1,25 @@
-/*|||||||||||||||||||||||||||||||||
-|| 0 * * * * * * * * * ▲ * * * * ||
-|| * ||||||||||| * ||||||||||| * ||
-|| * ||  * * * * * ||       || 0 ||
-|| * ||||||||||| * ||||||||||| * ||
-|| * * ▲ * * 0|| * ||   (< * * * ||
-|| * ||||||||||| * ||  ||||||||||||
-|| * * * * * * * * *   ||||||||||||
-| author: CAB |||||||||||||||||||||
-| website: github.com/alexcab |||||
-| created: 2025-08-20 |||||||||||*/
-
-package planning.engine.planner.plan
-
-import cats.effect.Async
-import cats.syntax.all.*
-import planning.engine.planner.plan.dag.PlanningDagLike
-
-trait SimplePlanLike[F[_]: Async]
-
-final class SimplePlan[F[_]: Async](planningDag: PlanningDagLike[F]) extends SimplePlanLike[F]
-
-object SimplePlan:
-    def apply[F[_]: Async](planningDag: PlanningDagLike[F]): F[SimplePlan[F]] =
-        new SimplePlan[F](planningDag).pure
+///*|||||||||||||||||||||||||||||||||
+//|| 0 * * * * * * * * * ▲ * * * * ||
+//|| * ||||||||||| * ||||||||||| * ||
+//|| * ||  * * * * * ||       || 0 ||
+//|| * ||||||||||| * ||||||||||| * ||
+//|| * * ▲ * * 0|| * ||   (< * * * ||
+//|| * ||||||||||| * ||  ||||||||||||
+//|| * * * * * * * * *   ||||||||||||
+//| author: CAB |||||||||||||||||||||
+//| website: github.com/alexcab |||||
+//| created: 2025-08-20 |||||||||||*/
+//
+//package planning.engine.planner.plan
+//
+//import cats.effect.Async
+//import cats.syntax.all.*
+//import planning.engine.planner.plan.dag.PlanningDagLike
+//
+//trait SimplePlanLike[F[_]: Async]
+//
+//final class SimplePlan[F[_]: Async](planningDag: PlanningDagLike[F]) extends SimplePlanLike[F]
+//
+//object SimplePlan:
+//    def apply[F[_]: Async](planningDag: PlanningDagLike[F]): F[SimplePlan[F]] =
+//        new SimplePlan[F](planningDag).pure

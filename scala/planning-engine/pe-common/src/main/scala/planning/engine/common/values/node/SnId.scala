@@ -14,7 +14,7 @@ package planning.engine.common.values.node
 
 import planning.engine.common.values.LongVal
 
-// State Node ID is used to identify the state node in the planning DAG.
+// Step Node ID in the planning DAG.
 final case class SnId(value: Long) extends AnyVal with LongVal:
   def increase: SnId = SnId(value + 1L)
 

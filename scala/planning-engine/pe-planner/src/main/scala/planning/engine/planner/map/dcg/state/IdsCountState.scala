@@ -16,15 +16,15 @@ import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 
 final case class IdsCountState(
-    nextHdId: Long,
+    nextHnId: Long,
     nextSampleId: Long,
     nextHnIndexMap: Map[HnId, Long]
 ):
-  lazy val isInit: Boolean = nextHdId == 1L && nextSampleId == 1L && nextHnIndexMap.isEmpty
-    
-  def getNextHdIds(n: Long): (IdsCountState, List[HnId]) =
-    val hnIds = (nextHdId until (nextHdId + n)).toList.map(HnId.apply)
-    val newState = copy(nextHdId = nextHdId + n)
+  lazy val isInit: Boolean = nextHnId == 1L && nextSampleId == 1L && nextHnIndexMap.isEmpty
+
+  def getNextHnIds(n: Long): (IdsCountState, List[HnId]) =
+    val hnIds = (nextHnId until (nextHnId + n)).toList.map(HnId.apply)
+    val newState = copy(nextHnId = nextHnId + n)
     (newState, hnIds)
 
   def getNextSampleIds(n: Long): (IdsCountState, List[SampleId]) =
@@ -42,6 +42,6 @@ final case class IdsCountState(
 object IdsCountState:
   lazy val init: IdsCountState = IdsCountState(
     nextHnIndexMap = Map[HnId, Long](),
-    nextHdId = 1L,
+    nextHnId = 1L,
     nextSampleId = 1L
   )

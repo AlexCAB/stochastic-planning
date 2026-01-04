@@ -51,7 +51,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
           sample.data.description mustBe original.description
           gotEdges mustBe expectedEdges
 
-        counts.nextHdId mustBe 1L
+        counts.nextHnId mustBe 1L
         counts.nextSampleId mustBe 3L
         counts.nextHnIndexMap mustBe Map(HnId(2) -> 3, HnId(1) -> 2, HnId(3) -> 2)
 

@@ -31,7 +31,7 @@ class IdsCountStateSpec extends AnyWordSpecLike with Matchers:
       initState.isInit mustBe true
 
     "be false for non-initial state" in:
-      val (state1, _) = initState.getNextHdIds(1)
+      val (state1, _) = initState.getNextHnIds(1)
       state1.isInit mustBe false
 
       val (state2, _) = initState.getNextSampleIds(1)
@@ -42,13 +42,13 @@ class IdsCountStateSpec extends AnyWordSpecLike with Matchers:
 
   "IdsCountState.getNextHdIds(...)" should:
     "get next hd ids and update state" in:
-      val (state1, hdIds1) = initState.getNextHdIds(3)
+      val (state1, hdIds1) = initState.getNextHnIds(3)
       hdIds1 mustBe List(hnId1, hnId2, hnId3)
-      state1.nextHdId mustBe 4L
+      state1.nextHnId mustBe 4L
 
-      val (state2, hdIds2) = state1.getNextHdIds(2)
+      val (state2, hdIds2) = state1.getNextHnIds(2)
       hdIds2 mustBe List(hnId4, hnId5)
-      state2.nextHdId mustBe 6L
+      state2.nextHnId mustBe 6L
 
   "IdsCountState.getNextSampleIds(...)" should:
     "get next sample ids and update state" in:

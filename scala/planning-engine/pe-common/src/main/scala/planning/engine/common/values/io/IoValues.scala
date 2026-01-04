@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-08-13 |||||||||||*/
 
-package planning.engine.planner.io
+package planning.engine.common.values.io
 
 import planning.engine.common.values.io.{IoTime, IoValue}
 

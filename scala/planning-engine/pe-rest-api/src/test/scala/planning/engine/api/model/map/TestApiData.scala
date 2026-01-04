@@ -247,11 +247,9 @@ trait TestApiData:
   lazy val testMapVisualizationMsg = MapVisualizationMsg(
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
-    ioValues = testDcgState.ioValues.toList.map((k, v) => (k.name, v)),
+    ioValues = testDcgState.ioValues.toSet.map((k, v) => (k.name, v)),
     concreteNodes = testDcgState.concreteNodes.keySet,
     abstractNodes = testDcgState.abstractNodes.keySet,
-    forwardLinks = testDcgState.forwardLinks.toList,
-    backwardLinks = testDcgState.backwardLinks.toList,
-    forwardThen = testDcgState.forwardThen.toList,
-    backwardThen = testDcgState.backwardThen.toList
+    linkEdges = testDcgState.forwardLinks.toSet,
+    thenEdges = testDcgState.forwardThen.toSet
   )

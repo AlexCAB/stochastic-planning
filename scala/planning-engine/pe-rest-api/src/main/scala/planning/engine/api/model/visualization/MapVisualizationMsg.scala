@@ -20,13 +20,11 @@ import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 final case class MapVisualizationMsg(
     inNodes: Set[IoName],
     outNodes: Set[IoName],
-    ioValues: List[(IoName, Set[HnId])],
+    ioValues: Set[(IoName, Set[HnId])],
     concreteNodes: Set[HnId],
     abstractNodes: Set[HnId],
-    forwardLinks: List[(HnId, Set[HnId])],
-    backwardLinks: List[(HnId, Set[HnId])],
-    forwardThen: List[(HnId, Set[HnId])],
-    backwardThen: List[(HnId, Set[HnId])]
+    linkEdges: Set[(HnId, Set[HnId])],
+    thenEdges: Set[(HnId, Set[HnId])]
 )
 
 object MapVisualizationMsg:
@@ -40,11 +38,9 @@ object MapVisualizationMsg:
   def fromState[F[_]](info: MapInfoState[F], state: DcgState[F]): MapVisualizationMsg = MapVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,
-    ioValues = state.ioValues.toList.map((k, v) => (k.name, v)),
+    ioValues = state.ioValues.toSet.map((k, v) => (k.name, v)),
     concreteNodes = state.concreteNodes.keySet,
     abstractNodes = state.abstractNodes.keySet,
-    forwardLinks = state.forwardLinks.toList,
-    backwardLinks = state.backwardLinks.toList,
-    forwardThen = state.forwardThen.toList,
-    backwardThen = state.backwardThen.toList
+    linkEdges = state.forwardLinks.toSet,
+    thenEdges = state.forwardThen.toSet
   )

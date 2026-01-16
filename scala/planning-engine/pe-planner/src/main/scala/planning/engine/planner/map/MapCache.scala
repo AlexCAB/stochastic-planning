@@ -18,7 +18,7 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.map.MapGraphLake
-import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
+import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.{HnId, HnName}
@@ -27,7 +27,8 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.ActiveAbstractGraph
+import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.planner.map.visualization.MapVisualizationLike
@@ -59,19 +60,21 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 
   override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] = ???
 
-  override def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])] =
+  override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
     modifyMapState: state =>
       for
         notLoaded <- values.filterNot(state.ioValues.contains).pure
         subGraph <- load(notLoaded, state.samplesData.keySet)
-        loadedNodes <- subGraph.concreteNodes.traverse(ConcreteDcgNode.apply)
+        loadedNodes <- subGraph.concreteNodes.traverse(DcgNode.Concrete.apply)
         stateWithNodes <- state.addConcreteNodes(loadedNodes)
-        loadedEdges <- subGraph.edges.traverse(DcgEdge.apply)
+        loadedEdges = subGraph.edges.map(DcgEdgeData.apply)
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
         stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
         (foundNodes, notFoundValues) <- stateWithSamples.concreteForIoValues(values)
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
+
+  override def findActiveAbstractGraph(concreteNodeIds: Set[HnId]): F[Set[ActiveAbstractGraph[F]]] = ??? 
 
   override def reset(): F[Unit] = ???
 

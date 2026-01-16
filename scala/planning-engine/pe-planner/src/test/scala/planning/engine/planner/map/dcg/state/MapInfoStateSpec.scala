@@ -69,4 +69,4 @@ class MapInfoStateSpec extends UnitSpecWithData:
       val missingName = IoName("missingNode")
       data.mapInfoState.getIoNode(missingName)
         .logValue(tn, "missingIoNode")
-        .assertThrowsError[AssertionError](_.getMessage must include(s"Input node with name $missingName not found"))
+        .assertThrowsError[AssertionError](_.getMessage must include(s"IO node with name $missingName not found"))

@@ -23,8 +23,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.MapGraphLake
 import planning.engine.map.samples.sample.Sample
-import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
+import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.visualization.MapVisualizationLike
@@ -113,7 +112,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
       async[IO]:
         data.mapCache.setMapInfo(data.testMapInfoState).await
 
-        val (loaded, notFound) = data.mapCache.getForIoValues(request.toSet).logValue(tn).await
+        val (loaded, notFound) = data.mapCache.findForIoValues(request.toSet).logValue(tn).await
         loaded mustBe data.conDcgNodesMap
         notFound mustBe Set(data.testNotInMap)
 
@@ -121,11 +120,8 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
         state.ioValues mustBe data.dcgStateFromSubGraph.ioValues
         state.concreteNodes mustBe data.dcgStateFromSubGraph.concreteNodes
         state.abstractNodes mustBe empty
-        state.edges mustBe data.dcgStateFromSubGraph.edges
-        state.forwardLinks mustBe data.dcgStateFromSubGraph.forwardLinks
-        state.backwardLinks mustBe data.dcgStateFromSubGraph.backwardLinks
-        state.forwardThen mustBe data.dcgStateFromSubGraph.forwardThen
-        state.backwardThen mustBe data.dcgStateFromSubGraph.backwardThen
+        state.edgesData mustBe data.dcgStateFromSubGraph.edgesData
+        state.edgesMapping mustBe data.dcgStateFromSubGraph.edgesMapping
         state.samplesData mustBe data.dcgStateFromSubGraph.samplesData
 
     "get nodes from cache" in newCase[CaseData]: (tn, data) =>
@@ -142,7 +138,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
         data.mapCache.setMapState(data.dcgStateFromSubGraph).await
 
         val (loaded, notFound) = data.mapCache
-          .getForIoValues(data.ioValues.toSet + data.testNotInMap).logValue(tn).await
+          .findForIoValues(data.ioValues.toSet + data.testNotInMap).logValue(tn).await
 
         loaded mustBe data.conDcgNodesMap
         notFound mustBe Set(data.testNotInMap)

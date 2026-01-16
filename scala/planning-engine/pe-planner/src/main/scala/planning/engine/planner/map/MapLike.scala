@@ -18,13 +18,23 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
-import planning.engine.planner.map.dcg.nodes.ConcreteDcgNode
+import planning.engine.planner.map.dcg.ActiveAbstractGraph
+import planning.engine.planner.map.dcg.nodes.DcgNode
 
 trait MapLike[F[_]]:
-  def getIoNode(name: IoName): F[IoNode[F]]
+
+  // Addition methods
   def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]]
   def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]]
   def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]]
+
+  // Retrieval methods
+  def getIoNode(name: IoName): F[IoNode[F]]
+
+  // Lookup methods
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]]
-  def getForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[ConcreteDcgNode[F]]], Set[IoValue])]
+  def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
+  def findActiveAbstractGraph(concreteNodeIds: Set[HnId]): F[Set[ActiveAbstractGraph[F]]]
+
+  // Service methods
   def reset(): F[Unit]

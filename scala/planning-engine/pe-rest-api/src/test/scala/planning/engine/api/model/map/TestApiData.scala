@@ -29,9 +29,11 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
+import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.state.DcgState
 import planning.engine.planner.map.dcg.nodes.*
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
+import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Links, Thens, Indexies}
 import planning.engine.planner.map.dcg.state.MapInfoState
 
 trait TestApiData:
@@ -198,7 +200,7 @@ trait TestApiData:
     testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name))
   )
 
-  lazy val testConcreteDcgNode = ConcreteDcgNode[IO](
+  lazy val tesConcreteDcgNode = DcgNode.Concrete[IO](
     id = HnId(3000005),
     name = Some(HnName("boolOutputNode")),
     description = Description.some("Concrete Dcg Node for bool output"),
@@ -206,35 +208,27 @@ trait TestApiData:
     valueIndex = IoIndex(2000001)
   )
 
-  lazy val testAbstractDcgNode = AbstractDcgNode[IO](
+  lazy val testAbstractDcgNode = DcgNode.Abstract[IO](
     id = HnId(3000007),
     name = Some(HnName("abstractNode1")),
     description = Description.some("Abstract Dcg Node 1")
   )
 
-  lazy val testDcgEdge = DcgEdge[IO](
-    key = DcgEdge.Key(
-      sourceId = testConcreteDcgNode.id,
-      targetId = testAbstractDcgNode.id,
-      edgeType = EdgeType.THEN
-    ),
-    samples = Map(
-      testSampleData.id -> DcgEdge.Indexies(
-        sourceIndex = HnIndex(2000001),
-        targetIndex = HnIndex(3000001)
-      )
-    )
+  lazy val testDcgEdge = DcgEdgeData(
+    ends = EndIds(tesConcreteDcgNode.id, testAbstractDcgNode.id),
+    links = Links.empty,
+    thens = Thens(Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001))))
   )
 
   lazy val testDcgState = DcgState[IO](
-    ioValues = Map(testConcreteDcgNode.ioValue -> Set(testConcreteDcgNode.id)),
-    concreteNodes = Map(testConcreteDcgNode.id -> testConcreteDcgNode),
+    ioValues = Map(tesConcreteDcgNode.ioValue -> Set(tesConcreteDcgNode.id)),
+    concreteNodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode),
     abstractNodes = Map(testAbstractDcgNode.id -> testAbstractDcgNode),
-    edges = Map(testDcgEdge.key -> testDcgEdge),
-    forwardLinks = Map(testConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
-    backwardLinks = Map(testAbstractDcgNode.id -> Set(testConcreteDcgNode.id)),
-    forwardThen = Map(testConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
-    backwardThen = Map(testAbstractDcgNode.id -> Set(testConcreteDcgNode.id)),
+    edgesData = Map(testDcgEdge.ends -> testDcgEdge),
+    edgesMapping = DcgEdgesMapping(
+      forward = Map(tesConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
+      backward = Map(testAbstractDcgNode.id -> Set(tesConcreteDcgNode.id))
+    ),
     samplesData = Map(testSampleData.id -> testSampleData)
   )
 
@@ -250,6 +244,5 @@ trait TestApiData:
     ioValues = testDcgState.ioValues.toSet.map((k, v) => (k.name, v)),
     concreteNodes = testDcgState.concreteNodes.keySet,
     abstractNodes = testDcgState.abstractNodes.keySet,
-    linkEdges = testDcgState.forwardLinks.toSet,
-    thenEdges = testDcgState.forwardThen.toSet
+    edgesMapping = testDcgState.edgesMapping.forward.toSet
   )

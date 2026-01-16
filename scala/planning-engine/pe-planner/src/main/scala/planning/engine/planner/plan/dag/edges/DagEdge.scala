@@ -12,18 +12,17 @@
 
 package planning.engine.planner.plan.dag.edges
 
-import cats.MonadThrow
 import planning.engine.common.values.node.SnId
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.edges.DcgEdgeData
 
-final case class DagEdge[F[_]: MonadThrow](
+final case class DagEdge(
     searchSnId: SnId,
     targetSnId: SnId,
-    dcgNode: DcgEdge[F]
+    dcgNode: DcgEdgeData
 ):
   override def toString: String =
     s"""DagEdge(
        |searchSnId = ${searchSnId.value}, 
        |targetSnId = ${targetSnId.value}, 
-       |dcgNode.key = ${dcgNode.key})
+       |dcgNode.key = ${dcgNode})
        |)""".stripMargin

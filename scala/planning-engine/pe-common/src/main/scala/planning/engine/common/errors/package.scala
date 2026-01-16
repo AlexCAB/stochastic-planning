@@ -84,3 +84,10 @@ extension (bool: Boolean)
 extension (value: Long)
   inline def assetAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
     predicateAssert(value >= 0, (), msg + s", expecter to be a number not null value, but got: $value")
+
+extension [L, R](value: (L, R))
+  inline def assertEqual[F[_]: ApplicativeThrow](msg: String): F[(L, R)] = predicateAssert(
+    value._1 == value._2,
+    value,
+    msg + s", left value: ${value._1} not equal to right value: ${value._2}"
+  )

@@ -16,20 +16,20 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
-import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.planner.map.dcg.edges.DcgEdge.Indexies
+import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.nodes.DcgNode
+
+import scala.reflect.ClassTag
 
 class DcgStateSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with MapDcgNodeTestData with MapSampleTestData:
-    def makeKey(sId: HnId, tId: HnId, edgeType: EdgeType = EdgeType.LINK): DcgEdge.Key =
-      DcgEdge.Key(edgeType, sourceId = sId, targetId = tId)
-
     lazy val emptyDcgState: DcgState[IO] = DcgState.empty[IO]
 
     lazy val hnId1 = HnId(1)
@@ -39,14 +39,14 @@ class DcgStateSpec extends UnitSpecWithData:
     lazy val hnId5 = HnId(5)
     lazy val nuHnId = HnId(-1)
 
-    lazy val keys = Set(
-      makeKey(hnId1, hnId2),
-      makeKey(hnId1, hnId3),
-      makeKey(hnId2, hnId2)
+    lazy val endsSet = Set(
+      EndIds(hnId1, hnId2),
+      EndIds(hnId1, hnId3),
+      EndIds(hnId2, hnId2)
     )
 
-    lazy val absNodes = List(hnId1, hnId2, hnId3).map(id => makeAbstractDcgNode(id = id))
-    lazy val conNodes = List(hnId4, hnId5).map(id => makeConcreteDcgNode(id = id))
+    lazy val absNodes: List[DcgNode.Abstract[IO]] = List(hnId1, hnId2, hnId3).map(id => makeAbstractDcgNode(id = id))
+    lazy val conNodes: List[DcgNode.Concrete[IO]] = List(hnId4, hnId5).map(id => makeConcreteDcgNode(id = id))
 
     lazy val stateWithNodes: DcgState[IO] = emptyDcgState
       .addAbstractNodes(absNodes)
@@ -62,25 +62,25 @@ class DcgStateSpec extends UnitSpecWithData:
     def makeSampleRecord(sId: SampleId, snId: HnId, tnId: HnId): (SampleId, Indexies) =
       val ixMap = makeIndexiesMap(sId)
       sId -> Indexies(
-        sourceIndex = ixMap.getOrElse(snId, fail(s"Source HnId index not found, for $snId")),
-        targetIndex = ixMap.getOrElse(tnId, fail(s"Target HnId index not found, for $tnId"))
+        src = ixMap.getOrElse(snId, fail(s"Source HnId index not found, for $snId")),
+        trg = ixMap.getOrElse(tnId, fail(s"Target HnId index not found, for $tnId"))
       )
 
-    def makeDcgEdge(snId: HnId, tnId: HnId, sIds: List[SampleId], et: EdgeType = EdgeType.LINK): DcgEdge[IO] =
-      DcgEdge[IO](
-        makeKey(snId, tnId, et),
-        sIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap
-      )
-
-    lazy val dcgEdges = List(
-      makeDcgEdge(hnId1, hnId2, List(sampleId1, sampleId2), EdgeType.LINK),
-      makeDcgEdge(hnId2, hnId3, List(sampleId1), EdgeType.LINK),
-      makeDcgEdge(hnId2, hnId4, List(sampleId2), EdgeType.THEN),
-      makeDcgEdge(hnId2, hnId5, List(sampleId2), EdgeType.THEN)
+    def makeDcgEdge(snId: HnId, tnId: HnId, sIds: List[SampleId]): DcgEdgeData = DcgEdgeData(
+      ends = EndIds(snId, tnId),
+      links = Links(sIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap),
+      thens = Thens.empty
     )
 
-    lazy val dcgEdge = dcgEdges.head
-    lazy val stateWithEdges = stateWithNodes.addEdges(dcgEdges).unsafeRunSync()
+    lazy val dcgEdges: List[DcgEdgeData] = List(
+      makeDcgEdge(hnId1, hnId2, List(sampleId1, sampleId2)),
+      makeDcgEdge(hnId2, hnId3, List(sampleId1)),
+      makeDcgEdge(hnId2, hnId4, List(sampleId2)),
+      makeDcgEdge(hnId2, hnId5, List(sampleId2))
+    )
+
+    lazy val dcgLinkEdge: DcgEdgeData = dcgEdges.head
+    lazy val stateWithEdges: DcgState[IO] = stateWithNodes.addEdges(dcgEdges).unsafeRunSync()
 
     lazy val List(n1, n2, n3) = List((1, 101), (2, 101), (3, 102)).map:
       case (id, ioIdx) => makeConcreteDcgNode(id = HnId(id), valueIndex = IoIndex(ioIdx))
@@ -135,74 +135,9 @@ class DcgStateSpec extends UnitSpecWithData:
         .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown HnIds"))
 
     "fail if duplicate sample IDs for edge between same HnIds" in newCase[CaseData]: (tn, data) =>
-      val duplicateSampleEdge = data.makeDcgEdge(data.hnId1, data.hnId2, List(data.sampleId1), EdgeType.THEN)
+      val duplicateSampleEdge = data.makeDcgEdge(data.hnId1, data.hnId2, List(data.sampleId1))
       data.stateWithNodes.checkEdges(data.dcgEdges :+ duplicateSampleEdge).logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate SampleIds for Edge between HnIds"))
-
-  "DcgState.splitKeys(...)" should:
-    "split keys" in newCase[CaseData]: (tn, data) =>
-      def makeEdge(edgeType: EdgeType): DcgEdge[IO] =
-        data.dcgEdge.copy(key = data.dcgEdge.key.copy(edgeType = edgeType))
-
-      val edgeLink = makeEdge(EdgeType.LINK)
-      val edgeThen = makeEdge(EdgeType.THEN)
-      val edges = List(edgeLink, edgeThen)
-
-      async[IO]:
-        val (linkKeys, thenKeys) = data.emptyDcgState.splitKeys(edges).await
-        logInfo(tn, s"linkKeys: $linkKeys, thenKeys: $thenKeys").await
-
-        linkKeys mustBe Set(edgeLink.key)
-        thenKeys mustBe Set(edgeThen.key)
-
-  "DcgState.makeForward(...)" should:
-    "make forward references" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        val forward = data.emptyDcgState.makeForward(data.keys)
-        logInfo(tn, s"forward: $forward").await
-
-        forward mustBe Map(
-          HnId(1) -> Set(HnId(2), HnId(3)),
-          HnId(2) -> Set(HnId(2))
-        )
-
-  "DcgState.makeBackward(...)" should:
-    "make backward references" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        val backward = data.emptyDcgState.makeBackward(data.keys)
-        logInfo(tn, s"backward: $backward").await
-
-        backward mustBe Map(
-          HnId(2) -> Set(HnId(1), HnId(2)),
-          HnId(3) -> Set(HnId(1))
-        )
-
-  "DcgState.joinIds(...)" should:
-    "join IDs references" in newCase[CaseData]: (tn, data) =>
-      val oldIds = Map(
-        HnId(1) -> Set(HnId(2)),
-        HnId(2) -> Set(HnId(3))
-      )
-      val newIds = Map(
-        HnId(1) -> Set(HnId(4)),
-        HnId(3) -> Set(HnId(5))
-      )
-
-      async[IO]:
-        val joined = data.emptyDcgState.joinIds(oldIds, newIds).await
-        logInfo(tn, s"joined: $joined").await
-
-        joined mustBe Map(
-          HnId(1) -> Set(HnId(2), HnId(4)),
-          HnId(2) -> Set(HnId(3)),
-          HnId(3) -> Set(HnId(5))
-        )
-
-    "fail if duplicate references" in newCase[CaseData]: (tn, data) =>
-      val oldIds = Map(HnId(1) -> Set(HnId(2)))
-      val newIds = Map(HnId(1) -> Set(HnId(2)))
-
-      data.emptyDcgState.joinIds(oldIds, newIds).logValue(tn).assertThrows[AssertionError]
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Edge Keys detected"))
 
   "DcgState.addConcreteNodes(...)" should:
     "add concrete nodes" in newCase[CaseData]: (tn, data) =>
@@ -255,11 +190,19 @@ class DcgStateSpec extends UnitSpecWithData:
         val state = data.stateWithNodes.addEdges(data.dcgEdges).await
         logInfo(tn, s"state: $state").await
 
-        state.edges mustBe data.dcgEdges.map(e => e.key -> e).toMap
-        state.forwardLinks mustBe Map(data.hnId2 -> Set(data.hnId3), data.hnId1 -> Set(data.hnId2))
-        state.backwardLinks mustBe Map(data.hnId3 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
-        state.forwardThen mustBe Map(data.hnId2 -> Set(data.hnId5, data.hnId4))
-        state.backwardThen mustBe Map(data.hnId4 -> Set(data.hnId2), data.hnId5 -> Set(data.hnId2))
+        state.edgesData mustBe data.dcgEdges.map(e => e.ends -> e).toMap
+
+        state.edgesMapping.forward mustBe Map(
+          data.hnId2 -> Set(data.hnId3, data.hnId4, data.hnId5),
+          data.hnId1 -> Set(data.hnId2)
+        )
+
+        state.edgesMapping.backward mustBe Map(
+          data.hnId4 -> Set(data.hnId2),
+          data.hnId3 -> Set(data.hnId2),
+          data.hnId2 -> Set(data.hnId1),
+          data.hnId5 -> Set(data.hnId2)
+        )
 
     "fail if edge keys is not distinct" in newCase[CaseData]: (tn, data) =>
       val e1 = data.dcgEdges.head
@@ -278,32 +221,31 @@ class DcgStateSpec extends UnitSpecWithData:
 
     "merge edges" in newCase[CaseData]: (tn, data) =>
       lazy val dcgEdges2 = List(
-        data.makeDcgEdge(data.hnId1, data.hnId2, List(sampleId3, sampleId4), EdgeType.THEN),
-        data.makeDcgEdge(data.hnId2, data.hnId3, List(sampleId3), EdgeType.LINK),
-        data.makeDcgEdge(data.hnId1, data.hnId5, List(sampleId4), EdgeType.THEN)
+        data.makeDcgEdge(data.hnId1, data.hnId2, List(sampleId3, sampleId4)),
+        data.makeDcgEdge(data.hnId2, data.hnId3, List(sampleId3)),
+        data.makeDcgEdge(data.hnId1, data.hnId5, List(sampleId4))
       )
 
       async[IO]:
-        val joinedEdges = (data.dcgEdges ++ dcgEdges2)
-          .groupBy(_.key).view.mapValues(_.reduceLeft((e1, e2) => e1.join(e2).unsafeRunSync()))
+        val joinedEdges: Map[EndIds, DcgEdgeData] = (data.dcgEdges ++ dcgEdges2)
+          .groupBy(_.ends).view.mapValues(_.reduceLeft((e1, e2) => e1.join[IO](e2).unsafeRunSync()))
           .toMap
 
         val state = data.stateWithEdges.mergeEdges(dcgEdges2).await
         logInfo(tn, s"state: $state").await
 
-        state.edges mustBe joinedEdges
-        state.forwardLinks mustBe Map(data.hnId2 -> Set(data.hnId3), data.hnId1 -> Set(data.hnId2))
-        state.backwardLinks mustBe Map(data.hnId3 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
+        state.edgesData mustBe joinedEdges
 
-        state.forwardThen mustBe Map(
-          data.hnId2 -> Set(data.hnId5, data.hnId4),
-          data.hnId1 -> Set(data.hnId5, data.hnId2)
+        state.edgesMapping.forward mustBe Map(
+          data.hnId2 -> Set(data.hnId3, data.hnId4, data.hnId5),
+          data.hnId1 -> Set(data.hnId2, data.hnId5)
         )
 
-        state.backwardThen mustBe Map(
+        state.edgesMapping.backward mustBe Map(
+          data.hnId2 -> Set(data.hnId1),
+          data.hnId3 -> Set(data.hnId2),
           data.hnId4 -> Set(data.hnId2),
-          data.hnId5 -> Set(data.hnId2, data.hnId1),
-          data.hnId2 -> Set(data.hnId1)
+          data.hnId5 -> Set(data.hnId1, data.hnId2)
         )
 
   "DcgState.addSamples(...)" should:

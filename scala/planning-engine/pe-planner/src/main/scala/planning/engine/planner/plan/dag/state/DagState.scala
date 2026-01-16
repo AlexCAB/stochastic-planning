@@ -14,14 +14,14 @@ package planning.engine.planner.plan.dag.state
 
 import cats.MonadThrow
 import planning.engine.common.values.node.SnId
-import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
+import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.plan.dag.nodes.DagNode
 
 final case class DagState[F[_]: MonadThrow](
-    contextConNodes: Map[SnId, DagNode[F, ConcreteDcgNode[F]]],
-    contextAbsNodes: Map[SnId, DagNode[F, AbstractDcgNode[F]]],
-    planConNodes: Map[SnId, DagNode[F, ConcreteDcgNode[F]]],
-    planAbsNodes: Map[SnId, DagNode[F, AbstractDcgNode[F]]],
+    contextConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
+    contextAbsNodes: Map[SnId, DagNode[F, DcgNode.Abstract[F]]],
+    planConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
+    planAbsNodes: Map[SnId, DagNode[F, DcgNode.Abstract[F]]],
     forwardLinks: Map[SnId, Set[SnId]],
     backwardLinks: Map[SnId, Set[SnId]],
     forwardThen: Map[SnId, Set[SnId]],

@@ -128,3 +128,10 @@ class ErrorsSpec extends UnitSpecIO:
 
     "raise an error when the condition is false" in: tn =>
       -1L.assetAnNumberOf[IO]("Value is not positive").assertThrows[AssertionError]
+
+  "assertEqual" should:
+    "complete successfully when both values are equal" in: _ =>
+      (42, 42).assertEqual[IO]("Values must be equal").asserting(_ mustEqual (42, 42))
+
+    "raise an error when values are not equal" in: _ =>
+      (42, 43).assertEqual[IO]("Values must be equal").assertThrows[AssertionError]

@@ -23,8 +23,7 @@ final case class MapVisualizationMsg(
     ioValues: Set[(IoName, Set[HnId])],
     concreteNodes: Set[HnId],
     abstractNodes: Set[HnId],
-    linkEdges: Set[(HnId, Set[HnId])],
-    thenEdges: Set[(HnId, Set[HnId])]
+    edgesMapping: Set[(HnId, Set[HnId])]
 )
 
 object MapVisualizationMsg:
@@ -41,6 +40,5 @@ object MapVisualizationMsg:
     ioValues = state.ioValues.toSet.map((k, v) => (k.name, v)),
     concreteNodes = state.concreteNodes.keySet,
     abstractNodes = state.abstractNodes.keySet,
-    linkEdges = state.forwardLinks.toSet,
-    thenEdges = state.forwardThen.toSet
+    edgesMapping = state.edgesMapping.forward.toSet
   )

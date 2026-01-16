@@ -21,7 +21,8 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
@@ -77,21 +78,18 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
           val result = data.mapBaseLogic.addNewSamplesToCache(IO.pure(data.initSamples)).logValue(tn).await
           val state = data.mapBaseLogic.getMapState.logValue(tn).await
           
-          val dcgEdges = data
+          val dcgEdgesData = data
             .initSamples.flatMap(_.edges)
-            .groupBy(e => DcgEdge.Key(e.edgeType, e.source.hnId, e.target.hnId))
-            .toList
-            .traverse((k, es) => DcgEdge[IO](k, es)).await.map(e => e.key -> e).toMap
+            .groupBy(e => (e.edgeType, EndIds(e.source.hnId, e.target.hnId))).toList
+            .traverse((k, es) => DcgEdgeData[IO](k._1, k._2, es)).await.map(e => e.ends -> e).toMap
 
           result mustBe data.initSamples.map(s => s.data.id -> s).toMap
           state.ioValues mustBe data.conNodes.map(n => n.ioValue -> Set(n.id)).toMap
           state.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
           state.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
-          state.edges mustBe dcgEdges
-          state.forwardLinks mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
-          state.backwardLinks mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
-          state.forwardThen mustBe Map.empty
-          state.backwardThen mustBe Map.empty
+          state.edgesData mustBe dcgEdgesData
+          state.edgesMapping.forward mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
+          state.edgesMapping.backward mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
           state.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap
 
       "not add samples with unknown HnIds" in newCase[CaseData]: (tn, data) =>

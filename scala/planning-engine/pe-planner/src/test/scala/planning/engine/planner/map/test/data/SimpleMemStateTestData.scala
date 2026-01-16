@@ -14,8 +14,6 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import cats.syntax.all.*
-import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
@@ -25,8 +23,8 @@ import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
+import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
+import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 
 trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with MapDcgNodeTestData:
@@ -49,8 +47,8 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
   lazy val conNodes = List(hnId1, hnId2).map(id => makeConcreteNode(id = id))
   lazy val absNodes = List(hnId3, hnId4).map(id => makeAbstractNode(id = id))
 
-  lazy val conDcgNodes = conNodes.map(n => ConcreteDcgNode(n).unsafeRunSync())
-  lazy val absDcgNodes = absNodes.map(n => AbstractDcgNode(n).unsafeRunSync())
+  lazy val conDcgNodes = conNodes.map(n => DcgNode.Concrete(n).unsafeRunSync())
+  lazy val absDcgNodes = absNodes.map(n => DcgNode.Abstract(n).unsafeRunSync())
 
   lazy val initSamples = List(
     makeSample(sampleId1, hnId1, hnId2),
@@ -81,23 +79,23 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
 
   lazy val ioValues = mapSubGraph.concreteNodes.map(_.ioValue)
   lazy val conDcgNodesMap = conDcgNodes.map(n => n.ioValue -> Set(n)).toMap
-  lazy val dcgEdges = mapSubGraph.edges.traverse(DcgEdge.apply[IO]).unsafeRunSync()
+  lazy val dcgEdges = mapSubGraph.edges.map(DcgEdgeData.apply)
 
-  private def references(tp: EdgeType, isForward: Boolean): Map[HnId, Set[HnId]] = dcgEdges
-    .map(_.key).filter(_.edgeType == tp)
-    .groupBy(k => if isForward then k.sourceId else k.targetId)
-    .view.mapValues(_.map(k => if isForward then k.targetId else k.sourceId).toSet)
+  private def references(isForward: Boolean): Map[HnId, Set[HnId]] = dcgEdges
+    .map(_.ends)
+    .groupBy(k => if isForward then k.src else k.trg)
+    .view.mapValues(_.map(k => if isForward then k.trg else k.src).toSet)
     .toMap
 
   lazy val dcgStateFromSubGraph = DcgState[IO](
     ioValues = conDcgNodesMap.map((k, ns) => k -> ns.map(_.id)),
     concreteNodes = conDcgNodesMap.flatMap((_, ns) => ns.map(n => n.id -> n)),
     abstractNodes = Map.empty,
-    edges = dcgEdges.map(e => e.key -> e).toMap,
-    forwardLinks = references(EdgeType.LINK, isForward = true),
-    backwardLinks = references(EdgeType.LINK, isForward = false),
-    forwardThen = references(EdgeType.THEN, isForward = true),
-    backwardThen = references(EdgeType.THEN, isForward = false),
+    edgesData = dcgEdges.map(e => e.ends -> e).toMap,
+    edgesMapping = DcgEdgesMapping(
+      forward = references(isForward = true),
+      backward = references(isForward = false)
+    ),
     samplesData = mapSubGraph.loadedSamples.map(s => s.id -> s).toMap
   )
 

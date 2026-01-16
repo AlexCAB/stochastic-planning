@@ -166,7 +166,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         data.mapInMem.setMapState(data.dcgStateFromSubGraph).await
 
         val (foundNodes, notFoundValues) = data.mapInMem
-          .getForIoValues(data.ioValues.toSet + data.testNotInMap)
+          .findForIoValues(data.ioValues.toSet + data.testNotInMap)
           .logValue(tn).await
 
         foundNodes mustBe data.conDcgNodesMap

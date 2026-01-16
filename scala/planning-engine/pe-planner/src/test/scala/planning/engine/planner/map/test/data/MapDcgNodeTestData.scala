@@ -17,13 +17,13 @@ import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.map.test.data.MapNodeTestData
-import planning.engine.planner.map.dcg.nodes.{AbstractDcgNode, ConcreteDcgNode}
+import planning.engine.planner.map.dcg.nodes.DcgNode
 
 trait MapDcgNodeTestData extends MapNodeTestData:
   def makeConcreteDcgNode(
       id: HnId = HnId(3000005),
       valueIndex: IoIndex = IoIndex(102)
-  ): ConcreteDcgNode[IO] = ConcreteDcgNode[IO](
+  ): DcgNode.Concrete[IO] = DcgNode.Concrete[IO](
     id = id,
     name = HnName.some(s"Con DCG Node $id"),
     description = Description.some(s"A concrete DCG node for testing, $id"),
@@ -31,7 +31,7 @@ trait MapDcgNodeTestData extends MapNodeTestData:
     valueIndex = valueIndex
   )
 
-  def makeAbstractDcgNode(id: HnId = HnId(3000006)): AbstractDcgNode[IO] = AbstractDcgNode[IO](
+  def makeAbstractDcgNode(id: HnId = HnId(3000006)): DcgNode.Abstract[IO] = DcgNode.Abstract[IO](
     id = id,
     name = HnName.some(s"Abs DCG Node $id"),
     description = Description.some(s"An abstract DCG node for testing, $id")

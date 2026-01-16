@@ -18,7 +18,7 @@ import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.HnId
-import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
@@ -112,10 +112,10 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
           .map(node => result.find((_, nn) => nn == node.name).getOrElse(fail(s"Node not found: $node"))._1 -> node)
           .toMap
 
-        result.keySet mustBe state.allHnIds
+        result.keySet mustBe state.graph.allHnIds
         result.values.toSet mustBe data.concreteNodesNew.list.map(_.name).toSet
         state.ioValues mustBe nodeWithHdId.map((id, n) => IoValue(n.ioNodeName, n.valueIndex) -> Set(id))
-        state.concreteNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
+        state.graph.concreteNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
 
   "MapInMem.addNewAbstractNodes(...)" should:
     "add new abstract nodes to in-memory state" in newCase[CaseData]: (tn, data) =>
@@ -129,9 +129,9 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
           .map(node => result.find((_, nn) => nn == node.name).getOrElse(fail(s"Node not found: $node"))._1 -> node)
           .toMap
 
-        result.keySet mustBe state.allHnIds
+        result.keySet mustBe state.graph.allHnIds
         result.values.toSet mustBe data.abstractNodesNew.list.map(_.name).toSet
-        state.abstractNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
+        state.graph.abstractNodes.map((i, n) => i -> n.name) mustBe nodeWithHdId.map((i, n) => i -> n.name)
 
   "MapInMem.addNewSamples(...)" should:
     "add new samples to in-memory state" in newCase[CaseData]: (tn, data) =>
@@ -143,7 +143,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         val state = data.mapInMem.getMapState.logValue(tn).await
 
         result.view.map((_, s) => s.data.name).toSet mustBe data.sampleListNew.list.map(_.name).toSet
-        result.keySet mustBe state.allSampleIds
+        result.keySet mustBe state.graph.allSampleIds
 
   "MapInMem.findHnIdsByNames(...)" should:
     "find HnIds by names from in-memory state" in newCase[CaseData]: (tn, data) =>
@@ -184,5 +184,5 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         val idsCountState = data.mapInMem.getIdsCount.logValue(tn).await
 
         infoState mustBe MapInfoState.empty[IO]
-        dcgState mustBe DcgState.empty[IO]
-        idsCountState mustBe IdsCountState.init
+        dcgState mustBe MapGraphState.empty[IO]
+        idsCountState mustBe MapIdsCountState.init

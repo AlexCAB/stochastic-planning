@@ -10,15 +10,16 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-22 |||||||||||*/
 
-package planning.engine.planner.map.dcg.state
+package planning.engine.planner.map.state
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.map.state.MapIdsCountState
 
-class IdsCountStateSpec extends AnyWordSpecLike with Matchers:
-  lazy val initState = IdsCountState.init
+class MapIdsCountStateSpec extends AnyWordSpecLike with Matchers:
+  lazy val initState = MapIdsCountState.init
 
   lazy val hnId1 = HnId(1)
   lazy val hnId2 = HnId(2)

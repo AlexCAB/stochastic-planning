@@ -12,7 +12,7 @@
 
 package planning.engine.planner.map.visualization
 
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 trait MapVisualizationLike[F[_]]:
-  def stateUpdated(info: MapInfoState[F], state: DcgState[F]): F[Unit]
+  def stateUpdated(info: MapInfoState[F], state: MapGraphState[F]): F[Unit]

@@ -23,9 +23,10 @@ import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
+import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.nodes.DcgNode
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with MapDcgNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -61,7 +62,7 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
     makeSample(sampleId5, hnId3, hnId4)
   )
 
-  lazy val initialDcgState: DcgState[IO] = DcgState.empty[IO]
+  lazy val initialDcgState: MapGraphState[IO] = MapGraphState.empty[IO]
     .addAbstractNodes(absDcgNodes)
     .flatMap(_.addConcreteNodes(conDcgNodes))
     .unsafeRunSync()
@@ -87,16 +88,18 @@ trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with
     .view.mapValues(_.map(k => if isForward then k.trg else k.src).toSet)
     .toMap
 
-  lazy val dcgStateFromSubGraph = DcgState[IO](
+  lazy val dcgStateFromSubGraph = MapGraphState[IO](
     ioValues = conDcgNodesMap.map((k, ns) => k -> ns.map(_.id)),
-    concreteNodes = conDcgNodesMap.flatMap((_, ns) => ns.map(n => n.id -> n)),
-    abstractNodes = Map.empty,
-    edgesData = dcgEdges.map(e => e.ends -> e).toMap,
-    edgesMapping = DcgEdgesMapping(
-      forward = references(isForward = true),
-      backward = references(isForward = false)
-    ),
-    samplesData = mapSubGraph.loadedSamples.map(s => s.id -> s).toMap
+    graph = DcgGraph[IO](
+      concreteNodes = conDcgNodesMap.flatMap((_, ns) => ns.map(n => n.id -> n)),
+      abstractNodes = Map.empty,
+      edgesData = dcgEdges.map(e => e.ends -> e).toMap,
+      edgesMapping = DcgEdgesMapping(
+        forward = references(isForward = true),
+        backward = references(isForward = false)
+      ),
+      samplesData = mapSubGraph.loadedSamples.map(s => s.id -> s).toMap
+    )
   )
 
   lazy val sampleListNew = Sample.ListNew(List(

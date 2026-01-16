@@ -23,18 +23,18 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with SimpleMemStateTestData:
-    val stateUpdatedStub = stubFunction[DcgState[IO], IO[Unit]]
+    val stateUpdatedStub = stubFunction[MapGraphState[IO], IO[Unit]]
     val visualizationStub = stub[MapVisualizationLike[IO]]
 
     val changedDcgState = initialDcgState.copy(ioValues = Map(testIoValue -> Set()))
     val mapInfoCell: AtomicCell[IO, MapInfoState[IO]] = AtomicCell[IO].of(testMapInfoState).unsafeRunSync()
-    val dcgStateCell: AtomicCell[IO, DcgState[IO]] = AtomicCell[IO].of(initialDcgState).unsafeRunSync()
+    val dcgStateCell: AtomicCell[IO, MapGraphState[IO]] = AtomicCell[IO].of(initialDcgState).unsafeRunSync()
 
     val mapBaseLogic = new MapBaseLogic[IO](visualizationStub, mapInfoCell, dcgStateCell) {}
 
@@ -69,8 +69,8 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
             for
               _ <- logInfo(tn, s"State updated called with $state")
               _ <- IO.delay(info mustBe data.testMapInfoState)
-              _ <- IO.delay(state.allHnIds mustBe data.allHnId)
-              _ <- IO.delay(state.allSampleIds mustBe data.initSamples.map(_.data.id).toSet)
+              _ <- IO.delay(state.graph.allHnIds mustBe data.allHnId)
+              _ <- IO.delay(state.graph.allSampleIds mustBe data.initSamples.map(_.data.id).toSet)
             yield ()
           .once()
 
@@ -85,12 +85,12 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
           result mustBe data.initSamples.map(s => s.data.id -> s).toMap
           state.ioValues mustBe data.conNodes.map(n => n.ioValue -> Set(n.id)).toMap
-          state.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
-          state.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
-          state.edgesData mustBe dcgEdgesData
-          state.edgesMapping.forward mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
-          state.edgesMapping.backward mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
-          state.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap
+          state.graph.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
+          state.graph.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
+          state.graph.edgesData mustBe dcgEdgesData
+          state.graph.edgesMapping.forward mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
+          state.graph.edgesMapping.backward mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
+          state.graph.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap
 
       "not add samples with unknown HnIds" in newCase[CaseData]: (tn, data) =>
         data.mapBaseLogic

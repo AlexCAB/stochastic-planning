@@ -27,17 +27,17 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.ActiveAbstractGraph
+import planning.engine.planner.map.dcg.ActiveAbsGraph
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
 import planning.engine.planner.map.logic.MapBaseLogic
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
 class MapCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
-    stateCell: AtomicCell[F, DcgState[F]]
+    stateCell: AtomicCell[F, MapGraphState[F]]
 ) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
@@ -64,17 +64,17 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     modifyMapState: state =>
       for
         notLoaded <- values.filterNot(state.ioValues.contains).pure
-        subGraph <- load(notLoaded, state.samplesData.keySet)
+        subGraph <- load(notLoaded, state.graph.samplesData.keySet)
         loadedNodes <- subGraph.concreteNodes.traverse(DcgNode.Concrete.apply)
         stateWithNodes <- state.addConcreteNodes(loadedNodes)
         loadedEdges = subGraph.edges.map(DcgEdgeData.apply)
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
         stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
-        (foundNodes, notFoundValues) <- stateWithSamples.concreteForIoValues(values)
+        (foundNodes, notFoundValues) <- stateWithSamples.findConForIoValues(values)
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
 
-  override def findActiveAbstractGraph(concreteNodeIds: Set[HnId]): F[Set[ActiveAbstractGraph[F]]] = ??? 
+  override def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsGraph[F]] = ??? 
 
   override def reset(): F[Unit] = ???
 
@@ -85,5 +85,5 @@ object MapCache:
   ): F[MapCache[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
-      state <- AtomicCell[F].of(DcgState.empty[F])
+      state <- AtomicCell[F].of(MapGraphState.empty[F])
     yield new MapCache(mapGraph, visualization, mapInfo, state)

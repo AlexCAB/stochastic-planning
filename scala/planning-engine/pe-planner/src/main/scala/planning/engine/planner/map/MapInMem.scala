@@ -21,27 +21,27 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.Sample
 import planning.engine.planner.map.dcg.nodes.DcgNode
-import planning.engine.planner.map.dcg.state.{DcgState, IdsCountState, MapInfoState}
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import planning.engine.planner.map.dcg.ActiveAbstractGraph
+import planning.engine.planner.map.dcg.ActiveAbsGraph
+import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
 trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit]
 
 class MapInMem[F[_]: {Async, LoggerFactory}](
-    visualization: MapVisualizationLike[F],
-    mapInfoCell: AtomicCell[F, MapInfoState[F]],
-    dcgStateCell: AtomicCell[F, DcgState[F]],
-    idsCountCell: AtomicCell[F, IdsCountState]
+                                              visualization: MapVisualizationLike[F],
+                                              mapInfoCell: AtomicCell[F, MapInfoState[F]],
+                                              dcgStateCell: AtomicCell[F, MapGraphState[F]],
+                                              idsCountCell: AtomicCell[F, MapIdsCountState]
 ) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
-  private[map] def getIdsCount: F[IdsCountState] = idsCountCell.get
+  private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get
 
   private[map] def buildSamples(newSamples: Sample.ListNew): F[List[Sample]] =
     for
@@ -62,8 +62,8 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     if info.isEmpty then
       for
         info <- MapInfoState[F](metadata, inNodes, outNodes)
-        _ <- dcgStateCell.set(DcgState.empty[F])
-        _ <- idsCountCell.set(IdsCountState.init)
+        _ <- dcgStateCell.set(MapGraphState.empty[F])
+        _ <- idsCountCell.set(MapIdsCountState.init)
         state <- dcgStateCell.get
         _ <- visualization.stateUpdated(info, state)
         _ <- logger.info(s"Initialized MapInMem with metadata: $metadata")
@@ -104,25 +104,31 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
   override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] =
     for
       state <- getMapState
-      result <- state.findHnIdsByNames(names)
+      result <- state.graph.findHnIdsByNames(names)
       _ <- logger.info(s"Found HnIds by names in mem: $result")
     yield result
 
   override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
     for
       state <- getMapState
-      (foundNodes, notFoundValues) <- state.concreteForIoValues(values)
+      (foundNodes, notFoundValues) <- state.findConForIoValues(values)
       _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)
 
-  override def findActiveAbstractGraph(concreteNodeIds: Set[HnId]): F[Set[ActiveAbstractGraph[F]]] = ???
+  override def findActiveAbstractGraph(conActiveHnIds: Set[HnId]): F[ActiveAbsGraph[F]] =
+    for
+      state <- getMapState
+      (initGraph, nextAbsHnIds) <- buildInitActiveGraph(conActiveHnIds, state)
+      tracedGraph <- traceActiveAbsNodes(initGraph, nextAbsHnIds, state)
+      _ <- logger.info(s"Found active abstract graph for conActiveNodeIds=$conActiveHnIds: $tracedGraph")
+    yield tracedGraph
 
   override def reset(): F[Unit] =
     for
       info <- getMapInfo
       _ <- mapInfoCell.set(MapInfoState.empty[F])
-      _ <- dcgStateCell.set(DcgState.empty[F])
-      _ <- idsCountCell.set(IdsCountState.init)
+      _ <- dcgStateCell.set(MapGraphState.empty[F])
+      _ <- idsCountCell.set(MapIdsCountState.init)
       _ <- logger.info(s"Resetting MapInMem with current MapInfoState: $info")
     yield ()
 
@@ -130,8 +136,8 @@ object MapInMem:
   def init[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
-      dcgState <- AtomicCell[F].of(DcgState.empty[F])
-      idsCount <- AtomicCell[F].of(IdsCountState.init)
+      dcgState <- AtomicCell[F].of(MapGraphState.empty[F])
+      idsCount <- AtomicCell[F].of(MapIdsCountState.init)
     yield new MapInMem(visualization, mapInfo, dcgState, idsCount)
 
   def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): Resource[F, MapInMem[F]] =

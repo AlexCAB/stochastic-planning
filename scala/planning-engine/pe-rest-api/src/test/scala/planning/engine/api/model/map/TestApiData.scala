@@ -29,12 +29,12 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
+import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
-import planning.engine.planner.map.dcg.state.DcgState
 import planning.engine.planner.map.dcg.nodes.*
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Links, Thens, Indexies}
-import planning.engine.planner.map.dcg.state.MapInfoState
+import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 trait TestApiData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -220,16 +220,18 @@ trait TestApiData:
     thens = Thens(Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001))))
   )
 
-  lazy val testDcgState = DcgState[IO](
+  lazy val testDcgState = MapGraphState[IO](
     ioValues = Map(tesConcreteDcgNode.ioValue -> Set(tesConcreteDcgNode.id)),
-    concreteNodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode),
-    abstractNodes = Map(testAbstractDcgNode.id -> testAbstractDcgNode),
-    edgesData = Map(testDcgEdge.ends -> testDcgEdge),
-    edgesMapping = DcgEdgesMapping(
-      forward = Map(tesConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
-      backward = Map(testAbstractDcgNode.id -> Set(tesConcreteDcgNode.id))
-    ),
-    samplesData = Map(testSampleData.id -> testSampleData)
+    graph = DcgGraph[IO](
+      concreteNodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode),
+      abstractNodes = Map(testAbstractDcgNode.id -> testAbstractDcgNode),
+      edgesData = Map(testDcgEdge.ends -> testDcgEdge),
+      edgesMapping = DcgEdgesMapping(
+        forward = Map(tesConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
+        backward = Map(testAbstractDcgNode.id -> Set(tesConcreteDcgNode.id))
+      ),
+      samplesData = Map(testSampleData.id -> testSampleData)
+    )
   )
 
   lazy val testMapInfoState = MapInfoState[IO](
@@ -242,7 +244,7 @@ trait TestApiData:
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
     ioValues = testDcgState.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = testDcgState.concreteNodes.keySet,
-    abstractNodes = testDcgState.abstractNodes.keySet,
-    edgesMapping = testDcgState.edgesMapping.forward.toSet
+    concreteNodes = testDcgState.graph.concreteNodes.keySet,
+    abstractNodes = testDcgState.graph.abstractNodes.keySet,
+    edgesMapping = testDcgState.graph.edgesMapping.forward.toSet
   )

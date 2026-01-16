@@ -19,7 +19,7 @@ import fs2.concurrent.Topic
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.VisualizationServiceConf
 import planning.engine.api.model.visualization.MapVisualizationMsg
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
 trait VisualizationServiceLike[F[_]]:
@@ -28,7 +28,7 @@ trait VisualizationServiceLike[F[_]]:
 
 class VisualizationService[F[_]: {Async, LoggerFactory}](
     config: VisualizationServiceConf,
-    topic: Topic[F, (MapInfoState[F], DcgState[F])]
+    topic: Topic[F, (MapInfoState[F], MapGraphState[F])]
 ) extends VisualizationServiceLike[F] with MapVisualizationLike[F]:
 
   private val topicMaxQueued = 1000
@@ -41,7 +41,7 @@ class VisualizationService[F[_]: {Async, LoggerFactory}](
   override val mapReceiveWs: Pipe[F, String, Unit] =
     in => in.evalMap(frameIn => logger.info("Pong received: " + frameIn))
 
-  override def stateUpdated(info: MapInfoState[F], state: DcgState[F]): F[Unit] =
+  override def stateUpdated(info: MapInfoState[F], state: MapGraphState[F]): F[Unit] =
     if config.mapEnabled then
       for
         res <- topic.publish1((info, state))
@@ -52,7 +52,7 @@ class VisualizationService[F[_]: {Async, LoggerFactory}](
 object VisualizationService:
   private[api] def init[F[_]: {Async, LoggerFactory}](config: VisualizationServiceConf): F[VisualizationService[F]] =
     for
-        topic <- Topic[F, (MapInfoState[F], DcgState[F])]
+        topic <- Topic[F, (MapInfoState[F], MapGraphState[F])]
     yield new VisualizationService(config, topic)
 
   def apply[F[_]: {Async, LoggerFactory}](config: VisualizationServiceConf): Resource[F, VisualizationService[F]] =

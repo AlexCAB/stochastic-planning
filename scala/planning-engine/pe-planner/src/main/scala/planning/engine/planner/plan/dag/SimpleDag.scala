@@ -17,14 +17,14 @@ import cats.syntax.all.*
 import cats.effect.std.AtomicCell
 import cats.implicits.toFlatMapOps
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.planner.map.dcg.state.IdsCountState
+import planning.engine.planner.map.state.MapIdsCountState
 import planning.engine.planner.plan.dag.state.DagState
 
 trait SimpleDagLike[F[_]: Async]
 
 final class SimpleDag[F[_]: {Async, LoggerFactory}](
-    idsCountCell: AtomicCell[F, IdsCountState],
-    dagStateCell: AtomicCell[F, DagState[F]]
+                                                     idsCountCell: AtomicCell[F, MapIdsCountState],
+                                                     dagStateCell: AtomicCell[F, DagState[F]]
 ) extends SimpleDagLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
@@ -32,6 +32,6 @@ final class SimpleDag[F[_]: {Async, LoggerFactory}](
 object SimpleDag:
   def apply[F[_] : {Async, LoggerFactory}](): F[SimpleDag[F]] =
     for
-      idsCount <- AtomicCell[F].of(IdsCountState.init)
+      idsCount <- AtomicCell[F].of(MapIdsCountState.init)
       dagState <- AtomicCell[F].of(DagState.empty)
     yield new SimpleDag(idsCount, dagState)

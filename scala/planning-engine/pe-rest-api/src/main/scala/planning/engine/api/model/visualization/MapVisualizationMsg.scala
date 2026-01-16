@@ -15,7 +15,7 @@ package planning.engine.api.model.visualization
 import io.circe.{Encoder, Decoder}
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
-import planning.engine.planner.map.dcg.state.{DcgState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 final case class MapVisualizationMsg(
     inNodes: Set[IoName],
@@ -34,11 +34,11 @@ object MapVisualizationMsg:
   implicit val decoder: Decoder[MapVisualizationMsg] = deriveDecoder[MapVisualizationMsg]
   implicit val encoder: Encoder[MapVisualizationMsg] = deriveEncoder[MapVisualizationMsg]
 
-  def fromState[F[_]](info: MapInfoState[F], state: DcgState[F]): MapVisualizationMsg = MapVisualizationMsg(
+  def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): MapVisualizationMsg = MapVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,
     ioValues = state.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = state.concreteNodes.keySet,
-    abstractNodes = state.abstractNodes.keySet,
-    edgesMapping = state.edgesMapping.forward.toSet
+    concreteNodes = state.graph.concreteNodes.keySet,
+    abstractNodes = state.graph.abstractNodes.keySet,
+    edgesMapping = state.graph.edgesMapping.forward.toSet
   )

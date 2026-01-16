@@ -8,15 +8,15 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-12-13 |||||||||||*/
+| created: 2026-01-17 |||||||||||*/
 
-package planning.engine.planner.map.dcg.state
+package planning.engine.planner.map.dcg
 
 import cats.effect.IO
 import cats.effect.cps.*
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
@@ -25,12 +25,9 @@ import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 
-import scala.reflect.ClassTag
-
-class DcgStateSpec extends UnitSpecWithData:
-
+class DcgGraphSpec extends UnitSpecWithData:
   private class CaseData extends Case with MapDcgNodeTestData with MapSampleTestData:
-    lazy val emptyDcgState: DcgState[IO] = DcgState.empty[IO]
+    lazy val emptyDcgGraph: DcgGraph[IO] = DcgGraph.empty[IO]
 
     lazy val hnId1 = HnId(1)
     lazy val hnId2 = HnId(2)
@@ -39,18 +36,13 @@ class DcgStateSpec extends UnitSpecWithData:
     lazy val hnId5 = HnId(5)
     lazy val nuHnId = HnId(-1)
 
-    lazy val endsSet = Set(
-      EndIds(hnId1, hnId2),
-      EndIds(hnId1, hnId3),
-      EndIds(hnId2, hnId2)
-    )
-
+    lazy val endsSet = Set(EndIds(hnId1, hnId2), EndIds(hnId1, hnId3), EndIds(hnId2, hnId2))
     lazy val absNodes: List[DcgNode.Abstract[IO]] = List(hnId1, hnId2, hnId3).map(id => makeAbstractDcgNode(id = id))
     lazy val conNodes: List[DcgNode.Concrete[IO]] = List(hnId4, hnId5).map(id => makeConcreteDcgNode(id = id))
 
-    lazy val stateWithNodes: DcgState[IO] = emptyDcgState
-      .addAbstractNodes(absNodes)
-      .flatMap(_.addConcreteNodes(conNodes))
+    lazy val graphWithNodes: DcgGraph[IO] = emptyDcgGraph
+      .addAbsNodes(absNodes)
+      .flatMap(_.addConNodes(conNodes))
       .unsafeRunSync()
 
     lazy val sampleId1 = SampleId(1001)
@@ -80,7 +72,7 @@ class DcgStateSpec extends UnitSpecWithData:
     )
 
     lazy val dcgLinkEdge: DcgEdgeData = dcgEdges.head
-    lazy val stateWithEdges: DcgState[IO] = stateWithNodes.addEdges(dcgEdges).unsafeRunSync()
+    lazy val graphWithEdges: DcgGraph[IO] = graphWithNodes.addEdges(dcgEdges).unsafeRunSync()
 
     lazy val List(n1, n2, n3) = List((1, 101), (2, 101), (3, 102)).map:
       case (id, ioIdx) => makeConcreteDcgNode(id = HnId(id), valueIndex = IoIndex(ioIdx))
@@ -88,116 +80,109 @@ class DcgStateSpec extends UnitSpecWithData:
     lazy val List(s1, s2, s3) = List(1, 2, 3).map(id => makeSampleData(id = SampleId(id)))
     lazy val nodes = List(1, 2, 3).map(id => makeAbstractDcgNode(id = HnId(id)))
 
-  "DcgState.allHnIds" should:
+  "DcgGraph.allHnIds" should:
     "return all HnIds" in newCase[CaseData]: (tn, data) =>
       val testConcreteNode = data.makeConcreteDcgNode()
       val testAbstractNode = data.makeAbstractDcgNode()
 
-      val state = data.emptyDcgState.copy(
+      val graph = data.emptyDcgGraph.copy(
         concreteNodes = Map(testConcreteNode.id -> testConcreteNode),
         abstractNodes = Map(testAbstractNode.id -> testAbstractNode)
       )
 
       async[IO]:
-        logInfo(tn, s"state: $state").await
-        state.allHnIds mustBe Set(testConcreteNode.id, testAbstractNode.id)
+        logInfo(tn, s"graph: $graph").await
+        graph.allHnIds mustBe Set(testConcreteNode.id, testAbstractNode.id)
 
-  "DcgState.allSampleIds" should:
+  "DcgGraph.allSampleIds" should:
     "return all SampleIds" in newCase[CaseData]: (tn, data) =>
       val testSample1 = data.makeSampleData(SampleId(5001))
       val testSample2 = data.makeSampleData(SampleId(5002))
 
-      val state = data.emptyDcgState
-        .copy(samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2))
+      val graph = data.emptyDcgGraph.copy(
+        samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2)
+      )
 
       async[IO]:
-        logInfo(tn, s"state: $state").await
-        state.allSampleIds mustBe Set(testSample1.id, testSample2.id)
+        logInfo(tn, s"graph: $graph").await
+        graph.allSampleIds mustBe Set(testSample1.id, testSample2.id)
 
-  "DcgState.isEmpty" should:
-    "return true for empty state" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
+  "DcgGraph.isEmpty" should:
+    "return true for empty graph" in newCase[CaseData]: (tn, data) =>
+      data.emptyDcgGraph.pure[IO].asserting(_.isEmpty mustBe true)
 
-    "return false for non empty state" in newCase[CaseData]: (tn, data) =>
-      data.stateWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
+    "return false for non empty graph" in newCase[CaseData]: (tn, data) =>
+      data.graphWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
 
-  "DcgState.checkEdges(...)" should:
+  "DcgGraph.checkEdges(...)" should:
     "check edges and return no error for valid" in newCase[CaseData]: (tn, data) =>
-      data.stateWithNodes.checkEdges(data.dcgEdges).logValue(tn).assertNoException
+      data.graphWithNodes.checkEdges(data.dcgEdges).logValue(tn).assertNoException
 
     "fail if duplicate edge keys" in newCase[CaseData]: (tn, data) =>
-      data.stateWithNodes.checkEdges(data.dcgEdges :+ data.dcgEdges.head).logValue(tn)
+      data.graphWithNodes.checkEdges(data.dcgEdges :+ data.dcgEdges.head).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Edge Keys detected"))
 
     "fail if edge connects to non existing hidden nodes" in newCase[CaseData]: (tn, data) =>
       val invalidEdge = data.makeDcgEdge(data.nuHnId, data.nuHnId, List(data.sampleId1))
-      data.stateWithNodes.checkEdges(data.dcgEdges :+ invalidEdge).logValue(tn)
+      data.graphWithNodes.checkEdges(data.dcgEdges :+ invalidEdge).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown HnIds"))
 
     "fail if duplicate sample IDs for edge between same HnIds" in newCase[CaseData]: (tn, data) =>
       val duplicateSampleEdge = data.makeDcgEdge(data.hnId1, data.hnId2, List(data.sampleId1))
-      data.stateWithNodes.checkEdges(data.dcgEdges :+ duplicateSampleEdge).logValue(tn)
+      data.graphWithNodes.checkEdges(data.dcgEdges :+ duplicateSampleEdge).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Edge Keys detected"))
 
-  "DcgState.addConcreteNodes(...)" should:
+  "DcgGraph.addConcreteNodes(...)" should:
     "add concrete nodes" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.emptyDcgState.addConcreteNodes(List(data.n1, data.n2, data.n3)).await
-        logInfo(tn, s"state: $state").await
+        val graph = data.emptyDcgGraph.addConNodes(List(data.n1, data.n2, data.n3)).await
+        logInfo(tn, s"graph: $graph").await
 
-        state.ioValues mustBe Map(data.n1.ioValue -> Set(data.n1.id, data.n2.id), data.n3.ioValue -> Set(data.n3.id))
-        state.concreteNodes mustBe List(data.n1, data.n2, data.n3).map(n => n.id -> n).toMap
+        graph.concreteNodes mustBe List(data.n1, data.n2, data.n3).map(n => n.id -> n).toMap
 
     "fail if node IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addConcreteNodes(List(data.n1, data.n1)).logValue(tn).assertThrows[AssertionError]
-
-    "fail if ioValues already exist" in newCase[CaseData]: (tn, data) =>
-      data
-        .emptyDcgState.addConcreteNodes(List(data.n1))
-        .flatMap(stateWithN1 => stateWithN1.addConcreteNodes(List(data.n2)))
-        .logValue(tn)
-        .assertThrows[AssertionError]
+      data.emptyDcgGraph.addConNodes(List(data.n1, data.n1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if concrete nodes that already exist" in newCase[CaseData]: (tn, data) =>
       data
-        .emptyDcgState.copy(concreteNodes = Map(data.n1.id -> data.n1))
-        .addConcreteNodes(List(data.n1))
+        .emptyDcgGraph.copy(concreteNodes = Map(data.n1.id -> data.n1))
+        .addConNodes(List(data.n1))
         .logValue(tn)
         .assertThrows[AssertionError]
 
     "DcgState.addAbstractNodes(...)" should:
       "add abstract nodes" in newCase[CaseData]: (tn, data) =>
         async[IO]:
-          val state = data.emptyDcgState.addAbstractNodes(data.nodes).await
-          logInfo(tn, s"state: $state").await
+          val graph = data.emptyDcgGraph.addAbsNodes(data.nodes).await
+          logInfo(tn, s"graph: $graph").await
 
-          state.abstractNodes mustBe data.nodes.map(n => n.id -> n).toMap
+          graph.abstractNodes mustBe data.nodes.map(n => n.id -> n).toMap
 
       "fail if node IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-        data.emptyDcgState.addAbstractNodes(List(data.nodes.head, data.nodes.head)).logValue(tn)
+        data.emptyDcgGraph.addAbsNodes(List(data.nodes.head, data.nodes.head)).logValue(tn)
           .assertThrows[AssertionError]
 
       "fail if abstract nodes that already exist" in newCase[CaseData]: (tn, data) =>
         data
-          .emptyDcgState.copy(abstractNodes = Map(data.n1.id -> data.nodes.head))
-          .addAbstractNodes(List(data.nodes.head))
+          .emptyDcgGraph.copy(abstractNodes = Map(data.n1.id -> data.nodes.head))
+          .addAbsNodes(List(data.nodes.head))
           .logValue(tn)
           .assertThrows[AssertionError]
 
-  "DcgState.addEdges(...)" should:
+  "DcgGraph.addEdges(...)" should:
     "add edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.stateWithNodes.addEdges(data.dcgEdges).await
-        logInfo(tn, s"state: $state").await
+        val graph = data.graphWithNodes.addEdges(data.dcgEdges).await
+        logInfo(tn, s"graph: $graph").await
 
-        state.edgesData mustBe data.dcgEdges.map(e => e.ends -> e).toMap
+        graph.edgesData mustBe data.dcgEdges.map(e => e.ends -> e).toMap
 
-        state.edgesMapping.forward mustBe Map(
+        graph.edgesMapping.forward mustBe Map(
           data.hnId2 -> Set(data.hnId3, data.hnId4, data.hnId5),
           data.hnId1 -> Set(data.hnId2)
         )
 
-        state.edgesMapping.backward mustBe Map(
+        graph.edgesMapping.backward mustBe Map(
           data.hnId4 -> Set(data.hnId2),
           data.hnId3 -> Set(data.hnId2),
           data.hnId2 -> Set(data.hnId1),
@@ -206,16 +191,16 @@ class DcgStateSpec extends UnitSpecWithData:
 
     "fail if edge keys is not distinct" in newCase[CaseData]: (tn, data) =>
       val e1 = data.dcgEdges.head
-      data.stateWithNodes.addEdges(List(e1, e1)).logValue(tn).assertThrows[AssertionError]
+      data.graphWithNodes.addEdges(List(e1, e1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if edges connect to non existing nodes" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addEdges(List(data.dcgEdges.head)).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgGraph.addEdges(List(data.dcgEdges.head)).logValue(tn).assertThrows[AssertionError]
 
     "fail if edge already exist" in newCase[CaseData]: (tn, data) =>
       val e1 = data.dcgEdges.head
-      data.stateWithNodes.addEdges(List(e1)).flatMap(_.addEdges(List(e1))).logValue(tn).assertThrows[AssertionError]
+      data.graphWithNodes.addEdges(List(e1)).flatMap(_.addEdges(List(e1))).logValue(tn).assertThrows[AssertionError]
 
-  "DcgState.mergeEdges(...)" should:
+  "DcgGraph.mergeEdges(...)" should:
     lazy val sampleId3 = SampleId(1003)
     lazy val sampleId4 = SampleId(1004)
 
@@ -231,79 +216,67 @@ class DcgStateSpec extends UnitSpecWithData:
           .groupBy(_.ends).view.mapValues(_.reduceLeft((e1, e2) => e1.join[IO](e2).unsafeRunSync()))
           .toMap
 
-        val state = data.stateWithEdges.mergeEdges(dcgEdges2).await
-        logInfo(tn, s"state: $state").await
+        val graph = data.graphWithEdges.mergeEdges(dcgEdges2).await
+        logInfo(tn, s"graph: $graph").await
 
-        state.edgesData mustBe joinedEdges
+        graph.edgesData mustBe joinedEdges
 
-        state.edgesMapping.forward mustBe Map(
+        graph.edgesMapping.forward mustBe Map(
           data.hnId2 -> Set(data.hnId3, data.hnId4, data.hnId5),
           data.hnId1 -> Set(data.hnId2, data.hnId5)
         )
 
-        state.edgesMapping.backward mustBe Map(
+        graph.edgesMapping.backward mustBe Map(
           data.hnId2 -> Set(data.hnId1),
           data.hnId3 -> Set(data.hnId2),
           data.hnId4 -> Set(data.hnId2),
           data.hnId5 -> Set(data.hnId1, data.hnId2)
         )
 
-  "DcgState.addSamples(...)" should:
+  "DcgGraph.addSamples(...)" should:
     "add samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.emptyDcgState.addSamples(List(data.s1, data.s2, data.s3)).await
-        logInfo(tn, s"state: $state").await
+        val graph = data.emptyDcgGraph.addSamples(List(data.s1, data.s2, data.s3)).await
+        logInfo(tn, s"graph: $graph").await
 
-        state.samplesData mustBe List(data.s1, data.s2, data.s3).map(s => s.id -> s).toMap
+        graph.samplesData mustBe List(data.s1, data.s2, data.s3).map(s => s.id -> s).toMap
 
     "fail if sample IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addSamples(List(data.s1, data.s1)).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgGraph.addSamples(List(data.s1, data.s1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if samples that already exist" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
+      data.emptyDcgGraph.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
         .logValue(tn).assertThrows[AssertionError]
 
-  "DcgState.concreteForHnId(...)" should:
+  "DcgGraph.getConForHnId(...)" should:
     "get concrete node for HnId" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val conNode = data.stateWithNodes.concreteForHnId(data.conNodes.head.id).await
+        val conNode = data.graphWithNodes.getConForHnId(data.conNodes.head.id).await
         logInfo(tn, s"conNode: $conNode").await
 
         conNode mustBe data.conNodes.head
 
     "fail if concrete node for HnId not found" in newCase[CaseData]: (tn, data) =>
-      data.stateWithNodes.concreteForHnId(HnId(-1)).logValue(tn).assertThrows[AssertionError]
+      data.graphWithNodes.getConForHnId(HnId(-1)).logValue(tn).assertThrows[AssertionError]
 
-  "DcgState.abstractForHnId(...)" should:
+  "DcgGraph.getAbsForHnId(...)" should:
     "get abstract node for HnId" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val absNode = data.stateWithNodes.abstractForHnId(data.absNodes.head.id).await
+        val absNode = data.graphWithNodes.getAbsForHnId(data.absNodes.head.id).await
         logInfo(tn, s"absNode: $absNode").await
 
         absNode mustBe data.absNodes.head
 
     "fail if abstract node for HnId not found:" in newCase[CaseData]: (tn, data) =>
-      data.stateWithNodes.abstractForHnId(HnId(-1)).logValue(tn).assertThrows[AssertionError]
+      data.graphWithNodes.getAbsForHnId(HnId(-1)).logValue(tn).assertThrows[AssertionError]
 
-  "DcgState.concreteForIoValues(...)" should:
-    "get concrete nodes for IoValues" in newCase[CaseData]: (tn, data) =>
-      val ioValue1 = data.conNodes.head.ioValue
-      val ioValue2 = IoValue(IoName("not_in_set"), IoIndex(123))
-
-      async[IO]:
-        val (map, notFound) = data.stateWithNodes.concreteForIoValues(Set(ioValue1, ioValue2)).await
-        logInfo(tn, s"map: $map, notFound: $notFound").await
-
-        map mustBe Map(ioValue1 -> data.conNodes.filter(_.ioValue == ioValue1).toSet)
-        notFound mustBe Set(ioValue2)
-
-  "DcgState.findHnIdsByNames(...)" should:
+  "DcgGraph.findHnIdsByNames(...)" should:
     "find HnIds by names" in newCase[CaseData]: (tn, data) =>
       val name1 = data.absNodes.head.name.get
       val name2 = HnName("unknown_name")
 
       async[IO]:
-        val result = data.stateWithNodes.findHnIdsByNames(Set(name1, name2)).await
+        val result = data.graphWithNodes.findHnIdsByNames(Set(name1, name2)).await
         logInfo(tn, s"result: $result").await
 
         result mustBe Map(name1 -> data.absNodes.filter(_.name.contains(name1)).map(_.id).toSet)

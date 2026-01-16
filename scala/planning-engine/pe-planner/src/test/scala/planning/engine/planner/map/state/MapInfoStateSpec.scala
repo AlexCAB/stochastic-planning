@@ -10,13 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-25 |||||||||||*/
 
-package planning.engine.planner.map.dcg.state
+package planning.engine.planner.map.state
 
 import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.IoName
 import planning.engine.map.data.MapMetadata
+import planning.engine.planner.map.state.MapInfoState
 import planning.engine.planner.map.test.data.MapNodeTestData
 
 class MapInfoStateSpec extends UnitSpecWithData:

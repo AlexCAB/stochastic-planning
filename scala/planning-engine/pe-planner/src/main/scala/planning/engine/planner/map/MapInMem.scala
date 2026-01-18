@@ -23,11 +23,12 @@ import planning.engine.map.samples.sample.Sample
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.common.errors.*
+import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import planning.engine.planner.map.dcg.ActiveAbsGraph
+import planning.engine.planner.map.dcg.ActiveAbsDag
 import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
@@ -35,10 +36,10 @@ trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: List[InputNode[F]], outNodes: List[OutputNode[F]]): F[Unit]
 
 class MapInMem[F[_]: {Async, LoggerFactory}](
-                                              visualization: MapVisualizationLike[F],
-                                              mapInfoCell: AtomicCell[F, MapInfoState[F]],
-                                              dcgStateCell: AtomicCell[F, MapGraphState[F]],
-                                              idsCountCell: AtomicCell[F, MapIdsCountState]
+    visualization: MapVisualizationLike[F],
+    mapInfoCell: AtomicCell[F, MapInfoState[F]],
+    dcgStateCell: AtomicCell[F, MapGraphState[F]],
+    idsCountCell: AtomicCell[F, MapIdsCountState]
 ) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
   private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get
@@ -115,11 +116,12 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)
 
-  override def findActiveAbstractGraph(conActiveHnIds: Set[HnId]): F[ActiveAbsGraph[F]] =
+  override def findActiveAbstractGraph(conActiveHnIds: Set[HnId]): F[ActiveAbsDag[F]] =
     for
       state <- getMapState
-      (initGraph, nextAbsHnIds) <- buildInitActiveGraph(conActiveHnIds, state)
-      tracedGraph <- traceActiveAbsNodes(initGraph, nextAbsHnIds, state)
+      initGraph <- buildInitActiveGraph(conActiveHnIds, state)
+      tracedGraph <- traceActiveAbsNodes(initGraph, Set(), state)
+      _ <- Validation.validate(tracedGraph)
       _ <- logger.info(s"Found active abstract graph for conActiveNodeIds=$conActiveHnIds: $tracedGraph")
     yield tracedGraph
 

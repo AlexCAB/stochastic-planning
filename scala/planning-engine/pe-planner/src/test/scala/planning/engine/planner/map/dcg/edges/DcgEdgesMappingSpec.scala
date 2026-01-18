@@ -22,7 +22,7 @@ import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 class DcgEdgesMappingSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val mapping: DcgEdgesMapping = DcgEdgesMapping(
+    lazy val mapping: DcgEdgesMapping[IO] = DcgEdgesMapping(
       forward = Map(
         HnId(1) -> Set(HnId(2), HnId(3))
       ),
@@ -40,7 +40,7 @@ class DcgEdgesMappingSpec extends UnitSpecWithData:
 
   "DcgEdgesMapping.isEmpty(...)" should:
     "be true for empty mapping" in newCase[CaseData]: (tn, data) =>
-      DcgEdgesMapping.empty.isEmpty.pure[IO].asserting(_ mustBe true)
+      DcgEdgesMapping.empty[IO].isEmpty.pure[IO].asserting(_ mustBe true)
 
     "be false for non-empty mapping" in newCase[CaseData]: (tn, data) =>
       data.mapping.isEmpty.pure[IO].asserting(_ mustBe false)
@@ -66,7 +66,7 @@ class DcgEdgesMappingSpec extends UnitSpecWithData:
       val newIds = Map(HnId(1) -> Set(HnId(4)), HnId(3) -> Set(HnId(5)))
 
       async[IO]:
-        val joined = DcgEdgesMapping.empty.joinIds[IO](oldIds, newIds).await
+        val joined = DcgEdgesMapping.empty[IO].joinIds(oldIds, newIds).await
         logInfo(tn, s"joined: $joined").await
 
         joined mustBe Map(
@@ -79,12 +79,12 @@ class DcgEdgesMappingSpec extends UnitSpecWithData:
       val oldIds = Map(HnId(1) -> Set(HnId(2)))
       val newIds = Map(HnId(1) -> Set(HnId(2)))
 
-      DcgEdgesMapping.empty.joinIds[IO](oldIds, newIds).logValue(tn).assertThrows[AssertionError]
+      DcgEdgesMapping.empty[IO].joinIds(oldIds, newIds).logValue(tn).assertThrows[AssertionError]
 
   "DcgEdgesMapping.addAll(...)" should:
     "add all edges to empty mapping" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val updated = DcgEdgesMapping.empty.addAll[IO](data.ends).await
+        val updated = DcgEdgesMapping.empty[IO].addAll(data.ends).await
         logInfo(tn, s"updated: $updated").await
 
         updated.forward mustBe Map(
@@ -100,7 +100,7 @@ class DcgEdgesMappingSpec extends UnitSpecWithData:
 
     "add all edges to not empty mapping" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val updated = data.mapping.addAll[IO](data.ends).await
+        val updated = data.mapping.addAll(data.ends).await
         logInfo(tn, s"updated: $updated").await
 
         updated.forward mustBe Map(
@@ -117,6 +117,6 @@ class DcgEdgesMappingSpec extends UnitSpecWithData:
 
   "DcgEdgesMapping.empty" should:
     "be an empty DcgEdgesMapping instance" in newCase[CaseData]: (tn, data) =>
-      DcgEdgesMapping.empty.pure[IO].logValue(tn).asserting: empty =>
+      DcgEdgesMapping.empty[IO].pure[IO].logValue(tn).asserting: empty =>
         empty.forward mustBe empty
         empty.backward mustBe empty

@@ -18,7 +18,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
-import planning.engine.planner.map.dcg.ActiveAbsGraph
+import planning.engine.planner.map.dcg.ActiveAbsDag
 import planning.engine.planner.map.dcg.nodes.DcgNode
 
 trait MapLike[F[_]]:
@@ -34,7 +34,7 @@ trait MapLike[F[_]]:
   // Lookup methods
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]]
   def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
-  def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsGraph[F]]
+  def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]]
 
   // Service methods
   def reset(): F[Unit]

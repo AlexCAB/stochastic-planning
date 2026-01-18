@@ -27,7 +27,7 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.ActiveAbsGraph
+import planning.engine.planner.map.dcg.ActiveAbsDag
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
@@ -74,7 +74,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
 
-  override def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsGraph[F]] = ??? 
+  override def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]] = ??? 
 
   override def reset(): F[Unit] = ???
 

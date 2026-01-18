@@ -29,11 +29,16 @@ final case class DcgEdgeData(
     thens: Thens
 ):
   lazy val hnIds: Set[HnId] = Set(ends.src, ends.trg)
+  
   lazy val linksIds: Set[SampleId] = links.indexies.keySet
   lazy val thensIds: Set[SampleId] = thens.indexies.keySet
+  lazy val sampleIds: Set[SampleId] = linksIds ++ thensIds
 
-  def join[F[_]: MonadThrow](other: DcgEdgeData): F[DcgEdgeData] = 
-    for 
+  lazy val isLink: Boolean = linksIds.nonEmpty
+  lazy val isThen: Boolean = thensIds.nonEmpty
+
+  def join[F[_]: MonadThrow](other: DcgEdgeData): F[DcgEdgeData] =
+    for
       _ <- (ends, other.ends).assertEqual(s"Cannot join edges with different ends: $ends and ${other.ends}")
       newLinks <- links.join(other.links)
       newThens <- thens.join(other.thens)
@@ -42,10 +47,9 @@ final case class DcgEdgeData(
 object DcgEdgeData:
   final case class EndIds(src: HnId, trg: HnId)
 
-  private[edges] def makeDcgEdgeData(ends: EndIds, edgeType: EdgeType, indexies: IndexMap): DcgEdgeData =
-    edgeType match
-      case EdgeType.LINK => DcgEdgeData(ends, Links(indexies), Thens.empty)
-      case EdgeType.THEN => DcgEdgeData(ends, Links.empty, Thens(indexies))
+  private[edges] def makeDcgEdgeData(ends: EndIds, edgeType: EdgeType, indexies: IndexMap): DcgEdgeData = edgeType match
+    case EdgeType.LINK => DcgEdgeData(ends, Links(indexies), Thens.empty)
+    case EdgeType.THEN => DcgEdgeData(ends, Links.empty, Thens(indexies))
 
   def apply(edge: HiddenEdge): DcgEdgeData = makeDcgEdgeData(
     EndIds(edge.sourceId, edge.targetId),
@@ -53,7 +57,7 @@ object DcgEdgeData:
     edge.samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
   )
 
-  def apply[F[_]: MonadThrow](edgeType: EdgeType, ends: EndIds,edges: List[SampleEdge]): F[DcgEdgeData] =
+  def apply[F[_]: MonadThrow](edgeType: EdgeType, ends: EndIds, edges: List[SampleEdge]): F[DcgEdgeData] =
     for
       _ <- edges.assertNonEmpty("SampleEdges list is empty")
       edgeKeys = edges.map(e => (e.edgeType, e.source.hnId, e.target.hnId)).toSet

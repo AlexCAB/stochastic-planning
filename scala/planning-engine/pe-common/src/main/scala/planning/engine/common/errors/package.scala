@@ -14,9 +14,6 @@ package planning.engine.common.errors
 
 import cats.ApplicativeThrow
 
-import scala.collection.Seq
-import scala.collection.immutable.Iterable
-
 package object errors
 
 private def predicateAssert[F[_]: ApplicativeThrow, V](p: Boolean, v: V, msg: String): F[V] =
@@ -26,19 +23,18 @@ private def predicateAssert[F[_]: ApplicativeThrow, V](p: Boolean, v: V, msg: St
 extension (msg: String)
   inline def assertionError[F[_]: ApplicativeThrow, V]: F[V] = ApplicativeThrow[F].raiseError(AssertionError(msg))
 
-extension [T, C[_] <: Seq[T]](seq: C[T])
+extension [T, C[_] <: Iterable[T]](iterable: C[T])
   inline def assertDistinct[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    val duplicates = seq.groupBy(identity).filter((_, v) => v.size > 1).keySet
+    val duplicates = iterable.groupBy(identity).filter((_, v) => v.size > 1).keySet
     predicateAssert(
-      seq.distinct.size == seq.size,
-      seq,
-      msg + s", seq: ${seq.mkString(",")}, duplicates: ${duplicates.mkString(",")}"
+      duplicates.isEmpty,
+      iterable,
+      msg + s", seq: ${iterable.mkString(",")}, duplicates: ${duplicates.mkString(",")}"
     )
 
   inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(seq.isEmpty || (seq.distinct.size == 1), seq, msg + s", seq: ${seq.mkString(",")}")
+    predicateAssert(iterable.isEmpty || (iterable.toSet.size == 1), iterable, msg + s", seq: ${iterable.mkString(",")}")
 
-extension [T, C[_] <: Iterable[T]](iterable: C[T])
   inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
     predicateAssert(iterable.nonEmpty, iterable, msg + s", seq: ${iterable.mkString(",")}")
 

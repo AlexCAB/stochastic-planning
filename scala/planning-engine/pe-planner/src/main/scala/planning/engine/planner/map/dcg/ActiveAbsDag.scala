@@ -30,7 +30,11 @@ final case class ActiveAbsDag[F[_]: MonadThrow](
     graph: DcgGraph[F]
 ) extends Validation:
   override lazy val validationName: String = "ActiveAbsGraph"
-  override lazy val validationErrors: List[Throwable] = List()
+  
+  override lazy val validationErrors: List[Throwable] = List(
+    
+    
+  )
 
   def addAbstractLevel(
       abstractNodes: Iterable[DcgNode.Abstract[F]],

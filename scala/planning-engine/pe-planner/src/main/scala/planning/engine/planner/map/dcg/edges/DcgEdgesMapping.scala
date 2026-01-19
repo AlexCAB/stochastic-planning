@@ -15,14 +15,25 @@ package planning.engine.planner.map.dcg.edges
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.*
+import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 
 final case class DcgEdgesMapping[F[_]: MonadThrow](
     forward: Map[HnId, Set[HnId]],
     backward: Map[HnId, Set[HnId]]
-):
+) extends Validation:
+
   lazy val isEmpty: Boolean = forward.isEmpty && backward.isEmpty
+  lazy val allEnds: Set[EndIds] = forward.flatMap((srcId, trgIds) => trgIds.map(trgId => EndIds(srcId, trgId))).toSet
+  lazy val allHnIds: Set[HnId] = forward.keySet ++ backward.keySet
+
+  override lazy val validationName: String = "DcgEdgesMapping"
+
+  override lazy val validationErrors: List[Throwable] = validations(
+    forward.keySet.haveSameElems(backward.values.flatten.toSet, "Forward and Backward mappings keys/values mismatch"),
+    backward.keySet.haveSameElems(forward.values.flatten.toSet, "Backward and Forward mappings keys/values mismatch")
+  )
 
   private[edges] def validateJoin(acc: Map[HnId, Set[HnId]], hnId: HnId, targets: Set[HnId]): Boolean =
     acc.contains(hnId) && acc(hnId).intersect(targets).isEmpty

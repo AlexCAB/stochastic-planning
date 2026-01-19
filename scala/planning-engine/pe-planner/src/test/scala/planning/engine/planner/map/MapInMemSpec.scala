@@ -160,8 +160,8 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
         result mustBe expectedResult
 
-  "MapInMem.getForIoValues(...)" should:
-    "get nodes for io values from in-memory state" in newCase[CaseData]: (tn, data) =>
+  "MapInMem.findForIoValues(...)" should:
+    "find nodes for io values from in-memory state" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         data.mapInMem.setMapState(data.dcgStateFromSubGraph).await
 
@@ -171,6 +171,11 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
         foundNodes mustBe data.conDcgNodesMap
         notFoundValues mustBe Set(data.testNotInMap)
+
+  "MapInMem.findActiveAbstractGraph(...)" should:
+    "find simple active abstract graph" in newCase[CaseData]: (tn, data) =>
+      ???
+
 
   "MapInMem.reset()" should:
     "reset in-memory map state" in newCase[CaseData]: (tn, data) =>

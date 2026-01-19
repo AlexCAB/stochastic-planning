@@ -21,6 +21,7 @@ import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
+import planning.engine.common.validation.Validation
 
 final case class DcgGraph[F[_]: MonadThrow](
     concreteNodes: Map[HnId, DcgNode.Concrete[F]],
@@ -28,9 +29,27 @@ final case class DcgGraph[F[_]: MonadThrow](
     edgesData: Map[EndIds, DcgEdgeData],
     edgesMapping: DcgEdgesMapping[F],
     samplesData: Map[SampleId, SampleData]
-):
+) extends Validation:
+
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
   lazy val allSampleIds: Set[SampleId] = samplesData.keySet
+  override lazy val validationName: String = "DcgGraph"
+
+  override lazy val validationErrors: List[Throwable] =
+    val edgeAllHdIds = edgesData.values.flatMap(_.hnIds)
+    val edgeSampleIds = edgesData.values.flatMap(_.sampleIds)
+
+    edgesMapping.validationErrors ++ validations(
+      concreteNodes.map((k, n) => k -> n.id).allEquals("Concrete Nodes map keys and values IDs mismatch"),
+      abstractNodes.map((k, n) => k -> n.id).allEquals("Abstract Nodes map keys and values IDs mismatch"),
+      concreteNodes.keySet.haveDifferentElems(concreteNodes.keySet, "Concrete and Abstract Nodes IDs overlap detected"),
+      edgesData.map((k, n) => k -> n.ends).allEquals("Edges Data map keys and values Ends mismatch"),
+      allHnIds.containsAllOf(edgesData.values.flatMap(_.hnIds), "Edge refers to unknown HnIds"),
+      allHnIds.containsAllOf(edgesMapping.allHnIds, "Edges Mapping refers to unknown HnIds"),
+      edgesData.keySet.haveSameElems(edgesMapping.allEnds, "Edges Mapping refers to unknown Edge Ends"),
+      samplesData.map((k, n) => k -> n.id).allEquals("Samples Data map keys and values IDs mismatch"),
+      allSampleIds.containsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
+    )
 
   lazy val isEmpty: Boolean = concreteNodes.isEmpty &&
     abstractNodes.isEmpty &&
@@ -156,7 +175,7 @@ object DcgGraph:
     edgesMapping = DcgEdgesMapping.empty,
     samplesData = Map.empty
   )
-  
+
   def apply[F[_]: MonadThrow](
       concreteNodes: Iterable[DcgNode.Concrete[F]],
       abstractNodes: Iterable[DcgNode.Abstract[F]],

@@ -75,4 +75,26 @@ class ValidationSpec extends UnitSpecWithData:
           List(1, 2, 3).haveSameElems(List(2, 4), "Collections do not have the same elements")
         )
       obj.pure[IO].asserting(_.validationErrors
-        .map(_.getMessage) mustBe List("Collections do not have the same elements, not same elements: 1, 3, 4"))
+        .map(_.getMessage) mustBe List("Collections do not have the same elements, have not same elements: 1, 3, 4"))
+
+  "Validation.ex.haveDifferentElems(...)" should:
+    "return true when both collections have different elements" in newCase[CaseData]: (_, _) =>
+      val obj = new Validation:
+        def validationName = "testObj"
+        def validationErrors = validations(
+          List(1, 2, 3).haveDifferentElems(List(4, 5), "Collections have different elements"),
+          List(1, 2, 3).haveDifferentElems(List(3, 4), "Collections do not have different elements")
+        )
+      obj.pure[IO].asserting(_.validationErrors
+        .map(_.getMessage) mustBe List("Collections do not have different elements, have same elements: 3"))
+
+  "Validation.ex.allEquals(...)" should:
+    "return true when all pairs are equal" in newCase[CaseData]: (_, _) =>
+      val obj = new Validation:
+        def validationName = "testObj"
+        def validationErrors = validations(
+          List((1, 1), (2, 2), (3, 3)).allEquals("All pairs are equal"),
+          List((1, 1), (2, 3), (3, 3)).allEquals("Not all pairs are equal")
+        )
+      obj.pure[IO].asserting(_.validationErrors
+        .map(_.getMessage) mustBe List("Not all pairs are equal, have equal elements: (2,3)"))

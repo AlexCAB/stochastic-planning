@@ -139,7 +139,7 @@ final case class DcgGraph[F[_]: MonadThrow](
       found <- abstractNodes.filter((id, _) => ids.contains(id)).pure
       _ <- (found.keySet, ids).assertContainsAll("Some abstract node IDs are not found")
     yield found
-    
+
   def getSamples(sampleIds: Set[SampleId]): F[Map[SampleId, SampleData]] =
     for
       found <- samplesData.filter((id, _) => sampleIds.contains(id)).pure
@@ -192,7 +192,7 @@ object DcgGraph:
       allHnIds = concreteNodes.map(_.id).toSet ++ abstractNodes.map(_.id).toSet
       _ <- (allHnIds, edgesData.flatMap(_.hnIds)).assertContainsAll("Edge refers to unknown HnIds")
       allSampleIds = edgesData.flatMap(_.sampleIds)
-      _ <- (allSampleIds, samplesData.map(_.id)).assertContainsAll("Some sample IDs used in edges are not found")
+      _ <- (samplesData.map(_.id), allSampleIds).assertContainsAll("Some sample IDs used in edges are not found")
     yield DcgGraph(
       concreteNodes = concreteNodes.map(n => n.id -> n).toMap,
       abstractNodes = abstractNodes.map(n => n.id -> n).toMap,

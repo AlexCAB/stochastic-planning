@@ -63,7 +63,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
     def makeDcgEdge(snId: HnId, tnId: HnId, lIds: List[SampleId], tIds: List[SampleId]): DcgEdgeData = DcgEdgeData(
       ends = EndIds(snId, tnId),
       links = Links(lIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap),
-      thens = Thens(tIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap),
+      thens = Thens(tIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap)
     )
 
     lazy val dcgEdges: List[DcgEdgeData] = List(
@@ -74,7 +74,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       makeDcgEdge(hnId2, hnId5, List(sampleId2), List()),
       // Then edges
       makeDcgEdge(hnId2, hnId1, List(), List(sampleId2)),
-      makeDcgEdge(hnId5, hnId1, List(), List(sampleId1, sampleId2)),
+      makeDcgEdge(hnId5, hnId1, List(), List(sampleId1, sampleId2))
     )
 
     lazy val dcgLinkEdge: DcgEdgeData = dcgEdges.head
@@ -301,7 +301,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         graph.edgesMapping.forward mustBe Map(
           data.hnId1 -> Set(data.hnId2),
           data.hnId2 -> Set(data.hnId1, data.hnId3, data.hnId4, data.hnId5),
-          data.hnId5 -> Set(data.hnId1),
+          data.hnId5 -> Set(data.hnId1)
         )
 
         graph.edgesMapping.backward mustBe Map(
@@ -309,7 +309,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
           data.hnId2 -> Set(data.hnId1),
           data.hnId3 -> Set(data.hnId2),
           data.hnId4 -> Set(data.hnId2),
-          data.hnId5 -> Set(data.hnId2),
+          data.hnId5 -> Set(data.hnId2)
         )
 
     "fail if edge keys is not distinct" in newCase[CaseData]: (tn, data) =>
@@ -347,7 +347,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         graph.edgesMapping.forward mustBe Map(
           data.hnId1 -> Set(data.hnId2, data.hnId5),
           data.hnId2 -> Set(data.hnId1, data.hnId3, data.hnId4, data.hnId5),
-          data.hnId5 -> Set(data.hnId1),
+          data.hnId5 -> Set(data.hnId1)
         )
 
         graph.edgesMapping.backward mustBe Map(
@@ -395,7 +395,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     "fail if some concrete nodes for HnIds not found" in newCase[CaseData]: (tn, data) =>
       val hnIds = data.conNodes.map(_.id).toSet + HnId(-1)
-        data.graphWithNodes.getConForHnIds(hnIds).logValue(tn).assertThrows[AssertionError]
+      data.graphWithNodes.getConForHnIds(hnIds).logValue(tn).assertThrows[AssertionError]
 
   "DcgGraph.getAbsForHnId(...)" should:
     "get abstract node for HnId" in newCase[CaseData]: (tn, data) =>
@@ -421,7 +421,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val hnIds = data.absNodes.map(_.id).toSet + HnId(-1)
       data.graphWithNodes.getAbsForHnIds(hnIds).logValue(tn).assertThrows[AssertionError]
 
-  "DcgGraph.getSamples(...)" should :
+  "DcgGraph.getSamples(...)" should:
     "find samples" in newCase[CaseData]: (tn, data) =>
       val sampleIds = Set(data.sampleId1, data.sampleId2)
 
@@ -467,8 +467,8 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         val expectedEnds = data.dcgEdges.filter(e =>
           sourceHnIds.contains(e.ends.src) &&
-          e.isLink &&
-          e.linksIds.exists(activeSampleIds.contains)
+            e.isLink &&
+            e.linksIds.exists(activeSampleIds.contains)
         ).map(_.ends).toSet
 
         expectedEnds must not be empty
@@ -487,7 +487,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         expectedEnds must not be empty
         result.keySet mustBe expectedEnds
 
-    "fail if ends not have as source one of given HnIds"  in newCase[CaseData]: (tn, data) =>
+    "fail if ends not have as source one of given HnIds" in newCase[CaseData]: (tn, data) =>
       val targetHnIds = Set(data.hnId2) // Not a target for any 'then' edge
       data.graphWithEdges.findBackwardThenEdges(targetHnIds).logValue(tn).assertThrows[AssertionError]
 
@@ -504,8 +504,8 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         val expectedEnds = data.dcgEdges.filter(e =>
           targetHnIds.contains(e.ends.trg) &&
-          e.isThen &&
-          e.thensIds.exists(activeSampleIds.contains)
+            e.isThen &&
+            e.thensIds.exists(activeSampleIds.contains)
         ).map(_.ends).toSet
 
         expectedEnds must not be empty
@@ -524,6 +524,49 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         emptyGraph.edgesMapping mustBe DcgEdgesMapping.empty[IO]
         emptyGraph.samplesData mustBe Map.empty
 
-//
-//  "DcgGraph.apply(...)" should:
-//    ???
+  "DcgGraph.apply(...)" should:
+    "create correct graph from components" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val graph = DcgGraph[IO](data.conNodes, data.absNodes, data.dcgEdges, data.sampleData).await
+        logInfo(tn, s"graph: $graph").await
+
+        graph.concreteNodes mustBe data.conNodes.map(n => n.id -> n).toMap
+        graph.abstractNodes mustBe data.absNodes.map(n => n.id -> n).toMap
+        graph.edgesData mustBe data.dcgEdges.map(e => e.ends -> e).toMap
+        graph.edgesMapping mustBe DcgEdgesMapping[IO](data.dcgEdges.map(_.ends))
+        graph.samplesData mustBe data.sampleData.map(s => s.id -> s).toMap
+
+    "fail if duplicate concrete node IDs detected" in newCase[CaseData]: (tn, data) =>
+      val duplicateConNodes = data.conNodes :+ data.conNodes.head
+
+      DcgGraph[IO](duplicateConNodes, data.absNodes, data.dcgEdges, data.sampleData)
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Concrete Node IDs detected"))
+
+    "fail if duplicate abstract node IDs detected" in newCase[CaseData]: (tn, data) =>
+      val duplicateAbsNodes = data.absNodes :+ data.absNodes.head
+
+      DcgGraph[IO](data.conNodes, duplicateAbsNodes, data.dcgEdges, data.sampleData)
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Abstract Node IDs detected"))
+
+    "fail if duplicate edge keys detected" in newCase[CaseData]: (tn, data) =>
+      val duplicateEdges = data.dcgEdges :+ data.dcgEdges.head
+
+      DcgGraph[IO](data.conNodes, data.absNodes, duplicateEdges, data.sampleData)
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Edge Keys detected"))
+
+    "fail if edges refer to unknown HnIds" in newCase[CaseData]: (tn, data) =>
+      val invalidEdges = data.dcgEdges :+ data.makeDcgEdge(data.nuHnId, data.nuHnId, List(data.sampleId1), List())
+
+      DcgGraph[IO](data.conNodes, data.absNodes, invalidEdges, data.sampleData)
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown HnIds"))
+
+    "fail if some sample IDs used in edges are not found" in newCase[CaseData]: (tn, data) =>
+      val invalidEdge = data.makeDcgEdge(data.hnId4, data.hnId4, List(data.sampleId1, SampleId(9999)), List())
+
+      DcgGraph[IO](data.conNodes, data.absNodes, data.dcgEdges :+ invalidEdge, data.sampleData)
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Some sample IDs used in edges are not found"))

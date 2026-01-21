@@ -29,7 +29,7 @@ final case class DcgEdgeData(
     thens: Thens
 ):
   lazy val hnIds: Set[HnId] = Set(ends.src, ends.trg)
-  
+
   lazy val linksIds: Set[SampleId] = links.indexies.keySet
   lazy val thensIds: Set[SampleId] = thens.indexies.keySet
   lazy val sampleIds: Set[SampleId] = linksIds ++ thensIds
@@ -48,7 +48,11 @@ object DcgEdgeData:
   final case class EndIds(src: HnId, trg: HnId):
     lazy val swap: EndIds = EndIds(trg, src)
 
-  private[edges] def makeDcgEdgeData(ends: EndIds, edgeType: EdgeType, indexies: IndexMap): DcgEdgeData = edgeType match
+  private[edges] def makeDcgEdgeData(
+      ends: EndIds,
+      edgeType: EdgeType,
+      indexies: Map[SampleId, Indexies]
+  ): DcgEdgeData = edgeType match
     case EdgeType.LINK => DcgEdgeData(ends, Links(indexies), Thens.empty)
     case EdgeType.THEN => DcgEdgeData(ends, Links.empty, Thens(indexies))
 

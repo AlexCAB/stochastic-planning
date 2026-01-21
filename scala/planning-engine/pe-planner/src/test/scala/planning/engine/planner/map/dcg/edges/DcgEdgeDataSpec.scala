@@ -26,68 +26,90 @@ import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 
 class DcgEdgeDataSpec extends UnitSpecWithData:
-  
+
   private class CaseData extends Case:
-    lazy val hiddenEdge: HiddenEdge = HiddenEdge(
+    lazy val hiddenLinkEdge: HiddenEdge = HiddenEdge(
       edgeType = EdgeType.LINK,
       sourceId = HnId(1),
       targetId = HnId(2),
-      samples = List(SampleIndexies(
-        sampleId = SampleId(11),
-        sourceIndex = HnIndex(201),
-        targetIndex = HnIndex(202)
-      ))
+      samples = List(SampleIndexies(sampleId = SampleId(11), sourceIndex = HnIndex(201), targetIndex = HnIndex(202)))
     )
 
-    lazy val sampleEdge: SampleEdge = SampleEdge(
-      sampleId = hiddenEdge.samples.head.sampleId,
+    lazy val hiddenThenEdge: HiddenEdge = hiddenLinkEdge.copy(
+      edgeType = EdgeType.THEN,
+      samples = List(SampleIndexies(sampleId = SampleId(12), sourceIndex = HnIndex(203), targetIndex = HnIndex(204)))
+    )
+
+    lazy val sampleLinkEdge: SampleEdge = SampleEdge(
+      sampleId = hiddenLinkEdge.samples.head.sampleId,
       source = SampleEdge.End(
-        hnId = hiddenEdge.sourceId,
-        value = hiddenEdge.samples.head.sourceIndex
+        hnId = hiddenLinkEdge.sourceId,
+        value = hiddenLinkEdge.samples.head.sourceIndex
       ),
       target = SampleEdge.End(
-        hnId = hiddenEdge.targetId,
-        value = hiddenEdge.samples.head.targetIndex
+        hnId = hiddenLinkEdge.targetId,
+        value = hiddenLinkEdge.samples.head.targetIndex
       ),
-      edgeType = hiddenEdge.edgeType
+      edgeType = hiddenLinkEdge.edgeType
     )
 
-    lazy val samples: Map[SampleId, Indexies] = hiddenEdge.samples
+    def makeSamples(edge: HiddenEdge): Map[SampleId, Indexies] = edge.samples
       .map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex))
       .toMap
 
+    lazy val linkSamples: Map[SampleId, Indexies] = makeSamples(hiddenLinkEdge)
+    lazy val thenSamples: Map[SampleId, Indexies] = makeSamples(hiddenThenEdge)
+
     lazy val dcgLinkEdge: DcgEdgeData = DcgEdgeData(
-      ends = EndIds(hiddenEdge.sourceId, hiddenEdge.targetId),
-      links = Links(samples),
+      ends = EndIds(hiddenLinkEdge.sourceId, hiddenLinkEdge.targetId),
+      links = Links(linkSamples),
       thens = Thens.empty
     )
 
     lazy val dcgThenEdge: DcgEdgeData = DcgEdgeData(
-      ends = EndIds(hiddenEdge.sourceId, hiddenEdge.targetId),
+      ends = EndIds(hiddenThenEdge.sourceId, hiddenThenEdge.targetId),
       links = Links.empty,
-      thens = Thens(samples)
+      thens = Thens(thenSamples)
     )
 
     lazy val ends: EndIds = dcgLinkEdge.ends
-    lazy val edgeType: EdgeType = sampleEdge.edgeType
+    lazy val edgeType: EdgeType = hiddenLinkEdge.edgeType
 
   "DcgEdgeData.hnIds" should:
     "return correct set of HnIds" in newCase[CaseData]: (tn, data) =>
       data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.hnIds mustBe Set(
-        data.hiddenEdge.sourceId,
-        data.hiddenEdge.targetId
+        data.hiddenLinkEdge.sourceId,
+        data.hiddenLinkEdge.targetId
       ))
 
   "DcgEdgeData.linksIds" should:
     "return correct set of SampleIds for links" in newCase[CaseData]: (tn, data) =>
-      data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.linksIds mustBe data.samples.keySet)
+      data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.linksIds mustBe data.linkSamples.keySet)
 
   "DcgEdgeData.thensIds" should:
     "return correct set of SampleIds for thens" in newCase[CaseData]: (tn, data) =>
-      data.dcgLinkEdge.copy(links = Links.empty, thens = Thens(data.samples)).pure[IO].logValue(tn)
-        .asserting(_.thensIds mustBe data.samples.keySet)
+      data.dcgThenEdge.pure[IO].logValue(tn).asserting(_.thensIds mustBe data.thenSamples.keySet)
 
-  "DcgEdgeData.join" should:
+  "DcgEdgeData.sampleIds" should:
+    "return correct set of SampleIds" in newCase[CaseData]: (tn, data) =>
+      data.dcgLinkEdge.copy(thens = Thens(data.thenSamples)).pure[IO].logValue(tn)
+        .asserting(_.sampleIds mustBe (data.linkSamples.keySet ++ data.thenSamples.keySet))
+
+  "DcgEdgeData.isLink" should:
+    "return true for link edge" in newCase[CaseData]: (tn, data) =>
+      data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.isLink mustBe true)
+
+    "return false for then edge" in newCase[CaseData]: (tn, data) =>
+      data.dcgThenEdge.pure[IO].logValue(tn).asserting(_.isLink mustBe false)
+
+  "DcgEdgeData.isThen"  should:
+    "return true for then edge" in newCase[CaseData]: (tn, data) =>
+      data.dcgThenEdge.pure[IO].logValue(tn).asserting(_.isThen mustBe true)
+
+    "return false for link edge" in newCase[CaseData]: (tn, data) =>
+      data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.isThen mustBe false)
+
+  "DcgEdgeData.join(...)" should:
     def makeOtherDcgEdge(edge: DcgEdgeData): DcgEdgeData = edge
       .copy(links = Links(Map(SampleId(-12) -> Indexies(HnIndex(-203), HnIndex(-204)))))
 
@@ -107,11 +129,11 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
 
     "fail if duplicate sample IDs in links" in newCase[CaseData]: (tn, data) =>
       data.dcgLinkEdge.join[IO](data.dcgLinkEdge).logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate links samples"))
+        .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate links sample"))
 
     "fail if duplicate sample IDs in thens" in newCase[CaseData]: (tn, data) =>
       data.dcgThenEdge.join[IO](data.dcgThenEdge).logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate thens samples"))
+        .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate thens sample"))
 
   "DcgEdgeData.EndIds.swap" should:
     "swap ends correctly" in newCase[CaseData]: (tn, data) =>
@@ -119,30 +141,30 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
 
   "DcgEdgeData.makeDcgEdgeData" should:
     "crete DcgEdge correctly for Link edge type" in newCase[CaseData]: (tn, data) =>
-      DcgEdgeData.makeDcgEdgeData(data.ends, EdgeType.LINK, data.samples).pure[IO].logValue(tn)
+      DcgEdgeData.makeDcgEdgeData(data.ends, EdgeType.LINK, data.linkSamples).pure[IO].logValue(tn)
         .asserting(_ mustBe data.dcgLinkEdge)
 
     "crete DcgEdge correctly for Then edge type" in newCase[CaseData]: (tn, data) =>
-      DcgEdgeData.makeDcgEdgeData(data.ends, EdgeType.THEN, data.samples).pure[IO].logValue(tn)
+      DcgEdgeData.makeDcgEdgeData(data.ends, EdgeType.THEN, data.thenSamples).pure[IO].logValue(tn)
         .asserting(_ mustBe data.dcgThenEdge)
 
   "DcgEdgeData.apply(HiddenEdge)" should:
     "crete DcgEdge correctly from HiddenEdge" in newCase[CaseData]: (tn, data) =>
-      DcgEdgeData(data.hiddenEdge).pure[IO].logValue(tn).asserting(_ mustBe data.dcgLinkEdge)
+      DcgEdgeData(data.hiddenLinkEdge).pure[IO].logValue(tn).asserting(_ mustBe data.dcgLinkEdge)
 
   "DcgEdgeData.apply(Key, List[SampleEdge])" should:
     "crete DcgEdge correctly from Key, List[SampleEdge]" in newCase[CaseData]: (tn, data) =>
-      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleEdge))
+      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleLinkEdge))
         .logValue(tn).asserting(_ mustBe data.dcgLinkEdge)
 
     "fail if key not match" in newCase[CaseData]: (tn, data) =>
       DcgEdgeData
-        .apply[IO](data.edgeType, data.ends, List(data.sampleEdge.copy(source = End(HnId(-1), HnIndex(-1)))))
+        .apply[IO](data.edgeType, data.ends, List(data.sampleLinkEdge.copy(source = End(HnId(-1), HnIndex(-1)))))
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Edge keys from SampleEdges do not"))
 
     "fail if duplicate SampleIds" in newCase[CaseData]: (tn, data) =>
-      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleEdge, data.sampleEdge)).logValue(tn)
+      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleLinkEdge, data.sampleLinkEdge)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate SampleIds in SampleEdges"))
 
     "fail if empty SampleEdges" in newCase[CaseData]: (tn, data) =>
@@ -150,15 +172,15 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
         .assertThrowsError[AssertionError](_.getMessage must include("SampleEdges list is empty"))
 
     "fail if Duplicate Source value" in newCase[CaseData]: (tn, data) =>
-      val sampleEdge2 = data.sampleEdge.copy(sampleId = SampleId(12))
-      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleEdge, sampleEdge2)).logValue(tn)
+      val sampleEdge2 = data.sampleLinkEdge.copy(sampleId = SampleId(12))
+      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleLinkEdge, sampleEdge2)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Source value in SampleEdges"))
 
     "fail if Duplicate Target value" in newCase[CaseData]: (tn, data) =>
-      val sampleEdge2 = data.sampleEdge.copy(
+      val sampleEdge2 = data.sampleLinkEdge.copy(
         sampleId = SampleId(12),
-        source = End(data.sampleEdge.source.hnId, HnIndex(999)),
-        target = data.sampleEdge.target
+        source = End(data.sampleLinkEdge.source.hnId, HnIndex(999)),
+        target = data.sampleLinkEdge.target
       )
-      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleEdge, sampleEdge2)).logValue(tn)
+      DcgEdgeData[IO](data.edgeType, data.ends, List(data.sampleLinkEdge, sampleEdge2)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate Target value in SampleEdges"))

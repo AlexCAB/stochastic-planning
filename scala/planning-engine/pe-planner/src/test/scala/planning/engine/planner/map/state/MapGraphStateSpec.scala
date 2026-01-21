@@ -176,7 +176,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
       data.emptyDcgState.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
         .logValue(tn).assertThrows[AssertionError]
 
-  "DcgState.concreteForIoValues(...)" should:
+  "DcgState.findConForIoValues(...)" should:
     "get concrete nodes for IoValues" in newCase[CaseData]: (tn, data) =>
       val ioValue1 = data.conNodes.head.ioValue
       val ioValue2 = IoValue(IoName("not_in_set"), IoIndex(123))

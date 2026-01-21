@@ -62,38 +62,38 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
         result mustBe 42
 
-    "MapBaseLogic.addNewSamplesToCache(...)" should:
-      "add new samples to the map state" in newCase[CaseData]: (tn, data) =>
-        data.visualizationStub.stateUpdated.when(*, *)
-          .onCall: (info, state) =>
-            for
-              _ <- logInfo(tn, s"State updated called with $state")
-              _ <- IO.delay(info mustBe data.testMapInfoState)
-              _ <- IO.delay(state.graph.allHnIds mustBe data.allHnId)
-              _ <- IO.delay(state.graph.allSampleIds mustBe data.initSamples.map(_.data.id).toSet)
-            yield ()
-          .once()
+  "MapBaseLogic.addNewSamplesToCache(...)" should:
+    "add new samples to the map state" in newCase[CaseData]: (tn, data) =>
+      data.visualizationStub.stateUpdated.when(*, *)
+        .onCall: (info, state) =>
+          for
+            _ <- logInfo(tn, s"State updated called with $state")
+            _ <- IO.delay(info mustBe data.testMapInfoState)
+            _ <- IO.delay(state.graph.allHnIds mustBe data.allHnId)
+            _ <- IO.delay(state.graph.allSampleIds mustBe data.initSamples.map(_.data.id).toSet)
+          yield ()
+        .once()
 
-        async[IO]:
-          val result = data.mapBaseLogic.addNewSamplesToCache(IO.pure(data.initSamples)).logValue(tn).await
-          val state = data.mapBaseLogic.getMapState.logValue(tn).await
-          
-          val dcgEdgesData = data
-            .initSamples.flatMap(_.edges)
-            .groupBy(e => (e.edgeType, EndIds(e.source.hnId, e.target.hnId))).toList
-            .traverse((k, es) => DcgEdgeData[IO](k._1, k._2, es)).await.map(e => e.ends -> e).toMap
+      async[IO]:
+        val result = data.mapBaseLogic.addNewSamplesToCache(IO.pure(data.initSamples)).logValue(tn).await
+        val state = data.mapBaseLogic.getMapState.logValue(tn).await
+        
+        val dcgEdgesData = data
+          .initSamples.flatMap(_.edges)
+          .groupBy(e => (e.edgeType, EndIds(e.source.hnId, e.target.hnId))).toList
+          .traverse((k, es) => DcgEdgeData[IO](k._1, k._2, es)).await.map(e => e.ends -> e).toMap
 
-          result mustBe data.initSamples.map(s => s.data.id -> s).toMap
-          state.ioValues mustBe data.conNodes.map(n => n.ioValue -> Set(n.id)).toMap
-          state.graph.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
-          state.graph.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
-          state.graph.edgesData mustBe dcgEdgesData
-          state.graph.edgesMapping.forward mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
-          state.graph.edgesMapping.backward mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
-          state.graph.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap
+        result mustBe data.initSamples.map(s => s.data.id -> s).toMap
+        state.ioValues mustBe data.conNodes.map(n => n.ioValue -> Set(n.id)).toMap
+        state.graph.concreteNodes mustBe data.conDcgNodes.map(n => n.id -> n).toMap
+        state.graph.abstractNodes mustBe data.absDcgNodes.map(n => n.id -> n).toMap
+        state.graph.edgesData mustBe dcgEdgesData
+        state.graph.edgesMapping.forward mustBe Map(data.hnId1 -> Set(data.hnId2), data.hnId2 -> Set(data.hnId1))
+        state.graph.edgesMapping.backward mustBe Map(data.hnId2 -> Set(data.hnId1), data.hnId1 -> Set(data.hnId2))
+        state.graph.samplesData mustBe data.initSamples.map(s => s.data.id -> s.data).toMap
 
-      "not add samples with unknown HnIds" in newCase[CaseData]: (tn, data) =>
-        data.mapBaseLogic
-          .addNewSamplesToCache(IO.pure(List(data.makeSample(SampleId(2001), HnId(-1), HnId(-2)))))
-          .logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must startWith("New samples contain unknown HnIds"))
+    "not add samples with unknown HnIds" in newCase[CaseData]: (tn, data) =>
+      data.mapBaseLogic
+        .addNewSamplesToCache(IO.pure(List(data.makeSample(SampleId(2001), HnId(-1), HnId(-2)))))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must startWith("New samples contain unknown HnIds"))

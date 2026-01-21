@@ -64,7 +64,7 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
       absNodes <- state.graph.getAbsForHnIds(linkEdges.keySet.map(_.trg))
       thenEdges <- state.graph.findBackwardThenEdges(conActiveHnIds)
       sampleIds = (thenEdges.values.flatMap(_.sampleIds) ++ thenEdges.values.flatMap(_.sampleIds)).toSet
-      samples <- state.graph.findSamples(thenEdges.values.flatMap(e => e.linksIds ++ e.thensIds).toSet)
+      samples <- state.graph.getSamples(thenEdges.values.flatMap(e => e.linksIds ++ e.thensIds).toSet)
       newDag <- ActiveAbsDag(conNodes.values, absNodes.values, linkEdges.values, thenEdges.keySet, samples.values)
     yield newDag
 

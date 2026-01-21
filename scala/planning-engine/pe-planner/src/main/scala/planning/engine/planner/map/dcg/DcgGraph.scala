@@ -33,6 +33,13 @@ final case class DcgGraph[F[_]: MonadThrow](
 
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
   lazy val allSampleIds: Set[SampleId] = samplesData.keySet
+
+  lazy val isEmpty: Boolean = concreteNodes.isEmpty &&
+    abstractNodes.isEmpty &&
+    edgesData.isEmpty &&
+    edgesMapping.isEmpty &&
+    samplesData.isEmpty
+
   override lazy val validationName: String = "DcgGraph"
 
   override lazy val validationErrors: List[Throwable] =
@@ -40,22 +47,16 @@ final case class DcgGraph[F[_]: MonadThrow](
     val edgeSampleIds = edgesData.values.flatMap(_.sampleIds)
 
     edgesMapping.validationErrors ++ validations(
-      concreteNodes.map((k, n) => k -> n.id).allEquals("Concrete Nodes map keys and values IDs mismatch"),
-      abstractNodes.map((k, n) => k -> n.id).allEquals("Abstract Nodes map keys and values IDs mismatch"),
-      concreteNodes.keySet.haveDifferentElems(concreteNodes.keySet, "Concrete and Abstract Nodes IDs overlap detected"),
-      edgesData.map((k, n) => k -> n.ends).allEquals("Edges Data map keys and values Ends mismatch"),
+      concreteNodes.map((k, n) => k -> n.id).allEquals("Concrete nodes map keys and values IDs mismatch"),
+      abstractNodes.map((k, n) => k -> n.id).allEquals("Abstract nodes map keys and values IDs mismatch"),
+      concreteNodes.keySet.haveDifferentElems(abstractNodes.keySet, "Concrete and Abstract nodes IDs overlap detected"),
+      edgesData.map((k, n) => k -> n.ends).allEquals("Edges data map keys and values ends mismatch"),
       allHnIds.containsAllOf(edgesData.values.flatMap(_.hnIds), "Edge refers to unknown HnIds"),
-      allHnIds.containsAllOf(edgesMapping.allHnIds, "Edges Mapping refers to unknown HnIds"),
-      edgesData.keySet.haveSameElems(edgesMapping.allEnds, "Edges Mapping refers to unknown Edge Ends"),
-      samplesData.map((k, n) => k -> n.id).allEquals("Samples Data map keys and values IDs mismatch"),
+      allHnIds.containsAllOf(edgesMapping.allHnIds, "Edges mapping refers to unknown HnIds"),
+      edgesData.keySet.haveSameElems(edgesMapping.allEnds, "Edges mapping refers to unknown edge ends"),
+      samplesData.map((k, n) => k -> n.id).allEquals("Samples data map keys and values IDs mismatch"),
       allSampleIds.containsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
     )
-
-  lazy val isEmpty: Boolean = concreteNodes.isEmpty &&
-    abstractNodes.isEmpty &&
-    edgesData.isEmpty &&
-    edgesMapping.isEmpty &&
-    samplesData.isEmpty
 
   private[map] def checkEdges(edges: Iterable[DcgEdgeData]): F[Unit] =
     for
@@ -74,11 +75,9 @@ final case class DcgGraph[F[_]: MonadThrow](
     yield acc.updated(nEdge.ends, mEdge)
   )
 
-  private[map] def getEdges(hnIds: Set[HnId], foundEnds: F[Set[EndIds]]): F[Map[EndIds, DcgEdgeData]] =
+  private[map] def getEdges(ends: Set[EndIds]): F[Map[EndIds, DcgEdgeData]] =
     for
-      ends <- foundEnds
-      _ <- (hnIds, ends.map(_.src)).assertSameElems("Bug: Found ends must have as source one of given HnIds")
-      filteredEdges = edgesData.filter((e, _) => ends.contains(e))
+      filteredEdges <- edgesData.filter((e, _) => ends.contains(e)).pure
       _ <- (ends, filteredEdges.keySet).assertSameElems("Bug: All ends in mapping should be in edges data")
     yield filteredEdges
 
@@ -140,6 +139,12 @@ final case class DcgGraph[F[_]: MonadThrow](
       found <- abstractNodes.filter((id, _) => ids.contains(id)).pure
       _ <- (found.keySet, ids).assertContainsAll("Some abstract node IDs are not found")
     yield found
+    
+  def getSamples(sampleIds: Set[SampleId]): F[Map[SampleId, SampleData]] =
+    for
+      found <- samplesData.filter((id, _) => sampleIds.contains(id)).pure
+      _ <- (found.keySet, sampleIds).assertContainsAll("Bug: Some sample IDs are not found")
+    yield found
 
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] =
     for
@@ -148,24 +153,22 @@ final case class DcgGraph[F[_]: MonadThrow](
     yield grouped.view.mapValues(_.map(_.id).toSet).toMap
 
   def findForwardLinkEdges(sourceHnIds: Set[HnId]): F[Map[EndIds, DcgEdgeData]] =
-    getEdges(sourceHnIds, edgesMapping.findForward(sourceHnIds)).map(_.filter(_._2.isLink))
+    for
+      ends <- getEdges(edgesMapping.findForward(sourceHnIds)).map(_.filter(_._2.isLink))
+      _ <- (sourceHnIds, ends.keys.map(_.src)).assertSameElems("Found ends must have as source one of given HnIds")
+    yield ends
 
   def findForwardActiveLinkEdges(sourceHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
-    getEdges(sourceHnIds, edgesMapping.findForward(sourceHnIds))
-      .map(_.filter((_, edge) => edge.isLink && edge.linksIds.exists(activeSampleIds.contains)))
+    findForwardLinkEdges(sourceHnIds).map(_.filter((_, edge) => edge.linksIds.exists(activeSampleIds.contains)))
 
   def findBackwardThenEdges(targetHnIds: Set[HnId]): F[Map[EndIds, DcgEdgeData]] =
-    getEdges(targetHnIds, edgesMapping.findBackward(targetHnIds)).map(_.filter(_._2.isThen))
+    for
+      ends <- getEdges(edgesMapping.findBackward(targetHnIds)).map(_.filter(_._2.isThen))
+      _ <- (targetHnIds, ends.keys.map(_.trg)).assertSameElems("Found ends must have as target one of given HnIds")
+    yield ends
 
   def findBackwardActiveThenEdges(targetHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
-    getEdges(targetHnIds, edgesMapping.findBackward(targetHnIds))
-      .map(_.filter((_, edge) => edge.isThen && edge.thensIds.exists(activeSampleIds.contains)))
-
-  def findSamples(sampleIds: Set[SampleId]): F[Map[SampleId, SampleData]] =
-    for
-      found <- samplesData.filter((id, _) => sampleIds.contains(id)).pure
-      _ <- (found.keySet, sampleIds).assertContainsAll("Bug: Some sample IDs are not found")
-    yield found
+    findBackwardThenEdges(targetHnIds).map(_.filter((_, edge) => edge.thensIds.exists(activeSampleIds.contains)))
 
 object DcgGraph:
   def empty[F[_]: MonadThrow]: DcgGraph[F] = DcgGraph[F](

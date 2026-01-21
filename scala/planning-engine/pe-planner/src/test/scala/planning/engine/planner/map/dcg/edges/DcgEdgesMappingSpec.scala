@@ -29,20 +29,24 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
     lazy val hnId4 = HnId(4)
     lazy val hnId5 = HnId(5)
 
+    lazy val ends = Set(
+      EndIds(hnId1, hnId2),
+      EndIds(hnId1, hnId3),
+    )
     lazy val mapping: DcgEdgesMapping[IO] = DcgEdgesMapping(
       forward = Map(
         hnId1 -> Set(hnId2, hnId3)
       ),
       backward = Map(
         hnId2 -> Set(hnId1),
-        hnId3 -> Set(hnId1)
+        hnId3 -> Set(hnId1),
       )
     )
 
-    lazy val ends = Set(
+    lazy val newEnds = Set(
       EndIds(hnId1, hnId4),
       EndIds(hnId1, hnId5),
-      EndIds(hnId2, hnId4)
+      EndIds(hnId2, hnId4),
     )
 
   "DcgEdgesMapping.isEmpty" should:
@@ -120,10 +124,24 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 
       DcgEdgesMapping.empty[IO].joinIds(oldIds, newIds).logValue(tn).assertThrows[AssertionError]
 
+  "DcgEdgesMapping.findEnds(...)" should:
+    "find ends for given HnIds" in newCase[CaseData]: (tn, data) =>
+      val idsMap = Map(
+        data.hnId1 -> Set(data.hnId2, data.hnId3),
+        data.hnId2 -> Set(data.hnId4)
+      )
+      val hnIds = Set(data.hnId1, data.hnId2)
+
+      DcgEdgesMapping.empty[IO].findEnds(idsMap, hnIds).pure[IO].asserting(_ mustBe Set(
+        EndIds(data.hnId1, data.hnId2),
+        EndIds(data.hnId1, data.hnId3),
+        EndIds(data.hnId2, data.hnId4)
+      ))
+
   "DcgEdgesMapping.addAll(...)" should:
     "add all edges to empty mapping" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val updated = DcgEdgesMapping.empty[IO].addAll(data.ends).await
+        val updated = DcgEdgesMapping.empty[IO].addAll(data.newEnds).await
         logInfo(tn, s"updated: $updated").await
         updated.checkNoValidationError(tn).await
 
@@ -139,7 +157,7 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 
     "add all edges to not empty mapping" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val updated = data.mapping.addAll(data.ends).await
+        val updated = data.mapping.addAll(data.newEnds).await
         logInfo(tn, s"updated: $updated").await
         updated.checkNoValidationError(tn).await
 
@@ -155,8 +173,41 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
           data.hnId5 -> Set(data.hnId1)
         )
 
+  "DcgEdgesMapping.findForward(...)" should:
+    "find forward ends for given source HnIds" in newCase[CaseData]: (tn, data) =>
+      data.mapping.findForward(Set(data.hnId1)).pure[IO].asserting(_ mustBe Set(
+        EndIds(data.hnId1, data.hnId2),
+        EndIds(data.hnId1, data.hnId3)
+      ))
+
+  "DcgEdgesMapping.findBackward(...)" should:
+    "find backward ends for given target HnIds" in newCase[CaseData]: (tn, data) =>
+      data.mapping.findBackward(Set(data.hnId2, data.hnId3)).pure[IO].asserting(_ mustBe Set(
+        EndIds(data.hnId1, data.hnId2),
+        EndIds(data.hnId1, data.hnId3)
+      ))
+
+  "DcgEdgesMapping.makeEdgesMap(...)" should:
+    "create forward and backward maps from ends" in newCase[CaseData]: (tn, data) =>
+      val (forward, backward) = DcgEdgesMapping.makeEdgesMap(data.newEnds)
+
+      async[IO]:
+        forward mustBe Map(
+          data.hnId1 -> Set(data.hnId4, data.hnId5),
+          data.hnId2 -> Set(data.hnId4)
+        )
+
+        backward mustBe Map(
+          data.hnId4 -> Set(data.hnId1, data.hnId2),
+          data.hnId5 -> Set(data.hnId1)
+        )
+
   "DcgEdgesMapping.empty" should:
     "be an empty DcgEdgesMapping instance" in newCase[CaseData]: (tn, data) =>
       DcgEdgesMapping.empty[IO].pure[IO].logValue(tn).asserting: empty =>
         empty.forward mustBe Map.empty
         empty.backward mustBe Map.empty
+
+  "DcgEdgesMapping.apply(...)" should:
+    "create DcgEdgesMapping from ends" in newCase[CaseData]: (tn, data) =>
+      DcgEdgesMapping[IO](data.ends).pure[IO].logValue(tn).asserting(_ mustBe data.mapping)

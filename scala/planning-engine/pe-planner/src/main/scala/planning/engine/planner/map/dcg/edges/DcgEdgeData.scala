@@ -45,7 +45,8 @@ final case class DcgEdgeData(
     yield DcgEdgeData(ends, newLinks, newThens)
 
 object DcgEdgeData:
-  final case class EndIds(src: HnId, trg: HnId)
+  final case class EndIds(src: HnId, trg: HnId):
+    lazy val swap: EndIds = EndIds(trg, src)
 
   private[edges] def makeDcgEdgeData(ends: EndIds, edgeType: EdgeType, indexies: IndexMap): DcgEdgeData = edgeType match
     case EdgeType.LINK => DcgEdgeData(ends, Links(indexies), Thens.empty)

@@ -47,8 +47,8 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
         case acc if !acc.contains(hnId)              => (acc + (hnId -> targets)).pure
         case acc => s"Can't add duplicate links: $hnId -> ${acc(hnId).intersect(targets)}".assertionError
 
-  private[edges] def findEnds(idsMap: Map[HnId, Set[HnId]], hnIds: Set[HnId]): F[Set[EndIds]] =
-    hnIds.flatMap(hnId => idsMap.get(hnId).toSet.flatMap(_.map(trgId => EndIds(hnId, trgId)))).pure
+  private[edges] def findEnds(idsMap: Map[HnId, Set[HnId]], hnIds: Set[HnId]): Set[EndIds] =
+    hnIds.flatMap(hnId => idsMap.get(hnId).toSet.flatMap(_.map(trgId => EndIds(hnId, trgId))))
 
   def addAll(ends: Iterable[EndIds]): F[DcgEdgesMapping[F]] =
     for
@@ -57,9 +57,9 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
       backward <- joinIds(backward, bMap)
     yield DcgEdgesMapping(forward, backward)
 
-  def findForward(sourceHnIds: Set[HnId]): F[Set[EndIds]] = findEnds(forward, sourceHnIds)
+  def findForward(sourceHnIds: Set[HnId]): Set[EndIds]= findEnds(forward, sourceHnIds)
 
-  def findBackward(targetHnIds: Set[HnId]): F[Set[EndIds]] = findEnds(backward, targetHnIds)
+  def findBackward(targetHnIds: Set[HnId]): Set[EndIds] = findEnds(backward, targetHnIds).map(_.swap)
 
 object DcgEdgesMapping:
   private[edges] def makeEdgesMap(ends: Iterable[EndIds]): (Map[HnId, Set[HnId]], Map[HnId, Set[HnId]]) = (

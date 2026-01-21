@@ -28,7 +28,7 @@ trait Validation:
 
     protected inline def containsAllOf[O[_] <: Iterable[?]](others: O[Any], msg: String): (Boolean, String) =
       val set = seq.toSet
-      val dif = others.filterNot(set.contains)
+      val dif = others.filterNot(set.contains).toSet
       (dif.isEmpty, s"$msg, missing elements: ${dif.mkString(", ")}")
 
     protected inline def haveSameElems[O[_] <: Iterable[?]](others: O[Any], msg: String): (Boolean, String) =

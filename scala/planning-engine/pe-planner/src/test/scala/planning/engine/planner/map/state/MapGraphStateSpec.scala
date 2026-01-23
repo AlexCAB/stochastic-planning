@@ -19,7 +19,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
+import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
@@ -28,7 +28,7 @@ import planning.engine.planner.map.state.MapGraphState
 
 class MapGraphStateSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case with MapDcgNodeTestData with MapSampleTestData:
+  private class CaseData extends Case with MapDcgTestData with MapSampleTestData:
     lazy val emptyDcgState: MapGraphState[IO] = MapGraphState.empty[IO]
 
     lazy val hnId1 = HnId(1)

@@ -21,14 +21,14 @@ import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.planner.map.test.data.{MapDcgNodeTestData, MapSampleTestData}
+import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 
 class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
-  private class CaseData extends Case with MapDcgNodeTestData with MapSampleTestData:
+  private class CaseData extends Case with MapDcgTestData with MapSampleTestData:
     lazy val emptyDcgGraph: DcgGraph[IO] = DcgGraph.empty[IO]
 
     lazy val hnId1 = HnId(1)

@@ -18,5 +18,5 @@
 //import planning.engine.common.UnitSpecWithData
 //
 //class ActiveAbsDagSpec extends UnitSpecWithData:
-//  
+//
 //  private class CaseData extends Case:

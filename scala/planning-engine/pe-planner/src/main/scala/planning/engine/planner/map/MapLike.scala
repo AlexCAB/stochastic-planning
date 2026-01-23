@@ -34,7 +34,7 @@ trait MapLike[F[_]]:
   // Lookup methods
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]]
   def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
-  def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]]
+  def findActiveAbstractForest(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]]
 
   // Service methods
   def reset(): F[Unit]

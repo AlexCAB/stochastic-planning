@@ -28,7 +28,7 @@ import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
-trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with MapDcgNodeTestData:
+trait SimpleMemStateTestData extends MapNodeTestData with MapSampleTestData with MapDcgTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   lazy val testNotInMap = IoValue(testBoolInNode.name, IoIndex(-1))

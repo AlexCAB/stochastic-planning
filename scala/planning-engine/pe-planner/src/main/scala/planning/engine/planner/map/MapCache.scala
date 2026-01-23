@@ -74,7 +74,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))
 
-  override def findActiveAbstractGraph(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]] = ??? 
+  override def findActiveAbstractForest(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]] = ??? 
 
   override def reset(): F[Unit] = ???
 

@@ -116,7 +116,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)
 
-  override def findActiveAbstractGraph(conActiveHnIds: Set[HnId]): F[ActiveAbsDag[F]] =
+  override def findActiveAbstractForest(conActiveHnIds: Set[HnId]): F[ActiveAbsDag[F]] =
     for
       state <- getMapState
       initGraph <- buildInitActiveGraph(conActiveHnIds, state)

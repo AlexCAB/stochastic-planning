@@ -89,7 +89,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- names.assertDistinct("Hidden nodes names must be distinct")
         foundHns <- database.findHiddenNodesByNames(names, getIoNode)
         _ <- logger.info(s"Found hidden nodes, foundHns = $foundHns, for names = $names")
-        _ <- (names, foundHns.keys).assertSameElems("Not all hidden nodes were found")
+        _ <- names.assertSameElems(foundHns.keys, "Not all hidden nodes were found")
       yield foundHns
 
   override def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]] =
@@ -131,7 +131,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- sampleIds.assertDistinct("Sample IDs must be distinct")
         sampleNames <- database.getSampleNames(sampleIds)
         _ <- logger.info(s"Got sample names, sampleNames = $sampleNames for sampleIds = $sampleIds")
-        _ <- (sampleIds, sampleNames.keys).assertSameElems("Not all sample names were found")
+        _ <- sampleIds.assertSameElems(sampleNames.keys, "Not all sample names were found")
       yield sampleNames
 
   override def getSamplesData(sampleIds: List[SampleId]): F[Map[SampleId, SampleData]] =
@@ -140,7 +140,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- sampleIds.assertDistinct("Sample IDs must be distinct")
         samplesData <- database.getSamplesData(sampleIds)
         _ <- logger.info(s"Got samples data, sampleNames = $samplesData for sampleIds = $sampleIds")
-        _ <- (sampleIds, samplesData.keys).assertSameElems("Not all sample data were found")
+        _ <- sampleIds.assertSameElems(samplesData.keys, "Not all sample data were found")
       yield samplesData
 
   override def getSamples(sampleIds: List[SampleId]): F[Map[SampleId, Sample]] =
@@ -149,17 +149,17 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- sampleIds.assertDistinct("Sample IDs must be distinct")
         samples <- database.getSamples(sampleIds)
         _ <- logger.info(s"Got samples = $samples for sampleIds = $sampleIds")
-        _ <- (sampleIds, samples.keys).assertSameElems("Not all sample were found")
+        _ <- sampleIds.assertSameElems(samples.keys, "Not all sample were found")
       yield samples
 
   override def findConcreteNodesByIoValues(values: Map[IoName, IoIndex]): F[List[ConcreteWithParentIds[F]]] =
     skipIfEmpty(values, List[ConcreteWithParentIds[F]]()):
       for
-        _ <- (ioNodes.keys, values.keys).assertContainsAll("Unknown IO nodes names")
+        _ <- ioNodes.keys.assertContainsAll(values.keys, "Unknown IO nodes names")
         ioNodeWithIndex <- values.toList.traverse((n, i) => getIoNode(n).map(io => io -> i))
         foundNodes <- database.findHiddenNodesByIoValues(ioNodeWithIndex)
         _ <- logger.info(s"Found nodes = $foundNodes for values = $values")
-        _ <- (values.keys, foundNodes.map(_.node.ioNode.name)).assertSameElems("Not all io nodes names was processed")
+        _ <- values.keys.assertSameElems(foundNodes.map(_.node.ioNode.name), "Not all io nodes names was processed")
       yield foundNodes
 
   override def loadSubgraphForIoValue(values: List[IoValue], loadedSamples: List[SampleId]): F[MapSubGraph[F]] = ???

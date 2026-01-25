@@ -48,7 +48,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     for
       sampleIds <- idsCountCell.modify(_.getNextSampleIds(newSamples.list.size))
       _ <- sampleIds.assertDistinct("Generated sample IDs are not distinct")
-      _ <- (sampleIds, newSamples.list).assertSameSize("Sample IDs count does not match samples count")
+      _ <- sampleIds.assertSameSize(newSamples.list, "Sample IDs count does not match samples count")
       sampleMap = sampleIds.zip(newSamples.list)
       sampleWithHnIndexMap <- sampleMap.traverse: (id, sample) =>
         idsCountCell.modify(_.getNextHnIndexes(sample.hnIds)).map(ixs => (id, sample, ixs))
@@ -83,7 +83,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
   override def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
     for
       hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
-      _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match concrete nodes count")
+      _ <- hnIdIds.assertSameSize(nodes.list, "Seems bug: HnIds count does not match concrete nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds)
         .traverse((node, hnId) => DcgNode.Concrete(hnId, node, n => getMapInfo.flatMap(_.getIoNode(n))))
       _ <- modifyMapState(_.addConcreteNodes(dsgNodes).map(ns => (ns, ())))
@@ -93,7 +93,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
   override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
     for
       hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
-      _ <- (hnIdIds, nodes.list).assertSameSize("Seems bug: HnIds count does not match abstract nodes count")
+      _ <- hnIdIds.assertSameSize(nodes.list, "Seems bug: HnIds count does not match abstract nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds).traverse((node, hnId) => DcgNode.Abstract(hnId, node))
       _ <- modifyMapState(_.addAbstractNodes(dsgNodes).map(ns => (ns, ())))
       _ <- logger.info(s"Added new abstract nodes to MapInMem: ${nodes.list.zip(hnIdIds)}")

@@ -61,9 +61,9 @@ final case class ActiveAbsDag[F[_]: MonadThrow](
     for
       withNodes <- graph.addAbsNodes(abstractNodes)
       withEdges <- withNodes.addEdges(forwardLinkEdges)
-      _ <- (backwordThenEnds, backThenEnds).assertNoSameElems("Graph structure bug: duplicate THEN edges detected")
+      _ <- backwordThenEnds.assertNoSameElems(backThenEnds, "Graph structure bug: duplicate THEN edges detected")
       backTrgIds = backThenEnds.map(_.trg)
-      _ <- (withNodes.allHnIds, backTrgIds).assertContainsAll("Back then target refers to unknown HnIds")
+      _ <- withNodes.allHnIds.assertContainsAll(backTrgIds, "Back then target refers to unknown HnIds")
     yield this.copy(
       backwordThenEnds = backwordThenEnds ++ backThenEnds,
       graph = withEdges
@@ -80,5 +80,5 @@ object ActiveAbsDag:
     for
       graph <- DcgGraph(concreteNodes, abstractNodes, forwardLinkEdges, samples)
       backTrgIds = backThenEnds.map(_.trg)
-      _ <- (graph.allHnIds, backTrgIds).assertContainsAll("Back then target refers to unknown HnIds")
+      _ <- graph.allHnIds.assertContainsAll(backTrgIds, "Back then target refers to unknown HnIds")
     yield new ActiveAbsDag(backwordThenEnds = backThenEnds, graph = graph)

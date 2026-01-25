@@ -31,7 +31,7 @@ final case class MapGraphState[F[_]: MonadThrow](
   def addConcreteNodes(nodes: List[DcgNode.Concrete[F]]): F[MapGraphState[F]] =
     for
       groupedIoVals <- nodes.groupBy(_.ioValue).view.mapValues(_.map(_.id).toSet).pure
-      _ <- (ioValues.keySet, groupedIoVals.keySet).assertNoSameElems("Can't add IoValues that already exist")
+      _ <- ioValues.keySet.assertNoSameElems(groupedIoVals.keySet, "Can't add IoValues that already exist")
       newGraph <- graph.addConNodes(nodes)
     yield this.copy(
       ioValues = ioValues ++ groupedIoVals,

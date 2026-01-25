@@ -49,7 +49,7 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
       for
         samples <- newSamples
         _ <- Validation.validateList(samples)
-        _ <- (state.graph.allHnIds, samples.flatMap(_.allHnIds)).assertContainsAll("New samples contain unknown HnIds")
+        _ <- state.graph.allHnIds.assertContainsAll(samples.flatMap(_.allHnIds), "New samples contain unknown HnIds")
         allEdges = samples.flatMap(_.edges.toList)
         groupedEdges = allEdges.groupBy(e => (e.edgeType, EndIds(e.source.hnId, e.target.hnId))).toList
         dcgEdges <- groupedEdges.traverse((k, es) => DcgEdgeData(k._1, k._2, es))

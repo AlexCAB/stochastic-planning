@@ -16,74 +16,60 @@ import cats.ApplicativeThrow
 
 package object errors
 
-private def predicateAssert[F[_]: ApplicativeThrow, V](p: Boolean, v: V, msg: String): F[V] =
-  if p then ApplicativeThrow[F].pure(v)
+private def predicateAssert[F[_]: ApplicativeThrow](p: Boolean, msg: String): F[Unit] =
+  if p then ApplicativeThrow[F].unit
   else ApplicativeThrow[F].raiseError(AssertionError(msg))
 
 extension (msg: String)
   inline def assertionError[F[_]: ApplicativeThrow, V]: F[V] = ApplicativeThrow[F].raiseError(AssertionError(msg))
 
-extension [T, C[_] <: Iterable[T]](iterable: C[T])
-  inline def assertDistinct[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    val duplicates = iterable.groupBy(identity).filter((_, v) => v.size > 1).keySet
-    predicateAssert(
-      duplicates.isEmpty,
-      iterable,
-      msg + s", seq: ${iterable.mkString(",")}, duplicates: ${duplicates.mkString(",")}"
-    )
-
-  inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(iterable.isEmpty || (iterable.toSet.size == 1), iterable, msg + s", seq: ${iterable.mkString(",")}")
-
-  inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(iterable.nonEmpty, iterable, msg + s", seq: ${iterable.mkString(",")}")
-
-  inline def assertEmpty[F[_]: ApplicativeThrow](msg: String): F[C[T]] =
-    predicateAssert(iterable.isEmpty, iterable, msg + s", seq: ${iterable.mkString(",")}")
-
-extension [L, R, CL[_] <: IterableOnce[L], CR[_] <: IterableOnce[R]](value: (CL[L], CR[R]))
-  inline def assertSameSize[F[_]: ApplicativeThrow](msg: String): F[(CL[L], CR[R])] = predicateAssert(
-    value._1.iterator.size == value._2.iterator.size,
-    value,
-    msg + s", left size: ${value._1.iterator.size}, right size: ${value._2.iterator.size}"
-  )
-
-extension [T, CL[_] <: IterableOnce[T], CR[_] <: IterableOnce[T]](value: (CL[T], CR[T]))
-  inline def assertSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] = predicateAssert(
-    value._1.iterator.toSet == value._2.iterator.toSet,
-    value,
-    msg + s", left collection: ${value._1.iterator.toSet}, right collection: ${value._2.iterator.toSet}"
-  )
-
-  inline def assertContainsAll[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] =
-    val rightSet = value._2.iterator.toSet
-    val dif = rightSet -- value._1
-    predicateAssert(
-      dif.isEmpty,
-      value,
-      msg + s", collection: ${value._1.iterator.toSet}, do not contains: $dif of collection $rightSet"
-    )
-
-  inline def assertNoSameElems[F[_]: ApplicativeThrow](msg: String): F[(CL[T], CR[T])] =
-    val leftSet = value._1.iterator.toSet
-    val rightSet = value._2.iterator.toSet
-    val intersect = rightSet.intersect(leftSet)
-    predicateAssert(
-      intersect.isEmpty,
-      value,
-      msg + s", found same elements $intersect, in collections: $leftSet and $rightSet"
-    )
-
 extension (bool: Boolean)
-  inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(bool, (), msg)
+  inline def assertTrue[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(bool, msg)
 
 extension (value: Long)
-  inline def assetAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
-    predicateAssert(value >= 0, (), msg + s", expecter to be a number not null value, but got: $value")
+  inline def assertAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    predicateAssert(value >= 0, msg + s", expecter to be a number not null value, but got: $value")
 
-extension [L, R](value: (L, R))
-  inline def assertEqual[F[_]: ApplicativeThrow](msg: String): F[(L, R)] = predicateAssert(
-    value._1 == value._2,
-    value,
-    msg + s", left value: ${value._1} not equal to right value: ${value._2}"
+extension [L](left: L)
+  inline def assertEqual[F[_]: ApplicativeThrow, R](right: R, msg: String): F[Unit] =
+    predicateAssert(left == right, msg + s", left value: $left not equal to right value: $right")
+
+extension [L](left: IterableOnce[L])
+  inline def assertDistinct[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    val dup = left.iterator.toSeq.groupBy(identity).filter((_, v) => v.size > 1).keySet
+    predicateAssert(dup.isEmpty, msg + s", seq: ${left.iterator.mkString(",")}, duplicates: ${dup.mkString(",")}")
+
+  inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(
+    left.iterator.isEmpty || (left.iterator.toSet.size == 1),
+    msg + s", seq: ${left.iterator.mkString(",")}"
   )
+
+  inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    predicateAssert(left.iterator.nonEmpty, msg + s", seq: ${left.iterator.mkString(",")}")
+
+  inline def assertEmpty[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    predicateAssert(left.iterator.isEmpty, msg + s", seq: ${left.iterator.mkString(",")}")
+
+  inline def assertNotContain[F[_]: ApplicativeThrow](right: L, msg: String): F[Unit] =
+    predicateAssert(!left.iterator.contains(right), msg + s", seq: ${left.iterator.mkString(",")} contains: $right")
+
+  inline def assertSameSize[F[_]: ApplicativeThrow, R](right: IterableOnce[R], msg: String): F[Unit] = predicateAssert(
+    left.iterator.size == right.iterator.size,
+    msg + s", left size: ${left.iterator.size}, right size: ${right.iterator.size}"
+  )
+
+  inline def assertSameElems[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] = predicateAssert(
+    left.iterator.toSet == right.iterator.toSet,
+    msg + s", left seq: ${left.iterator.toSet}, right seq: ${right.iterator.toSet}"
+  )
+
+  inline def assertContainsAll[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
+    val rSet = right.iterator.toSet
+    val dif = rSet -- left
+    predicateAssert(dif.isEmpty, msg + s", seq: ${left.iterator.toSet}, do not contains: $dif of seq $rSet")
+
+  inline def assertNoSameElems[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
+    val leftSet = left.iterator.toSet
+    val rightSet = right.iterator.toSet
+    val int = rightSet.intersect(leftSet)
+    predicateAssert(int.isEmpty, msg + s", found same elements $int, in seq: $leftSet and $rightSet")

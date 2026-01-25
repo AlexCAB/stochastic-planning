@@ -45,7 +45,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
     for
       subGraph <- mapGraph.loadSubgraphForIoValue(values.toList, loadedSamples.toList)
       _ <- Validation.validate(subGraph)
-      _ <- (values, subGraph.allIoValues).assertContainsAll("Superfluous nodes presented")
+      _ <- values.assertContainsAll(subGraph.allIoValues, "Superfluous nodes presented")
       _ <- subGraph.abstractNodes.assertEmpty("Abstract nodes should not be loaded when loading by IoValues")
     yield subGraph
 

@@ -89,7 +89,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
       sampleNewList <- definition.toSampleNewList(hnIdMap)
       sampleIds <- graph.addNewSamples(sampleNewList).map(_.map(_.data.id))
       sampleNameMap <- graph.getSampleNames(sampleIds)
-      _ <- (sampleIds, sampleNameMap.keys).assertSameElems("Seems bug: not for all sampleIds names found")
+      _ <- sampleIds.assertSameElems(sampleNameMap.keys, "Seems bug: not for all sampleIds names found")
     yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
 
 object MapWithDbService:

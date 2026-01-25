@@ -133,7 +133,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
   ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
-      _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
+      _ <- newIds.assertSameSize(params, "Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex).map(p => (n.ioNodeName, p)))
       createdIds <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
       _ <- createdIds.map(_._1).assertDistinct("Concrete node ids should be distinct")
@@ -145,7 +145,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
   ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
-      _ <- (newIds, params).assertSameSize("Created ids and given params must have the same size")
+      _ <- newIds.assertSameSize(params, "Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
       createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
       _ <- createdIds.map(_._1).assertDistinct("Abstract node ids should be distinct")
@@ -181,7 +181,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       def storeSamples: F[List[(SampleId, Sample.New)]] =
         for
           newSampleId <- getNextSampleIdsQuery(params.list.size)(tx).map(_.map(SampleId.apply))
-          _ <- (newSampleId, params.list).assertSameSize("Sample ids and observed samples must have the same size")
+          _ <- newSampleId.assertSameSize(params.list, "Sample ids and observed samples must have the same size")
           params <- newSampleId.zip(params.list).traverse((id, s) => s.toQueryParams(id).map(p => (s, p)))
           storedSample <- params.traverse((s, p) => addSampleQuery(p)(tx).map(id => (SampleId(id), s)))
         yield storedSample
@@ -258,11 +258,11 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       for
         rawNodes <- getSamplesQuery(sampleIds.map(_.value))(tx)
         sampleDataMap <- rawNodes.traverse(node => SampleData.fromNode(node)).map(_.map(sd => sd.id -> sd).toMap)
-        _ <- (sampleIds, sampleDataMap.keys).assertSameElems("Not for all sample the data were found")
+        _ <- sampleIds.assertSameElems(sampleDataMap.keys, "Not for all sample the data were found")
         rawEdges <- getSampleEdgesQuery(sampleIds.map(_.toPropName))(tx).map(_.map((s, e, t) => (HnId(s), e, HnId(t))))
         edges <- sampleIds.traverse(sId => SampleEdge.fromEdgesBySampleId(rawEdges, sId).map(e => sId -> e))
         edgesMap = edges.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap
-        _ <- (sampleIds, edgesMap.keys).assertSameElems("Not for all sample the edges were found")
+        _ <- sampleIds.assertSameElems(edgesMap.keys, "Not for all sample the edges were found")
         samples <- sampleIds.traverse(sId => Sample.formDataMap(sId, sampleDataMap, edgesMap))
       yield samples.map(s => s.data.id -> s).toMap
 

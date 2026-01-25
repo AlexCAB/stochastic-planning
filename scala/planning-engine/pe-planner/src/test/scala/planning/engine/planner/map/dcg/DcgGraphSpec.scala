@@ -119,6 +119,17 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         logInfo(tn, s"graph: $graph").await
         graph.allSampleIds mustBe Set(testSample1.id, testSample2.id)
 
+  "DcgGraph.allIndexies" should:
+    "return all HnIndexies" in newCase[CaseData]: (tn, data) =>
+      data.graphWithEdges.allIndexies.pure[IO].logValue(tn).asserting: allIndexies =>
+        allIndexies must not be empty
+        allIndexies.keySet mustBe data.graphWithEdges.allHnIds
+
+        allIndexies mustBe data.graphWithEdges.edgesData.values.toList
+         .flatMap(e => List(e.ends.src -> e.srcHnIndex, e.ends.trg -> e.trgHnIndex))
+         .groupBy(_._1)
+         .map((hdId, lst) => hdId -> lst.flatMap(_._2).toSet)
+
   "DcgGraph.isEmpty" should:
     "return true for empty graph" in newCase[CaseData]: (tn, data) =>
       data.emptyDcgGraph.pure[IO].asserting(_.isEmpty mustBe true)
@@ -252,6 +263,39 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         edges.keySet mustBe ends
         edges(EndIds(data.hnId1, data.hnId2)) mustBe data.dcgEdges.head
         edges(EndIds(data.hnId2, data.hnId3)) mustBe data.dcgEdges(1)
+
+  "DcgGraph.nextHnIndexies(...)" should:
+    "return next HnIndex map correctly for all nodes" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val nextIndexies: Map[HnId, HnIndex] = data.graphWithEdges.nextHnIndexies(data.graphWithEdges.allHnIds).await
+        logInfo(tn, s"nextIndexies: $nextIndexies").await
+
+        nextIndexies mustBe Map(
+          data.hnId1 -> HnIndex(1104),
+          data.hnId2 -> HnIndex(1105),
+          data.hnId3 -> HnIndex(1105),
+          data.hnId4 -> HnIndex(1107),
+          data.hnId5 -> HnIndex(1108),
+        )
+        
+    "return next HnIndex map correctly for subset of nodes" in newCase[CaseData]: (tn, data) =>
+      val hnIds = Set(data.hnId2, data.hnId5)
+
+      async[IO]:
+        val nextIndexies: Map[HnId, HnIndex] = data.graphWithEdges.nextHnIndexies(hnIds).await
+        logInfo(tn, s"nextIndexies: $nextIndexies").await
+
+        nextIndexies mustBe Map(
+          data.hnId2 -> HnIndex(1105),
+          data.hnId5 -> HnIndex(1108),
+        )
+        
+    "fail if HN not found"  in newCase[CaseData]: (tn, data) =>
+      data 
+        .graphWithEdges
+        .nextHnIndexies(Set(data.nuHnId))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Some HnIds are not found in the graph"))
 
   "DcgGraph.addConNodes(...)" should:
     "add concrete nodes" in newCase[CaseData]: (tn, data) =>

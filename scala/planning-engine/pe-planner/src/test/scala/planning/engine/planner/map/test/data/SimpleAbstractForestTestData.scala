@@ -126,12 +126,12 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
   // Main structure:
   //
   //  C(l1n1.111) -> C(l1n2.112) -> C(l1n3.113) -> C(l1n4.114)
-  //      \                  \       |                  |
-  //       \                  \      |                  |
+  //      \                  \         |                  |
+  //       \                  \       |                  |
   //        v                  v     v                  v
   //      A(l2n1.211)   ->   A(l2n2.212)   ->   A(l2n3.213)
-  //               \          |        \         |
-  //                \         |         \        |
+  //               \            |      \           |
+  //                \          |        \         |
   //                 v        v          v       v
   //                 A(l3n1.311)   ->   A(l3n2.312)
   //

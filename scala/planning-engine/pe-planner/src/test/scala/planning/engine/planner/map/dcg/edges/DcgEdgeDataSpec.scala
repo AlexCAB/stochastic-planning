@@ -28,17 +28,18 @@ import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Th
 class DcgEdgeDataSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
+    lazy val samplesLink = List(SampleIndexies(SampleId(11), sourceIndex = HnIndex(201), targetIndex = HnIndex(202)))
+    lazy val samplesThen = List(SampleIndexies(SampleId(12), sourceIndex = HnIndex(203), targetIndex = HnIndex(204)))
+    lazy val sampleNew = SampleIndexies(SampleId(13), sourceIndex = HnIndex(205), targetIndex = HnIndex(206))
+
     lazy val hiddenLinkEdge: HiddenEdge = HiddenEdge(
       edgeType = EdgeType.LINK,
       sourceId = HnId(1),
       targetId = HnId(2),
-      samples = List(SampleIndexies(sampleId = SampleId(11), sourceIndex = HnIndex(201), targetIndex = HnIndex(202)))
+      samples = samplesLink
     )
 
-    lazy val hiddenThenEdge: HiddenEdge = hiddenLinkEdge.copy(
-      edgeType = EdgeType.THEN,
-      samples = List(SampleIndexies(sampleId = SampleId(12), sourceIndex = HnIndex(203), targetIndex = HnIndex(204)))
-    )
+    lazy val hiddenThenEdge: HiddenEdge = hiddenLinkEdge.copy(edgeType = EdgeType.THEN, samples = samplesThen)
 
     lazy val sampleLinkEdge: SampleEdge = SampleEdge(
       sampleId = hiddenLinkEdge.samples.head.sampleId,
@@ -59,6 +60,7 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
 
     lazy val linkSamples: Map[SampleId, Indexies] = makeSamples(hiddenLinkEdge)
     lazy val thenSamples: Map[SampleId, Indexies] = makeSamples(hiddenThenEdge)
+    lazy val allSamples: Map[SampleId, Indexies] = linkSamples ++ thenSamples
 
     lazy val dcgLinkEdge: DcgEdgeData = DcgEdgeData(
       ends = EndIds(hiddenLinkEdge.sourceId, hiddenLinkEdge.targetId),
@@ -72,6 +74,12 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
       thens = Thens(thenSamples)
     )
 
+    lazy val dcgBothEdge: DcgEdgeData = DcgEdgeData(
+      ends = EndIds(HnId(11), HnId(12)),
+      links = Links(linkSamples),
+      thens = Thens(thenSamples)
+    )
+
     lazy val ends: EndIds = dcgLinkEdge.ends
     lazy val edgeType: EdgeType = hiddenLinkEdge.edgeType
 
@@ -81,6 +89,14 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
         data.hiddenLinkEdge.sourceId,
         data.hiddenLinkEdge.targetId
       ))
+
+  "DcgEdgeData.srcHnIndex" should:
+    "return correct set of source HnIndex" in newCase[CaseData]: (tn, data) =>
+      data.dcgBothEdge.pure[IO].logValue(tn).asserting(_.srcHnIndex mustBe data.allSamples.values.map(_.src).toSet)
+
+  "DcgEdgeData.trgHnIndex" should:
+    "return correct set of target HnIndex" in newCase[CaseData]: (tn, data) =>
+      data.dcgBothEdge.pure[IO].logValue(tn).asserting(_.trgHnIndex mustBe data.allSamples.values.map(_.trg).toSet)
 
   "DcgEdgeData.linksIds" should:
     "return correct set of SampleIds for links" in newCase[CaseData]: (tn, data) =>
@@ -102,12 +118,40 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
     "return false for then edge" in newCase[CaseData]: (tn, data) =>
       data.dcgThenEdge.pure[IO].logValue(tn).asserting(_.isLink mustBe false)
 
-  "DcgEdgeData.isThen"  should:
+  "DcgEdgeData.isThen" should:
     "return true for then edge" in newCase[CaseData]: (tn, data) =>
       data.dcgThenEdge.pure[IO].logValue(tn).asserting(_.isThen mustBe true)
 
     "return false for link edge" in newCase[CaseData]: (tn, data) =>
       data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.isThen mustBe false)
+
+  "DcgEdgeData.addLink" should:
+    "add link sample correctly" in newCase[CaseData]: (tn, data) =>
+      val sampleId = data.sampleNew.sampleId
+      val srcIndex = data.sampleNew.sourceIndex
+      val trgIndex = data.sampleNew.targetIndex
+      val newRec = sampleId -> Indexies(srcIndex, trgIndex)
+
+      data.dcgLinkEdge
+        .addLink[IO](sampleId, srcIndex, trgIndex).logValue(tn)
+        .asserting: updated =>
+          updated.ends mustBe data.dcgLinkEdge.ends
+          updated.links.indexies mustBe (data.dcgLinkEdge.links.indexies + newRec)
+          updated.thens mustBe data.dcgLinkEdge.thens
+
+  "DcgEdgeData.addThen" should:
+    "add then sample correctly" in newCase[CaseData]: (tn, data) =>
+      val sampleId = data.sampleNew.sampleId
+      val srcIndex = data.sampleNew.sourceIndex
+      val trgIndex = data.sampleNew.targetIndex
+      val newRec = sampleId -> Indexies(srcIndex, trgIndex)
+
+      data.dcgThenEdge
+        .addThen[IO](sampleId, srcIndex, trgIndex).logValue(tn)
+        .asserting: updated =>
+          updated.ends mustBe data.dcgThenEdge.ends
+          updated.links mustBe data.dcgThenEdge.links
+          updated.thens.indexies mustBe (data.dcgThenEdge.thens.indexies + newRec)
 
   "DcgEdgeData.join(...)" should:
     def makeOtherDcgEdge(edge: DcgEdgeData): DcgEdgeData = edge

@@ -14,15 +14,15 @@ package planning.engine.planner.map.dcg
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 final case class DcgGraph[F[_]: MonadThrow](
     concreteNodes: Map[HnId, DcgNode.Concrete[F]],
@@ -117,6 +117,12 @@ final case class DcgGraph[F[_]: MonadThrow](
       nEdgesMapping <- edgesMapping.addAll(nEdges.keySet)
     yield this.copy(edgesData = edgesData ++ nEdges, edgesMapping = nEdgesMapping)
 
+  def updateEdges(newEdges: Iterable[DcgEdgeData]): F[DcgGraph[F]] =
+    for
+      _ <- edgesData.keySet.assertContainsAll(newEdges.map(_.ends), "Some edges to update do not exist in the graph")
+      updatedEdges = newEdges.map(e => e.ends -> e).toMap
+    yield this.copy(edgesData = edgesData.++(updatedEdges))
+
   def mergeEdges(list: Iterable[DcgEdgeData]): F[DcgGraph[F]] =
     for
       _ <- checkEdges(list)
@@ -127,12 +133,26 @@ final case class DcgGraph[F[_]: MonadThrow](
       nEdgesMapping <- edgesMapping.addAll(newEdges.keySet)
     yield this.copy(edgesData = joinedEdges ++ newEdges, edgesMapping = nEdgesMapping)
 
-  def addSamples(samples: Iterable[SampleData]): F[DcgGraph[F]] =
+  def addSampleData(sample: SampleData): F[DcgGraph[F]] =
+    for
+        _ <- allSampleIds.assertNotContain(sample.id, s"Sample already exists in the graph")
+    yield this.copy(samplesData = samplesData + (sample.id -> sample))
+
+  def addSamplesData(samples: Iterable[SampleData]): F[DcgGraph[F]] =
     for
       sampleIds <- samples.map(_.id).pure
       _ <- sampleIds.assertDistinct("Duplicate Sample IDs detected")
       _ <- sampleIds.assertNoSameElems(samplesData.keySet, "Can't add Samples that already exist")
     yield this.copy(samplesData = samplesData ++ samples.map(s => s.id -> s).toMap)
+
+  def addSample(sample: DcgSample): F[DcgGraph[F]] =
+    for
+      _ <- Validation.validate(sample)
+      nextInd <- nextHnIndexies(sample.edges.flatMap(e => Set(e._2.src, e._2.trg)))
+      upEdges <- sample.edges.toList.traverse((et, e) => getEdge(e).flatMap(_.addSample(et, sample.data.id, nextInd)))
+      withSample <- addSampleData(sample.data)
+      withEdges <- withSample.updateEdges(upEdges)
+    yield withEdges
 
   def getConForHnId(id: HnId): F[DcgNode.Concrete[F]] = concreteNodes.get(id) match
     case Some(node) => node.pure
@@ -153,6 +173,10 @@ final case class DcgGraph[F[_]: MonadThrow](
       found <- abstractNodes.filter((id, _) => ids.contains(id)).pure
       _ <- found.keySet.assertContainsAll(ids, "Some abstract node IDs are not found")
     yield found
+
+  def getEdge(ends: EndIds): F[DcgEdgeData] = edgesData.get(ends) match
+    case Some(edge) => edge.pure
+    case None       => s"DcgEdgeData with ends $ends not found in ${edgesData.keySet}".assertionError
 
   def getSamples(sampleIds: Set[SampleId]): F[Map[SampleId, SampleData]] =
     for
@@ -183,8 +207,6 @@ final case class DcgGraph[F[_]: MonadThrow](
 
   def findBackwardActiveThenEdges(targetHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
     findBackwardThenEdges(targetHnIds).map(_.filter((_, edge) => edge.thensIds.exists(activeSampleIds.contains)))
-
-  def addSample(data: SampleData, edges: Set[(EdgeType, EndIds)]): F[DcgGraph[F]] = ???
 
 object DcgGraph:
   def empty[F[_]: MonadThrow]: DcgGraph[F] = DcgGraph[F](

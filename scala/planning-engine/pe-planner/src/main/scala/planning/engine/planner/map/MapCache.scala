@@ -69,7 +69,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
         stateWithNodes <- state.addConcreteNodes(loadedNodes)
         loadedEdges = subGraph.edges.map(DcgEdgeData.apply)
         stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
-        stateWithSamples <- stateWithEdges.addSamples(subGraph.loadedSamples)
+        stateWithSamples <- stateWithEdges.addSamplesData(subGraph.loadedSamples)
         (foundNodes, notFoundValues) <- stateWithSamples.findConForIoValues(values)
         _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
       yield (stateWithSamples, (foundNodes, notFoundValues))

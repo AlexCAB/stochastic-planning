@@ -14,13 +14,12 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import planning.engine.common.enums.EdgeType
-//import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Description
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgeSamples}
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.Indexies
 import planning.engine.planner.map.test.data.MapNodeTestData
@@ -50,10 +49,12 @@ trait MapDcgTestData extends MapNodeTestData:
       links: Map[SampleId, Indexies] = Map(),
       thens: Map[SampleId, Indexies] = Map()
   ): DcgEdgeData = DcgEdgeData(
-    ends = DcgEdgeData.EndIds(srcId, trgId),
+    ends = EndIds(srcId, trgId),
     links = DcgEdgeSamples.Links(links),
     thens = DcgEdgeSamples.Thens(thens)
   )
+
+  def makeDcgEdgeData(ends: EndIds): DcgEdgeData = makeDcgEdgeData(ends.src, ends.trg)
 
   extension (graph: DcgGraph[IO])
     def addSample(sampleId: SampleId, edges: Set[(EdgeType, EndIds)]): DcgGraph[IO] =
@@ -80,6 +81,5 @@ trait MapDcgTestData extends MapNodeTestData:
 //                data.links.indexies + (sampleId -> Indexies(srcInd, trgInd))
 //              )
 //            )
-
 
       ???

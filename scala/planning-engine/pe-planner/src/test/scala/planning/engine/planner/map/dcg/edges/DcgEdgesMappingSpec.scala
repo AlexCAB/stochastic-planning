@@ -18,7 +18,7 @@ import cats.effect.cps.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 
 class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 

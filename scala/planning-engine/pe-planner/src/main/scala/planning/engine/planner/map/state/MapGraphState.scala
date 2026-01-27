@@ -53,9 +53,9 @@ final case class MapGraphState[F[_]: MonadThrow](
       newGraph <- graph.mergeEdges(newEdges)
     yield this.copy(graph = newGraph)
 
-  def addSamples(samples: List[SampleData]): F[MapGraphState[F]] =
+  def addSamplesData(samples: List[SampleData]): F[MapGraphState[F]] =
     for
-      newGraph <- graph.addSamples(samples)
+      newGraph <- graph.addSamplesData(samples)
     yield this.copy(graph = newGraph)
 
   def findConForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =

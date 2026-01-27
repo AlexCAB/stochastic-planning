@@ -21,7 +21,7 @@ import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.state.MapGraphState
@@ -167,13 +167,13 @@ class MapGraphStateSpec extends UnitSpecWithData:
   "MapGraphState.addSamples(...)" should:
     "add samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val state = data.emptyDcgState.addSamples(List(data.s1, data.s2, data.s3)).await
+        val state = data.emptyDcgState.addSamplesData(List(data.s1, data.s2, data.s3)).await
         logInfo(tn, s"state: $state").await
 
         state.graph.samplesData mustBe List(data.s1, data.s2, data.s3).map(s => s.id -> s).toMap
 
     "fail if samples that already exist" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgState.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
+      data.emptyDcgState.addSamplesData(List(data.s1)).flatMap(_.addSamplesData(List(data.s1)))
         .logValue(tn).assertThrows[AssertionError]
 
   "DcgState.findConForIoValues(...)" should:

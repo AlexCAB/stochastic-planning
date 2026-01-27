@@ -16,6 +16,7 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
@@ -23,11 +24,13 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
+  
   private class CaseData extends Case with MapDcgTestData with MapSampleTestData:
     lazy val emptyDcgGraph: DcgGraph[IO] = DcgGraph.empty[IO]
 
@@ -49,6 +52,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     lazy val sampleId1 = SampleId(1001)
     lazy val sampleId2 = SampleId(1002)
+    lazy val sampleId3 = SampleId(1003)
 
     def makeIndexiesMap(sId: SampleId): Map[HnId, HnIndex] = List(hnId1, hnId2, hnId3, hnId4, hnId5, nuHnId)
       .zipWithIndex.map((id, i) => id -> HnIndex(100 + sId.value + i + 1)).toMap
@@ -66,10 +70,13 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       thens = Thens(tIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap)
     )
 
+    lazy val dcgLinkEdge1: DcgEdgeData = makeDcgEdge(hnId1, hnId2, List(sampleId1, sampleId2), List())
+    lazy val dcgLinkEdge2: DcgEdgeData = makeDcgEdge(hnId2, hnId3, List(sampleId1), List())
+
     lazy val dcgEdges: List[DcgEdgeData] = List(
       // Link edges
-      makeDcgEdge(hnId1, hnId2, List(sampleId1, sampleId2), List()),
-      makeDcgEdge(hnId2, hnId3, List(sampleId1), List()),
+      dcgLinkEdge1,
+      dcgLinkEdge2,
       makeDcgEdge(hnId2, hnId4, List(sampleId2), List()),
       makeDcgEdge(hnId2, hnId5, List(sampleId2), List()),
       // Then edges
@@ -77,13 +84,11 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       makeDcgEdge(hnId5, hnId1, List(), List(sampleId1, sampleId2))
     )
 
-    lazy val dcgLinkEdge: DcgEdgeData = dcgEdges.head
-
     lazy val sampleData: List[SampleData] = List(sampleId1, sampleId2).map(id => makeSampleData(id = id))
 
     lazy val graphWithEdges: DcgGraph[IO] = graphWithNodes
       .addEdges(dcgEdges)
-      .flatMap(_.addSamples(sampleData))
+      .flatMap(_.addSamplesData(sampleData))
       .unsafeRunSync()
 
     lazy val List(n1, n2, n3) = List((1, 101), (2, 101), (3, 102)).map:
@@ -126,9 +131,9 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         allIndexies.keySet mustBe data.graphWithEdges.allHnIds
 
         allIndexies mustBe data.graphWithEdges.edgesData.values.toList
-         .flatMap(e => List(e.ends.src -> e.srcHnIndex, e.ends.trg -> e.trgHnIndex))
-         .groupBy(_._1)
-         .map((hdId, lst) => hdId -> lst.flatMap(_._2).toSet)
+          .flatMap(e => List(e.ends.src -> e.srcHnIndex, e.ends.trg -> e.trgHnIndex))
+          .groupBy(_._1)
+          .map((hdId, lst) => hdId -> lst.flatMap(_._2).toSet)
 
   "DcgGraph.isEmpty" should:
     "return true for empty graph" in newCase[CaseData]: (tn, data) =>
@@ -167,7 +172,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     "return error when edges data map keys and values ends mismatch" in newCase[CaseData]: (tn, data) =>
       data.graphWithEdges.copy(
-        edgesData = data.graphWithEdges.edgesData + (EndIds(data.hnId1, data.hnId3) -> data.dcgLinkEdge)
+        edgesData = data.graphWithEdges.edgesData + (EndIds(data.hnId1, data.hnId3) -> data.dcgLinkEdge1)
       ).checkOneOfValidationErrors("Edges data map keys and values ends mismatch", tn)
 
     "return error when edge refers to unknown HnIds" in newCase[CaseData]: (tn, data) =>
@@ -275,9 +280,9 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
           data.hnId2 -> HnIndex(1105),
           data.hnId3 -> HnIndex(1105),
           data.hnId4 -> HnIndex(1107),
-          data.hnId5 -> HnIndex(1108),
+          data.hnId5 -> HnIndex(1108)
         )
-        
+
     "return next HnIndex map correctly for subset of nodes" in newCase[CaseData]: (tn, data) =>
       val hnIds = Set(data.hnId2, data.hnId5)
 
@@ -287,11 +292,11 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         nextIndexies mustBe Map(
           data.hnId2 -> HnIndex(1105),
-          data.hnId5 -> HnIndex(1108),
+          data.hnId5 -> HnIndex(1108)
         )
-        
-    "fail if HN not found"  in newCase[CaseData]: (tn, data) =>
-      data 
+
+    "fail if HN not found" in newCase[CaseData]: (tn, data) =>
+      data
         .graphWithEdges
         .nextHnIndexies(Set(data.nuHnId))
         .logValue(tn)
@@ -367,6 +372,19 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val e1 = data.dcgEdges.head
       data.graphWithNodes.addEdges(List(e1)).flatMap(_.addEdges(List(e1))).logValue(tn).assertThrows[AssertionError]
 
+  "DcgGraph.updateEdges(...)" should:
+    "update edges" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val updatedEdge = data.makeDcgEdge(data.hnId1, data.hnId2, List(data.sampleId2), List(data.sampleId3))
+        val graph = data.graphWithEdges.updateEdges(List(updatedEdge)).await
+        logInfo(tn, s"graph: $graph").await
+        graph.edgesData.getOrElse(updatedEdge.ends, fail("Updated edge not found")) mustBe updatedEdge
+
+    "fail if edge to update not found" in newCase[CaseData]: (tn, data) =>
+      val invalidEdge = data.makeDcgEdge(data.hnId5, data.hnId5, List(data.sampleId1), List())
+      data.graphWithEdges.updateEdges(List(invalidEdge)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Some edges to update do not exist in the graph"))
+
   "DcgGraph.mergeEdges(...)" should:
     lazy val sampleId3 = SampleId(1003)
     lazy val sampleId4 = SampleId(1004)
@@ -402,20 +420,71 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
           data.hnId5 -> Set(data.hnId1, data.hnId2)
         )
 
-  "DcgGraph.addSamples(...)" should:
+  "DcgGraph.addSampleData(...)" should:
+    "add sample" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val graph = data.graphWithEdges.addSampleData(data.makeSampleData(id = data.sampleId3)).await
+        logInfo(tn, s"graph: $graph").await
+
+        graph.samplesData must contain key data.sampleId3
+
+    "fail if sample already exist" in newCase[CaseData]: (tn, data) =>
+      data.graphWithEdges.addSampleData(data.makeSampleData(id = data.sampleId1)).logValue(tn)
+        .assertThrows[AssertionError]
+
+  "DcgGraph.addSamplesData(...)" should:
     "add samples" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val graph = data.emptyDcgGraph.addSamples(List(data.s1, data.s2, data.s3)).await
+        val graph = data.emptyDcgGraph.addSamplesData(List(data.s1, data.s2, data.s3)).await
         logInfo(tn, s"graph: $graph").await
 
         graph.samplesData mustBe List(data.s1, data.s2, data.s3).map(s => s.id -> s).toMap
 
     "fail if sample IDs is not distinct" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgGraph.addSamples(List(data.s1, data.s1)).logValue(tn).assertThrows[AssertionError]
+      data.emptyDcgGraph.addSamplesData(List(data.s1, data.s1)).logValue(tn).assertThrows[AssertionError]
 
     "fail if samples that already exist" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgGraph.addSamples(List(data.s1)).flatMap(_.addSamples(List(data.s1)))
+      data.emptyDcgGraph.addSamplesData(List(data.s1)).flatMap(_.addSamplesData(List(data.s1)))
         .logValue(tn).assertThrows[AssertionError]
+
+  "DcgGraph.addSample(...)" should:
+    "add sample" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val sampleData = data.makeSampleData(id = data.sampleId3)
+        val ends1 = data.dcgLinkEdge1.ends
+        val ends2 = data.dcgLinkEdge2.ends
+
+        val edges = Set(EdgeType.THEN -> ends1, EdgeType.LINK -> ends2)
+
+        val graph: DcgGraph[IO]  = data.graphWithEdges.addSample(DcgSample(sampleData, edges)).await
+        logInfo(tn, s"graph.edgesData: ${graph.edgesData}").await
+        logInfo(tn, s"graph.samplesData: ${graph.samplesData}").await
+
+        graph.samplesData must contain key data.sampleId3
+
+        // Edge 1 before adding sample
+        data.graphWithEdges.edgesData(ends1).links.indexies mustBe Map(
+          data.sampleId1 -> Indexies(HnIndex(1102), HnIndex(1103)),
+          data.sampleId2 -> Indexies(HnIndex(1103), HnIndex(1104))
+        )
+
+        data.graphWithEdges.edgesData(ends1).thens.indexies mustBe Map()
+
+        // Edge 1 after adding sample
+        graph.edgesData(ends1).thens.indexies mustBe Map(
+          data.sampleId3 -> Indexies(HnIndex(1104), HnIndex(1105)) // new sample
+        )
+
+        // Edge 1 before adding sample
+        data.graphWithEdges.edgesData(ends2).links.indexies mustBe Map(
+          data.sampleId1 -> Indexies(HnIndex(1103), HnIndex(1104))
+        )
+
+        // Edge 1 after adding sample
+        graph.edgesData(ends2).links.indexies mustBe Map(
+          data.sampleId1 -> Indexies(HnIndex(1103), HnIndex(1104)),
+          data.sampleId3 -> Indexies(HnIndex(1105), HnIndex(1105)) // new sample
+        )
 
   "DcgGraph.getConForHnId(...)" should:
     "get concrete node for HnId" in newCase[CaseData]: (tn, data) =>
@@ -464,6 +533,16 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
     "fail if some abstract nodes for HnIds not found" in newCase[CaseData]: (tn, data) =>
       val hnIds = data.absNodes.map(_.id).toSet + HnId(-1)
       data.graphWithNodes.getAbsForHnIds(hnIds).logValue(tn).assertThrows[AssertionError]
+
+  "DcgGraph.getEdge(...)" should:
+    "get edge" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val edge: DcgEdgeData = data.graphWithEdges.getEdge(data.dcgEdges.head.ends).await
+        logInfo(tn, s"edge: $edge").await
+        edge mustBe data.dcgEdges.head
+
+    "fail if edge not found" in newCase[CaseData]: (tn, data) =>
+      data.graphWithEdges.getEdge(EndIds(HnId(-1), HnId(-2))).logValue(tn).assertThrows[AssertionError]
 
   "DcgGraph.getSamples(...)" should:
     "find samples" in newCase[CaseData]: (tn, data) =>

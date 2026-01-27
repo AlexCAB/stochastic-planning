@@ -36,7 +36,7 @@ trait ValidationCheck:
       obj.pure[IO].map(_.validationErrors)
         .logValue(tn, s"msgInclude = $msgInclude")
         .asserting: errs =>
-          errs.size mustBe 1
+          if errs.size != 1 then fail(s"Expected exactly one validation error, but found $errs")
           errs.head.getMessage must include(msgInclude)
 
     def checkOneOfValidationErrors(

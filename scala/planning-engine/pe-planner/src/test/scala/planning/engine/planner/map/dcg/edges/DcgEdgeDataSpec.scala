@@ -22,7 +22,7 @@ import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.samples.sample.SampleEdge
 import planning.engine.map.samples.sample.SampleEdge.End
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 
 class DcgEdgeDataSpec extends UnitSpecWithData:
@@ -83,6 +83,14 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
     lazy val ends: EndIds = dcgLinkEdge.ends
     lazy val edgeType: EdgeType = hiddenLinkEdge.edgeType
 
+    lazy val sampleId = sampleNew.sampleId
+    lazy val srcIndex = sampleNew.sourceIndex
+    lazy val trgIndex = sampleNew.targetIndex
+    lazy val newRec = sampleId -> Indexies(srcIndex, trgIndex)
+
+    lazy val linkIndexies = Map(dcgLinkEdge.ends.src -> srcIndex, dcgLinkEdge.ends.trg -> trgIndex)
+    lazy val thenIndexies = Map(dcgThenEdge.ends.src -> srcIndex, dcgThenEdge.ends.trg -> trgIndex)
+
   "DcgEdgeData.hnIds" should:
     "return correct set of HnIds" in newCase[CaseData]: (tn, data) =>
       data.dcgLinkEdge.pure[IO].logValue(tn).asserting(_.hnIds mustBe Set(
@@ -127,31 +135,44 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
 
   "DcgEdgeData.addLink" should:
     "add link sample correctly" in newCase[CaseData]: (tn, data) =>
-      val sampleId = data.sampleNew.sampleId
-      val srcIndex = data.sampleNew.sourceIndex
-      val trgIndex = data.sampleNew.targetIndex
-      val newRec = sampleId -> Indexies(srcIndex, trgIndex)
-
       data.dcgLinkEdge
-        .addLink[IO](sampleId, srcIndex, trgIndex).logValue(tn)
+        .addLink[IO](data.sampleId, data.srcIndex, data.trgIndex).logValue(tn)
         .asserting: updated =>
           updated.ends mustBe data.dcgLinkEdge.ends
-          updated.links.indexies mustBe (data.dcgLinkEdge.links.indexies + newRec)
+          updated.links.indexies mustBe (data.dcgLinkEdge.links.indexies + data.newRec)
           updated.thens mustBe data.dcgLinkEdge.thens
 
   "DcgEdgeData.addThen" should:
     "add then sample correctly" in newCase[CaseData]: (tn, data) =>
-      val sampleId = data.sampleNew.sampleId
-      val srcIndex = data.sampleNew.sourceIndex
-      val trgIndex = data.sampleNew.targetIndex
-      val newRec = sampleId -> Indexies(srcIndex, trgIndex)
-
       data.dcgThenEdge
-        .addThen[IO](sampleId, srcIndex, trgIndex).logValue(tn)
+        .addThen[IO](data.sampleId, data.srcIndex, data.trgIndex).logValue(tn)
         .asserting: updated =>
           updated.ends mustBe data.dcgThenEdge.ends
           updated.links mustBe data.dcgThenEdge.links
-          updated.thens.indexies mustBe (data.dcgThenEdge.thens.indexies + newRec)
+          updated.thens.indexies mustBe (data.dcgThenEdge.thens.indexies + data.newRec)
+
+  "DcgEdgeData.addSample(...)" should:
+    "add link sample correctly" in newCase[CaseData]: (tn, data) =>
+      data.dcgLinkEdge
+        .addSample[IO](EdgeType.LINK, data.sampleId, data.linkIndexies).logValue(tn)
+        .asserting: updated =>
+          updated.ends mustBe data.dcgLinkEdge.ends
+          updated.links.indexies mustBe (data.dcgLinkEdge.links.indexies + data.newRec)
+          updated.thens mustBe data.dcgLinkEdge.thens
+
+    "add then sample correctly" in newCase[CaseData]: (tn, data) =>
+      data.dcgThenEdge
+        .addSample[IO](EdgeType.THEN, data.sampleId, data.thenIndexies).logValue(tn)
+        .asserting: updated =>
+          updated.ends mustBe data.dcgThenEdge.ends
+          updated.links mustBe data.dcgThenEdge.links
+          updated.thens.indexies mustBe (data.dcgThenEdge.thens.indexies + data.newRec)
+
+    "fail to add sample if HnIds not found in indexies map" in newCase[CaseData]: (tn, data) =>
+      val wrongIndexies = Map(HnId(-1) -> HnIndex(999), HnId(-2) -> HnIndex(998))
+      data.dcgLinkEdge
+        .addSample[IO](EdgeType.LINK, data.sampleId, wrongIndexies).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Source (None) or Target (None) HnId not found"))
 
   "DcgEdgeData.join(...)" should:
     def makeOtherDcgEdge(edge: DcgEdgeData): DcgEdgeData = edge

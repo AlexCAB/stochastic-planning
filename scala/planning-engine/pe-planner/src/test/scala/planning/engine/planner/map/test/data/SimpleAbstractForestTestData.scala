@@ -14,142 +14,217 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
+import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.values.node.HnId
+import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.common.values.edges.EndIds
 import planning.engine.planner.map.dcg.nodes.DcgNode
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
-  lazy val conNl1p1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(101))
-  lazy val conNl1p2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(102))
+  lazy val con_1p1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(101))
+  lazy val con_1p2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(102))
 
-  lazy val conNl1c1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(111))
-  lazy val conNl1c2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(112))
-  lazy val conNl1c3: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(113))
-  lazy val conNl1c4: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(114))
+  lazy val con_1c1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(111))
+  lazy val con_1c2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(112))
+  lazy val con_1c3: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(113))
+  lazy val con_1c4: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(114))
 
-  lazy val conNl1n1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(121))
-  lazy val conNl1n2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(122))
+  lazy val con_1n1: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(121))
+  lazy val con_1n2: DcgNode.Concrete[IO] = makeConcreteDcgNode(id = HnId(122))
 
   lazy val all234ConNodes: List[DcgNode.Concrete[IO]] =
-    List(conNl1p1, conNl1p2, conNl1c1, conNl1c2, conNl1c3, conNl1c4, conNl1n1, conNl1n2)
+    List(con_1p1, con_1p2, con_1c1, con_1c2, con_1c3, con_1c4, con_1n1, con_1n2)
 
-  lazy val absNl2p1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(201))
-  lazy val absNl2p2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(202))
+  lazy val abs_2p1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(201))
+  lazy val abs_2p2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(202))
 
-  lazy val absNl2c1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(211))
-  lazy val absNl2c2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(212))
-  lazy val absNl2c3: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(213))
+  lazy val abs_2c1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(211))
+  lazy val abs_2c2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(212))
+  lazy val abs_2c3: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(213))
 
-  lazy val absNl2n1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(221))
+  lazy val abs_2n1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(221))
 
-  lazy val absNl3p1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(301))
+  lazy val abs_3p1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(301))
 
-  lazy val absNl3c1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(311))
-  lazy val absNl3c2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(312))
+  lazy val abs_3c1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(311))
+  lazy val abs_3c2: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(312))
 
-  lazy val absNl3n1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(321))
+  lazy val abs_3n1: DcgNode.Abstract[IO] = makeAbstractDcgNode(id = HnId(321))
 
   lazy val all234AbsNodes: List[DcgNode.Abstract[IO]] =
-    List(absNl2p1, absNl2p2, absNl2c1, absNl2c2, absNl2c3, absNl2n1, absNl3p1, absNl3c1, absNl3c2, absNl3n1)
+    List(abs_2p1, abs_2p2, abs_2c1, abs_2c2, abs_2c3, abs_2n1, abs_3p1, abs_3c1, abs_3c2, abs_3n1)
 
-  lazy val linkE1to2: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = conNl1c1.id, trgId = absNl2c1.id),
-    makeDcgEdgeData(srcId = conNl1c2.id, trgId = absNl2c2.id),
-    makeDcgEdgeData(srcId = conNl1c3.id, trgId = absNl2c2.id),
-    makeDcgEdgeData(srcId = conNl1c4.id, trgId = absNl2c3.id)
+  lazy val e_1c1_2c1 = EndIds(src = con_1c1.id, trg = abs_2c1.id)
+  lazy val e_1c2_2c2 = EndIds(src = con_1c2.id, trg = abs_2c2.id)
+  lazy val e_1c3_2c2 = EndIds(src = con_1c3.id, trg = abs_2c2.id)
+  lazy val e_1c4_2c3 = EndIds(src = con_1c4.id, trg = abs_2c3.id)
+
+  lazy val link_1to2: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_1c1_2c1),
+    makeDcgEdgeData(e_1c2_2c2),
+    makeDcgEdgeData(e_1c3_2c2),
+    makeDcgEdgeData(e_1c4_2c3)
   )
 
-  lazy val linkE2to3: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl2c1.id, trgId = absNl3c1.id),
-    makeDcgEdgeData(srcId = absNl2c2.id, trgId = absNl3c1.id),
-    makeDcgEdgeData(srcId = absNl2c2.id, trgId = absNl3c2.id),
-    makeDcgEdgeData(srcId = absNl2c3.id, trgId = absNl3c2.id)
+  lazy val e_2c1_3c1 = EndIds(src = abs_2c1.id, trg = abs_3c1.id)
+  lazy val e_2c2_3c1 = EndIds(src = abs_2c2.id, trg = abs_3c1.id)
+  lazy val e_2c2_3c2 = EndIds(src = abs_2c2.id, trg = abs_3c2.id)
+  lazy val e_2c3_3c2 = EndIds(src = abs_2c3.id, trg = abs_3c2.id)
+
+  lazy val link_2to3: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_2c1_3c1),
+    makeDcgEdgeData(e_2c2_3c1),
+    makeDcgEdgeData(e_2c2_3c2),
+    makeDcgEdgeData(e_2c3_3c2)
   )
 
-  lazy val thenEPrev1: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = conNl1p1.id, trgId = conNl1c1.id),
-    makeDcgEdgeData(srcId = conNl1p1.id, trgId = conNl1c3.id),
-    makeDcgEdgeData(srcId = conNl1p2.id, trgId = conNl1c2.id),
-    makeDcgEdgeData(srcId = conNl1p2.id, trgId = conNl1c4.id)
+  lazy val e_1p1_1c1 = EndIds(src = con_1p1.id, trg = con_1c1.id)
+  lazy val e_1p1_1c3 = EndIds(src = con_1p1.id, trg = con_1c3.id)
+  lazy val e_1p2_1c2 = EndIds(src = con_1p2.id, trg = con_1c2.id)
+  lazy val e_1p2_1c4 = EndIds(src = con_1p2.id, trg = con_1c4.id)
+
+  lazy val then_prev1: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_1p1_1c1),
+    makeDcgEdgeData(e_1p1_1c3),
+    makeDcgEdgeData(e_1p2_1c2),
+    makeDcgEdgeData(e_1p2_1c4)
   )
+
+  lazy val e_1c1_1c2 = EndIds(src = con_1c1.id, trg = con_1c2.id)
+  lazy val e_1c2_1c3 = EndIds(src = con_1c2.id, trg = con_1c3.id)
+  lazy val e_1c3_1c4 = EndIds(src = con_1c3.id, trg = con_1c4.id)
 
   lazy val thenE1: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = conNl1c1.id, trgId = conNl1c2.id),
-    makeDcgEdgeData(srcId = conNl1c2.id, trgId = conNl1c3.id),
-    makeDcgEdgeData(srcId = conNl1c3.id, trgId = conNl1c4.id)
+    makeDcgEdgeData(e_1c1_1c2),
+    makeDcgEdgeData(e_1c2_1c3),
+    makeDcgEdgeData(e_1c3_1c4)
   )
 
-  lazy val thenENext1: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = conNl1c1.id, trgId = conNl1n1.id),
-    makeDcgEdgeData(srcId = conNl1c1.id, trgId = conNl1n1.id),
-    makeDcgEdgeData(srcId = conNl1c4.id, trgId = conNl1n2.id)
+  lazy val e_1c1_1n1 = EndIds(src = con_1c1.id, trg = con_1n1.id)
+  lazy val e_1c4_1n2 = EndIds(src = con_1c4.id, trg = con_1n2.id)
+
+  lazy val then_next1: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_1c1_1n1),
+    makeDcgEdgeData(e_1c4_1n2)
   )
 
-  lazy val thenEPrev2: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl2p1.id, trgId = absNl2c1.id),
-    makeDcgEdgeData(srcId = absNl2p2.id, trgId = absNl2c3.id)
+  lazy val e_2p1_2c1 = EndIds(src = abs_2p1.id, trg = abs_2c1.id)
+  lazy val e_2p2_2c3 = EndIds(src = abs_2p2.id, trg = abs_2c3.id)
+
+  lazy val then_prev2: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_2p1_2c1),
+    makeDcgEdgeData(e_2p2_2c3)
   )
+
+  lazy val e_2c1_2c2 = EndIds(src = abs_2c1.id, trg = abs_2c2.id)
+  lazy val e_2c2_2c3 = EndIds(src = abs_2c2.id, trg = abs_2c3.id)
 
   lazy val thenE2: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl2c1.id, trgId = absNl2c2.id),
-    makeDcgEdgeData(srcId = absNl2c2.id, trgId = absNl2c3.id)
+    makeDcgEdgeData(e_2c1_2c2),
+    makeDcgEdgeData(e_2c2_2c3)
   )
 
-  lazy val thenENext2: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl2c2.id, trgId = absNl2n1.id)
+  lazy val e_2c2_2n1 = EndIds(src = abs_2c2.id, trg = abs_2n1.id)
+
+  lazy val then_next2: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_2c2_2n1)
   )
 
-  lazy val thenEPrev3: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl3p1.id, trgId = absNl3c1.id),
-    makeDcgEdgeData(srcId = absNl3p1.id, trgId = absNl3c2.id)
+  lazy val e_3p1_3c1 = EndIds(src = abs_3p1.id, trg = abs_3c1.id)
+  lazy val e_3p1_3c2 = EndIds(src = abs_3p1.id, trg = abs_3c2.id)
+
+  lazy val then_prev3: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_3p1_3c1),
+    makeDcgEdgeData(e_3p1_3c2)
   )
+
+  lazy val e_3c1_3c2 = EndIds(src = abs_3c1.id, trg = abs_3c2.id)
 
   lazy val thenE3: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl3c1.id, trgId = absNl3c2.id)
+    makeDcgEdgeData(e_3c1_3c2)
   )
 
-  lazy val thenENext3: List[DcgEdgeData] = List(
-    makeDcgEdgeData(srcId = absNl3c1.id, trgId = absNl3n1.id),
-    makeDcgEdgeData(srcId = absNl3c2.id, trgId = absNl3n1.id)
+  lazy val e_3c1_3n1 = EndIds(src = abs_3c1.id, trg = abs_3n1.id)
+  lazy val e_3c2_3n1 = EndIds(src = abs_3c2.id, trg = abs_3n1.id)
+
+  lazy val then_next3: List[DcgEdgeData] = List(
+    makeDcgEdgeData(e_3c1_3n1),
+    makeDcgEdgeData(e_3c2_3n1)
   )
 
-  lazy val dcg234EdgesLinks: List[DcgEdgeData] = linkE1to2 ++ linkE2to3
-  lazy val dcg234Edges1: List[DcgEdgeData] = thenEPrev1 ++ thenE1 ++ thenENext1
-  lazy val dcg234Edges2: List[DcgEdgeData] = thenEPrev2 ++ thenE2 ++ thenENext2
-  lazy val dcg234Edges3: List[DcgEdgeData] = thenEPrev3 ++ thenE3 ++ thenENext3
-
-  lazy val allDcg234Edges: List[DcgEdgeData] = dcg234EdgesLinks ++ dcg234Edges1 ++ dcg234Edges2 ++ dcg234Edges3
+  lazy val allDcg234Edges: List[DcgEdgeData] = List(
+    link_1to2,
+    link_2to3,
+    then_prev1,
+    thenE1,
+    then_next1,
+    then_prev2,
+    thenE2,
+    then_next2,
+    then_prev3,
+    thenE3,
+    then_next3
+  ).flatten
 
   // Main structure:
   //
-  //  C(l1n1.111) -> C(l1n2.112) -> C(l1n3.113) -> C(l1n4.114)
-  //      \                  \         |                  |
-  //       \                  \       |                  |
-  //        v                  v     v                  v
-  //      A(l2n1.211)   ->   A(l2n2.212)   ->   A(l2n3.213)
+  //  C<1c1.111> -> C<1c2.112> -> C<1c3.113> -> C<1c4.114>
+  //      \                  \         |              |
+  //       \                  \       |              |
+  //        v                  v     v              v
+  //      A(2c1.211)    ->   A(2c2.212)   ->    A(2c3.213)
   //               \            |      \           |
   //                \          |        \         |
   //                 v        v          v       v
-  //                 A(l3n1.311)   ->   A(l3n2.312)
+  //                 A(3c1.311)   ->   A(3c2.312)
   //
-  // Prev edges (level 1, thenEPrev1):
-  //   C(l1p1.101) -> C(l1n1.111)
-  //   C(l1p1.101) -> C(l1n3.113)
-  //   C(l1p2.102) -> C(l1n2.112)
-  //   C(l1p2.102) -> C(l1n4.114)
+  // Prev edges (level 0, then_prev1):
+  //   C(1p1.101) -> C(1c1.111)
+  //   C(1p1.101) -> C(1c3.113)
+  //   C(1p2.102) -> C(1c2.112)
+  //   C(1p2.102) -> C(1c4.114)
   //
-  // Prev edges (level 2, thenEPrev2):
-  //   A(l2p1.201) -> A(l2n1.211)
-  //   A(l2p2.202) -> A(l2n3.213)
+  // Next edges (level 0, then_next1):
+  //   C(1c1.111) -> C(1n1.121)
+  //   C(1c4.114) -> C(1n2.122)
   //
-  // Prev edges (level 3, thenEPrev3):
-  //   A(l3p1.301) -> A(l3n1.311)
-  //   A(l3p1.301) -> A(l3n2.312)
+  // Prev edges (level 1, then_prev2):
+  //   A(2p1.201) -> A(2c1.211)
+  //   A(2p2.202) -> A(2c3.213)
+  //
+  // Next edges (level 1, then_next2):
+  //   A(2c2.212) -> A(2n1.221)
+  //
+  // Prev edges (level 2, then_prev3):
+  //   A(3p1.301) -> A(3c1.311)
+  //   A(3p1.301) -> A(3c2.312)
+  //
+  // Next edges (level 2, then_next3):
+  //   A(3c1.311) -> A(3n1.321)
+  //   A(3c2.312) -> A(3n1.321)
   lazy val dcgGraph234Empty = DcgGraph.empty[IO]
     .addConNodes(all234ConNodes)
     .flatMap(_.addAbsNodes(all234AbsNodes))
     .flatMap(_.addEdges(allDcg234Edges))
     .unsafeRunSync()
+
+  lazy val dcg234SampleLine = DcgSample(
+    data = makeSampleData(id = SampleId(1001)),
+    edges = Set(
+      // Abstraction edges:
+      LINK -> e_1c1_2c1,
+      LINK -> e_2c1_3c1,
+      // Previous edges:
+      THEN -> e_1p1_1c1,
+      THEN -> e_2p1_2c1,
+      THEN -> e_3p1_3c1,
+      // Next edges:
+      THEN -> e_1c1_1n1,
+      THEN -> e_3c1_3n1
+    )
+  )

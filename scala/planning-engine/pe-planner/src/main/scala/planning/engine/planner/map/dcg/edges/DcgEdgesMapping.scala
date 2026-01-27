@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.HnId
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 
 final case class DcgEdgesMapping[F[_]: MonadThrow](
     forward: Map[HnId, Set[HnId]],

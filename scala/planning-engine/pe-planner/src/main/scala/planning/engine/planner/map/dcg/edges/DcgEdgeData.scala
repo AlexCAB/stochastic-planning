@@ -19,7 +19,7 @@ import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.samples.sample.SampleEdge
-import planning.engine.planner.map.dcg.edges.DcgEdgeData.EndIds
+import planning.engine.common.values.edges.EndIds
 import planning.engine.common.errors.*
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
 
@@ -39,12 +39,18 @@ final case class DcgEdgeData(
 
   lazy val isLink: Boolean = linksIds.nonEmpty
   lazy val isThen: Boolean = thensIds.nonEmpty
-  
+
   def addLink[F[_]: MonadThrow](sampleId: SampleId, srcInd: HnIndex, trgInd: HnIndex): F[DcgEdgeData] =
     links.add(sampleId, srcInd, trgInd).map(newLinks => this.copy(links = newLinks))
-    
+
   def addThen[F[_]: MonadThrow](sampleId: SampleId, srcInd: HnIndex, trgInd: HnIndex): F[DcgEdgeData] =
     thens.add(sampleId, srcInd, trgInd).map(newThens => this.copy(thens = newThens))
+
+  def addSample[F[_]: MonadThrow](et: EdgeType, sId: SampleId, indexies: Map[HnId, HnIndex]): F[DcgEdgeData] =
+    (et, indexies.get(ends.src), indexies.get(ends.trg)) match
+      case (EdgeType.LINK, Some(srcInd), Some(trgInd)) => addLink(sId, srcInd, trgInd)
+      case (EdgeType.THEN, Some(srcInd), Some(trgInd)) => addThen(sId, srcInd, trgInd)
+      case (_, srcInd, trgInd) => s"Source ($srcInd) or Target ($trgInd) HnId not found in indexies map".assertionError
 
   def join[F[_]: MonadThrow](other: DcgEdgeData): F[DcgEdgeData] =
     for
@@ -54,9 +60,6 @@ final case class DcgEdgeData(
     yield DcgEdgeData(ends, newLinks, newThens)
 
 object DcgEdgeData:
-  final case class EndIds(src: HnId, trg: HnId):
-    lazy val swap: EndIds = EndIds(trg, src)
-
   private[edges] def makeDcgEdgeData(
       ends: EndIds,
       edgeType: EdgeType,

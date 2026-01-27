@@ -12,7 +12,7 @@
 
 package planning.engine.planner.map.state
 
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 
 final case class MapIdsCountState(
@@ -22,10 +22,14 @@ final case class MapIdsCountState(
 ):
   lazy val isInit: Boolean = nextHnId == 1L && nextSampleId == 1L && nextHnIndexMap.isEmpty
 
-  def getNextHnIds(n: Long): (MapIdsCountState, List[HnId]) =
-    val hnIds = (nextHnId until (nextHnId + n)).toList.map(HnId.apply)
+  private [state] def getNextHnIds[I <: HnId](n: Long, make: Long => I): (MapIdsCountState, List[I]) =
+    val hnIds = (nextHnId until (nextHnId + n)).toList.map(make)
     val newState = copy(nextHnId = nextHnId + n)
     (newState, hnIds)
+
+  def getNextConIds(n: Long): (MapIdsCountState, List[ConId]) = getNextHnIds(n, ConId.apply)
+  
+  def getNextAbsIds(n: Long): (MapIdsCountState, List[AbsId]) = getNextHnIds(n, AbsId.apply)
 
   def getNextSampleIds(n: Long): (MapIdsCountState, List[SampleId]) =
     val sampleIds = (nextSampleId until (nextSampleId + n)).toList.map(SampleId.apply)

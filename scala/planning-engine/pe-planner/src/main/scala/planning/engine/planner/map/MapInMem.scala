@@ -24,7 +24,7 @@ import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
@@ -80,9 +80,9 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Got IO node from MapInMem: $node")
     yield node
 
-  override def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
+  override def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[ConId, Option[HnName]]] =
     for
-      hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
+      hnIdIds <- idsCountCell.modify(_.getNextConIds(nodes.list.size))
       _ <- hnIdIds.assertSameSize(nodes.list, "Seems bug: HnIds count does not match concrete nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds)
         .traverse((node, hnId) => DcgNode.Concrete(hnId, node, n => getMapInfo.flatMap(_.getIoNode(n))))
@@ -90,9 +90,9 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Added new concrete nodes to MapInMem: ${nodes.list.zip(hnIdIds)}")
     yield dsgNodes.map(n => n.id -> n.name).toMap
 
-  override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
+  override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[AbsId, Option[HnName]]] =
     for
-      hnIdIds <- idsCountCell.modify(_.getNextHnIds(nodes.list.size))
+      hnIdIds <- idsCountCell.modify(_.getNextAbsIds(nodes.list.size))
       _ <- hnIdIds.assertSameSize(nodes.list, "Seems bug: HnIds count does not match abstract nodes count")
       dsgNodes <- nodes.list.zip(hnIdIds).traverse((node, hnId) => DcgNode.Abstract(hnId, node))
       _ <- modifyMapState(_.addAbstractNodes(dsgNodes).map(ns => (ns, ())))
@@ -116,13 +116,13 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Got from map in mem: foundNodes = $foundNodes, notFoundValues = $notFoundValues")
     yield (foundNodes, notFoundValues)
 
-  override def findActiveAbstractForest(conActiveHnIds: Set[HnId]): F[ActiveAbsDag[F]] =
+  override def findActiveAbstractForest(activeIds: Set[ConId]): F[ActiveAbsDag[F]] =
     for
       state <- getMapState
-      initGraph <- buildInitActiveGraph(conActiveHnIds, state)
+      initGraph <- buildInitActiveGraph(activeIds, state)
       tracedGraph <- traceActiveAbsNodes(initGraph, Set(), state)
       _ <- Validation.validate(tracedGraph)
-      _ <- logger.info(s"Found active abstract graph for conActiveNodeIds=$conActiveHnIds: $tracedGraph")
+      _ <- logger.info(s"Found active abstract graph for activeIds=$activeIds: $tracedGraph")
     yield tracedGraph
 
   override def reset(): F[Unit] =

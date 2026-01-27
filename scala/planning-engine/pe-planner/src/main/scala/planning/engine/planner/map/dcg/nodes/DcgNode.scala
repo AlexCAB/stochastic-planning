@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg.nodes
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
@@ -26,7 +26,7 @@ sealed trait DcgNode[F[_]: MonadThrow]:
 
 object DcgNode:
   final case class Concrete[F[_]: MonadThrow](
-      id: HnId,
+      id: ConId,
       name: Option[HnName],
       description: Option[Description],
       ioNode: IoNode[F],
@@ -44,7 +44,7 @@ object DcgNode:
     ).pure
 
     def apply[F[_]: MonadThrow](
-        hnId: HnId,
+        hnId: ConId,
         node: ConcreteNode.New,
         getIoNode: IoName => F[IoNode[F]]
     ): F[Concrete[F]] =
@@ -59,7 +59,7 @@ object DcgNode:
       )
 
   final case class Abstract[F[_]: MonadThrow](
-      id: HnId,
+      id: AbsId,
       name: Option[HnName],
       description: Option[Description]
   ) extends DcgNode[F]
@@ -71,7 +71,7 @@ object DcgNode:
       description = node.description
     ).pure
 
-    def apply[F[_]: MonadThrow](hnId: HnId, node: AbstractNode.New): F[Abstract[F]] = new Abstract[F](
+    def apply[F[_]: MonadThrow](hnId: AbsId, node: AbstractNode.New): F[Abstract[F]] = new Abstract[F](
       id = hnId,
       name = node.name,
       description = node.description

@@ -14,14 +14,14 @@ package planning.engine.common.values.edges
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.ConId
 
 class EndIdsSpec extends AnyWordSpec with Matchers:
 
   "EndIds.swap" should:
     "swap source and target ids" in:
-      val endIds = EndIds(HnId(1), HnId(2))
+      val endIds = EndIds(ConId(1), ConId(2))
       val swapped = endIds.swap
 
-      swapped.src mustBe HnId(2)
-      swapped.trg mustBe HnId(1)
+      swapped.src mustBe ConId(2)
+      swapped.trg mustBe ConId(1)

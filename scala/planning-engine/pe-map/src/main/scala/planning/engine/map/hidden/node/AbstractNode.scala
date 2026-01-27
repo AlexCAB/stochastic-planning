@@ -16,7 +16,7 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
 import planning.engine.common.values.text.Description
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, HnId, HnName}
 import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
@@ -24,7 +24,7 @@ import planning.engine.common.errors.assertionError
 import planning.engine.common.validation.Validation
 
 final case class AbstractNode[F[_]: MonadThrow](
-    id: HnId,
+    id: AbsId,
     name: Option[HnName],
     description: Option[Description]
 ) extends HiddenNode[F]:
@@ -54,7 +54,7 @@ object AbstractNode:
   def fromNode[F[_]: MonadThrow](node: Node): F[AbstractNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for
-        id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
+        id <- n.getValue[F, Long](PROP.HN_ID).map(AbsId.apply)
         name <- n.getOptional[F, String](PROP.NAME).map(_.map(HnName.apply))
         description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
         absNode <- AbstractNode(id, name, description).pure

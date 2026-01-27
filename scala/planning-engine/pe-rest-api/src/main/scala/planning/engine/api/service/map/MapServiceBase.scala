@@ -15,14 +15,14 @@ package planning.engine.api.service.map
 import cats.effect.Async
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.common.errors.*
 
 abstract class MapServiceBase[F[_]: {Async, LoggerFactory}]:
   private[map] def composeHnIdMap(
       foundHnIdMap: Map[HnName, Set[HnId]],
-      newConHnIds: Map[HnId, Option[HnName]],
-      newAbsHnIds: Map[HnId, Option[HnName]]
+      newConHnIds: Map[ConId, Option[HnName]],
+      newAbsHnIds: Map[AbsId, Option[HnName]]
   ): F[Map[HnName, HnId]] =
     for
       foundIds <- foundHnIdMap.toList.traverse:

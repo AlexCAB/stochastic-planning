@@ -18,11 +18,11 @@ import neotypes.model.types.Node
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.{HnId, HnIndex, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnIndex, HnName}
 import planning.engine.common.values.text.Name
 import planning.engine.common.errors.*
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.db.Neo4j.{LINK_LABEL, THEN_LABEL}
+import planning.engine.common.values.db.Neo4j.{LINK_LABEL, THEN_LABEL, HN_LABEL, CONCRETE_LABEL, ABSTRACT_LABEL}
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.config.MapConfig
@@ -52,8 +52,8 @@ trait Neo4jDatabaseLike[F[_]]:
 
   def checkConnection: F[Long]
   def loadRootNodes: F[(MapMetadata, List[InputNode[F]], List[OutputNode[F]])]
-  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[HnId, Option[HnName]]]
-  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[HnName]]]
+  def createConcreteNodes(initNextHnIndex: Long, params: List[ConcreteNode.New]): F[Map[ConId, Option[HnName]]]
+  def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[AbsId, Option[HnName]]]
   def findHiddenNodesByNames(
       names: List[HnName],
       getIoNode: IoName => F[IoNode[F]]
@@ -130,26 +130,26 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
   override def createConcreteNodes(
       initNextHnIndex: Long,
       params: List[ConcreteNode.New]
-  ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
+  ): F[Map[ConId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
-      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
+      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(ConId.apply))
       _ <- newIds.assertSameSize(params, "Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex).map(p => (n.ioNodeName, p)))
       createdIds <- params.traverse((ioNodeName, props) => addConcreteNodeQuery(ioNodeName.value, props)(tx))
       _ <- createdIds.map(_._1).assertDistinct("Concrete node ids should be distinct")
-    yield createdIds.map((id, name) => HnId(id) -> name.map(HnName.apply)).toMap
+    yield createdIds.map((id, name) => ConId(id) -> name.map(HnName.apply)).toMap
 
   override def createAbstractNodes(
       initNextHnIndex: Long,
       params: List[AbstractNode.New]
-  ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
+  ): F[Map[AbsId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
-      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
+      newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(AbsId.apply))
       _ <- newIds.assertSameSize(params, "Created ids and given params must have the same size")
       params <- params.zip(newIds).traverse((n, id) => n.toProperties(id, initNextHnIndex))
       createdIds <- params.traverse(props => addAbstractNodeQuery(props)(tx))
       _ <- createdIds.map(_._1).assertDistinct("Abstract node ids should be distinct")
-    yield createdIds.map((id, name) => HnId(id) -> name.map(HnName.apply)).toMap
+    yield createdIds.map((id, name) => AbsId(id) -> name.map(HnName.apply)).toMap
 
   override def findHiddenNodesByNames(
       names: List[HnName],
@@ -162,7 +162,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       .map(_.groupBy(_._1).map((name, nodes) => (name, nodes.map(_._2))))
 
     for
-      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx).map(_.map(_._2))
+      ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value), HN_LABEL)(tx).map(_.map(_._2))
       _ <- ids.assertDistinct("Hidden node ids should be distinct")
       abstractNodes <- loadAbstractNodes(ids)(tx)
       concreteNodes <- loadConcreteNodes(ids, getIoNode)(tx)
@@ -171,8 +171,12 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]] = driver.transact(readConf): tx =>
     for
-        ids <- findHiddenIdsNodesByNamesQuery(names.map(_.value))(tx)
-    yield ids.map(r => HnName(r._1) -> HnId(r._2)).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
+      names <- names.map(_.value).pure
+      conRawIds <- findHiddenIdsNodesByNamesQuery(names, CONCRETE_LABEL)(tx)
+      conIds = conRawIds.map(r => HnName(r._1) -> ConId(r._2))
+      absRawIds <- findHiddenIdsNodesByNamesQuery(names, ABSTRACT_LABEL)(tx)
+      absIds = absRawIds.map(r => HnName(r._1) -> AbsId(r._2))
+    yield (conIds ++ absIds).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
 
   override def countHiddenNodes: F[Long] = driver.transact(readConf)(tx => countAllHiddenNodesQuery(tx))
 
@@ -228,14 +232,15 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
       for
         rawEdges <- getNextEdgesQuery(currentNodeId.value)(tx)
-        sampleEdges <- rawEdges.flatTraverse((edge, nId) => SampleEdge.fromEdge(currentNodeId, HnId(nId), edge))
+        edgesWithNodeIds <- rawEdges.traverse((edge, rawId, ls) =>  HnId(rawId, ls).map(nId => (edge, nId)))
+        sEdges <- edgesWithNodeIds.flatTraverse((edge, nId) => SampleEdge.fromEdge(currentNodeId, nId, edge))
         nextHnIds = rawEdges.map(_._2)
-        sampleIds = sampleEdges.map(_.sampleId)
+        sampleIds = sEdges.map(_.sampleId)
         abstractNodes <- loadAbstractNodes(nextHnIds)(tx)
         concreteNodes <- loadConcreteNodes(nextHnIds, getIoNode)(tx)
         sampleMap <- loadSamples(sampleIds)
         hnMap = (abstractNodes ++ concreteNodes).map(n => n.id -> n).toMap
-        nextEdges <- sampleEdges.traverse(e => NextSampleEdge.fromSampleEdge(e, sampleMap, hnMap))
+        nextEdges <- sEdges.traverse(e => NextSampleEdge.fromSampleEdge(e, sampleMap, hnMap))
       yield nextEdges
 
   override def getSampleNames(sampleIds: List[SampleId]): F[Map[SampleId, Option[Name]]] = driver
@@ -259,8 +264,10 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
         rawNodes <- getSamplesQuery(sampleIds.map(_.value))(tx)
         sampleDataMap <- rawNodes.traverse(node => SampleData.fromNode(node)).map(_.map(sd => sd.id -> sd).toMap)
         _ <- sampleIds.assertSameElems(sampleDataMap.keys, "Not for all sample the data were found")
-        rawEdges <- getSampleEdgesQuery(sampleIds.map(_.toPropName))(tx).map(_.map((s, e, t) => (HnId(s), e, HnId(t))))
-        edges <- sampleIds.traverse(sId => SampleEdge.fromEdgesBySampleId(rawEdges, sId).map(e => sId -> e))
+        rawEdges <- getSampleEdgesQuery(sampleIds.map(_.toPropName))(tx)
+        edgesWithId <- rawEdges
+          .traverse((sId, sLs, edge, tId, tLs) =>  HnId(sId, sLs).flatMap(s =>  HnId(tId, tLs).map(t => (s, edge, t))))
+        edges <- sampleIds.traverse(sId => SampleEdge.fromEdgesBySampleId(edgesWithId, sId).map(e => sId -> e))
         edgesMap = edges.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap
         _ <- sampleIds.assertSameElems(edgesMap.keys, "Not for all sample the edges were found")
         samples <- sampleIds.traverse(sId => Sample.formDataMap(sId, sampleDataMap, edgesMap))
@@ -274,8 +281,8 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
             rawNodes.traverse: rawNode =>
               for
                 conNode <- ConcreteNode.fromNode(rawNode, ioNode)
-                linkIds <- findParentIdsQuery(conNode.id.value, LINK_LABEL)(tx).map(_.map(HnId.apply))
-                thenIds <- findParentIdsQuery(conNode.id.value, THEN_LABEL)(tx).map(_.map(HnId.apply))
+                linkIds <- findParentIdsQuery(conNode.id.value, LINK_LABEL)(tx).flatMap(_.traverse(HnId.apply))
+                thenIds <- findParentIdsQuery(conNode.id.value, THEN_LABEL)(tx).flatMap(_.traverse(HnId.apply))
               yield ConcreteWithParentIds(conNode, linkParentIds = linkIds.toSet, thenParentIds = thenIds.toSet)
         .map(_.flatten)
 

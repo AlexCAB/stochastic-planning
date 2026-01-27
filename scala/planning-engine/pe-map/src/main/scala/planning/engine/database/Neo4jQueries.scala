@@ -111,10 +111,12 @@ trait Neo4jQueries:
       RETURN [abstract.#${PROP.HN_ID}, abstract.#${PROP.NAME}]
       """.query(ResultMapper.tuple[Long, Option[String]]).singleResult(tx)
 
-  protected def findHiddenIdsNodesByNamesQuery[F[_]: Async](names: List[String])(tx: AsyncTransaction[F])
-      : F[List[(String, Long)]] =
+  protected def findHiddenIdsNodesByNamesQuery[F[_]: Async](
+      names: List[String],
+      nodeType: Label
+  )(tx: AsyncTransaction[F]): F[List[(String, Long)]] =
     c"""
-      MATCH (n: #$HN_LABEL)
+      MATCH (n: #$nodeType)
       WHERE n.#${PROP.NAME} IN $names
       RETURN [n.#${PROP.NAME}, n.#${PROP.HN_ID}]
       """.query(ResultMapper.tuple[String, Long]).list(tx)
@@ -190,12 +192,13 @@ trait Neo4jQueries:
       SET samples.#${PROP.SAMPLES_COUNT} = samples.#${PROP.SAMPLES_COUNT} + $numOfSamples
       """.execute.void(tx)
 
-  protected def getNextEdgesQuery[F[_]: Async](curHdId: Long)(tx: AsyncTransaction[F]): F[List[(Relationship, Long)]] =
+  protected def getNextEdgesQuery[F[_]: Async](curHdId: Long)(tx: AsyncTransaction[F])
+      : F[List[(Relationship, Long, Set[String])]] =
     c"""
-      MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[edge]->(t:#$HN_LABEL) 
+      MATCH (s:#$HN_LABEL {#${PROP.HN_ID}: $curHdId})-[edge]->(t:#$HN_LABEL) 
       WHERE edge:#$LINK_LABEL OR edge:#$THEN_LABEL
-      RETURN [edge, t.#${PROP.HN_ID}]
-      """.query(ResultMapper.tuple[Relationship, Long]).listResult(tx)
+      RETURN [edge, t.#${PROP.HN_ID}, labels(t)]
+      """.query(ResultMapper.tuple[Relationship, Long, Set[String]]).listResult(tx)
 
   protected def getSamplesQuery[F[_]: Async](sampleIds: List[Long])(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
@@ -213,12 +216,12 @@ trait Neo4jQueries:
       """.query(ResultMapper.tuple[Long, Option[String]]).listResult(tx)
 
   protected def getSampleEdgesQuery[F[_]: Async](sampleIds: List[String])(tx: AsyncTransaction[F])
-      : F[List[(Long, Relationship, Long)]] =
+      : F[List[(Long, Set[String], Relationship, Long, Set[String])]] =
     c"""
       MATCH (source: #$HN_LABEL)-[edge]->(target: #$HN_LABEL)
       WHERE (edge:#$LINK_LABEL OR edge:#$THEN_LABEL) AND any(k IN keys(edge) WHERE k IN $sampleIds)
-      RETURN [source.#${PROP.HN_ID}, edge, target.#${PROP.HN_ID}]
-      """.query(ResultMapper.tuple[Long, Relationship, Long]).listResult(tx)
+      RETURN [source.#${PROP.HN_ID}, labels(source), edge, target.#${PROP.HN_ID}, labels(target)]
+      """.query(ResultMapper.tuple[Long, Set[String], Relationship, Long, Set[String]]).listResult(tx)
 
   protected def findHiddenNodesByIoValueQuery[F[_]: Async](ioNodeName: String, ioIndex: Long)(tx: AsyncTransaction[F])
       : F[List[Node]] =
@@ -227,8 +230,11 @@ trait Neo4jQueries:
       RETURN cn
       """.query(ResultMapper.node).listResult(tx)
 
-  protected def findParentIdsQuery[F[_]: Async](targetId: Long, label: Label)(tx: AsyncTransaction[F]): F[List[Long]] =
+  protected def findParentIdsQuery[F[_]: Async](
+      targetId: Long,
+      label: Label
+  )(tx: AsyncTransaction[F]): F[List[(Long, Set[String])]] =
     c"""
       MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $targetId})<-[edge:#$label]-(source:#$HN_LABEL)
-      RETURN source.#${PROP.HN_ID}
-      """.query(ResultMapper.long).listResult(tx)
+      RETURN [source.#${PROP.HN_ID}, labels(source)]
+      """.query(ResultMapper.tuple[Long, Set[String]]).listResult(tx)

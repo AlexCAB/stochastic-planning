@@ -15,7 +15,7 @@ package planning.engine.planner.map.state
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.IoValue
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.ConId
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
 import planning.engine.common.errors.*
 import planning.engine.map.samples.sample.SampleData
@@ -23,7 +23,7 @@ import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.nodes.DcgNode
 
 final case class MapGraphState[F[_]: MonadThrow](
-    ioValues: Map[IoValue, Set[HnId]],
+    ioValues: Map[IoValue, Set[ConId]],
     graph: DcgGraph[F]
 ):
   lazy val isEmpty: Boolean = ioValues.isEmpty && graph.isEmpty

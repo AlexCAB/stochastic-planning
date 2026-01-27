@@ -18,7 +18,7 @@ import cats.syntax.all.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.database.Neo4jDatabaseLike
@@ -64,12 +64,12 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
             for
               _ <- IO.delay(params.size mustEqual 2L)
               _ <- IO.delay(initNextHnIndex mustEqual 1L)
-              ids = params.zipWithIndex.map((p, i) => HnId(i + 1) -> p.name).toMap
+              ids = params.zipWithIndex.map((p, i) => ConId(i + 1) -> p.name).toMap
             yield ids
           .once()
 
         val nodeIds = data.mapGraph.newConcreteNodes(ConcreteNode.ListNew(newNodes)).await
-        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1)).toSet
+        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => ConId(i + 1)).toSet
 
         nodeIds.size mustEqual newNodes.size
         nodeIds.keySet mustEqual expectedHnIds
@@ -88,12 +88,12 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
             for
               _ <- IO.delay(params.size mustEqual 2L)
               _ <- IO.delay(initNextHnIndex mustEqual 1L)
-              ids = params.zipWithIndex.map((p, i) => HnId(i + 1) -> p.name).toMap
+              ids = params.zipWithIndex.map((p, i) => AbsId(i + 1) -> p.name).toMap
             yield ids
           .once()
 
         val nodeIds = data.mapGraph.newAbstractNodes(AbstractNode.ListNew(newNodes)).await
-        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1)).toSet
+        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => AbsId(i + 1)).toSet
 
         nodeIds.size mustEqual newNodes.size
         nodeIds.keySet mustEqual expectedHnIds
@@ -108,12 +108,12 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         )
 
         val expectedNames = newNodes.map(_.name.getOrElse(fail("Node name should not be empty")))
-        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => HnId(i + 1))
+        val expectedHnIds = newNodes.zipWithIndex.map((_, i) => AbsId(i + 1))
         val createdNodes = newNodes.zip(expectedHnIds).map((n, id) => AbstractNode[IO](id, n.name, None))
 
         data.mockedDb.createAbstractNodes
           .when(*, *)
-          .onCall((_, params) => params.zipWithIndex.map((p, i) => HnId(i + 1) -> p.name).toMap.pure)
+          .onCall((_, params) => params.zipWithIndex.map((p, i) => AbsId(i + 1) -> p.name).toMap.pure)
           .once()
 
         data.mockedDb.findHiddenNodesByNames
@@ -137,7 +137,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "MapGraphSpec.findHnIdsByNames(...)" should:
     "find ids by name" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val testHnIdMap = Map(HnName("Node1") -> List(HnId(1)), HnName("Node2") -> List(HnId(2)))
+        val testHnIdMap = Map(HnName("Node1") -> List(AbsId(1)), HnName("Node2") -> List(AbsId(2)))
 
         data.mockedDb.findHnIdsByNames
           .when(*)
@@ -192,7 +192,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
   "MapGraphSpec.nextSampleEdges(...)" should:
     "find and return next sample edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val currentNodeId = HnId(123)
+        val currentNodeId = ConId(123)
         val expectedEdges = List(testNextSampleEdge)
 
         data.mockedDb.getNextSampleEdge

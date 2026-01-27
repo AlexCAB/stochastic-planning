@@ -14,18 +14,18 @@ package planning.engine.planner.map.state
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{AbsId, ConId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.state.MapIdsCountState
 
 class MapIdsCountStateSpec extends AnyWordSpecLike with Matchers:
   lazy val initState = MapIdsCountState.init
 
-  lazy val hnId1 = HnId(1)
-  lazy val hnId2 = HnId(2)
-  lazy val hnId3 = HnId(3)
-  lazy val hnId4 = HnId(4)
-  lazy val hnId5 = HnId(5)
+  lazy val hnId1 = ConId(1)
+  lazy val hnId2 = ConId(2)
+  lazy val hnId3 = ConId(3)
+  lazy val hnId4 = AbsId(4)
+  lazy val hnId5 = AbsId(5)
 
   "IdsCountState.isInit" should:
     "be true for initial state" in:
@@ -43,13 +43,25 @@ class MapIdsCountStateSpec extends AnyWordSpecLike with Matchers:
 
   "IdsCountState.getNextHdIds(...)" should:
     "get next hd ids and update state" in:
-      val (state1, hdIds1) = initState.getNextHnIds(3)
+      val (state1, hdIds1) = initState.getNextHnIds(3, ConId.apply)
       hdIds1 mustBe List(hnId1, hnId2, hnId3)
       state1.nextHnId mustBe 4L
 
-      val (state2, hdIds2) = state1.getNextHnIds(2)
+      val (state2, hdIds2) = state1.getNextHnIds(2, AbsId.apply)
       hdIds2 mustBe List(hnId4, hnId5)
       state2.nextHnId mustBe 6L
+
+  "IdsCountState.getNextConIds(...)" should:
+    "get next con ids and update state" in:
+      val (state1, conIds1) = initState.getNextConIds(2)
+      conIds1 mustBe List(hnId1, hnId2)
+      state1.nextHnId mustBe 3L
+
+  "IdsCountState.getNextAbsIds(...)" should:
+    "get next abs ids and update state" in:
+      val (state1, absIds1) = initState.copy(nextHnId = 4).getNextAbsIds(2)
+      absIds1 mustBe List(hnId4, hnId5)
+      state1.nextHnId mustBe 6L
 
   "IdsCountState.getNextSampleIds(...)" should:
     "get next sample ids and update state" in:

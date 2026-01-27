@@ -18,7 +18,7 @@ import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.map.io.node.IoNode
 import planning.engine.common.values.text.Description
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{ConId, HnId, HnName}
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.properties.*
@@ -26,7 +26,7 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 
 final case class ConcreteNode[F[_]: MonadThrow](
-    id: HnId,
+    id: ConId,
     name: Option[HnName],
     description: Option[Description],
     ioNode: IoNode[F],
@@ -65,7 +65,7 @@ object ConcreteNode:
   def fromNode[F[_]: MonadThrow](node: Node, ioNode: IoNode[F]): F[ConcreteNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(CONCRETE_LABEL) =>
       for
-        id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)
+        id <- n.getValue[F, Long](PROP.HN_ID).map(ConId.apply)
         name <- n.getOptional[F, String](PROP.NAME).map(_.map(HnName.apply))
         description <- n.getOptional[F, String](PROP.DESCRIPTION).map(_.map(Description.apply))
         valueIndex <- n.getValue[F, Long](PROP.IO_INDEX).map(IoIndex.apply)

@@ -37,7 +37,7 @@ final case class ActiveAbsDag[F[_]: MonadThrow](
     val allConHnIds = graph.concreteNodes.keySet
     val allAbsHnIds = graph.abstractNodes.keySet
     val allBackThenIds = backwordThenEnds.flatMap(e => Set(e.src, e.trg))
-    val (isDag, tracedAbsHnIds) = traceFromNodes(allConHnIds)
+    val (isDag, tracedAbsHnIds) = traceFromNodes(allConHnIds.map(_.asInstanceOf[HnId]))
 
     graph.validationErrors ++ validations(
       graph.allHnIds.containsAllOf(allBackThenIds, "Back THEN edges refer to unknown HnIds"),

@@ -15,14 +15,14 @@ package planning.engine.common.graph
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import planning.engine.common.values.edges.EndIds
-import planning.engine.common.values.node.HnId
+import planning.engine.common.values.node.ConId
 
 class EndsGraphSpec extends AnyWordSpec with Matchers:
 
-  lazy val n1 = HnId(1)
-  lazy val n2 = HnId(2)
-  lazy val n3 = HnId(3)
-  lazy val n4 = HnId(4)
+  lazy val n1 = ConId(1)
+  lazy val n2 = ConId(2)
+  lazy val n3 = ConId(3)
+  lazy val n4 = ConId(4)
 
   lazy val sampleEnds = Set(EndIds(n1, n2), EndIds(n2, n3), EndIds(n1, n4))
   lazy val endsGraph = new EndsGraph(sampleEnds) {}

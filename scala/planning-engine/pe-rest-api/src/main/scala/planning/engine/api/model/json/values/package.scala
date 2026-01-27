@@ -15,9 +15,10 @@ package planning.engine.api.model.json
 import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import planning.engine.common.values.text.{Description, Name}
 import cats.syntax.all.*
+import planning.engine.api.model.map.payload.HiddenNodeDef
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.{LongVal, StringVal}
 
@@ -52,11 +53,22 @@ package object values:
   implicit val encodeDbName: Encoder[DbName] = encodeStringVal[DbName]
   implicit val decodeDbName: Decoder[DbName] = decodeStringVal[DbName](DbName.apply)
 
-  implicit val encodeHnId: Encoder[HnId] = encodeLongVal[HnId]
-  implicit val decodeHnId: Decoder[HnId] = decodeLongVal[HnId](HnId.apply)
-
   implicit val encodeSampleId: Encoder[SampleId] = encodeLongVal[SampleId]
   implicit val decodeSampleId: Decoder[SampleId] = decodeLongVal[SampleId](SampleId.apply)
 
   implicit val encodeIoIndex: Encoder[IoIndex] = encodeLongVal[IoIndex]
   implicit val decodeIoIndex: Decoder[IoIndex] = decodeLongVal[IoIndex](IoIndex.apply)
+
+  given Encoder[HnId] = new Encoder[HnId]:
+    final def apply(data: HnId): Json = data match
+      case con: ConId => Json.obj("type" -> Json.fromString("ConId"), "data" -> Json.fromLong(con.value))
+      case abs: AbsId => Json.obj("type" -> Json.fromString("AbsId"), "data" -> Json.fromLong(abs.value))
+
+  given Decoder[HnId] = new Decoder[HnId]:
+    final def apply(c: HCursor): Decoder.Result[HnId] =
+      for
+        tpe <- c.downField("type").as[String]
+        data <- tpe match
+          case "ConId" => c.downField("data").as[Long].map(ConId.apply)
+          case "AbsId" => c.downField("data").as[Long].map(AbsId.apply)
+      yield data

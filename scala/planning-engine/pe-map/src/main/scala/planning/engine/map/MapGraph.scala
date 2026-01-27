@@ -18,7 +18,7 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.database.Neo4jDatabaseLike
@@ -35,8 +35,8 @@ trait MapGraphLake[F[_]]:
   def metadata: MapMetadata
   def ioNodes: Map[IoName, IoNode[F]]
   def getIoNode(name: IoName): F[IoNode[F]]
-  def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]]
-  def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]]
+  def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[ConId, Option[HnName]]]
+  def newAbstractNodes(params: AbstractNode.ListNew): F[Map[AbsId, Option[HnName]]]
   def findHiddenNodesByNames(names: List[HnName]): F[Map[HnName, List[HiddenNode[F]]]]
   def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
   def countHiddenNodes: F[Long]
@@ -66,8 +66,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     case Some(node) => node.pure
     case _          => s"Input node with name $name not found".assertionError
 
-  override def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] =
-    skipIfEmpty(params.list, Map[HnId, Option[HnName]]()):
+  override def newConcreteNodes(params: ConcreteNode.ListNew): F[Map[ConId, Option[HnName]]] =
+    skipIfEmpty(params.list, Map[ConId, Option[HnName]]()):
       for
         _ <- Validation.validateList(params.list)
         _ <- params.list.traverse(p => getIoNode(p.ioNodeName).map(_.variable.validateIndex(p.valueIndex)))
@@ -75,8 +75,8 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Created concrete nodes, hnIds = $hnIds, for params = $params")
       yield hnIds
 
-  override def newAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] =
-    skipIfEmpty(params.list, Map[HnId, Option[HnName]]()):
+  override def newAbstractNodes(params: AbstractNode.ListNew): F[Map[AbsId, Option[HnName]]] =
+    skipIfEmpty(params.list, Map[AbsId, Option[HnName]]()):
       for
         _ <- Validation.validateList(params.list)
         hnIds <- database.createAbstractNodes(config.initNextHnIndex, params.list)

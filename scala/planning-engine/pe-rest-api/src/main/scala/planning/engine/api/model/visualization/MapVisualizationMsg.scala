@@ -12,7 +12,7 @@
 
 package planning.engine.api.model.visualization
 
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
@@ -37,8 +37,8 @@ object MapVisualizationMsg:
   def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): MapVisualizationMsg = MapVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,
-    ioValues = state.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = state.graph.concreteNodes.keySet,
-    abstractNodes = state.graph.abstractNodes.keySet,
+    ioValues = state.ioValues.toSet.map((k, v) => (k.name, v.map(_.asInstanceOf[HnId]))),
+    concreteNodes = state.graph.concreteNodes.keySet.map(_.asInstanceOf[HnId]),
+    abstractNodes = state.graph.abstractNodes.keySet.map(_.asInstanceOf[HnId]),
     edgesMapping = state.graph.edgesMapping.forward.toSet
   )

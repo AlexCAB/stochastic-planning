@@ -15,7 +15,7 @@ package planning.engine.map.samples.sample
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{AbsId, HnIndex}
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.common.values.sample.SampleId
@@ -35,13 +35,13 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
       utility = 0.5,
       name = Name.some("SampleName"),
       description = Description.some("SampleDescription"),
-      edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+      edges = Set(SampleEdge.New(AbsId(1), AbsId(2), EdgeType.LINK), SampleEdge.New(AbsId(2), AbsId(3), EdgeType.LINK))
     )
 
     lazy val hnIndexMap = Map(
-      HnId(1) -> HnIndex(10),
-      HnId(2) -> HnIndex(20),
-      HnId(3) -> HnIndex(30)
+      AbsId(1) -> HnIndex(10),
+      AbsId(2) -> HnIndex(20),
+      AbsId(3) -> HnIndex(30)
     )
 
     def mkSampleEdge(e: SampleEdge.New): SampleEdge = SampleEdge(
@@ -83,8 +83,8 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
     "return error if conflicting HnIndex values" in newCase[CaseData]: (tn, data) =>
       val invalidEdge = SampleEdge(
         sampleId = data.sampleId,
-        source = End(HnId(1), HnIndex(10)), // Conflicting index for HnId(1)
-        target = End(HnId(1), HnIndex(20)),
+        source = End(AbsId(1), HnIndex(10)), // Conflicting index for HnId(1)
+        target = End(AbsId(1), HnIndex(20)),
         edgeType = EdgeType.LINK
       )
 
@@ -100,8 +100,8 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
     "return error if HnIds are not connected" in newCase[CaseData]: (tn, data) =>
       val isolatedEdge = SampleEdge(
         sampleId = data.sampleId,
-        source = End(HnId(4), HnIndex(40)),
-        target = End(HnId(5), HnIndex(50)),
+        source = End(AbsId(4), HnIndex(40)),
+        target = End(AbsId(5), HnIndex(50)),
         edgeType = EdgeType.LINK
       )
 
@@ -135,7 +135,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
 
   "New.hnIds" should:
     "distinct list ofHnId" in newCase[CaseData]: (_, data) =>
-      data.newSample.hnIds.pure[IO].asserting(_ mustEqual Set(HnId(1), HnId(2), HnId(3)))
+      data.newSample.hnIds.pure[IO].asserting(_ mustEqual Set(AbsId(1), AbsId(2), AbsId(3)))
 
   "New.validationName" should:
     "return validation name" in newCase[CaseData]: (tn, data) =>
@@ -160,34 +160,34 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
     "return map of HnIndex" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val indicesMap = Map(
-          HnId(1) -> List(HnIndex(10), HnIndex(11)),
-          HnId(2) -> List(HnIndex(20), HnIndex(21)),
-          HnId(3) -> List(HnIndex(30)),
-          HnId(4) -> List(HnIndex(40)) // Not used in this sample
+          AbsId(1) -> List(HnIndex(10), HnIndex(11)),
+          AbsId(2) -> List(HnIndex(20), HnIndex(21)),
+          AbsId(3) -> List(HnIndex(30)),
+          AbsId(4) -> List(HnIndex(40)) // Not used in this sample
         )
 
         val (newIndicesMap, indices): (Map[HnId, List[HnIndex]], Map[HnId, HnIndex]) = data
           .newSample.findHnIndexies[IO](indicesMap).logValue(tn, "validationName").await
 
         newIndicesMap mustEqual Map(
-          HnId(1) -> List(HnIndex(11)),
-          HnId(2) -> List(HnIndex(21)),
-          HnId(3) -> List(),
-          HnId(4) -> List(HnIndex(40))
+          AbsId(1) -> List(HnIndex(11)),
+          AbsId(2) -> List(HnIndex(21)),
+          AbsId(3) -> List(),
+          AbsId(4) -> List(HnIndex(40))
         )
 
         indices mustEqual Map(
-          HnId(1) -> HnIndex(10),
-          HnId(2) -> HnIndex(20),
-          HnId(3) -> HnIndex(30)
+          AbsId(1) -> HnIndex(10),
+          AbsId(2) -> HnIndex(20),
+          AbsId(3) -> HnIndex(30)
         )
 
     "fail if in indices not found for HnId" in newCase[CaseData]: (tn, data) =>
-      val indicesMap = Map(HnId(1) -> List(HnIndex(10)), HnId(2) -> List(HnIndex(20)))
+      val indicesMap = Map(AbsId(1) -> List(HnIndex(10)), AbsId(2) -> List(HnIndex(20)))
       data.newSample.findHnIndexies[IO](indicesMap).logValue(tn, "validationName").assertThrows[AssertionError]
 
     "fail if in indices not enought HnIndex" in newCase[CaseData]: (tn, data) =>
-      val indicesMap = Map(HnId(1) -> List(HnIndex(10)), HnId(2) -> List(HnIndex(20)), HnId(3) -> List())
+      val indicesMap = Map(AbsId(1) -> List(HnIndex(10)), AbsId(2) -> List(HnIndex(20)), AbsId(3) -> List())
       data.newSample.findHnIndexies[IO](indicesMap).logValue(tn, "validationName").assertThrows[AssertionError]
 
   "New.toSampleData" should:

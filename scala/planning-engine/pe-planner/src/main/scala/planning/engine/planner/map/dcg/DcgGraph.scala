@@ -14,7 +14,7 @@ package planning.engine.planner.map.dcg
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.node.{HnId, HnIndex, HnName}
+import planning.engine.common.values.node.{AbsId, ConId, HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.common.values.edges.EndIds
@@ -25,8 +25,8 @@ import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 final case class DcgGraph[F[_]: MonadThrow](
-    concreteNodes: Map[HnId, DcgNode.Concrete[F]],
-    abstractNodes: Map[HnId, DcgNode.Abstract[F]],
+    concreteNodes: Map[ConId, DcgNode.Concrete[F]],
+    abstractNodes: Map[AbsId, DcgNode.Abstract[F]],
     edgesData: Map[EndIds, DcgEdgeData],
     edgesMapping: DcgEdgesMapping[F],
     samplesData: Map[SampleId, SampleData]
@@ -154,22 +154,24 @@ final case class DcgGraph[F[_]: MonadThrow](
       withEdges <- withSample.updateEdges(upEdges)
     yield withEdges
 
-  def getConForHnId(id: HnId): F[DcgNode.Concrete[F]] = concreteNodes.get(id) match
+  def getConForHnId(id: ConId): F[DcgNode.Concrete[F]] = concreteNodes.get(id) match
     case Some(node) => node.pure
     case None       => s"DcgNode.Concrete with HnId $id not found in ${concreteNodes.keySet}".assertionError
 
-  def getConForHnIds(ids: Set[HnId]): F[Map[HnId, DcgNode.Concrete[F]]] =
+  def getConForHnIds(ids: Set[HnId]): F[Map[ConId, DcgNode.Concrete[F]]] =
     for
+      _ <- ids.forall(_.isInstanceOf[ConId]).assertTrue("Some given HnIds are not ConId")
       found <- concreteNodes.filter((id, _) => ids.contains(id)).pure
       _ <- found.keySet.assertContainsAll(ids, "Some concrete node IDs are not found")
     yield found
 
-  def getAbsForHnId(id: HnId): F[DcgNode.Abstract[F]] = abstractNodes.get(id) match
+  def getAbsForHnId(id: AbsId): F[DcgNode.Abstract[F]] = abstractNodes.get(id) match
     case Some(node) => node.pure
     case None       => s"DcgNode.Abstract with HnId $id not found in ${abstractNodes.keySet}".assertionError
 
-  def getAbsForHnIds(ids: Set[HnId]): F[Map[HnId, DcgNode.Abstract[F]]] =
+  def getAbsForHnIds(ids: Set[HnId]): F[Map[AbsId, DcgNode.Abstract[F]]] =
     for
+      _ <- ids.forall(_.isInstanceOf[AbsId]).assertTrue("Some given HnIds are not AbsIds")
       found <- abstractNodes.filter((id, _) => ids.contains(id)).pure
       _ <- found.keySet.assertContainsAll(ids, "Some abstract node IDs are not found")
     yield found

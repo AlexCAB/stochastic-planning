@@ -55,3 +55,10 @@ class EdgeTypeSpec extends AnyWordSpecLike with Matchers with EitherValues:
 
     "return false for THEN link" in:
       EdgeType.THEN.isLink mustBe false
+
+  "EdgeType.repr" should:
+    "return 'T' for THEN link" in:
+      EdgeType.THEN.repr mustEqual "T"
+
+    "return 'L' for LINK link" in:
+      EdgeType.LINK.repr mustEqual "L"

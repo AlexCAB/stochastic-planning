@@ -21,5 +21,5 @@ final case class ConcreteWithParentIds[F[_]: MonadThrow](
     linkParentIds: Set[HnId],
     thenParentIds: Set[HnId]
 ):
-  override def toString: String =
+  override lazy val toString: String =
     s"ConcreteWithParentIds(nodeId=${node.id}, linkParentIds=$linkParentIds, thenParentIds=$thenParentIds)"

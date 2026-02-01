@@ -53,7 +53,7 @@ final case class Sample(
       connectedNodes.haveSameElems(allHnIds, "All HnIds must be connected in the Sample edges")
     )
 
-  override def toString: String = "Sample(" +
+  override lazy val toString: String = "Sample(" +
     s"id = ${data.id.value}, " +
     s"name = ${data.name.toStr}, " +
     s"count = ${data.probabilityCount}, " +
@@ -104,7 +104,7 @@ object Sample:
       description = description
     )
 
-    override def toString: String = s"Sample.New(" +
+    override lazy val toString: String = s"Sample.New(" +
       s"probabilityCount = $probabilityCount, " +
       s"utility = $utility, " +
       s"name = ${name.toStr}, " +

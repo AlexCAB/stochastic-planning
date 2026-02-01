@@ -31,22 +31,23 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 
     lazy val ends = Set(
       EndIds(hnId1, hnId2),
-      EndIds(hnId1, hnId3),
+      EndIds(hnId1, hnId3)
     )
+
     lazy val mapping: DcgEdgesMapping[IO] = DcgEdgesMapping(
       forward = Map(
         hnId1 -> Set(hnId2, hnId3)
       ),
       backward = Map(
         hnId2 -> Set(hnId1),
-        hnId3 -> Set(hnId1),
+        hnId3 -> Set(hnId1)
       )
     )
 
     lazy val newEnds = Set(
       EndIds(hnId1, hnId4),
       EndIds(hnId1, hnId5),
-      EndIds(hnId2, hnId4),
+      EndIds(hnId2, hnId4)
     )
 
   "DcgEdgesMapping.isEmpty" should:
@@ -138,6 +139,16 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
         EndIds(data.hnId2, data.hnId4)
       ))
 
+  "DcgEdgesMapping.formatMap(...)" should:
+    "format mapping to string" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val idsMap = Map(data.hnId1 -> Set(data.hnId2, data.hnId3), data.hnId2 -> Set(data.hnId4))
+        val formatted: String = DcgEdgesMapping.empty[IO].formatMap(idsMap).pure[IO].await
+        logInfo(tn, s"formatted:\n[$formatted]").await
+
+        formatted must include("1 -> ")
+        formatted must include("2 -> ")
+
   "DcgEdgesMapping.addAll(...)" should:
     "add all edges to empty mapping" in newCase[CaseData]: (tn, data) =>
       async[IO]:
@@ -186,6 +197,18 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
         EndIds(data.hnId1, data.hnId2),
         EndIds(data.hnId1, data.hnId3)
       ))
+
+  "DcgEdgesMapping.repr" should:
+    "return string representation of the mapping" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val strRepr = data.mapping.repr.pure[IO].await
+        logInfo(tn, s"strRepr:\n$strRepr").await
+
+        strRepr must include("forward:")
+        strRepr must include("backward:")
+        strRepr must include(data.hnId1.vStr)
+        strRepr must include(data.hnId2.vStr)
+        strRepr must include(data.hnId3.vStr)
 
   "DcgEdgesMapping.makeEdgesMap(...)" should:
     "create forward and backward maps from ends" in newCase[CaseData]: (tn, data) =>

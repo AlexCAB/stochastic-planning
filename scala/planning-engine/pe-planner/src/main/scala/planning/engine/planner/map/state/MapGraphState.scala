@@ -65,7 +65,7 @@ final case class MapGraphState[F[_]: MonadThrow](
         .traverse(v => ioValues(v).toList.traverse(id => graph.getConForHnId(id)).map(n => v -> n.toSet))
     yield (foundNodes.toMap, notFoundValues)
 
-  override def toString: String =
+  override lazy val toString: String =
     s"DcgState(concreteNodes = ${graph.concreteNodes.keySet}, abstractNodes = ${graph.abstractNodes.keySet})"
 
 object MapGraphState:

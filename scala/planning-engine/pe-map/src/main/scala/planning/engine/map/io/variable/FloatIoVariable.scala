@@ -45,7 +45,7 @@ final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) ext
     PROP.MAX -> max.toDbParam
   )
 
-  override def toString: String = s"FloatIoVariable(min = $min, min = $max)"
+  override lazy val toString: String = s"FloatIoVariable(min = $min, min = $max)"
 
 object FloatIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[FloatIoVariable[F]] =

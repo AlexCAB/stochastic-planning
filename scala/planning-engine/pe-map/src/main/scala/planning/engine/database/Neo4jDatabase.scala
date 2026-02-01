@@ -90,7 +90,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
         .traverse((hn, ioName) => getIoNode(ioName).flatMap(ioNode => ConcreteNode.fromNode(hn, ioNode)))
     yield concreteNodes
 
-  override def toString: String = s"Neo4jDatabase(dbName = ${dbName.value})"
+  override lazy val toString: String = s"Neo4jDatabase(dbName = ${dbName.value})"
 
   override def checkConnection: F[Long] = driver.transact(readConf)(tx => checkConnectionQuery(tx))
 

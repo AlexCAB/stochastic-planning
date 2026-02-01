@@ -18,3 +18,4 @@ import planning.engine.common.properties.*
 trait LongVal extends Any:
   def value: Long
   def toDbParam: Param = value.toDbParam
+  def vStr: String = value.toString

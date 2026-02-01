@@ -200,10 +200,16 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
       data.dcgThenEdge.join[IO](data.dcgThenEdge).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate thens sample"))
 
-  "DcgEdgeData.EndIds.swap" should:
-    "swap ends correctly" in newCase[CaseData]: (tn, data) =>
-      data.ends.swap.pure[IO].logValue(tn).asserting(_ mustBe EndIds(data.ends.trg, data.ends.src))
-
+  "DcgEdgeData.repr(...)" should:
+    "return correct string representation" in newCase[CaseData]: (tn, data) =>
+      data.dcgBothEdge.repr.pure[IO].logValue(tn)
+        .asserting(_ mustBe s"(${data.dcgBothEdge.ends.src.vStr}) -LT-> (${data.dcgBothEdge.ends.trg.vStr})")
+      
+  "DcgEdgeData.reprTarget(...)" should:
+    "return correct string representation for target" in newCase[CaseData]: (tn, data) =>
+      data.dcgBothEdge.reprTarget.pure[IO].logValue(tn)
+        .asserting(_ mustBe s"| -LT-> (${data.dcgBothEdge.ends.trg.vStr}) ")
+    
   "DcgEdgeData.makeDcgEdgeData" should:
     "crete DcgEdge correctly for Link edge type" in newCase[CaseData]: (tn, data) =>
       DcgEdgeData.makeDcgEdgeData(data.ends, EdgeType.LINK, data.linkSamples).pure[IO].logValue(tn)

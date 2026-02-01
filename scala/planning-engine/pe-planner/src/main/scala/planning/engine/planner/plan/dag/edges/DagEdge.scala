@@ -20,7 +20,7 @@ final case class DagEdge(
     targetSnId: SnId,
     dcgNode: DcgEdgeData
 ):
-  override def toString: String =
+  override lazy val toString: String =
     s"""DagEdge(
        |searchSnId = ${searchSnId.value}, 
        |targetSnId = ${targetSnId.value}, 

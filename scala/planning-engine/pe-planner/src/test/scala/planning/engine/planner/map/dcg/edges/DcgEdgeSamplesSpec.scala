@@ -81,6 +81,25 @@ class DcgEdgeSamplesSpec extends UnitSpecWithData:
         .addToMap[IO](SampleId(30), HnIndex(5), HnIndex(1)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have dup links target index"))
 
+  "DcgEdgeSamples.size" should:
+    "return correct size of indexies map" in newCase[CaseData]: (tn, data) =>
+      data.links1.size.pure[IO].asserting(_ mustBe data.indexies1.size)
+  
+  "DcgEdgeSamples.repr" should:
+    "return correct string representation" in newCase[CaseData]: (tn, data) =>
+      data.links1.repr.pure[IO].logValue(tn).asserting: repr =>
+        repr  must include ("10 | 1 -> 1")
+
+  "DcgEdgeSamples.reprShort" should:
+    "return correct short string representation for Link" in newCase[CaseData]: (tn, data) =>
+      data.links1.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "L")
+
+    "return correct short string representation for Then" in newCase[CaseData]: (tn, data) =>
+      data.thens1.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "T")
+
+    "return correct short string representation for empty" in newCase[CaseData]: (tn, data) =>
+      Links.empty.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "_")
+
   "DcgEdgeSamples.Links.empty" should:
     "be an empty Links instance" in newCase[CaseData]: (tn, data) =>
       Links.empty.indexies.pure[IO].asserting(_ mustBe empty)

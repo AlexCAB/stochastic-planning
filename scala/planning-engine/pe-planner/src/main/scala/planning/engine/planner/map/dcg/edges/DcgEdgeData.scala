@@ -58,7 +58,13 @@ final case class DcgEdgeData(
       newLinks <- links.join(other.links)
       newThens <- thens.join(other.thens)
     yield DcgEdgeData(ends, newLinks, newThens)
-
+    
+  lazy val repr: String =  s"(${ends.src.vStr}) -${links.reprShort}${thens.reprShort}-> (${ends.trg.vStr})"
+  lazy val reprTarget: String =  s"| -${links.reprShort}${thens.reprShort}-> (${ends.trg.vStr}) "
+  
+  override lazy val toString: String = 
+    s"DcgEdgeData(${ends.src.vStr} -> ${ends.trg.vStr}, links size = ${links.size}, thens size = ${thens.size})"
+        
 object DcgEdgeData:
   private[edges] def makeDcgEdgeData(
       ends: EndIds,

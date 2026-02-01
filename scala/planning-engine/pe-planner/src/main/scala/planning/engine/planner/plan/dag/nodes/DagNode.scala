@@ -20,4 +20,4 @@ final case class DagNode[F[_]: MonadThrow, N <: DcgNode[F]](
     id: SnId,
     dcgNode: N
 ):
-  override def toString: String = s"StateNode(id = ${id.value}, dcgNode.id = ${dcgNode.id.value})"
+  override lazy val toString: String = s"StateNode(id = ${id.value}, dcgNode.id = ${dcgNode.id.value})"

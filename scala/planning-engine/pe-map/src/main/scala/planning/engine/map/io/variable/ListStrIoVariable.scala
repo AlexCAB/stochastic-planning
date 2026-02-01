@@ -41,7 +41,7 @@ final case class ListStrIoVariable[F[_]: MonadThrow](elements: List[String]) ext
     PROP.DOMAIN -> elements.toDbParam
   )
 
-  override def toString: String = s"ListStrIoVariable(elements = [${elements.mkString(", ")}])"
+  override lazy val toString: String = s"ListStrIoVariable(elements = [${elements.mkString(", ")}])"
 
 object ListStrIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ListStrIoVariable[F]] =

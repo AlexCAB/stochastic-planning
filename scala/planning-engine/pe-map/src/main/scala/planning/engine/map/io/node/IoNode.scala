@@ -47,7 +47,7 @@ trait IoNode[F[_]: MonadThrow] extends Validation:
       params <- thisParams
     yield (label, params)
 
-  override def toString: String = s"${this.getClass.getSimpleName}(name = $name, variable = $variable)"
+  override lazy val toString: String = s"${this.getClass.getSimpleName}(name = $name, variable = $variable)"
 
 object IoNode:
   def fromNode[F[_]: Concurrent](node: Node): F[IoNode[F]] = node match

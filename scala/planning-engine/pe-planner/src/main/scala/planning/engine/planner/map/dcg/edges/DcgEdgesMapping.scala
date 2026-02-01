@@ -50,6 +50,15 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
   private[edges] def findEnds(idsMap: Map[HnId, Set[HnId]], hnIds: Set[HnId]): Set[EndIds] =
     hnIds.flatMap(hnId => idsMap.get(hnId).toSet.flatMap(_.map(trgId => EndIds(hnId, trgId))))
 
+  private[edges] def formatMap(map: Map[HnId, Set[HnId]]): String =
+    map.map((k, v) => s"    ${k.vStr} -> ${v.map(_.vStr).mkString(", ")}").mkString("\n")
+
+  lazy val repr: String =
+    s"""DcgEdgesMapping(
+       | forward:\n${formatMap(forward)}
+       | backward:\n${formatMap(backward)}
+       |)""".stripMargin
+
   def addAll(ends: Iterable[EndIds]): F[DcgEdgesMapping[F]] =
     for
       (fMap, bMap) <- DcgEdgesMapping.makeEdgesMap(ends).pure
@@ -57,9 +66,11 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
       backward <- joinIds(backward, bMap)
     yield DcgEdgesMapping(forward, backward)
 
-  def findForward(sourceHnIds: Set[HnId]): Set[EndIds]= findEnds(forward, sourceHnIds)
+  def findForward(sourceHnIds: Set[HnId]): Set[EndIds] = findEnds(forward, sourceHnIds)
 
   def findBackward(targetHnIds: Set[HnId]): Set[EndIds] = findEnds(backward, targetHnIds).map(_.swap)
+
+  override lazy val toString = s"DcgEdgesMapping(forward size = ${forward.size}, backward size = ${backward.size})"
 
 object DcgEdgesMapping:
   private[edges] def makeEdgesMap(ends: Iterable[EndIds]): (Map[HnId, Set[HnId]], Map[HnId, Set[HnId]]) = (

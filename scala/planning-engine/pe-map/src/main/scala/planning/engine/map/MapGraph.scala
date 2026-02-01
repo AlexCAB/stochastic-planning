@@ -164,7 +164,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
 
   override def loadSubgraphForIoValue(values: List[IoValue], loadedSamples: List[SampleId]): F[MapSubGraph[F]] = ???
 
-  override def toString: String =
+  override lazy val toString: String =
     s"MapGraph(name = ${metadata.name.toStr}, ioNodes = ${ioNodes.keys.map(_.value).mkString(", ")})"
 
 object MapGraph:

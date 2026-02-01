@@ -12,6 +12,8 @@
 
 package planning.engine.planner.map.dcg.samples
 
+import cats.effect.IO
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.validation.ValidationCheck
@@ -51,3 +53,7 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
 
       data.dcgSample.copy(edges = invalidEdges)
         .checkOneValidationError("DcgSample edges must form a connected graph", tn)
+
+  "DcgSample.repr" should:
+    "return correct representation" in newCase[CaseData]: (tn, data) =>
+      data.dcgSample.repr.pure[IO].logValue(tn).asserting(_ must include("DcgSample"))

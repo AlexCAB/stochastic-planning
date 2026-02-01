@@ -208,6 +208,56 @@ final case class DcgGraph[F[_]: MonadThrow](
   def findBackwardActiveThenEdges(targetHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
     findBackwardThenEdges(targetHnIds).map(_.filter((_, edge) => edge.thensIds.exists(activeSampleIds.contains)))
 
+  private[map] def sortedForwardEdges(srtIds: Set[HnId]): Map[HnId, List[EndIds]] = edgesMapping
+    .findForward(srtIds).groupBy(_.src)
+    .view.mapValues(_.filter(e => edgesData.get(e).forall(_.isLink)).toList.sortBy(_.trg.value))
+    .toMap
+
+  private[map] def nodeRendered(nodes: List[DcgNode[F]], edgeMap: Map[HnId, List[EndIds]]): List[String] =
+    val cols = nodes.sortBy(_.id.value).map: node =>
+      val edges = edgeMap.getOrElse(node.id, List()).flatMap(e => edgesData.get(e))
+      val edgesRepr = edges.map(_.reprTarget)
+      val colRepr = node.repr +: edgesRepr
+      val rowLength = colRepr.map(_.length).max
+      rowLength -> colRepr.map(r => r + " " * (rowLength - r.length))
+
+    val colHeight = cols.map(_._2.length).max
+
+    cols
+      .map((rowLength, col) => col ++ List.fill(colHeight - col.length)(" " * rowLength))
+      .transpose
+      .map(_.mkString(" "))
+
+  private[map] def renderedAbstract(nextIds: Set[HnId], i: Int): List[String] =
+    assert(i <= 100, "Max recursion depth exceeded in renderedAbstract")
+    val levelTitle = List("-" * 20, s"Abstract Level $i:")
+
+    sortedForwardEdges(nextIds) match
+      case edges if edges.isEmpty => List()
+      case edges => levelTitle ++ nodeRendered(
+          abstractNodes.filter((id, _) => nextIds.contains(id)).values.toList,
+          edges
+        ) ++ renderedAbstract(edges.flatMap((_, e) => e.map(_.trg)).toSet, i + 1)
+
+  lazy val repr: String =
+    val conEdges = sortedForwardEdges(concreteNodes.keySet)
+
+    val rendered = nodeRendered(
+      concreteNodes.values.toList,
+      conEdges
+    ) ++ renderedAbstract(conEdges.flatMap((_, e) => e.map(_.trg)).toSet, i = 1)
+
+    "\nConcrete Level 0:\n" + rendered.mkString("\n")
+
+  override lazy val toString: String =
+    s"""DcgGraph(
+       | Concrete Nodes: ${concreteNodes.size}
+       | Abstract Nodes: ${abstractNodes.size}
+       | Edges Data: ${edgesData.size}
+       | Edges Mapping: ${edgesMapping.toString}
+       | Samples Data: ${samplesData.size}
+       |)""".stripMargin
+
 object DcgGraph:
   def empty[F[_]: MonadThrow]: DcgGraph[F] = DcgGraph[F](
     concreteNodes = Map.empty,

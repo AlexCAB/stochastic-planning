@@ -30,7 +30,7 @@ import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
-  
+
   private class CaseData extends Case with MapDcgTestData with MapSampleTestData:
     lazy val emptyDcgGraph: DcgGraph[IO] = DcgGraph.empty[IO]
 
@@ -42,8 +42,8 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
     lazy val nuHnId = HnId(-1)
 
     lazy val endsSet = Set(EndIds(hnId1, hnId2), EndIds(hnId1, hnId3), EndIds(hnId2, hnId2))
-    lazy val absNodes: List[DcgNode.Abstract[IO]] = List(hnId1, hnId2, hnId3).map(id => makeAbstractDcgNode(id = id))
-    lazy val conNodes: List[DcgNode.Concrete[IO]] = List(hnId4, hnId5).map(id => makeConcreteDcgNode(id = id))
+    lazy val conNodes: List[DcgNode.Concrete[IO]] = List(hnId1, hnId2).map(id => makeConcreteDcgNode(id = id))
+    lazy val absNodes: List[DcgNode.Abstract[IO]] = List(hnId3, hnId4, hnId5).map(id => makeAbstractDcgNode(id = id))
 
     lazy val graphWithNodes: DcgGraph[IO] = emptyDcgGraph
       .addAbsNodes(absNodes)
@@ -70,14 +70,14 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       thens = Thens(tIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap)
     )
 
-    lazy val dcgLinkEdge1: DcgEdgeData = makeDcgEdge(hnId1, hnId2, List(sampleId1, sampleId2), List())
-    lazy val dcgLinkEdge2: DcgEdgeData = makeDcgEdge(hnId2, hnId3, List(sampleId1), List())
+    lazy val dcgLinkEdge1: DcgEdgeData = makeDcgEdge(hnId1, hnId3, List(sampleId1, sampleId2), List())
+    lazy val dcgLinkEdge2: DcgEdgeData = makeDcgEdge(hnId2, hnId4, List(sampleId1), List())
 
     lazy val dcgEdges: List[DcgEdgeData] = List(
       // Link edges
       dcgLinkEdge1,
       dcgLinkEdge2,
-      makeDcgEdge(hnId2, hnId4, List(sampleId2), List()),
+      makeDcgEdge(hnId4, hnId5, List(sampleId2), List()),
       makeDcgEdge(hnId2, hnId5, List(sampleId2), List()),
       // Then edges
       makeDcgEdge(hnId2, hnId1, List(), List(sampleId2)),
@@ -456,7 +456,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         val edges = Set(EdgeType.THEN -> ends1, EdgeType.LINK -> ends2)
 
-        val graph: DcgGraph[IO]  = data.graphWithEdges.addSample(DcgSample(sampleData, edges)).await
+        val graph: DcgGraph[IO] = data.graphWithEdges.addSample(DcgSample(sampleData, edges)).await
         logInfo(tn, s"graph.edgesData: ${graph.edgesData}").await
         logInfo(tn, s"graph.samplesData: ${graph.samplesData}").await
 
@@ -633,6 +633,13 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         expectedEnds must not be empty
         result.keySet mustBe expectedEnds
+
+  "DcgGraph.repr" should:
+    "return correct string representation" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val reprWithEdges = data.graphWithEdges.repr
+        logInfo(tn, s"reprWithEdges: $reprWithEdges").await
+        reprWithEdges must include("Concrete Level 0")
 
   "DcgGraph.empty" should:
     "create empty graph" in newCase[CaseData]: (tn, data) =>

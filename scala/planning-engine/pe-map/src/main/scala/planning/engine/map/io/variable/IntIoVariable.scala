@@ -43,7 +43,7 @@ final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends I
     PROP.MAX -> max.toDbParam
   )
 
-  override def toString: String = s"IntIoVariable(min = $min, min = $max)"
+  override lazy val toString: String = s"IntIoVariable(min = $min, min = $max)"
 
 object IntIoVariable:
   def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IntIoVariable[F]] =

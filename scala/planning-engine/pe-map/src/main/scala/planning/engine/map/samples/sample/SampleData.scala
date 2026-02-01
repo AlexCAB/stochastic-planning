@@ -28,7 +28,7 @@ final case class SampleData(
     name: Option[Name],
     description: Option[Description]
 ):
-  override def toString: String = "SampleData(" +
+  override lazy val toString: String = "SampleData(" +
     s"id = $id, " +
     s"probabilityCount = $probabilityCount, " +
     s"utility = $utility, " +

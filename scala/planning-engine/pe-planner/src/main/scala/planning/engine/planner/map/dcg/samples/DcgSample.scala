@@ -28,3 +28,11 @@ final case class DcgSample(
     edges.toList.map(_._2).isDistinct("DcgSample edges must have distinct end ids"),
     isConnected -> "DcgSample edges must form a connected graph"
   )
+
+  lazy val repr: String =
+    s"""DcgSample(${data.id.vStr}${data.name.repr}, edges:
+      |${edges.map { case (et, ends) => s"  ${ends.src.vStr} -${et.repr}-> ${ends.trg.vStr}" }.mkString("\n")}
+      |)""".stripMargin
+
+  override lazy val toString: String =   s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${edges.size})"
+

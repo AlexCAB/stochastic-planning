@@ -31,7 +31,7 @@ final case class MapInfoState[F[_]: MonadThrow](
     case Some(node) => node.pure
     case _          => s"IO node with name $name not found".assertionError
 
-  override def toString: String =
+  override lazy val toString: String =
     s"MapInfoState(name = ${metadata.name}, inNodes = ${inNodes.size}, outNodes = ${outNodes.size})"
 
 object MapInfoState:

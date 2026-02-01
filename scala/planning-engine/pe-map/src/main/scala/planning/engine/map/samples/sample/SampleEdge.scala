@@ -26,11 +26,11 @@ final case class SampleEdge(
     edgeType: EdgeType,
     sampleId: SampleId
 ):
-  override def toString: String = s"SampleEdge($source -- ${sampleId.value}:$edgeType -> $target)"
+  override lazy val toString: String = s"SampleEdge($source -- ${sampleId.value}:$edgeType -> $target)"
 
 object SampleEdge:
   final case class End(hnId: HnId, value: HnIndex):
-    override def toString: String = s"(hn = ${hnId.value}, value = ${value.value})"
+    override lazy val toString: String = s"(hn = ${hnId.value}, value = ${value.value})"
 
   final case class New(source: HnId, target: HnId, edgeType: EdgeType):
     def toQueryParams[F[_]: MonadThrow](sampleId: SampleId, indexies: Map[HnId, HnIndex]): F[(String, List[Long])] =
@@ -43,7 +43,7 @@ object SampleEdge:
         targetValue <- getIndex(target)
       yield (sampleId.toPropName, List(sourceValue.value, targetValue.value))
 
-    override def toString: String = s"ObservedEdge($source --$edgeType-> target=$target)"
+    override lazy val toString: String = s"ObservedEdge($source --$edgeType-> target=$target)"
 
   def fromEdgesBySampleId[F[_]: MonadThrow](
       edges: List[(HnId, Relationship, HnId)],

@@ -24,6 +24,8 @@ enum EdgeType:
   def isLink: Boolean = this == LINK
   def isThen: Boolean = this == THEN
 
+  def repr: String = if isLink then "L" else "T"
+
 object EdgeType:
   def fromLabel(l: String): Either[String, EdgeType] =
     if l.equalsIgnoreCase(Neo4j.THEN_LABEL)

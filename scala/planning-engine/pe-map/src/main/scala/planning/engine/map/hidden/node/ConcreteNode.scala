@@ -35,7 +35,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
 
   lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
 
-  override def toString: String = s"ConcreteHiddenNode(" +
+  override lazy val toString: String = s"ConcreteHiddenNode(" +
     s"id = $id, name = $name, description = $description, valueIndex = $valueIndex, ioNode = $ioNode)"
 
 object ConcreteNode:

@@ -17,20 +17,21 @@ import cats.syntax.all.*
 import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
+import planning.engine.common.graph.EndsGraph
 import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 final case class DcgGraph[F[_]: MonadThrow](
     concreteNodes: Map[HnId, DcgNode.Concrete[F]],
     abstractNodes: Map[HnId, DcgNode.Abstract[F]],
-    edgesData: Map[EndIds, DcgEdgeData],
+    edgesData: Map[Edge.Ends, DcgEdgeData],
     edgesMapping: DcgEdgesMapping[F],
     samplesData: Map[SampleId, SampleData]
-) extends Validation:
+) extends EndsGraph(edgesData.values.flatMap(_.edges).toSet) with Validation:
 
   lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
   lazy val allSampleIds: Set[SampleId] = samplesData.keySet
@@ -71,9 +72,9 @@ final case class DcgGraph[F[_]: MonadThrow](
     yield ()
 
   private[map] def joinEdges(
-      oldEdges: Map[EndIds, DcgEdgeData],
+      oldEdges: Map[Edge.Ends, DcgEdgeData],
       newEdges: Iterable[DcgEdgeData]
-  ): F[Map[EndIds, DcgEdgeData]] = newEdges.foldRight(oldEdges.pure)((nEdge, accF) =>
+  ): F[Map[Edge.Ends, DcgEdgeData]] = newEdges.foldRight(oldEdges.pure)((nEdge, accF) =>
     for
       acc <- accF
       oEdge <- acc.get(nEdge.ends).map(_.pure).getOrElse(s"Edge to merge not found for ${nEdge.ends}".assertionError)
@@ -81,7 +82,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     yield acc.updated(nEdge.ends, mEdge)
   )
 
-  private[map] def getEdges(ends: Set[EndIds]): F[Map[EndIds, DcgEdgeData]] =
+  private[map] def getEdges(ends: Set[Edge.Ends]): F[Map[Edge.Ends, DcgEdgeData]] =
     for
       filteredEdges <- edgesData.filter((e, _) => ends.contains(e)).pure
       _ <- ends.assertSameElems(filteredEdges.keySet, "Bug: All ends in mapping should be in edges data")
@@ -148,8 +149,9 @@ final case class DcgGraph[F[_]: MonadThrow](
   def addSample(sample: DcgSample): F[DcgGraph[F]] =
     for
       _ <- Validation.validate(sample)
-      nextInd <- nextHnIndexies(sample.edges.flatMap(e => Set(e._2.src, e._2.trg)))
-      upEdges <- sample.edges.toList.traverse((et, e) => getEdge(e).flatMap(_.addSample(et, sample.data.id, nextInd)))
+      nextInd <- nextHnIndexies(sample.edges.flatMap(e => Set(e.src, e.trg)))
+      upEdges <-
+        sample.edges.toList.traverse(e => getEdge(e.ends).flatMap(_.addSample(e.eType, sample.data.id, nextInd)))
       withSample <- addSampleData(sample.data)
       withEdges <- withSample.updateEdges(upEdges)
     yield withEdges
@@ -174,7 +176,7 @@ final case class DcgGraph[F[_]: MonadThrow](
       _ <- found.keySet.assertContainsAll(ids, "Some abstract node IDs are not found")
     yield found
 
-  def getEdge(ends: EndIds): F[DcgEdgeData] = edgesData.get(ends) match
+  def getEdge(ends: Edge.Ends): F[DcgEdgeData] = edgesData.get(ends) match
     case Some(edge) => edge.pure
     case None       => s"DcgEdgeData with ends $ends not found in ${edgesData.keySet}".assertionError
 
@@ -190,30 +192,36 @@ final case class DcgGraph[F[_]: MonadThrow](
       grouped = allNodes.filter(n => n.name.isDefined && names.contains(n.name.get)).groupBy(_.name.get)
     yield grouped.view.mapValues(_.map(_.id).toSet).toMap
 
-  def findForwardLinkEdges(sourceHnIds: Set[HnId]): F[Map[EndIds, DcgEdgeData]] =
+  def findForwardLinkEdges(sourceHnIds: Set[HnId]): F[Map[Edge.Ends, DcgEdgeData]] =
     for
       ends <- getEdges(edgesMapping.findForward(sourceHnIds)).map(_.filter(_._2.isLink))
       _ <- sourceHnIds.assertSameElems(ends.keys.map(_.src), "Found ends must have as source one of given HnIds")
     yield ends
 
-  def findForwardActiveLinkEdges(sourceHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
+  def findForwardActiveLinkEdges(
+      sourceHnIds: Set[HnId],
+      activeSampleIds: Set[SampleId]
+  ): F[Map[Edge.Ends, DcgEdgeData]] =
     findForwardLinkEdges(sourceHnIds).map(_.filter((_, edge) => edge.linksIds.exists(activeSampleIds.contains)))
 
-  def findBackwardThenEdges(targetHnIds: Set[HnId]): F[Map[EndIds, DcgEdgeData]] =
+  def findBackwardThenEdges(targetHnIds: Set[HnId]): F[Map[Edge.Ends, DcgEdgeData]] =
     for
       ends <- getEdges(edgesMapping.findBackward(targetHnIds)).map(_.filter(_._2.isThen))
       _ <- targetHnIds.assertSameElems(ends.keys.map(_.trg), "Found ends must have as target one of given HnIds")
     yield ends
 
-  def findBackwardActiveThenEdges(targetHnIds: Set[HnId], activeSampleIds: Set[SampleId]): F[Map[EndIds, DcgEdgeData]] =
+  def findBackwardActiveThenEdges(
+      targetHnIds: Set[HnId],
+      activeSampleIds: Set[SampleId]
+  ): F[Map[Edge.Ends, DcgEdgeData]] =
     findBackwardThenEdges(targetHnIds).map(_.filter((_, edge) => edge.thensIds.exists(activeSampleIds.contains)))
 
-  private[map] def sortedForwardEdges(srtIds: Set[HnId]): Map[HnId, List[EndIds]] = edgesMapping
+  private[map] def sortedForwardEdges(srtIds: Set[HnId]): Map[HnId, List[Edge.Ends]] = edgesMapping
     .findForward(srtIds).groupBy(_.src)
     .view.mapValues(_.filter(e => edgesData.get(e).forall(_.isLink)).toList.sortBy(_.trg.value))
     .toMap
 
-  private[map] def nodeRendered(nodes: List[DcgNode[F]], edgeMap: Map[HnId, List[EndIds]]): List[String] =
+  private[map] def nodeRendered(nodes: List[DcgNode[F]], edgeMap: Map[HnId, List[Edge.Ends]]): List[String] =
     val cols = nodes.sortBy(_.id.value).map: node =>
       val edges = edgeMap.getOrElse(node.id, List()).flatMap(e => edgesData.get(e))
       val edgesRepr = edges.map(_.reprTarget)
@@ -229,7 +237,7 @@ final case class DcgGraph[F[_]: MonadThrow](
       .map(_.mkString(" "))
 
   private[map] def renderedAbstract(nextIds: Set[HnId], i: Int): List[String] =
-    assert(i <= 100, "Max recursion depth exceeded in renderedAbstract")
+    ??? //assert(i <= 100, "Max recursion depth exceeded in renderedAbstract")
     val levelTitle = List("-" * 20, s"Abstract Level $i:")
 
     sortedForwardEdges(nextIds) match

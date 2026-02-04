@@ -19,11 +19,11 @@ import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
+import planning.engine.planner.map.dcg.repr.DcgNodeRepr
 
-sealed trait DcgNode[F[_]: MonadThrow]:
+sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def id: HnId
   def name: Option[HnName]
-  def repr: String 
 
 object DcgNode:
   final case class Concrete[F[_]: MonadThrow](
@@ -34,7 +34,6 @@ object DcgNode:
       valueIndex: IoIndex
   ) extends DcgNode[F]:
     lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
-    lazy val repr: String = s"[${id.value}${name.repr}]"
 
   object Concrete:
     def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[Concrete[F]] = new Concrete[F](
@@ -64,8 +63,7 @@ object DcgNode:
       id: HnId,
       name: Option[HnName],
       description: Option[Description]
-  ) extends DcgNode[F]:
-    lazy val repr: String = s"(${id.value}${name.repr})"
+  ) extends DcgNode[F]
 
   object Abstract:
     def apply[F[_]: MonadThrow](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](

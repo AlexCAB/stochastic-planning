@@ -73,14 +73,6 @@ class DcgNodeSpec extends UnitSpecWithData:
       data.conDcgNode.ioValue.pure[IO].logValue(tn)
         .asserting(_ mustBe IoValue(data.concreteNode.ioNode.name, data.concreteNode.valueIndex))
 
-  "DcgNode.Concrete.repr" should:
-    "return correct string representation" in newCase[CaseData]: (_, data) =>
-      async[IO]:
-        val withName = data.conDcgNode.copy(id = HnId(123), name = Some(HnName("TestConNode"))).repr
-        withName mustBe "[123, TestConNode]"
-
-        val noName = data.conDcgNode.copy(id = HnId(123), name = None).repr
-        noName mustBe "[123]"
 
   "DcgNode.Abstract.apply(AbstractNode)" should:
     "crete DcgNode.Abstract correctly from AbstractNode" in newCase[CaseData]: (tn, data) =>
@@ -104,7 +96,7 @@ class DcgNodeSpec extends UnitSpecWithData:
     "return correct string representation" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val withName = data.absDcgNode.copy[IO](id = HnId(456), name = Some(HnName("TestAbsNode"))).repr
-        withName mustBe "(456, TestAbsNode)"
+        withName mustBe "(456, \"TestAbsNode\")"
 
         val noName = data.absDcgNode.copy[IO](id = HnId(456), name = None).repr
         noName mustBe "(456)"

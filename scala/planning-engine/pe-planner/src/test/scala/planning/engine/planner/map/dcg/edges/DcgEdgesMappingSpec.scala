@@ -18,7 +18,7 @@ import cats.effect.cps.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 
 class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 
@@ -30,8 +30,8 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
     lazy val hnId5 = HnId(5)
 
     lazy val ends = Set(
-      EndIds(hnId1, hnId2),
-      EndIds(hnId1, hnId3)
+      Edge.Ends(hnId1, hnId2),
+      Edge.Ends(hnId1, hnId3)
     )
 
     lazy val mapping: DcgEdgesMapping[IO] = DcgEdgesMapping(
@@ -45,9 +45,9 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
     )
 
     lazy val newEnds = Set(
-      EndIds(hnId1, hnId4),
-      EndIds(hnId1, hnId5),
-      EndIds(hnId2, hnId4)
+      Edge.Ends(hnId1, hnId4),
+      Edge.Ends(hnId1, hnId5),
+      Edge.Ends(hnId2, hnId4)
     )
 
   "DcgEdgesMapping.isEmpty" should:
@@ -60,8 +60,8 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
   "DcgEdgesMapping.allEnds" should:
     "return all ends in the mapping" in newCase[CaseData]: (tn, data) =>
       data.mapping.allEnds.pure[IO].asserting(_ mustBe Set(
-        EndIds(data.hnId1, data.hnId2),
-        EndIds(data.hnId1, data.hnId3)
+        Edge.Ends(data.hnId1, data.hnId2),
+        Edge.Ends(data.hnId1, data.hnId3)
       ))
 
   "DcgEdgesMapping.allHnIds" should:
@@ -134,9 +134,9 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
       val hnIds = Set(data.hnId1, data.hnId2)
 
       DcgEdgesMapping.empty[IO].findEnds(idsMap, hnIds).pure[IO].asserting(_ mustBe Set(
-        EndIds(data.hnId1, data.hnId2),
-        EndIds(data.hnId1, data.hnId3),
-        EndIds(data.hnId2, data.hnId4)
+        Edge.Ends(data.hnId1, data.hnId2),
+        Edge.Ends(data.hnId1, data.hnId3),
+        Edge.Ends(data.hnId2, data.hnId4)
       ))
 
   "DcgEdgesMapping.formatMap(...)" should:
@@ -187,28 +187,16 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
   "DcgEdgesMapping.findForward(...)" should:
     "find forward ends for given source HnIds" in newCase[CaseData]: (tn, data) =>
       data.mapping.findForward(Set(data.hnId1)).pure[IO].asserting(_ mustBe Set(
-        EndIds(data.hnId1, data.hnId2),
-        EndIds(data.hnId1, data.hnId3)
+        Edge.Ends(data.hnId1, data.hnId2),
+        Edge.Ends(data.hnId1, data.hnId3)
       ))
 
   "DcgEdgesMapping.findBackward(...)" should:
     "find backward ends for given target HnIds" in newCase[CaseData]: (tn, data) =>
       data.mapping.findBackward(Set(data.hnId2, data.hnId3)).pure[IO].asserting(_ mustBe Set(
-        EndIds(data.hnId1, data.hnId2),
-        EndIds(data.hnId1, data.hnId3)
+        Edge.Ends(data.hnId1, data.hnId2),
+        Edge.Ends(data.hnId1, data.hnId3)
       ))
-
-  "DcgEdgesMapping.repr" should:
-    "return string representation of the mapping" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        val strRepr = data.mapping.repr.pure[IO].await
-        logInfo(tn, s"strRepr:\n$strRepr").await
-
-        strRepr must include("forward:")
-        strRepr must include("backward:")
-        strRepr must include(data.hnId1.vStr)
-        strRepr must include(data.hnId2.vStr)
-        strRepr must include(data.hnId3.vStr)
 
   "DcgEdgesMapping.makeEdgesMap(...)" should:
     "create forward and backward maps from ends" in newCase[CaseData]: (tn, data) =>

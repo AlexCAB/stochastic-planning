@@ -18,13 +18,17 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.Indexies
+import planning.engine.planner.map.dcg.repr.DcgEdgeSamplesRepr
 
-sealed trait DcgEdgeSamples:
-  private[edges] def indexies: Map[SampleId, Indexies]
+sealed trait DcgEdgeSamples extends DcgEdgeSamplesRepr:
+  protected[edges] def indexies: Map[SampleId, Indexies]
   private[edges] def name: String
 
   private[edges] lazy val srcHnIndex: Set[HnIndex] = indexies.values.map(_.src).toSet
   private[edges] lazy val trgHnIndex: Set[HnIndex] = indexies.values.map(_.trg).toSet
+
+  lazy val size: Int = indexies.size
+  lazy val isEmpty: Boolean = indexies.isEmpty
 
   private[edges] def joinIndexies[F[_]: MonadThrow](b: Map[SampleId, Indexies]): F[Map[SampleId, Indexies]] =
     val aInd = indexies.values.toSet
@@ -47,17 +51,10 @@ sealed trait DcgEdgeSamples:
       _ <- indexies.values.map(_.trg).toSet.assertNotContain(trgInd, s"Map edge can't have dup $name target index")
     yield indexies + (sId -> Indexies(srcInd, trgInd))
 
-  lazy val size: Int = indexies.size
-  
-  lazy val repr: String =
+  override lazy val toString: String =
     s""""DcgEdgeSamples($name, indexies:
        |${indexies.map((sId, ix) => s"    ${sId.vStr} | ${ix.src.vStr} -> ${ix.trg.vStr}").mkString("\n")}
        |)""".stripMargin
-
-  lazy val reprShort: String = 
-    if indexies.nonEmpty then (if isInstanceOf[DcgEdgeSamples.Links] then "L" else "T") else "_"
-
-  override lazy val toString: String = s"DcgEdgeSamples($name, indexies size = ${indexies.size})"
 
 object DcgEdgeSamples:
   final case class Indexies(src: HnIndex, trg: HnIndex)

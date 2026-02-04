@@ -84,21 +84,18 @@ class DcgEdgeSamplesSpec extends UnitSpecWithData:
   "DcgEdgeSamples.size" should:
     "return correct size of indexies map" in newCase[CaseData]: (tn, data) =>
       data.links1.size.pure[IO].asserting(_ mustBe data.indexies1.size)
-  
-  "DcgEdgeSamples.repr" should:
+
+  "DcgEdgeSamples.isEmpty" should:
+    "return correct emptiness of indexies map" in newCase[CaseData]: (tn, data) =>
+      data.links1.isEmpty.pure[IO].asserting(_ mustBe false)
+
+    "return true for empty indexies map" in newCase[CaseData]: (tn, _) =>
+      Links.empty.isEmpty.pure[IO].asserting(_ mustBe true)
+
+  "DcgEdgeSamples.toString" should:
     "return correct string representation" in newCase[CaseData]: (tn, data) =>
-      data.links1.repr.pure[IO].logValue(tn).asserting: repr =>
-        repr  must include ("10 | 1 -> 1")
-
-  "DcgEdgeSamples.reprShort" should:
-    "return correct short string representation for Link" in newCase[CaseData]: (tn, data) =>
-      data.links1.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "L")
-
-    "return correct short string representation for Then" in newCase[CaseData]: (tn, data) =>
-      data.thens1.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "T")
-
-    "return correct short string representation for empty" in newCase[CaseData]: (tn, data) =>
-      Links.empty.reprShort.pure[IO].logValue(tn).asserting(_ mustBe "_")
+      data.links1.toString.pure[IO].logValue(tn).asserting: str =>
+        str must include("10 | 1 -> 1")
 
   "DcgEdgeSamples.Links.empty" should:
     "be an empty Links instance" in newCase[CaseData]: (tn, data) =>

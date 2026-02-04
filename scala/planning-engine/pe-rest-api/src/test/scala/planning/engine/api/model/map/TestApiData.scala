@@ -30,7 +30,7 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.planner.map.dcg.nodes.*
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
@@ -215,7 +215,7 @@ trait TestApiData:
   )
 
   lazy val testDcgEdge = DcgEdgeData(
-    ends = EndIds(tesConcreteDcgNode.id, testAbstractDcgNode.id),
+    ends = Edge.Ends(tesConcreteDcgNode.id, testAbstractDcgNode.id),
     links = Links.empty,
     thens = Thens(Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001))))
   )

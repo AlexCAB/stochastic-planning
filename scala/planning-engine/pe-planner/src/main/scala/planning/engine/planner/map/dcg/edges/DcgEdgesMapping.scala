@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.HnId
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 
 final case class DcgEdgesMapping[F[_]: MonadThrow](
     forward: Map[HnId, Set[HnId]],
@@ -25,7 +25,7 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
 ) extends Validation:
 
   lazy val isEmpty: Boolean = forward.isEmpty && backward.isEmpty
-  lazy val allEnds: Set[EndIds] = forward.flatMap((srcId, trgIds) => trgIds.map(trgId => EndIds(srcId, trgId))).toSet
+  lazy val allEnds: Set[Edge.Ends] = forward.flatMap((srcId, trgIds) => trgIds.map(trgId => Edge.Ends(srcId, trgId))).toSet
   lazy val allHnIds: Set[HnId] = forward.keySet ++ backward.keySet
 
   override lazy val validationName: String = "DcgEdgesMapping"
@@ -47,39 +47,37 @@ final case class DcgEdgesMapping[F[_]: MonadThrow](
         case acc if !acc.contains(hnId)              => (acc + (hnId -> targets)).pure
         case acc => s"Can't add duplicate links: $hnId -> ${acc(hnId).intersect(targets)}".assertionError
 
-  private[edges] def findEnds(idsMap: Map[HnId, Set[HnId]], hnIds: Set[HnId]): Set[EndIds] =
-    hnIds.flatMap(hnId => idsMap.get(hnId).toSet.flatMap(_.map(trgId => EndIds(hnId, trgId))))
+  private[edges] def findEnds(idsMap: Map[HnId, Set[HnId]], hnIds: Set[HnId]): Set[Edge.Ends] =
+    hnIds.flatMap(hnId => idsMap.get(hnId).toSet.flatMap(_.map(trgId => Edge.Ends(hnId, trgId))))
 
   private[edges] def formatMap(map: Map[HnId, Set[HnId]]): String =
     map.map((k, v) => s"    ${k.vStr} -> ${v.map(_.vStr).mkString(", ")}").mkString("\n")
 
-  lazy val repr: String =
-    s"""DcgEdgesMapping(
-       | forward:\n${formatMap(forward)}
-       | backward:\n${formatMap(backward)}
-       |)""".stripMargin
-
-  def addAll(ends: Iterable[EndIds]): F[DcgEdgesMapping[F]] =
+  def addAll(ends: Iterable[Edge.Ends]): F[DcgEdgesMapping[F]] =
     for
       (fMap, bMap) <- DcgEdgesMapping.makeEdgesMap(ends).pure
       forward <- joinIds(forward, fMap)
       backward <- joinIds(backward, bMap)
     yield DcgEdgesMapping(forward, backward)
 
-  def findForward(sourceHnIds: Set[HnId]): Set[EndIds] = findEnds(forward, sourceHnIds)
+  def findForward(sourceHnIds: Set[HnId]): Set[Edge.Ends] = findEnds(forward, sourceHnIds)
 
-  def findBackward(targetHnIds: Set[HnId]): Set[EndIds] = findEnds(backward, targetHnIds).map(_.swap)
+  def findBackward(targetHnIds: Set[HnId]): Set[Edge.Ends] = findEnds(backward, targetHnIds).map(_.swap)
 
-  override lazy val toString = s"DcgEdgesMapping(forward size = ${forward.size}, backward size = ${backward.size})"
+  override lazy val toString =
+    s"""DcgEdgesMapping(
+       | forward:\n${formatMap(forward)}
+       | backward:\n${formatMap(backward)}
+       |)""".stripMargin
 
 object DcgEdgesMapping:
-  private[edges] def makeEdgesMap(ends: Iterable[EndIds]): (Map[HnId, Set[HnId]], Map[HnId, Set[HnId]]) = (
+  private[edges] def makeEdgesMap(ends: Iterable[Edge.Ends]): (Map[HnId, Set[HnId]], Map[HnId, Set[HnId]]) = (
     ends.groupBy(_.src).view.mapValues(_.map(_.trg).toSet).toMap,
     ends.groupBy(_.trg).view.mapValues(_.map(_.src).toSet).toMap
   )
 
   def empty[F[_]: MonadThrow]: DcgEdgesMapping[F] = DcgEdgesMapping(Map.empty, Map.empty)
 
-  def apply[F[_]: MonadThrow](ends: Iterable[EndIds]): DcgEdgesMapping[F] =
+  def apply[F[_]: MonadThrow](ends: Iterable[Edge.Ends]): DcgEdgesMapping[F] =
     val (fMap, bMap) = DcgEdgesMapping.makeEdgesMap(ends)
     DcgEdgesMapping(fMap, bMap)

@@ -19,7 +19,7 @@ import planning.engine.common.values.node.{HnId, HnIndex, HnName}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Description
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgeSamples}
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.Indexies
 import planning.engine.planner.map.test.data.MapNodeTestData
@@ -49,15 +49,15 @@ trait MapDcgTestData extends MapNodeTestData:
       links: Map[SampleId, Indexies] = Map(),
       thens: Map[SampleId, Indexies] = Map()
   ): DcgEdgeData = DcgEdgeData(
-    ends = EndIds(srcId, trgId),
+    ends = Edge.Ends(srcId, trgId),
     links = DcgEdgeSamples.Links(links),
     thens = DcgEdgeSamples.Thens(thens)
   )
 
-  def makeDcgEdgeData(ends: EndIds): DcgEdgeData = makeDcgEdgeData(ends.src, ends.trg)
+  def makeDcgEdgeData(ends: Edge.Ends): DcgEdgeData = makeDcgEdgeData(ends.src, ends.trg)
 
   extension (graph: DcgGraph[IO])
-    def addSample(sampleId: SampleId, edges: Set[(EdgeType, EndIds)]): DcgGraph[IO] =
+    def addSample(sampleId: SampleId, edges: Set[(EdgeType, Edge.Ends)]): DcgGraph[IO] =
       val ends = edges.map(_._2)
       val allHdIds = ends.flatMap(e => Set(e.src, e.trg))
       val edgesDef = ends -- graph.edgesData.keySet

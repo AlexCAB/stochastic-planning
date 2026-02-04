@@ -8,11 +8,13 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2026-01-26 |||||||||||*/
+| created: 2026-02-02 |||||||||||*/
 
-package planning.engine.common.values.edges
+package planning.engine.planner.map.dcg.repr
 
-import planning.engine.common.values.node.HnId
+import planning.engine.planner.map.dcg.edges.DcgEdgeSamples
 
-final case class EndIds(src: HnId, trg: HnId):
-  lazy val swap: EndIds = EndIds(trg, src)
+trait DcgEdgeSamplesRepr:
+  self: DcgEdgeSamples =>
+
+  lazy val repr: String = if indexies.nonEmpty then if isInstanceOf[DcgEdgeSamples.Links] then "L" else "T" else "_"

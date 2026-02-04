@@ -14,12 +14,11 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge.Ends
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 
@@ -59,10 +58,10 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
   lazy val all234AbsNodes: List[DcgNode.Abstract[IO]] =
     List(abs_2p1, abs_2p2, abs_2c1, abs_2c2, abs_2c3, abs_2n1, abs_3p1, abs_3c1, abs_3c2, abs_3n1)
 
-  lazy val e_1c1_2c1 = EndIds(src = con_1c1.id, trg = abs_2c1.id)
-  lazy val e_1c2_2c2 = EndIds(src = con_1c2.id, trg = abs_2c2.id)
-  lazy val e_1c3_2c2 = EndIds(src = con_1c3.id, trg = abs_2c2.id)
-  lazy val e_1c4_2c3 = EndIds(src = con_1c4.id, trg = abs_2c3.id)
+  lazy val e_1c1_2c1 = Ends(src = con_1c1.id, trg = abs_2c1.id)
+  lazy val e_1c2_2c2 = Ends(src = con_1c2.id, trg = abs_2c2.id)
+  lazy val e_1c3_2c2 = Ends(src = con_1c3.id, trg = abs_2c2.id)
+  lazy val e_1c4_2c3 = Ends(src = con_1c4.id, trg = abs_2c3.id)
 
   lazy val link_1to2: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_1c1_2c1),
@@ -71,10 +70,10 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
     makeDcgEdgeData(e_1c4_2c3)
   )
 
-  lazy val e_2c1_3c1 = EndIds(src = abs_2c1.id, trg = abs_3c1.id)
-  lazy val e_2c2_3c1 = EndIds(src = abs_2c2.id, trg = abs_3c1.id)
-  lazy val e_2c2_3c2 = EndIds(src = abs_2c2.id, trg = abs_3c2.id)
-  lazy val e_2c3_3c2 = EndIds(src = abs_2c3.id, trg = abs_3c2.id)
+  lazy val e_2c1_3c1 = Ends(src = abs_2c1.id, trg = abs_3c1.id)
+  lazy val e_2c2_3c1 = Ends(src = abs_2c2.id, trg = abs_3c1.id)
+  lazy val e_2c2_3c2 = Ends(src = abs_2c2.id, trg = abs_3c2.id)
+  lazy val e_2c3_3c2 = Ends(src = abs_2c3.id, trg = abs_3c2.id)
 
   lazy val link_2to3: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_2c1_3c1),
@@ -83,10 +82,10 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
     makeDcgEdgeData(e_2c3_3c2)
   )
 
-  lazy val e_1p1_1c1 = EndIds(src = con_1p1.id, trg = con_1c1.id)
-  lazy val e_1p1_1c3 = EndIds(src = con_1p1.id, trg = con_1c3.id)
-  lazy val e_1p2_1c2 = EndIds(src = con_1p2.id, trg = con_1c2.id)
-  lazy val e_1p2_1c4 = EndIds(src = con_1p2.id, trg = con_1c4.id)
+  lazy val e_1p1_1c1 = Ends(src = con_1p1.id, trg = con_1c1.id)
+  lazy val e_1p1_1c3 = Ends(src = con_1p1.id, trg = con_1c3.id)
+  lazy val e_1p2_1c2 = Ends(src = con_1p2.id, trg = con_1c2.id)
+  lazy val e_1p2_1c4 = Ends(src = con_1p2.id, trg = con_1c4.id)
 
   lazy val then_prev1: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_1p1_1c1),
@@ -95,9 +94,9 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
     makeDcgEdgeData(e_1p2_1c4)
   )
 
-  lazy val e_1c1_1c2 = EndIds(src = con_1c1.id, trg = con_1c2.id)
-  lazy val e_1c2_1c3 = EndIds(src = con_1c2.id, trg = con_1c3.id)
-  lazy val e_1c3_1c4 = EndIds(src = con_1c3.id, trg = con_1c4.id)
+  lazy val e_1c1_1c2 = Ends(src = con_1c1.id, trg = con_1c2.id)
+  lazy val e_1c2_1c3 = Ends(src = con_1c2.id, trg = con_1c3.id)
+  lazy val e_1c3_1c4 = Ends(src = con_1c3.id, trg = con_1c4.id)
 
   lazy val thenE1: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_1c1_1c2),
@@ -105,52 +104,52 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
     makeDcgEdgeData(e_1c3_1c4)
   )
 
-  lazy val e_1c1_1n1 = EndIds(src = con_1c1.id, trg = con_1n1.id)
-  lazy val e_1c4_1n2 = EndIds(src = con_1c4.id, trg = con_1n2.id)
+  lazy val e_1c1_1n1 = Ends(src = con_1c1.id, trg = con_1n1.id)
+  lazy val e_1c4_1n2 = Ends(src = con_1c4.id, trg = con_1n2.id)
 
   lazy val then_next1: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_1c1_1n1),
     makeDcgEdgeData(e_1c4_1n2)
   )
 
-  lazy val e_2p1_2c1 = EndIds(src = abs_2p1.id, trg = abs_2c1.id)
-  lazy val e_2p2_2c3 = EndIds(src = abs_2p2.id, trg = abs_2c3.id)
+  lazy val e_2p1_2c1 = Ends(src = abs_2p1.id, trg = abs_2c1.id)
+  lazy val e_2p2_2c3 = Ends(src = abs_2p2.id, trg = abs_2c3.id)
 
   lazy val then_prev2: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_2p1_2c1),
     makeDcgEdgeData(e_2p2_2c3)
   )
 
-  lazy val e_2c1_2c2 = EndIds(src = abs_2c1.id, trg = abs_2c2.id)
-  lazy val e_2c2_2c3 = EndIds(src = abs_2c2.id, trg = abs_2c3.id)
+  lazy val e_2c1_2c2 = Ends(src = abs_2c1.id, trg = abs_2c2.id)
+  lazy val e_2c2_2c3 = Ends(src = abs_2c2.id, trg = abs_2c3.id)
 
   lazy val thenE2: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_2c1_2c2),
     makeDcgEdgeData(e_2c2_2c3)
   )
 
-  lazy val e_2c2_2n1 = EndIds(src = abs_2c2.id, trg = abs_2n1.id)
+  lazy val e_2c2_2n1 = Ends(src = abs_2c2.id, trg = abs_2n1.id)
 
   lazy val then_next2: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_2c2_2n1)
   )
 
-  lazy val e_3p1_3c1 = EndIds(src = abs_3p1.id, trg = abs_3c1.id)
-  lazy val e_3p1_3c2 = EndIds(src = abs_3p1.id, trg = abs_3c2.id)
+  lazy val e_3p1_3c1 = Ends(src = abs_3p1.id, trg = abs_3c1.id)
+  lazy val e_3p1_3c2 = Ends(src = abs_3p1.id, trg = abs_3c2.id)
 
   lazy val then_prev3: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_3p1_3c1),
     makeDcgEdgeData(e_3p1_3c2)
   )
 
-  lazy val e_3c1_3c2 = EndIds(src = abs_3c1.id, trg = abs_3c2.id)
+  lazy val e_3c1_3c2 = Ends(src = abs_3c1.id, trg = abs_3c2.id)
 
   lazy val thenE3: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_3c1_3c2)
   )
 
-  lazy val e_3c1_3n1 = EndIds(src = abs_3c1.id, trg = abs_3n1.id)
-  lazy val e_3c2_3n1 = EndIds(src = abs_3c2.id, trg = abs_3n1.id)
+  lazy val e_3c1_3n1 = Ends(src = abs_3c1.id, trg = abs_3n1.id)
+  lazy val e_3c2_3n1 = Ends(src = abs_3c2.id, trg = abs_3n1.id)
 
   lazy val then_next3: List[DcgEdgeData] = List(
     makeDcgEdgeData(e_3c1_3n1),
@@ -217,14 +216,14 @@ trait SimpleAbstractForestTestData extends SimpleMemStateTestData:
     data = makeSampleData(id = SampleId(1001)),
     edges = Set(
       // Abstraction edges:
-      LINK -> e_1c1_2c1,
-      LINK -> e_2c1_3c1,
+      e_1c1_2c1.toLink,
+      e_2c1_3c1.toLink,
       // Previous edges:
-      THEN -> e_1p1_1c1,
-      THEN -> e_2p1_2c1,
-      THEN -> e_3p1_3c1,
+      e_1p1_1c1.toThen,
+      e_2p1_2c1.toThen,
+      e_3p1_3c1.toThen,
       // Next edges:
-      THEN -> e_1c1_1n1,
-      THEN -> e_3c1_3n1
+      e_1c1_1n1.toThen,
+      e_3c1_3n1.toThen
     )
   )

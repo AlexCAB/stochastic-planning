@@ -15,9 +15,8 @@ package planning.engine.planner.map.dcg.samples
 import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.test.data.MapSampleTestData
 
@@ -30,7 +29,7 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
     lazy val n4 = HnId(4)
 
     val sampleData = makeSampleData()
-    val edges = Set(LINK -> EndIds(n1, n2), THEN -> EndIds(n2, n3), LINK -> EndIds(n1, n4))
+    val edges = Set(Edge.Link(n1, n2), Edge.Then(n2, n3), Edge.Link(n1, n4))
 
     val dcgSample = DcgSample(sampleData, edges)
 
@@ -42,14 +41,8 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
     "return no errors for valid sample" in newCase[CaseData]: (tn, data) =>
       data.dcgSample.checkNoValidationError(tn)
 
-    "return error for non-distinct edges" in newCase[CaseData]: (tn, data) =>
-      val invalidEdges = data.edges + (THEN -> EndIds(data.n1, data.n2))
-
-      data.dcgSample.copy(edges = invalidEdges)
-        .checkOneValidationError("DcgSample edges must have distinct end ids", tn)
-
     "return error for non-connected edges" in newCase[CaseData]: (tn, data) =>
-      val invalidEdges = Set(LINK -> EndIds(data.n1, data.n2), THEN -> EndIds(HnId(5), HnId(6)))
+      val invalidEdges = Set(Edge.Link(data.n1, data.n2), Edge.Then(HnId(5), HnId(6)))
 
       data.dcgSample.copy(edges = invalidEdges)
         .checkOneValidationError("DcgSample edges must form a connected graph", tn)

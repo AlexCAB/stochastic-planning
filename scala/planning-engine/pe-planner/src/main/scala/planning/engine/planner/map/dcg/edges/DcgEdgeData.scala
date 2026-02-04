@@ -19,15 +19,16 @@ import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.samples.sample.SampleEdge
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.common.errors.*
 import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.repr.DcgEdgeDataRepr
 
 final case class DcgEdgeData(
-    ends: EndIds,
+    ends: Edge.Ends,
     links: Links,
     thens: Thens
-):
+) extends DcgEdgeDataRepr:
   lazy val hnIds: Set[HnId] = Set(ends.src, ends.trg)
 
   lazy val srcHnIndex: Set[HnIndex] = links.srcHnIndex ++ thens.srcHnIndex
@@ -39,6 +40,12 @@ final case class DcgEdgeData(
 
   lazy val isLink: Boolean = linksIds.nonEmpty
   lazy val isThen: Boolean = thensIds.nonEmpty
+
+  lazy val edges: Set[Edge] = (links, thens) match
+    case (ls, ts) if ls.isEmpty && ts.isEmpty => Set()
+    case (_, ts) if ts.isEmpty                => Set(ends.toLink)
+    case (ls, _) if ls.isEmpty                => Set(ends.toThen)
+    case _                                    => Set(ends.toLink, ends.toThen)
 
   def addLink[F[_]: MonadThrow](sampleId: SampleId, srcInd: HnIndex, trgInd: HnIndex): F[DcgEdgeData] =
     links.add(sampleId, srcInd, trgInd).map(newLinks => this.copy(links = newLinks))
@@ -58,16 +65,13 @@ final case class DcgEdgeData(
       newLinks <- links.join(other.links)
       newThens <- thens.join(other.thens)
     yield DcgEdgeData(ends, newLinks, newThens)
-    
-  lazy val repr: String =  s"(${ends.src.vStr}) -${links.reprShort}${thens.reprShort}-> (${ends.trg.vStr})"
-  lazy val reprTarget: String =  s"| -${links.reprShort}${thens.reprShort}-> (${ends.trg.vStr}) "
-  
-  override lazy val toString: String = 
+
+  override lazy val toString: String =
     s"DcgEdgeData(${ends.src.vStr} -> ${ends.trg.vStr}, links size = ${links.size}, thens size = ${thens.size})"
-        
+
 object DcgEdgeData:
   private[edges] def makeDcgEdgeData(
-      ends: EndIds,
+      ends: Edge.Ends,
       edgeType: EdgeType,
       indexies: Map[SampleId, Indexies]
   ): DcgEdgeData = edgeType match
@@ -75,12 +79,12 @@ object DcgEdgeData:
     case EdgeType.THEN => DcgEdgeData(ends, Links.empty, Thens(indexies))
 
   def apply(edge: HiddenEdge): DcgEdgeData = makeDcgEdgeData(
-    EndIds(edge.sourceId, edge.targetId),
+    Edge.Ends(edge.sourceId, edge.targetId),
     edge.edgeType,
     edge.samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
   )
 
-  def apply[F[_]: MonadThrow](edgeType: EdgeType, ends: EndIds, edges: List[SampleEdge]): F[DcgEdgeData] =
+  def apply[F[_]: MonadThrow](edgeType: EdgeType, ends: Edge.Ends, edges: List[SampleEdge]): F[DcgEdgeData] =
     for
       _ <- edges.assertNonEmpty("SampleEdges list is empty")
       edgeKeys = edges.map(e => (e.edgeType, e.source.hnId, e.target.hnId)).toSet

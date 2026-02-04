@@ -16,11 +16,10 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.errors.*
-import planning.engine.common.graph.EndsGraph
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.map.samples.sample.SampleData
 
@@ -28,16 +27,16 @@ import planning.engine.map.samples.sample.SampleData
 // Edges with type LINK pointed form higher abstract root nodes to concrete leaf nodes.
 // Also include THEN edges to previous nodes.
 final case class ActiveAbsDag[F[_]: MonadThrow](
-    backwordThenEnds: Set[EndIds], // Targets of THEN edges is nodes in this graph
+    backwordThenEnds: Set[Edge.Ends], // Targets of THEN edges is nodes in this graph
     graph: DcgGraph[F]
-) extends EndsGraph(graph.edgesData.keySet) with Validation:
+) extends Validation:
   override lazy val validationName: String = "ActiveAbsGraph"
 
   override lazy val validationErrors: List[Throwable] =
     val allConHnIds = graph.concreteNodes.keySet
     val allAbsHnIds = graph.abstractNodes.keySet
     val allBackThenIds = backwordThenEnds.flatMap(e => Set(e.src, e.trg))
-    val (isDag, tracedAbsHnIds) = traceFromNodes(allConHnIds)
+    val (isDag, tracedAbsHnIds) = graph.traceFromNodes(allConHnIds)
 
     graph.validationErrors ++ validations(
       graph.allHnIds.containsAllOf(allBackThenIds, "Back THEN edges refer to unknown HnIds"),
@@ -48,7 +47,7 @@ final case class ActiveAbsDag[F[_]: MonadThrow](
   def addAbstractLevel(
       abstractNodes: Iterable[DcgNode.Abstract[F]],
       forwardLinkEdges: Iterable[DcgEdgeData],
-      backThenEnds: Set[EndIds]
+      backThenEnds: Set[Edge.Ends]
   ): F[ActiveAbsDag[F]] =
     for
       withNodes <- graph.addAbsNodes(abstractNodes)
@@ -66,7 +65,7 @@ object ActiveAbsDag:
       concreteNodes: Iterable[DcgNode.Concrete[F]],
       abstractNodes: Iterable[DcgNode.Abstract[F]],
       forwardLinkEdges: Iterable[DcgEdgeData],
-      backThenEnds: Set[EndIds],
+      backThenEnds: Set[Edge.Ends],
       samples: Iterable[SampleData]
   ): F[ActiveAbsDag[F]] =
     for

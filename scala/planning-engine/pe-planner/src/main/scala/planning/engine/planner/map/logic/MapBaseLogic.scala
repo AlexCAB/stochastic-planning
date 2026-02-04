@@ -23,7 +23,7 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.ActiveAbsDag
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.common.values.edges.EndIds
+import planning.engine.common.values.edges.Edge
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
@@ -51,7 +51,7 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
         _ <- Validation.validateList(samples)
         _ <- state.graph.allHnIds.assertContainsAll(samples.flatMap(_.allHnIds), "New samples contain unknown HnIds")
         allEdges = samples.flatMap(_.edges.toList)
-        groupedEdges = allEdges.groupBy(e => (e.edgeType, EndIds(e.source.hnId, e.target.hnId))).toList
+        groupedEdges = allEdges.groupBy(e => (e.edgeType, Edge.Ends(e.source.hnId, e.target.hnId))).toList
         dcgEdges <- groupedEdges.traverse((k, es) => DcgEdgeData(k._1, k._2, es))
         stateWithEdges <- state.mergeEdges(dcgEdges)
         stateWithSamples <- stateWithEdges.addSamplesData(samples.map(_.data))

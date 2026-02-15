@@ -39,8 +39,8 @@ object MapInfoState:
 
   def apply[F[_]: MonadThrow](
       metadata: MapMetadata,
-      inNodes: List[InputNode[F]],
-      outNodes: List[OutputNode[F]]
+      inNodes: Iterable[InputNode[F]],
+      outNodes: Iterable[OutputNode[F]]
   ): F[MapInfoState[F]] =
     for
       _ <- (inNodes ++ outNodes).map(_.name).assertDistinct("All IO node names must be distinct")

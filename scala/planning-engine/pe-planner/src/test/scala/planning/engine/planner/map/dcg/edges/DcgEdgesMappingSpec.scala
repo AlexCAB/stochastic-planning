@@ -18,7 +18,7 @@ import cats.effect.cps.*
 import planning.engine.common.values.node.HnId
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 
 class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
 
@@ -30,8 +30,8 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
     lazy val hnId5 = HnId(5)
 
     lazy val ends = Set(
-      Edge.Ends(hnId1, hnId2),
-      Edge.Ends(hnId1, hnId3)
+      EdgeKey(hnId1, hnId2),
+      EdgeKey(hnId1, hnId3)
     )
 
     lazy val mapping: DcgEdgesMapping[IO] = DcgEdgesMapping(
@@ -45,9 +45,9 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
     )
 
     lazy val newEnds = Set(
-      Edge.Ends(hnId1, hnId4),
-      Edge.Ends(hnId1, hnId5),
-      Edge.Ends(hnId2, hnId4)
+      EdgeKey(hnId1, hnId4),
+      EdgeKey(hnId1, hnId5),
+      EdgeKey(hnId2, hnId4)
     )
 
   "DcgEdgesMapping.isEmpty" should:
@@ -60,8 +60,8 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
   "DcgEdgesMapping.allEnds" should:
     "return all ends in the mapping" in newCase[CaseData]: (tn, data) =>
       data.mapping.allEnds.pure[IO].asserting(_ mustBe Set(
-        Edge.Ends(data.hnId1, data.hnId2),
-        Edge.Ends(data.hnId1, data.hnId3)
+        EdgeKey(data.hnId1, data.hnId2),
+        EdgeKey(data.hnId1, data.hnId3)
       ))
 
   "DcgEdgesMapping.allHnIds" should:
@@ -134,9 +134,9 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
       val hnIds = Set(data.hnId1, data.hnId2)
 
       DcgEdgesMapping.empty[IO].findEnds(idsMap, hnIds).pure[IO].asserting(_ mustBe Set(
-        Edge.Ends(data.hnId1, data.hnId2),
-        Edge.Ends(data.hnId1, data.hnId3),
-        Edge.Ends(data.hnId2, data.hnId4)
+        EdgeKey(data.hnId1, data.hnId2),
+        EdgeKey(data.hnId1, data.hnId3),
+        EdgeKey(data.hnId2, data.hnId4)
       ))
 
   "DcgEdgesMapping.formatMap(...)" should:
@@ -187,15 +187,15 @@ class DcgEdgesMappingSpec extends UnitSpecWithData with ValidationCheck:
   "DcgEdgesMapping.findForward(...)" should:
     "find forward ends for given source HnIds" in newCase[CaseData]: (tn, data) =>
       data.mapping.findForward(Set(data.hnId1)).pure[IO].asserting(_ mustBe Set(
-        Edge.Ends(data.hnId1, data.hnId2),
-        Edge.Ends(data.hnId1, data.hnId3)
+        EdgeKey(data.hnId1, data.hnId2),
+        EdgeKey(data.hnId1, data.hnId3)
       ))
 
   "DcgEdgesMapping.findBackward(...)" should:
     "find backward ends for given target HnIds" in newCase[CaseData]: (tn, data) =>
       data.mapping.findBackward(Set(data.hnId2, data.hnId3)).pure[IO].asserting(_ mustBe Set(
-        Edge.Ends(data.hnId1, data.hnId2),
-        Edge.Ends(data.hnId1, data.hnId3)
+        EdgeKey(data.hnId1, data.hnId2),
+        EdgeKey(data.hnId1, data.hnId3)
       ))
 
   "DcgEdgesMapping.makeEdgesMap(...)" should:

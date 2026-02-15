@@ -12,8 +12,12 @@
 
 package planning.engine.common.values.edge
 
+import cats.MonadThrow
+import cats.syntax.all.*
+
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.{HnId, MnId}
+import planning.engine.common.values.node.MnId.{Con, Abs}
 
 sealed trait EdgeKey:
   def src: MnId
@@ -56,3 +60,11 @@ object EdgeKey:
     final case class End(id: MnId) extends EdgeKey.End:
       def asSrcKey(src: MnId): Then = Then(src, id)
       def asTrgKey(trg: MnId): Then = Then(id, trg)
+
+  def apply[F[_]: MonadThrow](et: EdgeType, src: HnId, trg: HnId, conMnId: Set[Con], absMnId: Set[Abs]): F[EdgeKey] =
+    for
+      srcMnId <- src.toMnId(conMnId, absMnId)
+      trgMnId <- trg.toMnId(conMnId, absMnId)
+    yield et match
+      case EdgeType.LINK => Link(srcMnId, trgMnId)
+      case EdgeType.THEN => Then(srcMnId, trgMnId)

@@ -12,36 +12,38 @@
 
 package planning.engine.planner.map.state
 
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{MnId, HnIndex}
+import planning.engine.common.values.edge.IndexMap
 import planning.engine.common.values.sample.SampleId
 
 final case class MapIdsCountState(
-    nextHnId: Long,
+    nextMnId: Long,
     nextSampleId: Long,
-    nextHnIndexMap: Map[HnId, Long]
+    nextHnIndexMap: Map[MnId, Long]
 ):
-  lazy val isInit: Boolean = nextHnId == 1L && nextSampleId == 1L && nextHnIndexMap.isEmpty
+  private[state] def nextNId[N <: MnId](n: Long, make: Long => N): (MapIdsCountState, List[N]) =
+    val mnIds = (nextMnId until (nextMnId + n)).toList.map(make)
+    val newState = this.copy(nextMnId = nextMnId + n)
+    (newState, mnIds)
 
-  def getNextHnIds(n: Long): (MapIdsCountState, List[HnId]) =
-    val hnIds = (nextHnId until (nextHnId + n)).toList.map(HnId.apply)
-    val newState = copy(nextHnId = nextHnId + n)
-    (newState, hnIds)
+  def getNextConIds(n: Long): (MapIdsCountState, List[MnId.Con]) = nextNId(n, MnId.Con.apply)
+
+  def getNextAbsIds(n: Long): (MapIdsCountState, List[MnId.Abs]) = nextNId(n, MnId.Abs.apply)
 
   def getNextSampleIds(n: Long): (MapIdsCountState, List[SampleId]) =
     val sampleIds = (nextSampleId until (nextSampleId + n)).toList.map(SampleId.apply)
-    val newState = copy(nextSampleId = nextSampleId + n)
+    val newState = this.copy(nextSampleId = nextSampleId + n)
     (newState, sampleIds)
 
-  def getNextHnIndexes(hnIds: Set[HnId]): (MapIdsCountState, Map[HnId, HnIndex]) =
-    val (result, updatedCounts) = hnIds.foldRight((Map[HnId, HnIndex](), nextHnIndexMap)):
-      case (hnId, (acc, count)) =>
-        val i = count.getOrElse(hnId, 1L)
-        (acc + (hnId -> HnIndex(i)), count.updated(hnId, i + 1L))
-    (copy(nextHnIndexMap = updatedCounts), result)
+  def getNextHnIndexes(nIds: Set[MnId]): (MapIdsCountState, IndexMap) =
+    val idsMap = nIds.map(mnId => mnId -> nextHnIndexMap.getOrElse(mnId, HnIndex.init.value)).toMap
+    val newState = this.copy(nextHnIndexMap = nextHnIndexMap ++ idsMap.map((i, v) => i -> (v + 1L)))
+    val indexMap = IndexMap(idsMap.map((i, v) => i -> HnIndex(v)))
+    (newState, indexMap)
 
 object MapIdsCountState:
   lazy val init: MapIdsCountState = MapIdsCountState(
-    nextHnIndexMap = Map[HnId, Long](),
-    nextHnId = 1L,
+    nextHnIndexMap = Map[MnId, Long](),
+    nextMnId = 1L,
     nextSampleId = 1L
   )

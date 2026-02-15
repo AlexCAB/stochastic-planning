@@ -38,8 +38,11 @@ trait IoNode[F[_]: MonadThrow] extends Validation:
     PROP.VARIABLE -> variable.toQueryParams
   )
 
-  lazy val validationName = s"IoNode(type = $thisLabel, name = $name, variable = $variable)"
-  lazy val validationErrors = validations(name.value.nonEmpty -> "Name must not be empty")
+  override lazy val validations: (String, List[Throwable]) = validate(
+    s"IoNode(type = $thisLabel, name = $name, variable = $variable)"
+  )(
+    name.value.nonEmpty -> "Name must not be empty"
+  )
 
   def toQueryParams: F[(Label, Map[String, Param])] =
     for

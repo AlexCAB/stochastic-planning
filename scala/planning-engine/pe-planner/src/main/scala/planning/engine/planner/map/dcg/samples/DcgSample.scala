@@ -12,20 +12,49 @@
 
 package planning.engine.planner.map.dcg.samples
 
-import planning.engine.common.graph.EndsGraph
+import cats.MonadThrow
+import cats.syntax.all.*
+
+import planning.engine.common.graph.GraphStructure
 import planning.engine.common.validation.Validation
-import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.values.edges.Edge
-import planning.engine.planner.map.dcg.repr.DcgSampleRepr
+import planning.engine.map.samples.sample.{Sample, SampleData}
+import planning.engine.common.values.edge.{EdgeKey, IndexMap}
+import planning.engine.common.values.node.MnId.{Abs, Con}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.errors.assertDistinct
 
-final case class DcgSample(
+final case class DcgSample[F[_]: MonadThrow](
     data: SampleData,
-    edges: Set[Edge]
-) extends EndsGraph(edges) with Validation with DcgSampleRepr:
-  lazy val validationName: String = s"DcgSample(id=${data.id}, name=${data.name.toStr})"
+    structure: GraphStructure[F]
+) extends Validation:
 
-  lazy val validationErrors: List[Throwable] = validations(
-    isConnected -> "DcgSample edges must form a connected graph"
+  override lazy val validations: (String, List[Throwable]) = validate(
+    s"DcgSample(id=${data.id}, name=${data.name.toStr})"
+  )(
+    structure.isConnected -> "DcgSample edges must form a connected graph"
   )
 
-  override lazy val toString: String = s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${edges.size})"
+  override lazy val toString: String =
+    s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
+
+object DcgSample:
+  final case class Add[F[_]: MonadThrow](
+      sample: DcgSample[F],
+      indexMap: IndexMap // Value indexies map should be provided from outside, from DB of from fast counts.
+  ):
+    lazy val idsByKey: Set[(EdgeKey, (SampleId, IndexMap))] = sample
+      .structure.keys
+      .map(k => k -> (sample.data.id, indexMap))
+
+  def apply[F[_]: MonadThrow](
+      id: SampleId,
+      sample: Sample.New,
+      conMnId: Set[Con],
+      absMnId: Set[Abs]
+  ): F[DcgSample[F]] =
+    for
+      keys <- sample.edges.toList.traverse(e => EdgeKey(e.edgeType, e.source, e.target, conMnId, absMnId))
+      _ <- keys.assertDistinct("Sample edges must be distinct")
+      data = sample.toSampleData(id)
+      structure = GraphStructure(keys.toSet)
+    yield new DcgSample(data, structure)

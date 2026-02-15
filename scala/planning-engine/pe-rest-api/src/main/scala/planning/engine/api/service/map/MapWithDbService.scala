@@ -85,7 +85,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
       (listNewCon, listNewAbs) <- definition.listNewNotFoundHn(foundHnIdMap.keySet, graph.getIoNode)
       newConHnIds <- graph.newConcreteNodes(listNewCon)
       newAbsHnIds <- graph.newAbstractNodes(listNewAbs)
-      hnIdMap <- composeHnIdMap(foundHnIdMap.map((k, v) => k -> v.toSet), newConHnIds, newAbsHnIds)
+      hnIdMap <- composeHnIdMap(foundHnIdMap.map((k, v) => k -> v.toSet), newConHnIds ++ newAbsHnIds)
       sampleNewList <- definition.toSampleNewList(hnIdMap)
       sampleIds <- graph.addNewSamples(sampleNewList).map(_.map(_.data.id))
       sampleNameMap <- graph.getSampleNames(sampleIds)

@@ -139,12 +139,12 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
 
   "New.validationName" should:
     "return validation name" in newCase[CaseData]: (tn, data) =>
-      data.newSample.validationName.pure[IO].logValue(tn, "validationName")
+      data.newSample.validations._1.pure[IO].logValue(tn, "validationName")
         .asserting(_ mustEqual "Sample.New(name=SampleName, probabilityCount=10, utility=0.5)")
 
   "New.validationErrors" should:
     "return empty list for valid data" in newCase[CaseData]: (_, data) =>
-      data.newSample.validationErrors.pure[IO].asserting(_ mustEqual List())
+      data.newSample.validations._2.pure[IO].asserting(_ mustEqual List())
 
     "return list errors for invalid data" in newCase[CaseData]: (tn, data) =>
       val invalidSample = data.newSample.copy(
@@ -154,7 +154,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         edges = Set() // No edges
       )
 
-      invalidSample.validationErrors.pure[IO].logValue(tn, "validationErrors").asserting(_.size mustEqual 4)
+      invalidSample.validations._2.pure[IO].logValue(tn, "validationErrors").asserting(_.size mustEqual 4)
 
   "New.findHnIndexies" should:
     "return map of HnIndex" in newCase[CaseData]: (tn, data) =>

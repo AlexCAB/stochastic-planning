@@ -15,58 +15,50 @@ package planning.engine.planner.map.state
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.IoValue
-import planning.engine.common.values.node.HnId
-import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
-import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.nodes.DcgNode
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 final case class MapGraphState[F[_]: MonadThrow](
-    ioValues: Map[IoValue, Set[HnId]],
+    ioValues: Map[IoValue, Set[MnId.Con]],
     graph: DcgGraph[F]
 ):
   lazy val isEmpty: Boolean = ioValues.isEmpty && graph.isEmpty
-  
-  def addConcreteNodes(nodes: List[DcgNode.Concrete[F]]): F[MapGraphState[F]] =
+
+  private[state] def updateOrAddIoValues(node: DcgNode.Concrete[F]): F[(IoValue, Set[MnId.Con])] =
+    ioValues.get(node.ioValue) match
+      case None                                => (node.ioValue -> Set(node.id)).pure
+      case Some(ids) if !ids.contains(node.id) => (node.ioValue -> (ids + node.id)).pure
+      case Some(ids) => s"Duplicate node id ${node.id} for IoValue ${node.ioValue}".assertionError
+
+  def addNodes(nodes: Iterable[DcgNode[F]]): F[MapGraphState[F]] =
     for
-      groupedIoVals <- nodes.groupBy(_.ioValue).view.mapValues(_.map(_.id).toSet).pure
-      _ <- ioValues.keySet.assertNoSameElems(groupedIoVals.keySet, "Can't add IoValues that already exist")
-      newGraph <- graph.addConNodes(nodes)
+      conNodes <- nodes.filter(_.isInstanceOf[DcgNode.Concrete[F]]).map(_.asInstanceOf[DcgNode.Concrete[F]]).pure
+      updatedIoValues <- conNodes.toList.traverse(n => updateOrAddIoValues(n)).map(_.toMap)
+      newGraph <- graph.addNodes(nodes)
     yield this.copy(
-      ioValues = ioValues ++ groupedIoVals,
+      ioValues = ioValues ++ updatedIoValues,
       graph = newGraph
     )
 
-  def addAbstractNodes(nodes: List[DcgNode.Abstract[F]]): F[MapGraphState[F]] =
+  def addSamples(samples: Iterable[DcgSample.Add[F]]): F[MapGraphState[F]] =
     for
-      newGraph <- graph.addAbsNodes(nodes)
+        newGraph <- graph.addSamples(samples)
     yield this.copy(graph = newGraph)
 
-  def addEdges(newEdges: List[DcgEdgeData]): F[MapGraphState[F]] =
-    for
-      newGraph <- graph.addEdges(newEdges)
-    yield this.copy(graph = newGraph)
-
-  def mergeEdges(newEdges: List[DcgEdgeData]): F[MapGraphState[F]] =
-    for
-      newGraph <- graph.mergeEdges(newEdges)
-    yield this.copy(graph = newGraph)
-
-  def addSamplesData(samples: List[SampleData]): F[MapGraphState[F]] =
-    for
-      newGraph <- graph.addSamplesData(samples)
-    yield this.copy(graph = newGraph)
+  private[state] def getConForIoValue(ioValue: IoValue): F[(IoValue, Set[DcgNode.Concrete[F]])] = graph
+    .getNodes[DcgNode.Concrete[F]](ioValues(ioValue).map(_.asInstanceOf[MnId]))
+    .map(r => ioValue -> r.values.toSet)
 
   def findConForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
     for
       (found, notFoundValues) <- values.partition(ioValues.contains).pure
-      foundNodes <- found.toList
-        .traverse(v => ioValues(v).toList.traverse(id => graph.getConForHnId(id)).map(n => v -> n.toSet))
+      foundNodes <- found.toList.traverse(getConForIoValue)
     yield (foundNodes.toMap, notFoundValues)
 
-  override lazy val toString: String =
-    s"DcgState(concreteNodes = ${graph.concreteNodes.keySet}, abstractNodes = ${graph.abstractNodes.keySet})"
+  override lazy val toString: String = s"DcgState(nodes count = ${graph.nodes.size}, edges count = ${graph.edges.size})"
 
 object MapGraphState:
   def empty[F[_]: MonadThrow]: MapGraphState[F] = new MapGraphState[F](

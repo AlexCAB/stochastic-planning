@@ -12,58 +12,72 @@
 
 package planning.engine.common.values.edge
 
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import cats.effect.IO
+import cats.syntax.all.*
+
+import planning.engine.common.UnitSpecIO
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.edge.EdgeKey.{Link, Then}
-import planning.engine.common.values.node.MnId.{Con, Abs}
+import planning.engine.common.values.node.MnId.{Abs, Con}
 
-class KeySpec extends AnyWordSpec with Matchers:
-  lazy val edgeLink = Link(Abs(3), Con(4))
-  lazy val edgeThen = Then(Con(5), Abs(6))
+class EdgeKeySpec extends UnitSpecIO:
+  lazy val n1: Abs = Abs(1L)
+  lazy val n2: Con = Con(2L)
+  lazy val n3: Con = Con(3L)
+  lazy val n4: Abs = Abs(4L)
 
-  "Key.asEdgeType" should:
-    "return EdgeType.LINK for Link edge" in:
-      edgeLink.asEdgeType mustBe EdgeType.LINK
+  lazy val edgeLink = Link(n1, n2)
+  lazy val edgeThen = Then(n3, n4)
 
-    "return EdgeType.THEN for Then edge" in:
-      edgeThen.asEdgeType mustBe EdgeType.THEN
+  "EdgeKey.asEdgeType" should:
+    "return EdgeType.LINK for Link edge" in: _ =>
+      edgeLink.asEdgeType.pure[IO].asserting(_ mustBe EdgeType.LINK)
 
-  "Key.repr" should:
-    "return correct string representation for Link edge" in:
-      edgeLink.repr mustBe "(3) -link-> [4]"
+    "return EdgeType.THEN for Then edge" in: _ =>
+      edgeThen.asEdgeType.pure[IO].asserting(_ mustBe EdgeType.THEN)
 
-    "return correct string representation for Then edge" in:
-      edgeThen.repr mustBe "[5] -then-> (6)"
+  "EdgeKey.repr" should:
+    "return correct string representation for Link edge" in: _ =>
+      edgeLink.repr.pure[IO].asserting(_ mustBe "(1) -link-> [2]")
 
-  "Key.Link.srcEnd" should:
-    "return source end as End.Link" in:
-      edgeLink.srcEnd mustBe Link.End(edgeLink.src)
+    "return correct string representation for Then edge" in: _ =>
+      edgeThen.repr.pure[IO].asserting(_ mustBe "[3] -then-> (4)")
 
-  "Key.Link.trgEnd" should:
-    "return target end as End.Link" in:
-      edgeLink.trgEnd mustBe Link.End(edgeLink.trg)
+  "EdgeKey.Link.srcEnd" should:
+    "return source end as End.Link" in: _ =>
+      edgeLink.srcEnd.pure[IO].asserting(_ mustBe Link.End(edgeLink.src))
 
-  "Key.Link.asSrcEnds" should:
-    "return new Link ends with given source" in:
-      edgeLink.trgEnd.asSrcKey(Abs(7)) mustBe Link(Abs(7), edgeLink.trg)
-      
-  "Key.Link.asTrgKey" should:
-    "return new Link ends with given target" in:
-      edgeLink.srcEnd.asTrgKey(Con(8)) mustBe Link(edgeLink.src, Con(8))
-    
-  "Key.Then.srcEnd" should:
-    "return source end as End.Then" in:
-      edgeThen.srcEnd mustBe Then.End(edgeThen.src)
+  "EdgeKey.Link.trgEnd" should:
+    "return target end as End.Link" in: _ =>
+      edgeLink.trgEnd.pure[IO].asserting(_ mustBe Link.End(edgeLink.trg))
 
-  "Key.Then.trgEnd" should:
-    "return target end as End.Then" in:
-      edgeThen.trgEnd mustBe Then.End(edgeThen.trg)
+  "EdgeKey.Link.asSrcEnds" should:
+    "return new Link ends with given source" in: _ =>
+      edgeLink.trgEnd.asSrcKey(Abs(7)).pure[IO].asserting(_ mustBe Link(Abs(7), edgeLink.trg))
 
-  "Key.Then.asSrcEnds" should:
-    "return new Then ends with given source" in:
-      edgeThen.trgEnd.asSrcKey(Con(8)) mustBe Then(Con(8), edgeThen.trg)
-      
-  "Key.Then.asTrgKey" should:
-    "return new Then ends with given target" in:
-      edgeThen.srcEnd.asTrgKey(Abs(7)) mustBe Then(edgeThen.src, Abs(7))
+  "EdgeKey.Link.asTrgKey" should:
+    "return new Link ends with given target" in: _ =>
+      edgeLink.srcEnd.asTrgKey(Con(8)).pure[IO].asserting(_ mustBe Link(edgeLink.src, Con(8)))
+
+  "EdgeKey.Then.srcEnd" should:
+    "return source end as End.Then" in: _ =>
+      edgeThen.srcEnd.pure[IO].asserting(_ mustBe Then.End(edgeThen.src))
+
+  "EdgeKey.Then.trgEnd" should:
+    "return target end as End.Then" in: _ =>
+      edgeThen.trgEnd.pure[IO].asserting(_ mustBe Then.End(edgeThen.trg))
+
+  "EdgeKey.Then.asSrcEnds" should:
+    "return new Then ends with given source" in: _ =>
+      edgeThen.trgEnd.asSrcKey(Con(8)).pure[IO].asserting(_ mustBe Then(Con(8), edgeThen.trg))
+
+  "EdgeKey.Then.asTrgKey" should:
+    "return new Then ends with given target" in: _ =>
+      edgeThen.srcEnd.asTrgKey(Abs(7)).pure[IO].asserting(_ mustBe Then(edgeThen.src, Abs(7)))
+
+  "EdgeKey.apply" should:
+    "create Link edge from EdgeType.LINK" in: _ =>
+      EdgeKey[IO](EdgeType.LINK, n1.asHnId, n2.asHnId, Set(n2), Set(n1)).asserting(_ mustBe edgeLink)
+
+    "create Then edge from EdgeType.THEN" in: _ =>
+      EdgeKey[IO](EdgeType.THEN, n3.asHnId, n4.asHnId, Set(n3), Set(n4)).asserting(_ mustBe edgeThen)

@@ -33,9 +33,8 @@ final case class AbstractNode[F[_]: MonadThrow](
 
 object AbstractNode:
   final case class New(name: Option[HnName], description: Option[Description]) extends Validation:
-    lazy val validationName: String = s"AbstractNode.New(name=$name)"
 
-    lazy val validationErrors: List[Throwable] = validations(
+    override lazy val validations: (String, List[Throwable]) = validate(s"AbstractNode.New(name=$name)")(
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined"
     )
 

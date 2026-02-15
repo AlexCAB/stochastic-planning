@@ -22,7 +22,7 @@ import planning.engine.common.values.node.HnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.SimpleMemStateTestData
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
@@ -80,7 +80,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
         
         val dcgEdgesData = data
           .initSamples.flatMap(_.edges)
-          .groupBy(e => (e.edgeType, Edge.Ends(e.source.hnId, e.target.hnId))).toList
+          .groupBy(e => (e.edgeType, EdgeKey(e.source.hnId, e.target.hnId))).toList
           .traverse((k, es) => DcgEdgeData[IO](k._1, k._2, es)).await.map(e => e.ends -> e).toMap
 
         result mustBe data.initSamples.map(s => s.data.id -> s).toMap

@@ -23,8 +23,8 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
-import planning.engine.common.values.edges.Edge
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.common.values.edge.EdgeKey
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 
@@ -40,7 +40,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
     lazy val hnId5 = HnId(5)
     lazy val nuHnId = HnId(-1)
 
-    lazy val endsSet = Set(Edge.Ends(hnId1, hnId2), Edge.Ends(hnId1, hnId3), Edge.Ends(hnId2, hnId2))
+    lazy val endsSet = Set(EdgeKey(hnId1, hnId2), EdgeKey(hnId1, hnId3), EdgeKey(hnId2, hnId2))
     lazy val conNodes: List[DcgNode.Concrete[IO]] = List(hnId1, hnId2).map(id => makeConcreteDcgNode(id = id))
     lazy val absNodes: List[DcgNode.Abstract[IO]] = List(hnId3, hnId4, hnId5).map(id => makeAbstractDcgNode(id = id))
 
@@ -64,7 +64,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       )
 
     def makeDcgEdge(snId: HnId, tnId: HnId, lIds: List[SampleId], tIds: List[SampleId]): DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(snId, tnId),
+      ends = EdgeKey(snId, tnId),
       links = Links(lIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap),
       thens = Thens(tIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap)
     )
@@ -103,8 +103,8 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val testAbstractNode = data.makeAbstractDcgNode()
 
       val graph = data.emptyDcgGraph.copy(
-        concreteNodes = Map(testConcreteNode.id -> testConcreteNode),
-        abstractNodes = Map(testAbstractNode.id -> testAbstractNode)
+        conNodes = Map(testConcreteNode.id -> testConcreteNode),
+        absNodes = Map(testAbstractNode.id -> testAbstractNode)
       )
 
       async[IO]:
@@ -117,7 +117,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val testSample2 = data.makeSampleData(SampleId(5002))
 
       val graph = data.emptyDcgGraph.copy(
-        samplesData = Map(testSample1.id -> testSample1, testSample2.id -> testSample2)
+        samples = Map(testSample1.id -> testSample1, testSample2.id -> testSample2)
       )
 
       async[IO]:
@@ -152,12 +152,12 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     "return error when concrete nodes map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
       data
-        .graphWithEdges.copy(concreteNodes = data.graphWithEdges.concreteNodes + (data.nuHnId -> data.conNodes.head))
+        .graphWithEdges.copy(conNodes = data.graphWithEdges.conNodes + (data.nuHnId -> data.conNodes.head))
         .checkOneValidationError("Concrete nodes map keys and values IDs mismatch", tn)
 
     "return error when abstract nodes map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
       data
-        .graphWithEdges.copy(abstractNodes = data.graphWithEdges.abstractNodes + (data.nuHnId -> data.absNodes.head))
+        .graphWithEdges.copy(absNodes = data.graphWithEdges.absNodes + (data.nuHnId -> data.absNodes.head))
         .checkOneValidationError("Abstract nodes map keys and values IDs mismatch", tn)
 
     "return error when concrete and abstract nodes IDs overlap detected" in newCase[CaseData]: (tn, data) =>
@@ -166,13 +166,13 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val overlappingAbsNode = data.makeAbstractDcgNode(id = overlappingHnId)
 
       data.emptyDcgGraph.copy(
-        concreteNodes = Map(overlappingHnId -> overlappingConNode),
-        abstractNodes = Map(overlappingHnId -> overlappingAbsNode)
+        conNodes = Map(overlappingHnId -> overlappingConNode),
+        absNodes = Map(overlappingHnId -> overlappingAbsNode)
       ).checkOneValidationError("Concrete and Abstract nodes IDs overlap detected", tn)
 
     "return error when edges data map keys and values ends mismatch" in newCase[CaseData]: (tn, data) =>
       data.graphWithEdges.copy(
-        edgesData = data.graphWithEdges.edgesData + (Edge.Ends(data.hnId3, data.hnId3) -> data.dcgLinkEdge1)
+        edgesData = data.graphWithEdges.edgesData + (EdgeKey(data.hnId3, data.hnId3) -> data.dcgLinkEdge1)
       ).checkOneOfValidationErrors("Edges data map keys and values ends mismatch", tn)
 
     "return error when edge refers to unknown HnIds" in newCase[CaseData]: (tn, data) =>
@@ -195,7 +195,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     "return error when samples data map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
       data.graphWithEdges.copy(
-        samplesData = data.graphWithEdges.samplesData + (data.sampleId1 -> data.makeSampleData(SampleId(9999)))
+        samples = data.graphWithEdges.samples + (data.sampleId1 -> data.makeSampleData(SampleId(9999)))
       ).checkOneValidationError("Samples data map keys and values IDs mismatch", tn)
 
     "return error when some sample IDs used in edges are not found" in newCase[CaseData]: (tn, data) =>
@@ -237,7 +237,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         .map((ends, sampleIds) => data.makeDcgEdge(ends.src, ends.trg, List(sampleIds), List()))
 
       async[IO]:
-        val joinedEdges: Map[Edge.Ends, DcgEdgeData] = data.emptyDcgGraph
+        val joinedEdges: Map[EdgeKey, DcgEdgeData] = data.emptyDcgGraph
           .joinEdges(data.graphWithEdges.edgesData, newEdges)
           .await
 
@@ -259,15 +259,15 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
   "DcgGraph.getEdges(...)" should:
     "get edges correctly" in newCase[CaseData]: (tn, data) =>
-      val ends = Set(Edge.Ends(data.hnId1, data.hnId3), Edge.Ends(data.hnId2, data.hnId4))
+      val ends = Set(EdgeKey(data.hnId1, data.hnId3), EdgeKey(data.hnId2, data.hnId4))
 
       async[IO]:
-        val edges: Map[Edge.Ends, DcgEdgeData] = data.graphWithEdges.getEdges(ends).await
+        val edges: Map[EdgeKey, DcgEdgeData] = data.graphWithEdges.getEdges(ends).await
         logInfo(tn, s"edges: $edges").await
 
         edges.keySet mustBe ends
-        edges(Edge.Ends(data.hnId1, data.hnId3)) mustBe data.dcgEdges.head
-        edges(Edge.Ends(data.hnId2, data.hnId4)) mustBe data.dcgEdges(1)
+        edges(EdgeKey(data.hnId1, data.hnId3)) mustBe data.dcgEdges.head
+        edges(EdgeKey(data.hnId2, data.hnId4)) mustBe data.dcgEdges(1)
 
   "DcgGraph.nextHnIndexies(...)" should:
     "return next HnIndex map correctly for all nodes" in newCase[CaseData]: (tn, data) =>
@@ -315,7 +315,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
     "fail if concrete nodes that already exist" in newCase[CaseData]: (tn, data) =>
       data
-        .emptyDcgGraph.copy(concreteNodes = Map(data.n1.id -> data.n1))
+        .emptyDcgGraph.copy(conNodes = Map(data.n1.id -> data.n1))
         .addConNodes(List(data.n1))
         .logValue(tn)
         .assertThrows[AssertionError]
@@ -334,7 +334,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
       "fail if abstract nodes that already exist" in newCase[CaseData]: (tn, data) =>
         data
-          .emptyDcgGraph.copy(abstractNodes = Map(data.n1.id -> data.nodes.head))
+          .emptyDcgGraph.copy(absNodes = Map(data.n1.id -> data.nodes.head))
           .addAbsNodes(List(data.nodes.head))
           .logValue(tn)
           .assertThrows[AssertionError]
@@ -397,7 +397,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       )
 
       async[IO]:
-        val joinedEdges: Map[Edge.Ends, DcgEdgeData] = (data.dcgEdges ++ dcgEdges2)
+        val joinedEdges: Map[EdgeKey, DcgEdgeData] = (data.dcgEdges ++ dcgEdges2)
           .groupBy(_.ends).view.mapValues(_.reduceLeft((e1, e2) => e1.join[IO](e2).unsafeRunSync()))
           .toMap
 
@@ -458,9 +458,9 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
 
         val graph: DcgGraph[IO] = data.graphWithEdges.addSample(DcgSample(sampleData, edges)).await
         logInfo(tn, s"graph.edgesData: ${graph.edgesData}").await
-        logInfo(tn, s"graph.samplesData: ${graph.samplesData}").await
+        logInfo(tn, s"graph.samplesData: ${graph.samples}").await
 
-        graph.samplesData must contain key data.sampleId3
+        graph.samples must contain key data.sampleId3
 
         // Edge 1 before adding sample
         data.graphWithEdges.edgesData(ends1).links.indexies mustBe Map(
@@ -541,7 +541,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         edge mustBe data.dcgEdges.head
 
     "fail if edge not found" in newCase[CaseData]: (tn, data) =>
-      data.graphWithEdges.getEdge(Edge.Ends(HnId(-1), HnId(-2))).logValue(tn).assertThrows[AssertionError]
+      data.graphWithEdges.getEdge(EdgeKey(HnId(-1), HnId(-2))).logValue(tn).assertThrows[AssertionError]
 
   "DcgGraph.getSamples(...)" should:
     "find samples" in newCase[CaseData]: (tn, data) =>
@@ -569,7 +569,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val sourceHnIds = Set(data.hnId1, data.hnId2)
 
       async[IO]:
-        val result: Map[Edge.Ends, DcgEdgeData] = data.graphWithEdges.findForwardLinkEdges(sourceHnIds).await
+        val result: Map[EdgeKey, DcgEdgeData] = data.graphWithEdges.findForwardLinkEdges(sourceHnIds).await
         logInfo(tn, s"result: $result").await
 
         val expectedEnds = data.dcgEdges.filter(e => sourceHnIds.contains(e.ends.src) && e.isLink).map(_.ends).toSet
@@ -583,7 +583,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val activeSampleIds = Set(data.sampleId1)
 
       async[IO]:
-        val result: Map[Edge.Ends, DcgEdgeData] = data.graphWithEdges
+        val result: Map[EdgeKey, DcgEdgeData] = data.graphWithEdges
           .findForwardActiveLinkEdges(sourceHnIds, activeSampleIds).await
         logInfo(tn, s"result: $result").await
 
@@ -601,7 +601,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val targetHnIds = Set(data.hnId1)
 
       async[IO]:
-        val result: Map[Edge.Ends, DcgEdgeData] = data.graphWithEdges.findBackwardThenEdges(targetHnIds).await
+        val result: Map[EdgeKey, DcgEdgeData] = data.graphWithEdges.findBackwardThenEdges(targetHnIds).await
         logInfo(tn, s"result: $result").await
 
         val expectedEnds = data.dcgEdges.filter(e => targetHnIds.contains(e.ends.trg) && e.isThen).map(_.ends).toSet
@@ -619,7 +619,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       val activeSampleIds = Set(data.sampleId2)
 
       async[IO]:
-        val result: Map[Edge.Ends, DcgEdgeData] = data.graphWithEdges
+        val result: Map[EdgeKey, DcgEdgeData] = data.graphWithEdges
           .findBackwardActiveThenEdges(targetHnIds, activeSampleIds).await
 
         logInfo(tn, s"result: $result").await
@@ -647,11 +647,11 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       async[IO]:
         logInfo(tn, s"emptyGraph: $emptyGraph").await
 
-        emptyGraph.concreteNodes mustBe Map.empty
-        emptyGraph.abstractNodes mustBe Map.empty
+        emptyGraph.conNodes mustBe Map.empty
+        emptyGraph.absNodes mustBe Map.empty
         emptyGraph.edgesData mustBe Map.empty
         emptyGraph.edgesMapping mustBe DcgEdgesMapping.empty[IO]
-        emptyGraph.samplesData mustBe Map.empty
+        emptyGraph.samples mustBe Map.empty
 
   "DcgGraph.apply(...)" should:
     "create correct graph from components" in newCase[CaseData]: (tn, data) =>

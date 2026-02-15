@@ -12,13 +12,14 @@
 
 package planning.engine.planner.plan.dag.edges
 
+import cats.MonadThrow
 import planning.engine.common.values.node.SnId
-import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.planner.map.dcg.edges.DcgEdge
 
-final case class DagEdge(
+final case class DagEdge[F[_]: MonadThrow](
     searchSnId: SnId,
     targetSnId: SnId,
-    dcgNode: DcgEdgeData
+    dcgNode: DcgEdge[F]
 ):
   override lazy val toString: String =
     s"""DagEdge(

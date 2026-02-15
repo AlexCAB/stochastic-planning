@@ -30,10 +30,10 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 import planning.engine.planner.map.dcg.nodes.*
 import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 trait TestApiData:
@@ -215,7 +215,7 @@ trait TestApiData:
   )
 
   lazy val testDcgEdge = DcgEdgeData(
-    ends = Edge.Ends(tesConcreteDcgNode.id, testAbstractDcgNode.id),
+    ends = EdgeKey(tesConcreteDcgNode.id, testAbstractDcgNode.id),
     links = Links.empty,
     thens = Thens(Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001))))
   )
@@ -244,7 +244,7 @@ trait TestApiData:
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
     ioValues = testDcgState.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = testDcgState.graph.concreteNodes.keySet,
-    abstractNodes = testDcgState.graph.abstractNodes.keySet,
+    concreteNodes = testDcgState.graph.conNodes.keySet,
+    abstractNodes = testDcgState.graph.absNodes.keySet,
     edgesMapping = testDcgState.graph.edgesMapping.forward.toSet
   )

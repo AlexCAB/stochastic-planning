@@ -8,14 +8,11 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2026-02-02 |||||||||||*/
+| created: 2026-02-09 |||||||||||*/
 
-package planning.engine.planner.map.dcg.repr
+package planning.engine.common.values.edge
 
-import cats.MonadThrow
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.common.values.node.HnIndex
 
-trait DcgEdgeRepr[F[_]: MonadThrow]:
-  self: DcgEdge[F] =>
-  
-  lazy val repr: String = s"| -[${edgeType.repr}]-> ${key.trg.reprNode}"
+// Represents the source and target random values indices of an edge in a graph.
+final case class Indexies(src: HnIndex, trg: HnIndex)

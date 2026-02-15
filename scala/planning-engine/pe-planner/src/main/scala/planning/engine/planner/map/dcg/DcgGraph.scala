@@ -14,285 +14,157 @@ package planning.engine.planner.map.dcg
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.node.{HnId, HnIndex, HnName}
+import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.values.edges.Edge
-import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
+import planning.engine.common.values.edge.{EdgeKey, IndexMap}
+import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
-import planning.engine.common.graph.EndsGraph
+import planning.engine.common.graph.GraphStructure
 import planning.engine.common.validation.Validation
 import planning.engine.planner.map.dcg.samples.DcgSample
 
+import scala.reflect.ClassTag
+
 final case class DcgGraph[F[_]: MonadThrow](
-    concreteNodes: Map[HnId, DcgNode.Concrete[F]],
-    abstractNodes: Map[HnId, DcgNode.Abstract[F]],
-    edgesData: Map[Edge.Ends, DcgEdgeData],
-    edgesMapping: DcgEdgesMapping[F],
-    samplesData: Map[SampleId, SampleData]
-) extends EndsGraph(edgesData.values.flatMap(_.edges).toSet) with Validation:
+    nodes: Map[MnId, DcgNode[F]],
+    edges: Map[EdgeKey, DcgEdge[F]],
+    samples: Map[SampleId, SampleData],
+    structure: GraphStructure[F]
+) extends Validation:
+  lazy val mnIds: Set[MnId] = nodes.keySet
+  lazy val sampleIds: Set[SampleId] = samples.keySet
 
-  lazy val allHnIds: Set[HnId] = concreteNodes.keySet ++ abstractNodes.keySet
-  lazy val allSampleIds: Set[SampleId] = samplesData.keySet
+  lazy val conMnId: Set[MnId.Con] = mnIds.collect { case c: MnId.Con => c }
+  lazy val absMnId: Set[MnId.Abs] = mnIds.collect { case c: MnId.Abs => c }
 
-  lazy val allIndexies: Map[HnId, Set[HnIndex]] = edgesData.values.toList
-    .flatMap(e => List(e.ends.src -> e.srcHnIndex, e.ends.trg -> e.trgHnIndex))
+  lazy val isEmpty: Boolean = nodes.isEmpty
+
+  // Map of all HnIndexes for each MnId, collected from all edges in the graph.
+  // Used for validating new edges in samples added to the graph, since only validation in DcgEdge.DcgSamples
+  // is not enough, because some HnIndexes can be used in different edges.
+  lazy val allIndexies: Map[MnId, Set[HnIndex]] = edges.values
+    .flatMap(e => List(e.key.src -> e.samples.srcHnIndex, e.key.trg -> e.samples.trgHnIndex))
     .groupBy(_._1)
-    .map((hdId, lst) => hdId -> lst.flatMap(_._2).toSet)
+    .map((mnId, lst) => mnId -> lst.flatMap(_._2).toSet)
 
-  lazy val isEmpty: Boolean = concreteNodes.isEmpty &&
-    abstractNodes.isEmpty &&
-    edgesData.isEmpty &&
-    edgesMapping.isEmpty &&
-    samplesData.isEmpty
+  override lazy val validations: (String, List[Throwable]) =
+    val edgeAllMdIds = edges.values.flatMap(_.mnIds)
+    val edgeEnds = edges.keySet
+    val edgeSampleIds = edges.values.flatMap(_.samples.sampleIds)
 
-  override lazy val validationName: String = "DcgGraph"
-
-  override lazy val validationErrors: List[Throwable] =
-    val edgeAllHdIds = edgesData.values.flatMap(_.hnIds)
-    val edgeSampleIds = edgesData.values.flatMap(_.sampleIds)
-
-    edgesMapping.validationErrors ++ validations(
-      concreteNodes.map((k, n) => k -> n.id).allEquals("Concrete nodes map keys and values IDs mismatch"),
-      abstractNodes.map((k, n) => k -> n.id).allEquals("Abstract nodes map keys and values IDs mismatch"),
-      concreteNodes.keySet.haveDifferentElems(abstractNodes.keySet, "Concrete and Abstract nodes IDs overlap detected"),
-      edgesData.map((k, n) => k -> n.ends).allEquals("Edges data map keys and values ends mismatch"),
-      allHnIds.containsAllOf(edgesData.values.flatMap(_.hnIds), "Edge refers to unknown HnIds"),
-      allHnIds.containsAllOf(edgesMapping.allHnIds, "Edges mapping refers to unknown HnIds"),
-      edgesData.keySet.haveSameElems(edgesMapping.allEnds, "Edges mapping refers to unknown edge ends"),
-      samplesData.map((k, n) => k -> n.id).allEquals("Samples data map keys and values IDs mismatch"),
-      allSampleIds.containsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
+    validate("DcgGraph")(
+      nodes.map((k, n) => k -> n.id).allEquals("Nodes map keys and values IDs mismatch"),
+      edges.map((k, n) => k -> n.key).allEquals("Edges data map keys and values key mismatch"),
+      samples.map((k, n) => k -> n.id).allEquals("Samples data map keys and values IDs mismatch"),
+      mnIds.containsAllOf(edgeAllMdIds, "Edge refers to unknown MnIds"),
+      mnIds.containsAllOf(structure.mnIds, "Graph structure refers to unknown MnIds"),
+      structure.keys.haveSameElems(edgeEnds, "Edges mapping refers to unknown edge key"),
+      sampleIds.containsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
     )
 
-  private[map] def checkEdges(edges: Iterable[DcgEdgeData]): F[Unit] =
+  def getNodes[N <: DcgNode[F]: ClassTag](ids: Set[MnId]): F[Map[MnId, N]] = {
+    val rc = implicitly[ClassTag[N]].runtimeClass
     for
-      _ <- edges.map(_.ends).assertDistinct("Duplicate Edge Keys detected")
-      _ <- allHnIds.assertContainsAll(edges.flatMap(_.hnIds), "Edge refers to unknown HnIds")
-    yield ()
+      found <- nodes.filter((id, n) => ids.contains(id) && rc.isInstance(n)).pure
+      _ <- found.keySet.assertContainsAll(ids, "Some node IDs are not found")
+    yield found.map((k, v) => k -> v.asInstanceOf[N])
+  }
 
-  private[map] def joinEdges(
-      oldEdges: Map[Edge.Ends, DcgEdgeData],
-      newEdges: Iterable[DcgEdgeData]
-  ): F[Map[Edge.Ends, DcgEdgeData]] = newEdges.foldRight(oldEdges.pure)((nEdge, accF) =>
+  def getEdges[K <: EdgeKey: ClassTag](keys: Set[EdgeKey]): F[Map[K, DcgEdge[F]]] =
+    val rc = implicitly[ClassTag[K]].runtimeClass
     for
-      acc <- accF
-      oEdge <- acc.get(nEdge.ends).map(_.pure).getOrElse(s"Edge to merge not found for ${nEdge.ends}".assertionError)
-      mEdge <- oEdge.join(nEdge)
-    yield acc.updated(nEdge.ends, mEdge)
-  )
-
-  private[map] def getEdges(ends: Set[Edge.Ends]): F[Map[Edge.Ends, DcgEdgeData]] =
-    for
-      filteredEdges <- edgesData.filter((e, _) => ends.contains(e)).pure
-      _ <- ends.assertSameElems(filteredEdges.keySet, "Bug: All ends in mapping should be in edges data")
-    yield filteredEdges
-
-  private[map] def nextHnIndexies(hdIds: Set[HnId]): F[Map[HnId, HnIndex]] =
-    for
-      _ <- allHnIds.assertContainsAll(hdIds, "Some HnIds are not found in the graph")
-      filteredIndexies = allIndexies.filter((hdId, _) => hdIds.contains(hdId))
-      maxIndexies = filteredIndexies.map((hdId, lst) => hdId -> lst.map(_.value).maxOption)
-      nextIndexies = maxIndexies.map((hdId, opMax) => hdId -> opMax.map(i => HnIndex(i + 1)).getOrElse(HnIndex.init))
-    yield nextIndexies
-
-  def addConNodes(nodes: Iterable[DcgNode.Concrete[F]]): F[DcgGraph[F]] =
-    for
-      allNewHdId <- nodes.map(_.id).pure
-      _ <- allNewHdId.assertDistinct("Duplicate Concrete Node IDs detected")
-      _ <- concreteNodes.keySet.assertNoSameElems(allNewHdId, "Can't add concrete nodes that already exist")
-    yield this.copy(concreteNodes = concreteNodes ++ nodes.map(n => n.id -> n).toMap)
-
-  def addAbsNodes(nodes: Iterable[DcgNode.Abstract[F]]): F[DcgGraph[F]] =
-    for
-      allNewHdId <- nodes.map(_.id).pure
-      _ <- allNewHdId.assertDistinct("Duplicate abstract Node IDs detected")
-      _ <- abstractNodes.keySet.assertNoSameElems(allNewHdId, "Can't add abstract nodes that already exist")
-    yield this.copy(abstractNodes = abstractNodes ++ nodes.map(n => n.id -> n).toMap)
-
-  def addEdges(newEdges: Iterable[DcgEdgeData]): F[DcgGraph[F]] =
-    for
-      _ <- checkEdges(newEdges)
-      nEdges = newEdges.map(e => e.ends -> e).toMap
-      _ <- nEdges.keys.assertNoSameElems(edgesData.keys, "Can't add Edges that already exist")
-      nEdgesMapping <- edgesMapping.addAll(nEdges.keySet)
-    yield this.copy(edgesData = edgesData ++ nEdges, edgesMapping = nEdgesMapping)
-
-  def updateEdges(newEdges: Iterable[DcgEdgeData]): F[DcgGraph[F]] =
-    for
-      _ <- edgesData.keySet.assertContainsAll(newEdges.map(_.ends), "Some edges to update do not exist in the graph")
-      updatedEdges = newEdges.map(e => e.ends -> e).toMap
-    yield this.copy(edgesData = edgesData.++(updatedEdges))
-
-  def mergeEdges(list: Iterable[DcgEdgeData]): F[DcgGraph[F]] =
-    for
-      _ <- checkEdges(list)
-      (inSetEdges, outSetEdges) = list.partition(e => edgesData.contains(e.ends))
-      joinedEdges <- joinEdges(edgesData, inSetEdges)
-      newEdges = outSetEdges.map(e => e.ends -> e).toMap
-      _ <- joinedEdges.keys.assertNoSameElems(newEdges.keys, "Bug in partition of edges for merging")
-      nEdgesMapping <- edgesMapping.addAll(newEdges.keySet)
-    yield this.copy(edgesData = joinedEdges ++ newEdges, edgesMapping = nEdgesMapping)
-
-  def addSampleData(sample: SampleData): F[DcgGraph[F]] =
-    for
-        _ <- allSampleIds.assertNotContain(sample.id, s"Sample already exists in the graph")
-    yield this.copy(samplesData = samplesData + (sample.id -> sample))
-
-  def addSamplesData(samples: Iterable[SampleData]): F[DcgGraph[F]] =
-    for
-      sampleIds <- samples.map(_.id).pure
-      _ <- sampleIds.assertDistinct("Duplicate Sample IDs detected")
-      _ <- sampleIds.assertNoSameElems(samplesData.keySet, "Can't add Samples that already exist")
-    yield this.copy(samplesData = samplesData ++ samples.map(s => s.id -> s).toMap)
-
-  def addSample(sample: DcgSample): F[DcgGraph[F]] =
-    for
-      _ <- Validation.validate(sample)
-      nextInd <- nextHnIndexies(sample.edges.flatMap(e => Set(e.src, e.trg)))
-      upEdges <-
-        sample.edges.toList.traverse(e => getEdge(e.ends).flatMap(_.addSample(e.eType, sample.data.id, nextInd)))
-      withSample <- addSampleData(sample.data)
-      withEdges <- withSample.updateEdges(upEdges)
-    yield withEdges
-
-  def getConForHnId(id: HnId): F[DcgNode.Concrete[F]] = concreteNodes.get(id) match
-    case Some(node) => node.pure
-    case None       => s"DcgNode.Concrete with HnId $id not found in ${concreteNodes.keySet}".assertionError
-
-  def getConForHnIds(ids: Set[HnId]): F[Map[HnId, DcgNode.Concrete[F]]] =
-    for
-      found <- concreteNodes.filter((id, _) => ids.contains(id)).pure
-      _ <- found.keySet.assertContainsAll(ids, "Some concrete node IDs are not found")
-    yield found
-
-  def getAbsForHnId(id: HnId): F[DcgNode.Abstract[F]] = abstractNodes.get(id) match
-    case Some(node) => node.pure
-    case None       => s"DcgNode.Abstract with HnId $id not found in ${abstractNodes.keySet}".assertionError
-
-  def getAbsForHnIds(ids: Set[HnId]): F[Map[HnId, DcgNode.Abstract[F]]] =
-    for
-      found <- abstractNodes.filter((id, _) => ids.contains(id)).pure
-      _ <- found.keySet.assertContainsAll(ids, "Some abstract node IDs are not found")
-    yield found
-
-  def getEdge(ends: Edge.Ends): F[DcgEdgeData] = edgesData.get(ends) match
-    case Some(edge) => edge.pure
-    case None       => s"DcgEdgeData with ends $ends not found in ${edgesData.keySet}".assertionError
+      edges <- this.edges.filter((k, _) => keys.contains(k) && rc.isInstance(k)).pure
+      _ <- keys.assertSameElems(edges.keySet, "Some edge keys are not found in the graph")
+    yield edges.map((k, v) => k.asInstanceOf[K] -> v)
 
   def getSamples(sampleIds: Set[SampleId]): F[Map[SampleId, SampleData]] =
     for
-      found <- samplesData.filter((id, _) => sampleIds.contains(id)).pure
+      found <- samples.filter((id, _) => sampleIds.contains(id)).pure
       _ <- found.keySet.assertContainsAll(sampleIds, "Bug: Some sample IDs are not found")
     yield found
 
-  def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] =
+  // Add new nodes to the graph, checking that their IDs are distinct and do not already exist in the graph
+  def addNodes(nodes: Iterable[DcgNode[F]]): F[DcgGraph[F]] =
     for
-      allNodes <- (concreteNodes.values ++ abstractNodes.values).pure[F]
-      grouped = allNodes.filter(n => n.name.isDefined && names.contains(n.name.get)).groupBy(_.name.get)
-    yield grouped.view.mapValues(_.map(_.id).toSet).toMap
+      ids <- nodes.map(_.id).pure
+      _ <- ids.assertDistinct("Duplicate Node IDs detected")
+      _ <- mnIds.assertNoSameElems(ids, "Can't add nodes that already exist")
+    yield this.copy(nodes = this.nodes ++ nodes.map(n => n.id -> n).toMap)
 
-  def findForwardLinkEdges(sourceHnIds: Set[HnId]): F[Map[Edge.Ends, DcgEdgeData]] =
+  private[map] def updateOrAddEdge(key: EdgeKey, indexies: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
     for
-      ends <- getEdges(edgesMapping.findForward(sourceHnIds)).map(_.filter(_._2.isLink))
-      _ <- sourceHnIds.assertSameElems(ends.keys.map(_.src), "Found ends must have as source one of given HnIds")
-    yield ends
+      newEdge <- DcgEdge(key, indexies)
+      _ <- allIndexies.keySet.assertContainsAll(Set(key.src, key.trg), s"Edge key $key refers to unknown MnIds")
+      _ <- allIndexies(key.src).assertNoSameElems(newEdge.samples.srcHnIndex, s"Duplicate source indexes")
+      _ <- allIndexies(key.trg).assertNoSameElems(newEdge.samples.trgHnIndex, s"Duplicate target indexes")
+      edge <- edges.get(key).map(_.join(newEdge)).getOrElse(newEdge.pure)
+    yield edge
 
-  def findForwardActiveLinkEdges(
-      sourceHnIds: Set[HnId],
-      activeSampleIds: Set[SampleId]
-  ): F[Map[Edge.Ends, DcgEdgeData]] =
-    findForwardLinkEdges(sourceHnIds).map(_.filter((_, edge) => edge.linksIds.exists(activeSampleIds.contains)))
-
-  def findBackwardThenEdges(targetHnIds: Set[HnId]): F[Map[Edge.Ends, DcgEdgeData]] =
+  // Add a new DCG samples to the graph. For each edge in sample if exist edge with the same key, add sample to it,
+  // otherwise create new DcgEdge.
+  def addSamples(samples: Iterable[DcgSample.Add[F]]): F[DcgGraph[F]] =
     for
-      ends <- getEdges(edgesMapping.findBackward(targetHnIds)).map(_.filter(_._2.isThen))
-      _ <- targetHnIds.assertSameElems(ends.keys.map(_.trg), "Found ends must have as target one of given HnIds")
-    yield ends
+      _ <- Validation.validateList(samples.map(_.sample))
+      sampleIds = samples.map(_.sample.data.id)
+      _ <- sampleIds.assertDistinct("Duplicate sample IDs detected")
+      _ <- sampleIds.assertNoSameElems(sampleIds, s"Some sample IDs already exists in the graph")
+      sampleIdsByKeys = samples.flatMap(_.idsByKey).groupBy(_._1).view.mapValues(_.map(_._2).toMap).toList
+      updatedEdges <- sampleIdsByKeys.traverse((k, ids) => updateOrAddEdge(k, ids).map(e => k -> e)).map(_.toMap)
+      addedSamples = samples.map(s => s.sample.data.id -> s.sample.data).toMap
+      newStructure <- structure.add(updatedEdges.keySet.filterNot(k => edges.contains(k)))
+    yield this.copy(
+      edges = this.edges ++ updatedEdges,
+      samples = this.samples ++ addedSamples,
+      structure = newStructure
+    )
 
-  def findBackwardActiveThenEdges(
-      targetHnIds: Set[HnId],
-      activeSampleIds: Set[SampleId]
-  ): F[Map[Edge.Ends, DcgEdgeData]] =
-    findBackwardThenEdges(targetHnIds).map(_.filter((_, edge) => edge.thensIds.exists(activeSampleIds.contains)))
-
-  private[map] def sortedForwardEdges(srtIds: Set[HnId]): Map[HnId, List[Edge.Ends]] = edgesMapping
-    .findForward(srtIds).groupBy(_.src)
-    .view.mapValues(_.filter(e => edgesData.get(e).forall(_.isLink)).toList.sortBy(_.trg.value))
+  def findHnIdsByNames(names: Set[HnName]): Map[HnName, Set[MnId]] = nodes.values
+    .filter(_.name.exists(name => names.contains(name)))
+    .groupBy(_.name.get)
+    .view.mapValues(_.map(_.id).toSet)
     .toMap
 
-  private[map] def nodeRendered(nodes: List[DcgNode[F]], edgeMap: Map[HnId, List[Edge.Ends]]): List[String] =
-    val cols = nodes.sortBy(_.id.value).map: node =>
-      val edges = edgeMap.getOrElse(node.id, List()).flatMap(e => edgesData.get(e))
-      val edgesRepr = edges.map(_.reprTarget)
-      val colRepr = node.repr +: edgesRepr
-      val rowLength = colRepr.map(_.length).max
-      rowLength -> colRepr.map(r => r + " " * (rowLength - r.length))
+  def findForwardLinkEdges(srcMnIds: Set[MnId]): F[Map[EdgeKey.Link, DcgEdge[F]]] =
+    getEdges[EdgeKey.Link](structure.findForward(srcMnIds).filter(_.isInstanceOf[EdgeKey.Link]))
 
-    val colHeight = cols.map(_._2.length).max
+  def findForwardActiveLinkEdges(srcMnIds: Set[MnId], sampleIds: Set[SampleId]): F[Map[EdgeKey.Link, DcgEdge[F]]] =
+    findForwardLinkEdges(srcMnIds).map(_.filter((_, e) => e.isActive(sampleIds)))
 
-    cols
-      .map((rowLength, col) => col ++ List.fill(colHeight - col.length)(" " * rowLength))
-      .transpose
-      .map(_.mkString(" "))
+  def findBackwardThenEdges(trgHnIds: Set[MnId]): F[Map[EdgeKey.Then, DcgEdge[F]]] =
+    getEdges[EdgeKey.Then](structure.findBackward(trgHnIds).filter(_.isInstanceOf[EdgeKey.Then]))
 
-  private[map] def renderedAbstract(nextIds: Set[HnId], i: Int): List[String] =
-    ??? //assert(i <= 100, "Max recursion depth exceeded in renderedAbstract")
-    val levelTitle = List("-" * 20, s"Abstract Level $i:")
-
-    sortedForwardEdges(nextIds) match
-      case edges if edges.isEmpty => List()
-      case edges => levelTitle ++ nodeRendered(
-          abstractNodes.filter((id, _) => nextIds.contains(id)).values.toList,
-          edges
-        ) ++ renderedAbstract(edges.flatMap((_, e) => e.map(_.trg)).toSet, i + 1)
-
-  lazy val repr: String =
-    val conEdges = sortedForwardEdges(concreteNodes.keySet)
-
-    val rendered = nodeRendered(
-      concreteNodes.values.toList,
-      conEdges
-    ) ++ renderedAbstract(conEdges.flatMap((_, e) => e.map(_.trg)).toSet, i = 1)
-
-    "\nConcrete Level 0:\n" + rendered.mkString("\n")
+  def findBackwardActiveThenEdges(trgMnIds: Set[MnId], sampleIds: Set[SampleId]): F[Map[EdgeKey.Then, DcgEdge[F]]] =
+    findBackwardThenEdges(trgMnIds).map(_.filter((_, e) => e.isActive(sampleIds)))
 
   override lazy val toString: String =
     s"""DcgGraph(
-       | Concrete Nodes: ${concreteNodes.size}
-       | Abstract Nodes: ${abstractNodes.size}
-       | Edges Data: ${edgesData.size}
-       | Edges Mapping: ${edgesMapping.toString}
-       | Samples Data: ${samplesData.size}
+       | nodes count: ${nodes.size}
+       | edges count: ${edges.size}
+       | samples count: ${samples.size}
        |)""".stripMargin
 
 object DcgGraph:
   def empty[F[_]: MonadThrow]: DcgGraph[F] = DcgGraph[F](
-    concreteNodes = Map.empty,
-    abstractNodes = Map.empty,
-    edgesData = Map.empty,
-    edgesMapping = DcgEdgesMapping.empty,
-    samplesData = Map.empty
+    nodes = Map.empty,
+    edges = Map.empty,
+    samples = Map.empty,
+    structure = GraphStructure.empty
   )
 
   def apply[F[_]: MonadThrow](
-      concreteNodes: Iterable[DcgNode.Concrete[F]],
-      abstractNodes: Iterable[DcgNode.Abstract[F]],
-      edgesData: Iterable[DcgEdgeData],
-      samplesData: Iterable[SampleData]
+      nodes: Iterable[DcgNode[F]],
+      edges: Iterable[DcgEdge[F]],
+      samples: Iterable[SampleData]
   ): F[DcgGraph[F]] =
     for
-      _ <- concreteNodes.map(_.id).assertDistinct("Duplicate Concrete Node IDs detected")
-      _ <- abstractNodes.map(_.id).assertDistinct("Duplicate Abstract Node IDs detected")
-      _ <- edgesData.map(_.ends).assertDistinct("Duplicate Edge Keys detected")
-      allHnIds = concreteNodes.map(_.id).toSet ++ abstractNodes.map(_.id).toSet
-      _ <- allHnIds.assertContainsAll(edgesData.flatMap(_.hnIds), "Edge refers to unknown HnIds")
-      allSampleIds = edgesData.flatMap(_.sampleIds)
-      _ <- samplesData.map(_.id).assertContainsAll(allSampleIds, "Some sample IDs used in edges are not found")
-    yield DcgGraph(
-      concreteNodes = concreteNodes.map(n => n.id -> n).toMap,
-      abstractNodes = abstractNodes.map(n => n.id -> n).toMap,
-      edgesData = edgesData.map(e => e.ends -> e).toMap,
-      edgesMapping = DcgEdgesMapping(edgesData.map(_.ends)),
-      samplesData = samplesData.map(s => s.id -> s).toMap
-    )
+      _ <- nodes.map(_.id).assertDistinct("Duplicate node IDs detected")
+      _ <- edges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
+      nodesMap = nodes.map(n => n.id -> n).toMap
+      edgesMap = edges.map(e => e.key -> e).toMap
+      _ <- nodesMap.keySet.assertContainsAll(edges.flatMap(_.mnIds), "Edge refers to unknown HnIds")
+      samplesMap = samples.map(s => s.id -> s).toMap
+      edgesSampleIds = edges.flatMap(_.samples.sampleIds)
+      _ <- samplesMap.keySet.assertContainsAll(edgesSampleIds, "Some sample IDs used in edges are not found")
+    yield DcgGraph(nodesMap, edgesMap, samplesMap, GraphStructure(edgesMap.keySet))

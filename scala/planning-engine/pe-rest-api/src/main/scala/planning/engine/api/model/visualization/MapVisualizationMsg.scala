@@ -37,8 +37,8 @@ object MapVisualizationMsg:
   def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): MapVisualizationMsg = MapVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,
-    ioValues = state.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = state.graph.concreteNodes.keySet,
-    abstractNodes = state.graph.abstractNodes.keySet,
-    edgesMapping = state.graph.edgesMapping.forward.toSet
+    ioValues = state.ioValues.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
+    concreteNodes = state.graph.nodes.keySet.filter(_.isCon).map(_.asHnId),
+    abstractNodes = state.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
+    edgesMapping = state.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
   )

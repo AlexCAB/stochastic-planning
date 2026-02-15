@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg.repr
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 import planning.engine.planner.map.test.data.MapSampleTestData
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.dcg.samples.DcgSample
@@ -41,42 +41,42 @@ class DcgSampleReprSpec extends UnitSpecWithData:
 
     lazy val edges = Set(
       // LINK Level 1 to 2
-      Edge.Link(n11, n21),
-      Edge.Link(n11, n22),
-      Edge.Link(n12, n22),
-      Edge.Link(n13, n22),
-      Edge.Link(n13, n23),
-      Edge.Link(n14, n23),
+      EdgeKey.Link(n11, n21),
+      EdgeKey.Link(n11, n22),
+      EdgeKey.Link(n12, n22),
+      EdgeKey.Link(n13, n22),
+      EdgeKey.Link(n13, n23),
+      EdgeKey.Link(n14, n23),
       // LINK Level 2 to 3
-      Edge.Link(n21, n31),
-      Edge.Link(n21, n32),
-      Edge.Link(n22, n32),
-      Edge.Link(n23, n32),
+      EdgeKey.Link(n21, n31),
+      EdgeKey.Link(n21, n32),
+      EdgeKey.Link(n22, n32),
+      EdgeKey.Link(n23, n32),
       // LINK Level 3 to 4
-      Edge.Link(n31, n41),
-      Edge.Link(n32, n41),
+      EdgeKey.Link(n31, n41),
+      EdgeKey.Link(n32, n41),
       // THEN path 1
-      Edge.Then(n11, n12),
-      Edge.Then(n12, n13),
-      Edge.Then(n13, n14),
+      EdgeKey.Then(n11, n12),
+      EdgeKey.Then(n12, n13),
+      EdgeKey.Then(n13, n14),
       // THEN path 2
-      Edge.Then(n21, n22),
-      Edge.Then(n22, n23),
+      EdgeKey.Then(n21, n22),
+      EdgeKey.Then(n22, n23),
       // THEN path 2
-      Edge.Then(n23, n22),
-      Edge.Then(n22, n21),
+      EdgeKey.Then(n23, n22),
+      EdgeKey.Then(n22, n21),
       // THEN path 3
-      Edge.Then(n11, n21),
-      Edge.Then(n21, n31),
-      Edge.Then(n31, n41),
-      Edge.Then(n41, n32),
-      Edge.Then(n32, n23),
-      Edge.Then(n23, n14),
+      EdgeKey.Then(n11, n21),
+      EdgeKey.Then(n21, n31),
+      EdgeKey.Then(n31, n41),
+      EdgeKey.Then(n41, n32),
+      EdgeKey.Then(n32, n23),
+      EdgeKey.Then(n23, n14),
       // THEN path/loop 3
-      Edge.Then(n31, n32),
-      Edge.Then(n32, n31),
+      EdgeKey.Then(n31, n32),
+      EdgeKey.Then(n32, n31),
       // THEN path/loop 4
-      Edge.Then(n41, n41)
+      EdgeKey.Then(n41, n41)
     )
 
     lazy val dcgSample = DcgSample(sampleData, edges)

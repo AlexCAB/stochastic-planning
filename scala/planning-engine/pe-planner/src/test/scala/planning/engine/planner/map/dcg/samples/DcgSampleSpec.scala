@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.map.test.data.MapSampleTestData
 
@@ -29,7 +29,7 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
     lazy val n4 = HnId(4)
 
     val sampleData = makeSampleData()
-    val edges = Set(Edge.Link(n1, n2), Edge.Then(n2, n3), Edge.Link(n1, n4))
+    val edges = Set(EdgeKey.Link(n1, n2), EdgeKey.Then(n2, n3), EdgeKey.Link(n1, n4))
 
     val dcgSample = DcgSample(sampleData, edges)
 
@@ -42,7 +42,7 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
       data.dcgSample.checkNoValidationError(tn)
 
     "return error for non-connected edges" in newCase[CaseData]: (tn, data) =>
-      val invalidEdges = Set(Edge.Link(data.n1, data.n2), Edge.Then(HnId(5), HnId(6)))
+      val invalidEdges = Set(EdgeKey.Link(data.n1, data.n2), EdgeKey.Then(HnId(5), HnId(6)))
 
       data.dcgSample.copy(edges = invalidEdges)
         .checkOneValidationError("DcgSample edges must form a connected graph", tn)

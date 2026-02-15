@@ -17,13 +17,13 @@ import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 
 class DcgEdgeSamplesSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val indexies1: Map[SampleId, Indexies] = Map(SampleId(10) -> DcgEdgeSamples.Indexies(HnIndex(1), HnIndex(1)))
-    lazy val indexies2: Map[SampleId, Indexies] = Map(SampleId(20) -> DcgEdgeSamples.Indexies(HnIndex(2), HnIndex(3)))
+    lazy val indexies1: Map[SampleId, Indexies] = Map(SampleId(10) -> DcgSamples.Indexies(HnIndex(1), HnIndex(1)))
+    lazy val indexies2: Map[SampleId, Indexies] = Map(SampleId(20) -> DcgSamples.Indexies(HnIndex(2), HnIndex(3)))
 
     lazy val links1: Links = Links(indexies1)
     lazy val thens1: Thens = Thens(indexies2)
@@ -46,14 +46,14 @@ class DcgEdgeSamplesSpec extends UnitSpecWithData:
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate links sample"))
 
     "fail to join two index maps with source index conflicts" in newCase[CaseData]: (tn, data) =>
-      val conflictingIndexies = Map(SampleId(30) -> DcgEdgeSamples.Indexies(HnIndex(1), HnIndex(4)))
+      val conflictingIndexies = Map(SampleId(30) -> DcgSamples.Indexies(HnIndex(1), HnIndex(4)))
 
       data.links1
         .joinIndexies[IO](conflictingIndexies).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate links source"))
 
     "fail to join two index maps with target index conflicts" in newCase[CaseData]: (tn, data) =>
-      val conflictingIndexies = Map(SampleId(30) -> DcgEdgeSamples.Indexies(HnIndex(5), HnIndex(1)))
+      val conflictingIndexies = Map(SampleId(30) -> DcgSamples.Indexies(HnIndex(5), HnIndex(1)))
       data.links1
         .joinIndexies[IO](conflictingIndexies).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate links target"))

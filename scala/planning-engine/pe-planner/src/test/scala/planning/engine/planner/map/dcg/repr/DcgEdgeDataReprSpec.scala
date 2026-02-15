@@ -15,11 +15,11 @@ package planning.engine.planner.map.dcg.repr
 import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.edges.Edge
+import planning.engine.common.values.edge.EdgeKey
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 
 class DcgEdgeDataReprSpec extends UnitSpecWithData:
 
@@ -27,7 +27,7 @@ class DcgEdgeDataReprSpec extends UnitSpecWithData:
     lazy val indexies: Map[SampleId, Indexies] = Map(SampleId(10) -> Indexies(HnIndex(1), HnIndex(1)))
 
     lazy val dcgBothEdge: DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(HnId(1), HnId(2)),
+      ends = EdgeKey(HnId(1), HnId(2)),
       links = Links(indexies),
       thens = Thens(indexies)
     )

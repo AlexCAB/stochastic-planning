@@ -30,9 +30,7 @@ final case class MapSubGraph[F[_]: MonadThrow](
   lazy val allIoValues: Set[IoValue] = concreteNodes.map(_.ioValue).toSet
   lazy val allSampleIds: Set[SampleId] = loadedSamples.map(_.id).toSet ++ skippedSamples.toSet
 
-  lazy val validationName: String = s"MapSubGraph(nodes=${(concreteNodes ++ abstractNodes).map(_.id)})"
-
-  lazy val validationErrors: List[Throwable] =
+  override lazy val validations: (String, List[Throwable]) =
     val conIds = concreteNodes.map(_.id)
     val absIds = abstractNodes.map(_.id)
     val allIds = conIds ++ absIds
@@ -42,7 +40,7 @@ final case class MapSubGraph[F[_]: MonadThrow](
     val allSamplesIds = loadedSamplesIsd ++ skippedSamples
     val allEdgeSamplesIds = edges.flatMap(_.samples.map(_.sampleId)).distinct
 
-    validations(
+    validate(s"MapSubGraph(nodes=${(concreteNodes ++ abstractNodes).map(_.id)})")(
       conIds.isDistinct("Concrete node IDs must be distinct"),
       absIds.isDistinct("Abstract node IDs must be distinct"),
       allIds.isDistinct("Node IDs must be distinct"),

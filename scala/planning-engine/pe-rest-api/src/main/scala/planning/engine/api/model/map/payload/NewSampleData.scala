@@ -24,11 +24,9 @@ final case class NewSampleData(
     description: Option[Description],
     edges: List[NewSampleEdge]
 ) extends Validation:
-
   lazy val edgesHnNames: Set[HnName] = edges.toSet.flatMap(e => Set(e.sourceHnName, e.targetHnName))
-  lazy val validationName: String = s"NewSampleData(name = ${name.getOrElse("None")})"
 
-  lazy val validationErrors: List[Throwable] = validations(
+  lazy val validations: (String, List[Throwable]) = validate(s"NewSampleData(name = ${name.getOrElse("None")})")(
     (probabilityCount > 0) -> "Probability count must be greater than zero",
     (edges.distinct == edges) -> "Edges must be unique",
     edges.nonEmpty -> "Edges must not be empty"

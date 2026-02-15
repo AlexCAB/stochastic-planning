@@ -42,9 +42,9 @@ object ConcreteNode:
   final case class New(name: Option[HnName], description: Option[Description], ioNodeName: IoName, valueIndex: IoIndex)
       extends Validation:
 
-    lazy val validationName: String = s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)"
-
-    lazy val validationErrors: List[Throwable] = validations(
+    override lazy val validations: (String, List[Throwable]) = validate(
+      s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)"
+    )(
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
       ioNodeName.value.nonEmpty -> "IoNode name must not be empty"
     )

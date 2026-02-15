@@ -13,13 +13,7 @@
 package planning.engine.api.model.map
 
 import cats.MonadThrow
-import planning.engine.api.model.map.payload.{
-  AbstractNodeDef,
-  ConcreteNodeDef,
-  HiddenNodeDef,
-  NewSampleData,
-  NewSampleEdge
-}
+import planning.engine.api.model.map.payload.*
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.common.errors.assertionError
@@ -34,20 +28,14 @@ final case class MapAddSamplesRequest(
     samples: List[NewSampleData],
     hiddenNodes: List[HiddenNodeDef] // This is a list of hidden nodes used in the samples, should be unique
 ) extends Validation:
-
   lazy val hnNames: List[HnName] = hiddenNodes.map(_.name)
-  lazy val validationName: String = "MapAddSamplesRequest"
-
   private lazy val hnNamesSet = hnNames.toSet
 
-  lazy val validationErrors: List[Throwable] = validations(
+  lazy val validations: (String, List[Throwable]) = validate("MapAddSamplesRequest")(
     (hiddenNodes.map(_.name).distinct.size == hiddenNodes.size) -> "Hidden nodes names must be unique",
-    hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty"
-  ) ++ validations(samples.map(s =>
-    s.edgesHnNames.subsetOf(
-      hnNamesSet
-    ) -> s"Sample edges must reference only provided hnNames: ${s.edgesHnNames} not in $hnNames"
-  )*)
+    hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty",
+    hnNamesSet.containsAllOf(samples.flatMap(_.edgesHnNames), "Sample edges must reference only provided")
+  ) 
 
   def listNewNotFoundHn[F[_]: MonadThrow](
       foundHnNames: Set[HnName],

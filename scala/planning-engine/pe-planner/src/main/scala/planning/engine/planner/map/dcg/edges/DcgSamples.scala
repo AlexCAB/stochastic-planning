@@ -17,66 +17,50 @@ import cats.syntax.all.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
-import planning.engine.planner.map.dcg.edges.DcgSamples.Indexies
-import planning.engine.planner.map.dcg.repr.DcgEdgeSamplesRepr
+import planning.engine.common.values.edge.{EdgeKey, IndexMap, Indexies}
+import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
-sealed trait DcgSamples extends DcgEdgeSamplesRepr:
-  protected[edges] def indexies: Map[SampleId, Indexies]
-  private[edges] def name: String
-
-  private[edges] lazy val srcHnIndex: Set[HnIndex] = indexies.values.map(_.src).toSet
-  private[edges] lazy val trgHnIndex: Set[HnIndex] = indexies.values.map(_.trg).toSet
-
+final case class DcgSamples[F[_]: MonadThrow](indexies: Map[SampleId, Indexies]):
   lazy val size: Int = indexies.size
   lazy val isEmpty: Boolean = indexies.isEmpty
+  lazy val sampleIds: Set[SampleId] = indexies.keySet
 
-  private[edges] def joinIndexies[F[_]: MonadThrow](b: Map[SampleId, Indexies]): F[Map[SampleId, Indexies]] =
-    val aInd = indexies.values.toSet
-    val bInd = b.values.toSet
+  lazy val srcHnIndex: Set[HnIndex] = indexies.values.map(_.src).toSet
+  lazy val trgHnIndex: Set[HnIndex] = indexies.values.map(_.trg).toSet
 
+  def join(other: DcgSamples[F]): F[DcgSamples[F]] =
     for
-      _ <- indexies.keySet.assertNoSameElems(b.keySet, s"Map edge can't have duplicate $name sample")
-      _ <- aInd.map(_.src).assertNoSameElems(bInd.map(_.src), s"Map edge can't have duplicate $name source indexes")
-      _ <- aInd.map(_.trg).assertNoSameElems(bInd.map(_.trg), s"Map edge can't have duplicate $name target indexes")
-    yield indexies ++ b
-
-  private[edges] def addToMap[F[_]: MonadThrow](
-      sId: SampleId,
-      srcInd: HnIndex,
-      trgInd: HnIndex
-  ): F[Map[SampleId, Indexies]] =
-    for
-      _ <- indexies.keySet.assertNotContain(sId, s"Map edge can't have duplicate $name sample")
-      _ <- indexies.values.map(_.src).assertNotContain(srcInd, s"Map edge can't have duplicate $name source index")
-      _ <- indexies.values.map(_.trg).toSet.assertNotContain(trgInd, s"Map edge can't have dup $name target index")
-    yield indexies + (sId -> Indexies(srcInd, trgInd))
+      _ <- indexies.keySet.assertNoSameElems(other.indexies.keySet, "Map edge can't have duplicate sample")
+      _ <- srcHnIndex.assertNoSameElems(other.srcHnIndex, "Map edge can't have duplicate source indexes")
+      _ <- trgHnIndex.assertNoSameElems(other.trgHnIndex, "Map edge can't have duplicate target indexes")
+    yield this.copy(indexies = indexies ++ other.indexies)
 
   override lazy val toString: String =
-    s""""DcgEdgeSamples($name, indexies:
+    s""""DcgEdgeSamples(indexies:
        |${indexies.map((sId, ix) => s"    ${sId.vStr} | ${ix.src.vStr} -> ${ix.trg.vStr}").mkString("\n")}
        |)""".stripMargin
 
 object DcgSamples:
-  final case class Indexies(src: HnIndex, trg: HnIndex)
+  def empty[F[_]: MonadThrow]: DcgSamples[F] = new DcgSamples(Map.empty)
 
-  final case class Links(indexies: Map[SampleId, Indexies]) extends DcgSamples:
-    private[edges] def name: String = "links"
+  def apply[F[_] : MonadThrow](sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): DcgSamples[F] =
+    new DcgSamples(Map(sId -> Indexies(srcInd, trgInd)))
+  
+  def apply[F[_] : MonadThrow](indexies: Map[SampleId, Indexies]): F[DcgSamples[F]] =
+    for
+      _ <- indexies.map((_, i) => i.src).assertDistinct("Map edge can't have duplicate source index")
+      _ <- indexies.map((_, i) => i.trg).assertDistinct("Map edge can't have duplicate target index")
+    yield new DcgSamples(indexies)  
 
-    def join[F[_]: MonadThrow](other: Links): F[Links] = joinIndexies(other.indexies).map(ixs => Links(ixs))
+  def fromSamples[F[_]: MonadThrow](samples: Iterable[SampleIndexies]): F[DcgSamples[F]] =
+    for
+      _ <- samples.map(_.sampleId).assertDistinct("Map edge can't have duplicate sample")
+      indexies = samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
+      dcgSamples <- DcgSamples(indexies)
+    yield dcgSamples
 
-    def add[F[_]: MonadThrow](sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): F[Links] =
-      addToMap(sId, srcInd, trgInd).map(Links.apply)
-
-  object Links:
-    val empty: Links = Links(Map.empty)
-
-  final case class Thens(indexies: Map[SampleId, Indexies]) extends DcgSamples:
-    private[edges] def name: String = "thens"
-
-    def join[F[_]: MonadThrow](other: Thens): F[Thens] = joinIndexies(other.indexies).map(ixs => Thens(ixs))
-
-    def add[F[_]: MonadThrow](sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): F[Thens] =
-      addToMap(sId, srcInd, trgInd).map(Thens.apply)
-
-  object Thens:
-    val empty: Thens = Thens(Map.empty)
+  def fromIndexMap[F[_]: MonadThrow](key: EdgeKey, indexMap: Map[SampleId, IndexMap]): F[DcgSamples[F]] =
+    for
+      indexies <- indexMap.toList.traverse((sId, ind) => ind.get(key.src, key.trg).map(i => sId -> i)).map(_.toMap)
+      dcgSamples <- DcgSamples(indexies)
+    yield dcgSamples 

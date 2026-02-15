@@ -30,9 +30,7 @@ final case class Sample(
 ) extends Validation:
   lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId))
 
-  lazy val validationName: String = s"Sample(id=${data.id}, name=${data.name.toStr})"
-
-  lazy val validationErrors: List[Throwable] =
+  override lazy val validations: (String, List[Throwable]) =
     val edgeIds = edges.map(e => (e.source.hnId, e.target.hnId))
     val indexies = edges.flatMap(e => List(e.source, e.target)).groupBy(_.hnId).view.mapValues(_.map(_.value)).toMap
     val invalidIndexies = indexies.filter((_, v) => v.size > 1)
@@ -45,7 +43,8 @@ final case class Sample(
       .foldLeft(visited + start)((acc, nId) => if acc.contains(nId) then acc else findConnectedLoop(nId, acc))
 
     val connectedNodes = if allHnIds.nonEmpty then findConnectedLoop(allHnIds.head, Set()) else Set()
-    validations(
+
+    validate(s"Sample(id=${data.id}, name=${data.name.toStr})")(
       // Sample without edges no sense since by design it must reflect an relationship between HNs
       edges.nonEmpty -> "At least one SampleEdge must be defined",
       invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies",
@@ -70,10 +69,9 @@ object Sample:
   ) extends Validation:
     lazy val hnIds: Set[HnId] = edges.flatMap(e => List(e.source, e.target))
 
-    lazy val validationName: String =
+    override lazy val validations: (String, List[Throwable]) = validate(
       s"Sample.New(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
-
-    lazy val validationErrors: List[Throwable] = validations(
+    )(
       (probabilityCount > 0) -> "Probability count must be greater than 0",
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
       description.forall(_.value.nonEmpty) -> "Description must not be empty if defined",

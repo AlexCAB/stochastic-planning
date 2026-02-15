@@ -22,8 +22,8 @@ import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.samples.sample.SampleEdge
 import planning.engine.map.samples.sample.SampleEdge.End
-import planning.engine.common.values.edges.Edge
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.common.values.edge.EdgeKey
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 
 class DcgEdgeDataSpec extends UnitSpecWithData:
 
@@ -63,24 +63,24 @@ class DcgEdgeDataSpec extends UnitSpecWithData:
     lazy val allSamples: Map[SampleId, Indexies] = linkSamples ++ thenSamples
 
     lazy val dcgLinkEdge: DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(hiddenLinkEdge.sourceId, hiddenLinkEdge.targetId),
+      ends = EdgeKey(hiddenLinkEdge.sourceId, hiddenLinkEdge.targetId),
       links = Links(linkSamples),
       thens = Thens.empty
     )
 
     lazy val dcgThenEdge: DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(hiddenThenEdge.sourceId, hiddenThenEdge.targetId),
+      ends = EdgeKey(hiddenThenEdge.sourceId, hiddenThenEdge.targetId),
       links = Links.empty,
       thens = Thens(thenSamples)
     )
 
     lazy val dcgBothEdge: DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(HnId(11), HnId(12)),
+      ends = EdgeKey(HnId(11), HnId(12)),
       links = Links(linkSamples),
       thens = Thens(thenSamples)
     )
 
-    lazy val ends: Edge.Ends = dcgLinkEdge.ends
+    lazy val ends: EdgeKey = dcgLinkEdge.ends
     lazy val edgeType: EdgeType = hiddenLinkEdge.edgeType
 
     lazy val sampleId = sampleNew.sampleId

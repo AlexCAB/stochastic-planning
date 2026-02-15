@@ -21,14 +21,13 @@ import planning.engine.map.MapGraphLake
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
-import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.ActiveAbsDag
-import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
@@ -51,30 +50,32 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 
   override def getIoNode(name: IoName): F[IoNode[F]] = ???
 
-  override def addNewConcreteNodes(params: ConcreteNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
+  override def addNewConcreteNodes(params: ConcreteNode.ListNew): F[Map[MnId, Option[HnName]]] = ???
 
-  override def addNewAbstractNodes(params: AbstractNode.ListNew): F[Map[HnId, Option[HnName]]] = ???
+  override def addNewAbstractNodes(params: AbstractNode.ListNew): F[Map[MnId, Option[HnName]]] = ???
 
-  override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, Sample]] =
-    addNewSamplesToCache(mapGraph.addNewSamples(samples))
+  override def addNewSamples(samples: Sample.ListNew): F[Map[SampleId, DcgSample[F]]] = ???
+//    addNewSamplesToState(mapGraph.addNewSamples(samples))
 
-  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[HnId]]] = ???
+  override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[MnId]]] = ???
 
-  override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
-    modifyMapState: state =>
-      for
-        notLoaded <- values.filterNot(state.ioValues.contains).pure
-        subGraph <- load(notLoaded, state.graph.samplesData.keySet)
-        loadedNodes <- subGraph.concreteNodes.traverse(DcgNode.Concrete.apply)
-        stateWithNodes <- state.addConcreteNodes(loadedNodes)
-        loadedEdges = subGraph.edges.map(DcgEdgeData.apply)
-        stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
-        stateWithSamples <- stateWithEdges.addSamplesData(subGraph.loadedSamples)
-        (foundNodes, notFoundValues) <- stateWithSamples.findConForIoValues(values)
-        _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
-      yield (stateWithSamples, (foundNodes, notFoundValues))
+  override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] = ???
+//    modifyMapState: state =>
+//      for
+//        notLoaded <- values.filterNot(state.ioValues.contains).pure
+//        subGraph <- load(notLoaded, state.graph.samples.keySet)
+//        conHnIds = subGraph.concreteNodes.map(_.id).toSet
+//        absHnIds = subGraph.abstractNodes.map(_.id).toSet
+//        loadedNodes <- subGraph.concreteNodes.traverse(DcgNode.Concrete.apply)
+//        stateWithNodes <- state.addConcreteNodes(loadedNodes)
+//        loadedEdges = subGraph.edges.map(e => DcgEdge(e, conHnIds, absHnIds))
+//        stateWithEdges <- stateWithNodes.addEdges(loadedEdges)
+//        stateWithSamples <- stateWithEdges.addSamplesData(subGraph.loadedSamples)
+//        (foundNodes, notFoundValues) <- stateWithSamples.findConForIoValues(values)
+//        _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
+//      yield (stateWithSamples, (foundNodes, notFoundValues))
 
-  override def findActiveAbstractForest(conActiveNodeIds: Set[HnId]): F[ActiveAbsDag[F]] = ??? 
+//  override def findActiveAbstractForest(conActiveNodeIds: Set[MnId]): F[ActiveAbsDag[F]] = ???
 
   override def reset(): F[Unit] = ???
 

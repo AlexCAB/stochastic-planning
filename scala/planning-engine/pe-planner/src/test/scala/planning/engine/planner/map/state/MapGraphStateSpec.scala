@@ -21,8 +21,8 @@ import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{MapDcgTestData, MapSampleTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdgeData
-import planning.engine.common.values.edges.Edge
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.common.values.edge.EdgeKey
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.state.MapGraphState
 
@@ -60,7 +60,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
       )
 
     def makeDcgEdge(snId: HnId, tnId: HnId, sIds: List[SampleId]): DcgEdgeData = DcgEdgeData(
-      ends = Edge.Ends(snId, tnId),
+      ends = EdgeKey(snId, tnId),
       links = Links(sIds.map(sId => makeSampleRecord(sId, snId, tnId)).toMap),
       thens = Thens.empty
     )
@@ -143,7 +143,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
       )
 
       async[IO]:
-        val joinedEdges: Map[Edge.Ends, DcgEdgeData] = (data.dcgEdges ++ dcgEdges2)
+        val joinedEdges: Map[EdgeKey, DcgEdgeData] = (data.dcgEdges ++ dcgEdges2)
           .groupBy(_.ends).view.mapValues(_.reduceLeft((e1, e2) => e1.join[IO](e2).unsafeRunSync()))
           .toMap
 

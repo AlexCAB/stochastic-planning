@@ -118,16 +118,16 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
 
         val state = data.mapCache.getMapState.await
         state.ioValues mustBe data.dcgStateFromSubGraph.ioValues
-        state.graph.concreteNodes mustBe data.dcgStateFromSubGraph.graph.concreteNodes
+        state.graph.concreteNodes mustBe data.dcgStateFromSubGraph.graph.conNodes
         state.graph.abstractNodes mustBe empty
         state.graph.edgesData mustBe data.dcgStateFromSubGraph.graph.edgesData
         state.graph.edgesMapping mustBe data.dcgStateFromSubGraph.graph.edgesMapping
-        state.graph.samplesData mustBe data.dcgStateFromSubGraph.graph.samplesData
+        state.graph.samplesData mustBe data.dcgStateFromSubGraph.graph.samples
 
     "get nodes from cache" in newCase[CaseData]: (tn, data) =>
       data.setLoadSubgraphForIoValue(
         List(data.testNotInMap),
-        data.dcgStateFromSubGraph.graph.samplesData.keys.toList,
+        data.dcgStateFromSubGraph.graph.samples.keys.toList,
         MapSubGraph.emptySubGraph[IO]
       )
 

@@ -24,16 +24,16 @@ trait ValidationCheck:
 
   extension [V <: Validation](obj: V)
     def checkValidationName(nameInclude: String, tn: String = "checkValidationName"): IO[Assertion] =
-      obj.pure[IO].map(_.validationName)
+      obj.pure[IO].map(_.validations._1)
         .logValue(tn, s"nameInclude = $nameInclude")
         .asserting(_ must include(nameInclude))
 
-    def checkNoValidationError(tn: String = "checkNoValidationError"): IO[Assertion] = obj.validationErrors.pure[IO]
+    def checkNoValidationError(tn: String = "checkNoValidationError"): IO[Assertion] = obj.validations._2.pure[IO]
       .logValue(tn)
       .asserting(_ mustBe empty)
 
     def checkOneValidationError(msgInclude: String, tn: String = "checkOneValidationError"): IO[Assertion] =
-      obj.pure[IO].map(_.validationErrors)
+      obj.pure[IO].map(_.validations._2)
         .logValue(tn, s"msgInclude = $msgInclude")
         .asserting: errs =>
           if errs.size != 1 then fail(s"Expected exactly one validation error, but found $errs")
@@ -42,7 +42,7 @@ trait ValidationCheck:
     def checkOneOfValidationErrors(
         msgInclude: String,
         tn: String = "checkOneOfValidationErrors"
-    ): IO[Assertion] = obj.pure[IO].map(_.validationErrors)
+    ): IO[Assertion] = obj.pure[IO].map(_.validations._2)
       .logValue(tn, s"msgInclude = $msgInclude")
       .asserting: errs =>
         errs.find(_.getMessage.contains(msgInclude)) match

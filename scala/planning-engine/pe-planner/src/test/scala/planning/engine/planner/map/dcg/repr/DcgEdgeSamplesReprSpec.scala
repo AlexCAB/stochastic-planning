@@ -17,13 +17,13 @@ import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.edges.DcgSamples
+import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 
 class DcgEdgeSamplesReprSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val indexies: Map[SampleId, Indexies] = Map(SampleId(10) -> DcgEdgeSamples.Indexies(HnIndex(1), HnIndex(1)))
+    lazy val indexies: Map[SampleId, Indexies] = Map(SampleId(10) -> DcgSamples.Indexies(HnIndex(1), HnIndex(1)))
     lazy val links1: Links = Links(indexies)
     lazy val thens1: Thens = Thens(indexies)
 

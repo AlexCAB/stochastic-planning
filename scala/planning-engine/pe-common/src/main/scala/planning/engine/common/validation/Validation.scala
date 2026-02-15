@@ -15,11 +15,21 @@ package planning.engine.common.validation
 import cats.ApplicativeThrow
 
 trait Validation:
-  def validationName: String
-  def validationErrors: List[Throwable]
+  def validations: (String, List[Throwable])
 
-  protected def validations(validators: (Boolean, String)*): List[Throwable] = validators.toList
-    .flatMap((isValid, errMsg) => if isValid then Nil else List(new IllegalArgumentException(errMsg)))
+  protected def validate(name: String)(validators: (Boolean, String)*): (String, List[Throwable]) =
+    val errors = validators
+      .toList
+      .flatMap((isValid, errMsg) => if isValid then Nil else List(new IllegalArgumentException(errMsg)))
+    name -> errors
+
+  protected def validate(
+      name: String,
+      prev: (String, List[Throwable])
+  )(validators: (Boolean, String)*): (String, List[Throwable]) =
+    val (curName, curErrors) = validate(name)(validators*)
+    val (prevName, prevErrors) = prev
+    (curName + "/" + prevName, curErrors ++ prevErrors)
 
   extension [C[_] <: Iterable[?]](seq: C[Any])
     protected inline def isDistinct(msg: String): (Boolean, String) =
@@ -50,16 +60,17 @@ trait Validation:
 
 object Validation:
   def validate[F[_]: ApplicativeThrow](obj: Validation): F[Unit] =
-    if obj.validationErrors.isEmpty then ApplicativeThrow[F].unit
-    else ApplicativeThrow[F].raiseError(ValidationError(obj.validationName, obj.validationErrors))
+    val (name, errors) = obj.validations
+    if errors.isEmpty then ApplicativeThrow[F].unit
+    else ApplicativeThrow[F].raiseError(ValidationError(name, errors))
 
   def validateList[F[_]: ApplicativeThrow](objects: Iterable[Validation]): F[Unit] =
     val (names, errors) = objects.foldRight(List[String](), List[Throwable]()):
       case (obj, (accNames, accErrors)) =>
-        val errors = obj.validationErrors
+        val (name, errors) = obj.validations
 
         if errors.isEmpty then (accNames, accErrors)
-        else (obj.validationName :: accNames, errors ++ accErrors)
+        else (name :: accNames, errors ++ accErrors)
 
     if errors.isEmpty then ApplicativeThrow[F].unit
     else ApplicativeThrow[F].raiseError(ValidationError(names.mkString(", "), errors))

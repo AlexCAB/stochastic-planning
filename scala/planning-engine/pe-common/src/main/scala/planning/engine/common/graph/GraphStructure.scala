@@ -13,23 +13,24 @@
 package planning.engine.common.graph
 
 import cats.MonadThrow
-import planning.engine.common.values.edges.Edge
-import planning.engine.common.values.edges.Edge.{End, Link, Then}
-import planning.engine.common.values.node.{HnId, MnId}
+import cats.syntax.all.*
+
+import planning.engine.common.values.edge.EdgeKey
+import planning.engine.common.values.edge.EdgeKey.{End, Link, Then}
+import planning.engine.common.values.node.MnId
+import planning.engine.common.errors.*
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
-trait GraphStructure[F[_]: MonadThrow]:
-  def conNodeSet: Set[MnId.Con]
-  def absNodeSet: Set[MnId.Abs]
-  def edgeSet: Set[Edge]
-  
-  lazy val allMnId: Set[MnId] = conNodeSet ++ absNodeSet
-  lazy val allHnId: Set[HnId] = allMnId.map(_.asHnId)
-
-  lazy val srcMap: Map[MnId, Set[End]] = edgeSet.groupBy(_.src).view.mapValues(_.map(_.trgEnd).toSet).toMap
-  lazy val trgMap: Map[MnId, Set[End]] = edgeSet.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap
+// GraphStructure represents the structure of the graph, providing algorithms
+// for tracing and analysis of graph structure.
+final case class GraphStructure[F[_]: MonadThrow](
+    keys: Set[EdgeKey],
+    srcMap: Map[MnId, Set[End]],
+    trgMap: Map[MnId, Set[End]]
+):
+  lazy val mnIds: Set[MnId] = srcMap.keySet ++ trgMap.keySet
 
   private[graph] def filterByEndType[E <: End: ClassTag](map: Map[MnId, Set[End]]): Map[MnId, Set[E]] =
     val ct = implicitly[ClassTag[E]].runtimeClass
@@ -51,6 +52,11 @@ trait GraphStructure[F[_]: MonadThrow]:
     if neighbours.isEmpty then true
     else findConnected(neighbours.keys.head, Set()) == neighbours.keySet
 
+  def add(ends: Iterable[EdgeKey]): F[GraphStructure[F]] =
+    for
+        _ <- this.keys.assertNoSameElems(ends, "Can't add Edges that already exist")
+    yield GraphStructure(this.keys ++ ends)
+
   def findNextEdges(hnIds: Set[MnId]): Set[(MnId, MnId)] =
     hnIds.flatMap(hnId => srcMap.get(hnId).toSet.flatMap(_.map(trgId => (hnId, trgId.id))))
 
@@ -66,6 +72,12 @@ trait GraphStructure[F[_]: MonadThrow]:
   lazy val linkRoots: Set[MnId] = srcLinkMap.keySet -- trgLinkMap.keySet
   lazy val thenRoots: Set[MnId] = srcThenMap.keySet -- trgThenMap.keySet
 
+  def findForward(srcMnIds: Set[MnId]): Set[EdgeKey] =
+    srcMnIds.flatMap(srcId => srcMap.getOrElse(srcId, Set()).map(_.asSrcKey(srcId)))
+
+  def findBackward(trgHnIds: Set[MnId]): Set[EdgeKey] =
+    trgHnIds.flatMap(trgId => trgMap.getOrElse(trgId, Set()).map(_.asTrgKey(trgId)))
+
 //  def traceAbstractLayers(conHnId: Set[HnId]): List[Set[HnId]] =
 //    @tailrec def traceLayers(currentHnIds: Set[HnId], acc: List[Set[HnId]]): List[Set[HnId]] =
 //      if currentHnIds.isEmpty then acc.reverse
@@ -75,3 +87,12 @@ trait GraphStructure[F[_]: MonadThrow]:
 //
 //    traceLayers(conHnId, Nil)
 //
+
+object GraphStructure:
+  def empty[F[_]: MonadThrow]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)
+
+  def apply[F[_]: MonadThrow](keys: Set[EdgeKey]): GraphStructure[F] = GraphStructure(
+    keys = keys,
+    srcMap = keys.groupBy(_.src).view.mapValues(_.map(_.trgEnd).toSet).toMap,
+    trgMap = keys.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap
+  )

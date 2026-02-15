@@ -17,10 +17,10 @@ import cats.syntax.all.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
-import planning.engine.planner.map.dcg.edges.DcgEdgeSamples.Indexies
+import planning.engine.planner.map.dcg.edges.DcgSamples.Indexies
 import planning.engine.planner.map.dcg.repr.DcgEdgeSamplesRepr
 
-sealed trait DcgEdgeSamples extends DcgEdgeSamplesRepr:
+sealed trait DcgSamples extends DcgEdgeSamplesRepr:
   protected[edges] def indexies: Map[SampleId, Indexies]
   private[edges] def name: String
 
@@ -56,10 +56,10 @@ sealed trait DcgEdgeSamples extends DcgEdgeSamplesRepr:
        |${indexies.map((sId, ix) => s"    ${sId.vStr} | ${ix.src.vStr} -> ${ix.trg.vStr}").mkString("\n")}
        |)""".stripMargin
 
-object DcgEdgeSamples:
+object DcgSamples:
   final case class Indexies(src: HnIndex, trg: HnIndex)
 
-  final case class Links(indexies: Map[SampleId, Indexies]) extends DcgEdgeSamples:
+  final case class Links(indexies: Map[SampleId, Indexies]) extends DcgSamples:
     private[edges] def name: String = "links"
 
     def join[F[_]: MonadThrow](other: Links): F[Links] = joinIndexies(other.indexies).map(ixs => Links(ixs))
@@ -70,7 +70,7 @@ object DcgEdgeSamples:
   object Links:
     val empty: Links = Links(Map.empty)
 
-  final case class Thens(indexies: Map[SampleId, Indexies]) extends DcgEdgeSamples:
+  final case class Thens(indexies: Map[SampleId, Indexies]) extends DcgSamples:
     private[edges] def name: String = "thens"
 
     def join[F[_]: MonadThrow](other: Thens): F[Thens] = joinIndexies(other.indexies).map(ixs => Thens(ixs))

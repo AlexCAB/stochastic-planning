@@ -12,10 +12,11 @@
 
 package planning.engine.planner.map.dcg.repr
 
-import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import cats.MonadThrow
+import planning.engine.planner.map.dcg.edges.DcgEdge
 
-trait DcgEdgeDataRepr:
-  self: DcgEdgeData =>
+trait DcgEdgeRepr[F[_]: MonadThrow]:
+  self: DcgEdge[F] =>
 
   lazy val repr: String = s"(${ends.src.vStr}) -[${links.repr}${thens.repr}]-> (${ends.trg.vStr})"
   lazy val reprTarget: String = s"| -[${links.repr}${thens.repr}]-> (${ends.trg.vStr})"

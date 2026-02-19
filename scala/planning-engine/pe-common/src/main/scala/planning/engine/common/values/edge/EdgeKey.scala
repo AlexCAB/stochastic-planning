@@ -26,6 +26,11 @@ sealed trait EdgeKey:
   def srcEnd: EdgeKey.End
   def trgEnd: EdgeKey.End
 
+  def asKey: EdgeKey = this
+  
+  lazy val isLink: Boolean = this.isInstanceOf[EdgeKey.Link]  
+  lazy val isThen: Boolean = this.isInstanceOf[EdgeKey.Then]
+
   lazy val asEdgeType: EdgeType = this match
     case _: EdgeKey.Link => EdgeType.LINK
     case _: EdgeKey.Then => EdgeType.THEN

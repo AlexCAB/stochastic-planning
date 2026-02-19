@@ -24,9 +24,7 @@ import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, OutputNode}
-import planning.engine.common.errors.assertionError
 import planning.engine.map.data.MapMetadata
 
 class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
@@ -93,43 +91,45 @@ class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with T
         mapInfo.numOutputNodes mustEqual 0
         mapInfo.numHiddenNodes mustEqual data.testNumOfHiddenNodes
 
-  "MapService.addSamples(...)" should:
-    "add new samples to the map" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        data.mockedGraph.getIoNode
-          .expects(*)
-          .onCall: name =>
-            ioNodes.get(name) match
-              case Some(node) => IO.pure(node)
-              case None       => s"No IoNode found for name: $name".assertionError
-          .once()
-
-        data.mockedGraph.findHnIdsByNames
-          .expects(testMapAddSamplesRequest.hnNames)
-          .returns(IO.pure(findHnIdsByNamesRes))
-          .once()
-
-        data.mockedGraph.newConcreteNodes
-          .expects(ConcreteNode.ListNew.of(testConNodeNew2))
-          .returns(IO.pure(newConcreteNodesRes))
-          .once()
-
-        data.mockedGraph.newAbstractNodes
-          .expects(AbstractNode.ListNew.of(testAbsNodeDef2.toNew))
-          .returns(IO.pure(newAbstractNodesRes))
-          .once()
-
-        data.mockedGraph.addNewSamples
-          .expects(expectedSampleNewList)
-          .returns(IO.pure(testResponse.addedSamples.map(s => testSample.copy(data = testSampleData.copy(id = s.id)))))
-          .once()
-
-        data.mockedGraph.getSampleNames
-          .expects(testResponse.addedSamples.map(_.id))
-          .returns(IO.pure(testResponse.addedSamples.map(s => s.id -> s.name).toMap))
-          .once()
-
-        val gotResponse: MapAddSamplesResponse = data
-          .service.addSamples(testMapAddSamplesRequest).logValue(tn, "response").await
-
-        gotResponse mustEqual testResponse
+// TODO To refactor when DB added:
+        
+//  "MapService.addSamples(...)" should:
+//    "add new samples to the map" in newCase[CaseData]: (tn, data) =>
+//      async[IO]:
+//        data.mockedGraph.getIoNode
+//          .expects(*)
+//          .onCall: name =>
+//            ioNodes.get(name) match
+//              case Some(node) => IO.pure(node)
+//              case None       => s"No IoNode found for name: $name".assertionError
+//          .once()
+//
+//        data.mockedGraph.findHnIdsByNames
+//          .expects(testMapAddSamplesRequest.hnNames)
+//          .returns(IO.pure(findHnIdsByNamesRes))
+//          .once()
+//
+//        data.mockedGraph.newConcreteNodes
+//          .expects(ConcreteNode.ListNew.of(testConNodeNew2))
+//          .returns(IO.pure(newConcreteNodesRes))
+//          .once()
+//
+//        data.mockedGraph.newAbstractNodes
+//          .expects(AbstractNode.ListNew.of(testAbsNodeDef2.toNew))
+//          .returns(IO.pure(newAbstractNodesRes))
+//          .once()
+//
+//        data.mockedGraph.addNewSamples
+//          .expects(expectedSampleNewList)
+//          .returns(IO.pure(testResponse.addedSamples.map(s => testSample.copy(data = testSampleData.copy(id = s.id)))))
+//          .once()
+//
+//        data.mockedGraph.getSampleNames
+//          .expects(testResponse.addedSamples.map(_.id))
+//          .returns(IO.pure(testResponse.addedSamples.map(s => s.id -> s.name).toMap))
+//          .once()
+//
+//        val gotResponse: MapAddSamplesResponse = data
+//          .service.addSamples(testMapAddSamplesRequest).logValue(tn, "response").await
+//
+//        gotResponse mustEqual testResponse

@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.node.{MnId, HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
@@ -39,11 +39,15 @@ class DcgEdgeSpec extends UnitSpecWithData:
     )
 
     lazy val heLink: HiddenEdge = makeHiddenEdge(LINK, sId = 11)
-    lazy val heThen1: HiddenEdge = makeHiddenEdge(LINK, sId = 21)
-    lazy val heThen2: HiddenEdge = makeHiddenEdge(LINK, sId = 22)
+    lazy val heThen1: HiddenEdge = makeHiddenEdge(THEN, sId = 21)
+    lazy val heThen2: HiddenEdge = makeHiddenEdge(THEN, sId = 22)
+    
+    def makeKey(et: EdgeType, src: MnId, trg: MnId): EdgeKey = et match
+      case LINK => EdgeKey.Link(src, trg)
+      case THEN => EdgeKey.Then(src, trg)
 
     def makeDcgEdge(edge: HiddenEdge): DcgEdge[IO] = DcgEdge[IO](
-      key = EdgeKey.Link(edge.sourceId.asCon, edge.targetId.asAbs),
+      key = makeKey(edge.edgeType, edge.sourceId.asCon, edge.targetId.asAbs),
       samples = DcgSamples[IO](
         edge.samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
       ).unsafeRunSync()
@@ -68,7 +72,7 @@ class DcgEdgeSpec extends UnitSpecWithData:
       data.linkEdge.pure[IO].logValue(tn).asserting(_.edgeType mustBe EdgeType.LINK)
 
     "return correct EdgeType for then edge" in newCase[CaseData]: (tn, data) =>
-      data.linkEdge.pure[IO].logValue(tn).asserting(_.edgeType mustBe EdgeType.THEN)
+      data.thenEdge1.pure[IO].logValue(tn).asserting(_.edgeType mustBe EdgeType.THEN)
 
   "DcgEdgeData.join(...)" should:
     "join two DcgEdges correctly" in newCase[CaseData]: (tn, data) =>

@@ -60,17 +60,16 @@ final case class DcgGraph[F[_]: MonadThrow](
       samples.map((k, n) => k -> n.id).allEquals("Samples data map keys and values IDs mismatch"),
       mnIds.containsAllOf(edgeAllMdIds, "Edge refers to unknown MnIds"),
       mnIds.containsAllOf(structure.mnIds, "Graph structure refers to unknown MnIds"),
-      structure.keys.haveSameElems(edgeEnds, "Edges mapping refers to unknown edge key"),
+      structure.keys.haveSameElems(edgeEnds, "Graph structure refers to unknown edge key"),
       sampleIds.containsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
     )
 
-  def getNodes[N <: DcgNode[F]: ClassTag](ids: Set[MnId]): F[Map[MnId, N]] = {
+  def getNodes[N <: DcgNode[F]: ClassTag](ids: Set[MnId]): F[Map[MnId, N]] =
     val rc = implicitly[ClassTag[N]].runtimeClass
     for
       found <- nodes.filter((id, n) => ids.contains(id) && rc.isInstance(n)).pure
       _ <- found.keySet.assertContainsAll(ids, "Some node IDs are not found")
     yield found.map((k, v) => k -> v.asInstanceOf[N])
-  }
 
   def getEdges[K <: EdgeKey: ClassTag](keys: Set[EdgeKey]): F[Map[K, DcgEdge[F]]] =
     val rc = implicitly[ClassTag[K]].runtimeClass
@@ -109,7 +108,7 @@ final case class DcgGraph[F[_]: MonadThrow](
       _ <- Validation.validateList(samples.map(_.sample))
       sampleIds = samples.map(_.sample.data.id)
       _ <- sampleIds.assertDistinct("Duplicate sample IDs detected")
-      _ <- sampleIds.assertNoSameElems(sampleIds, s"Some sample IDs already exists in the graph")
+      _ <- sampleIds.assertNoSameElems(this.sampleIds, s"Some sample IDs already exists in the graph")
       sampleIdsByKeys = samples.flatMap(_.idsByKey).groupBy(_._1).view.mapValues(_.map(_._2).toMap).toList
       updatedEdges <- sampleIdsByKeys.traverse((k, ids) => updateOrAddEdge(k, ids).map(e => k -> e)).map(_.toMap)
       addedSamples = samples.map(s => s.sample.data.id -> s.sample.data).toMap

@@ -35,10 +35,11 @@ final case class DcgSamples[F[_]: MonadThrow](indexies: Map[SampleId, Indexies])
       _ <- trgHnIndex.assertNoSameElems(other.trgHnIndex, "Map edge can't have duplicate target indexes")
     yield this.copy(indexies = indexies ++ other.indexies)
 
-  override lazy val toString: String =
-    s""""DcgEdgeSamples(indexies:
-       |${indexies.map((sId, ix) => s"    ${sId.vStr} | ${ix.src.vStr} -> ${ix.trg.vStr}").mkString("\n")}
-       |)""".stripMargin
+  override lazy val toString: String = indexies
+    .toList.sortBy(_._1.value)
+    .map((sId, ix) => s"${sId.vStr} | ${ix.src.vStr}->${ix.trg.vStr}")
+    .mkString(", ")
+
 
 object DcgSamples:
   def empty[F[_]: MonadThrow]: DcgSamples[F] = new DcgSamples(Map.empty)

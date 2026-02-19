@@ -41,7 +41,7 @@ final case class DcgEdge[F[_]: MonadThrow](
   def isActive(sampleIds: Set[SampleId]): Boolean = samples.sampleIds.exists(sampleIds.contains)
 
   override lazy val toString: String =
-    s"$edgeType(${key.src.reprNode} -> ${key.trg.reprNode}, samples size = ${samples.size})"
+    s"$edgeType(${key.src.reprNode}->${key.trg.reprNode}, {$samples})"
 
 object DcgEdge:
   def apply[F[_]: MonadThrow](edge: HiddenEdge, conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[DcgEdge[F]] =

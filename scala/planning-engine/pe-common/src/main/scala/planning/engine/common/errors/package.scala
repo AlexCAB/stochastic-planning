@@ -72,4 +72,4 @@ extension [L](left: IterableOnce[L])
     val leftSet = left.iterator.toSet
     val rightSet = right.iterator.toSet
     val int = rightSet.intersect(leftSet)
-    predicateAssert(int.isEmpty, msg + s", found same elements $int, in seq: $leftSet and $rightSet")
+    predicateAssert(int.isEmpty, msg + s", found same elements: ${int.mkString(", ")}, in seq: $leftSet and $rightSet")

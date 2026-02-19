@@ -17,6 +17,7 @@ sealed trait MnId:
   def value: Long
 
   lazy val asHnId: HnId = HnId(value)
+  def asMnId: MnId = this
 
   lazy val isCon: Boolean = this.isInstanceOf[MnId.Con]
   lazy val isAbs: Boolean = this.isInstanceOf[MnId.Abs]

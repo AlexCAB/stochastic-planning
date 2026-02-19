@@ -40,7 +40,7 @@ class MapServiceBaseSpec extends UnitSpecWithData:
     "compose hn name to id map from found and new hn ids" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val hnIdMap = data.mapServiceBase
-          .composeHnIdMap(data.foundHnIdMap, data.newConHnIds, data.newAbsHnIds)
+          .composeHnIdMap(data.foundHnIdMap, data.newConHnIds ++ data.newAbsHnIds)
           .logValue(tn)
           .await
 
@@ -53,18 +53,18 @@ class MapServiceBaseSpec extends UnitSpecWithData:
 
     "fail if more then one HnId found" in newCase[CaseData]: (tn, data) =>
       data.mapServiceBase
-        .composeHnIdMap(Map(data.hnName1 -> Set(data.hnId1, HnId(99))), data.newConHnIds, data.newAbsHnIds)
+        .composeHnIdMap(Map(data.hnName1 -> Set(data.hnId1, HnId(99))), data.newConHnIds ++ data.newAbsHnIds)
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include(s"Expect exactly one variable"))
 
     "fail if no name for new HnId" in newCase[CaseData]: (tn, data) =>
       data.mapServiceBase
-        .composeHnIdMap(data.foundHnIdMap, Map(data.hnId3 -> None), data.newAbsHnIds)
+        .composeHnIdMap(data.foundHnIdMap, Map(data.hnId3 -> None) ++ data.newAbsHnIds)
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include(s"No name found for hnId"))
 
     "fail if duplicate hn names in found ids" in newCase[CaseData]: (tn, data) =>
       data.mapServiceBase
-        .composeHnIdMap(data.foundHnIdMap, Map(data.hnId1 -> Some(data.hnName1)), data.newAbsHnIds)
+        .composeHnIdMap(data.foundHnIdMap, Map(data.hnId1 -> Some(data.hnName1)) ++ data.newAbsHnIds)
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include(s"Hn names must be distinct"))

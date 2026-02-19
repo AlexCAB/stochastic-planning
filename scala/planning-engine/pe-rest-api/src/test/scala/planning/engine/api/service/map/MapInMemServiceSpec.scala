@@ -17,8 +17,10 @@ import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, T
 import cats.effect.cps.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.planner.map.MapInMemLike
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 
@@ -60,8 +62,8 @@ class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with Te
   "MapService.addSamples(...)" should:
     "add new samples to the map" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val addedSamples = testResponse.addedSamples
-          .map(s => s.id -> testSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
+        val addedSamples: Map[SampleId, DcgSample[IO]] = testResponse.addedSamples
+          .map(s => s.id -> testDcgSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
           .toMap
 
         data.mapInMemStub.getIoNode

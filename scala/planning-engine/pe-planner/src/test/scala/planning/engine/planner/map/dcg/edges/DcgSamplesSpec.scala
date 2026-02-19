@@ -93,16 +93,16 @@ class DcgSamplesSpec extends UnitSpecWithData:
   "DcgSamples.apply(Map[SampleId, Indexies])" should:
     "create DcgSamples from indexies map" in newCase[CaseData]: (tn, data) =>
       import data.samples1
-      DcgSamples[IO](samples1.indexies).pure[IO].logValue(tn).asserting(_ mustBe samples1)
+      DcgSamples[IO](samples1.indexies).logValue(tn).asserting(_ mustBe samples1)
 
     "fail to create DcgSamples with duplicate source indexes" in newCase[CaseData]: (tn, data) =>
       import data.{samples1, samples3}
-      DcgSamples[IO](samples1.indexies ++ samples3.indexies).pure[IO].logValue(tn)
+      DcgSamples[IO](samples1.indexies ++ samples3.indexies).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate source index"))
 
     "fail to create DcgSamples with duplicate target indexes" in newCase[CaseData]: (tn, data) =>
       import data.{samples1, samples4}
-      DcgSamples[IO](samples1.indexies ++ samples4.indexies).pure[IO].logValue(tn)
+      DcgSamples[IO](samples1.indexies ++ samples4.indexies).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map edge can't have duplicate target index"))
 
   "DcgSamples.fromSamples" should:

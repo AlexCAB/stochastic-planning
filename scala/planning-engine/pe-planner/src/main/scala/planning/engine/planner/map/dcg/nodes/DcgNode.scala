@@ -24,6 +24,7 @@ import planning.engine.planner.map.dcg.repr.DcgNodeRepr
 sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def id: MnId
   def name: Option[HnName]
+  def asDcgNode: DcgNode[F] = this
 
 object DcgNode:
   final case class Concrete[F[_]: MonadThrow](

@@ -30,7 +30,6 @@ class GraphStructureSpec extends UnitSpecWithData:
 
     lazy val n4 = Abs(4)
     lazy val n5 = Abs(5)
-
     lazy val n6 = Abs(6)
 
     lazy val conGraph = GraphStructure[IO](Set(Link(n1, n2), Link(n2, n3)))

@@ -18,11 +18,12 @@ import io.circe.Json
 import planning.engine.api.model.map.payload.*
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.graph.GraphStructure
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.{HnId, HnIndex, HnName}
+import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.map.config.MapConfig
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.ConcreteNode
@@ -30,10 +31,10 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edge.EdgeKey
+import planning.engine.common.values.edge.{EdgeKey, Indexies}
 import planning.engine.planner.map.dcg.nodes.*
-import planning.engine.planner.map.dcg.edges.{DcgEdgeData, DcgEdgesMapping}
-import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
+import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}
+import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 
 trait TestApiData:
@@ -162,22 +163,23 @@ trait TestApiData:
     description = testNewSampleData.description
   )
 
-  lazy val testSample: Sample = Sample(data = testSampleData, edges = Set())
+  lazy val testSample = Sample(data = testSampleData, edges = Set())
+  lazy val testDcgSample = DcgSample[IO](data = testSampleData, structure = GraphStructure.empty[IO])
 
-  lazy val testHnIdMap = Map(
-    testConNodeDef1.name -> HnId(101L),
-    testConNodeDef2.name -> HnId(102L),
-    testAbsNodeDef1.name -> HnId(103L),
-    testAbsNodeDef2.name -> HnId(104L)
+  lazy val testMnIdMap = Map(
+    testConNodeDef1.name -> MnId.Con(101L),
+    testConNodeDef2.name -> MnId.Con(102L),
+    testAbsNodeDef1.name -> MnId.Abs(103L),
+    testAbsNodeDef2.name -> MnId.Abs(104L)
   )
 
-  lazy val findHnIdsByNamesRes: Map[HnName, List[HnId]] = Map(
-    testConNodeDef1.name -> List(testHnIdMap(testConNodeDef1.name)),
-    testAbsNodeDef1.name -> List(testHnIdMap(testAbsNodeDef1.name))
+  lazy val findHnIdsByNamesRes: Map[HnName, List[MnId]] = Map(
+    testConNodeDef1.name -> List(testMnIdMap(testConNodeDef1.name)),
+    testAbsNodeDef1.name -> List(testMnIdMap(testAbsNodeDef1.name))
   )
 
-  lazy val newConcreteNodesRes = Map(testHnIdMap(testConNodeDef2.name) -> Some(testConNodeDef2.name))
-  lazy val newAbstractNodesRes = Map(testHnIdMap(testAbsNodeDef2.name) -> Some(testAbsNodeDef2.name))
+  lazy val newConcreteNodesRes = Map(testMnIdMap(testConNodeDef2.name) -> Some(testConNodeDef2.name))
+  lazy val newAbstractNodesRes = Map(testMnIdMap(testAbsNodeDef2.name) -> Some(testAbsNodeDef2.name))
 
   lazy val expectedSampleNewList = Sample.ListNew(
     testMapAddSamplesRequest.samples.map: sampleData =>
@@ -188,8 +190,8 @@ trait TestApiData:
         description = sampleData.description,
         edges = sampleData.edges.toSet.map(edge =>
           SampleEdge.New(
-            source = testHnIdMap(edge.sourceHnName),
-            target = testHnIdMap(edge.targetHnName),
+            source = testMnIdMap(edge.sourceHnName).asHnId,
+            target = testMnIdMap(edge.targetHnName).asHnId,
             edgeType = edge.edgeType
           )
         )
@@ -201,7 +203,7 @@ trait TestApiData:
   )
 
   lazy val tesConcreteDcgNode = DcgNode.Concrete[IO](
-    id = HnId(3000005),
+    id = MnId.Con(3000005),
     name = Some(HnName("boolOutputNode")),
     description = Description.some("Concrete Dcg Node for bool output"),
     ioNode = booleanIoNode,
@@ -209,28 +211,23 @@ trait TestApiData:
   )
 
   lazy val testAbstractDcgNode = DcgNode.Abstract[IO](
-    id = HnId(3000007),
+    id = MnId.Abs(3000007),
     name = Some(HnName("abstractNode1")),
     description = Description.some("Abstract Dcg Node 1")
   )
 
-  lazy val testDcgEdge = DcgEdgeData(
-    ends = EdgeKey(tesConcreteDcgNode.id, testAbstractDcgNode.id),
-    links = Links.empty,
-    thens = Thens(Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001))))
+  lazy val testDcgEdge = DcgEdge[IO](
+    key = EdgeKey.Link(tesConcreteDcgNode.id, testAbstractDcgNode.id),
+    samples =  DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync()
   )
 
   lazy val testDcgState = MapGraphState[IO](
     ioValues = Map(tesConcreteDcgNode.ioValue -> Set(tesConcreteDcgNode.id)),
     graph = DcgGraph[IO](
-      concreteNodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode),
-      abstractNodes = Map(testAbstractDcgNode.id -> testAbstractDcgNode),
-      edgesData = Map(testDcgEdge.ends -> testDcgEdge),
-      edgesMapping = DcgEdgesMapping(
-        forward = Map(tesConcreteDcgNode.id -> Set(testAbstractDcgNode.id)),
-        backward = Map(testAbstractDcgNode.id -> Set(tesConcreteDcgNode.id))
-      ),
-      samplesData = Map(testSampleData.id -> testSampleData)
+      nodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode, testAbstractDcgNode.id -> testAbstractDcgNode),
+      edges = Map(testDcgEdge.key -> testDcgEdge),
+      samples = Map(testSampleData.id -> testSampleData),
+      structure = GraphStructure(Set(testDcgEdge.key))
     )
   )
 
@@ -243,8 +240,8 @@ trait TestApiData:
   lazy val testMapVisualizationMsg = MapVisualizationMsg(
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
-    ioValues = testDcgState.ioValues.toSet.map((k, v) => (k.name, v)),
-    concreteNodes = testDcgState.graph.conNodes.keySet,
-    abstractNodes = testDcgState.graph.absNodes.keySet,
-    edgesMapping = testDcgState.graph.edgesMapping.forward.toSet
+    ioValues =  testDcgState.ioValues.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
+    concreteNodes = testDcgState.graph.nodes.keySet.filter(_.isCon).map(_.asHnId),
+    abstractNodes =testDcgState.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
+    edgesMapping =testDcgState.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
   )

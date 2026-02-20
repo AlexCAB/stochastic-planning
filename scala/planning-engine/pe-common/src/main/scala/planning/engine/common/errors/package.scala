@@ -28,7 +28,10 @@ extension (bool: Boolean)
 
 extension (value: Long)
   inline def assertAnNumberOf[F[_]: ApplicativeThrow](msg: String): F[Unit] =
-    predicateAssert(value >= 0, msg + s", expecter to be a number not null value, but got: $value")
+    predicateAssert(value >= 0, msg + s", expected to be a number not null value, but got: $value")
+
+  inline def assertPositive[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    predicateAssert(value > 0, msg + s", expected number to be assert positive, but got: $value")
 
 extension [L](left: L)
   inline def assertEqual[F[_]: ApplicativeThrow, R](right: R, msg: String): F[Unit] =
@@ -63,12 +66,12 @@ extension [L](left: IterableOnce[L])
     msg + s", left seq: ${left.iterator.toSet}, right seq: ${right.iterator.toSet}"
   )
 
-  inline def assertContainsAll[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
+  inline def assertContainsAllOf[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
     val rSet = right.iterator.toSet
     val dif = rSet -- left
     predicateAssert(dif.isEmpty, msg + s", seq: ${left.iterator.toSet}, do not contains: $dif of seq $rSet")
 
-  inline def assertNoSameElems[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
+  inline def assertContainsNoneOf[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
     val leftSet = left.iterator.toSet
     val rightSet = right.iterator.toSet
     val int = rightSet.intersect(leftSet)

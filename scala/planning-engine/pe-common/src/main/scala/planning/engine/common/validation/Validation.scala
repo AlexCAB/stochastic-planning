@@ -14,6 +14,9 @@ package planning.engine.common.validation
 
 import cats.ApplicativeThrow
 
+// Validation trait provides a structured way to define validation logic for objects.
+// !!! Only for use with auto-constructed objects (like JSON deserialization),
+//     in any other case to use validation in 'apply(..): F[...]' method.
 trait Validation:
   def validations: (String, List[Throwable])
 
@@ -41,17 +44,17 @@ trait Validation:
       val dif = others.filterNot(set.contains).toSet
       (dif.isEmpty, s"$msg, missing elements: ${dif.mkString(", ")}")
 
+    protected inline def containsNoneOf[O[_] <: Iterable[?]](others: O[Any], msg: String): (Boolean, String) =
+      val thisSet = seq.toSet
+      val otherSet = others.toSet
+      val int = thisSet.intersect(otherSet)
+      (int.isEmpty, s"$msg, have same elements: ${int.mkString(", ")}")
+
     protected inline def haveSameElems[O[_] <: Iterable[?]](others: O[Any], msg: String): (Boolean, String) =
       val thisSet = seq.toSet
       val otherSet = others.toSet
       val dif = (seq ++ others).filterNot(e => thisSet.contains(e) && otherSet.contains(e))
       (dif.isEmpty, s"$msg, have not same elements: ${dif.mkString(", ")}")
-
-    protected inline def haveDifferentElems[O[_] <: Iterable[?]](others: O[Any], msg: String): (Boolean, String) =
-      val thisSet = seq.toSet
-      val otherSet = others.toSet
-      val int = thisSet.intersect(otherSet)
-      (int.isEmpty, s"$msg, have same elements: ${int.mkString(", ")}")
 
   extension (seq: Iterable[(Any, Any)])
     protected inline def allEquals(msg: String): (Boolean, String) =

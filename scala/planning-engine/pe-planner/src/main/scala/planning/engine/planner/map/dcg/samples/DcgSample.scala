@@ -16,24 +16,16 @@ import cats.MonadThrow
 import cats.syntax.all.*
 
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.validation.Validation
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.errors.assertDistinct
+import planning.engine.common.errors.*
 
 final case class DcgSample[F[_]: MonadThrow](
     data: SampleData,
     structure: GraphStructure[F]
-) extends Validation:
-
-  override lazy val validations: (String, List[Throwable]) = validate(
-    s"DcgSample(id=${data.id}, name=${data.name.toStr})"
-  )(
-    structure.isConnected -> "DcgSample edges must form a connected graph"
-  )
-
+):
   override lazy val toString: String =
     s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
 
@@ -57,4 +49,10 @@ object DcgSample:
       _ <- keys.assertDistinct("Sample edges must be distinct")
       data = sample.toSampleData(id)
       structure = GraphStructure(keys.toSet)
+    yield new DcgSample(data, structure)
+
+  def apply[F[_]: MonadThrow](data: SampleData, structure: GraphStructure[F]): F[DcgSample[F]] =
+    for
+      _ <- data.probabilityCount.assertPositive("Sample probability count must be positive")
+      _ <- structure.isConnected.assertTrue("DcgSample edges must form a connected graph")
     yield new DcgSample(data, structure)

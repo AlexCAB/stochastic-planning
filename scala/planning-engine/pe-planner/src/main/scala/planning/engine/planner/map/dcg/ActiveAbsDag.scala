@@ -13,29 +13,32 @@
 package planning.engine.planner.map.dcg
 
 import cats.MonadThrow
-import planning.engine.common.validation.Validation
+import cats.syntax.all.*
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.DcgGraph
-
-import planning.engine.common.values.edge.EdgeKey
+import planning.engine.common.values.edge.{EdgeKey, EdgeKeySet}
+import planning.engine.common.errors.*
 
 // Is DAG where leafs are concrete hidden nodes and rest of the tree is abstract hidden nodes.
 // Edges with type LINK pointed form higher abstract root nodes to concrete leaf nodes.
 // Also include THEN edges to previous nodes.
 final case class ActiveAbsDag[F[_]: MonadThrow](
-    backwordThenKeys: Set[EdgeKey], // Targets of THEN edges is nodes in this graph
+    backwordKeys: EdgeKeySet[EdgeKey.Then], // Targets of THEN edges is nodes in this graph
     graph: DcgGraph[F]
-) extends Validation:
+)
 
-  override lazy val validations: (String, List[Throwable]) =
-    val allBackThenIds = backwordThenKeys.flatMap(e => Set(e.src, e.trg))
-    val (isDag, tracedAbsHnIds) = graph.structure.traceFromNodes(graph.conMnId.map(_.asInstanceOf[MnId]))
-
-    validate("ActiveAbsGraph", graph.validations)(
-      graph.mnIds.containsAllOf(allBackThenIds, "Back THEN edges refer to unknown HnIds"),
-      isDag -> "Graph contains cycles in LINK edges",
-      tracedAbsHnIds.haveSameElems(graph.absMnId, "Some nodes are not connected to any concrete nodes via LINK edges")
-    )
+object ActiveAbsDag:
+  def apply[F[_]: MonadThrow](
+      backwordKeys: EdgeKeySet[EdgeKey.Then],
+      graph: DcgGraph[F]
+  ): F[ActiveAbsDag[F]] =
+    for
+      _ <- graph.mnIds.assertContainsAllOf(backwordKeys.mnIds, "Back THEN edges refer to unknown HnIds")
+      _ <- graph.edgesMdIds.assertContainsAllOf(backwordKeys.trgIds, "Target do not connected to active graph.")
+      _ <- graph.edgesMdIds.assertContainsNoneOf(backwordKeys.srcIds, "Source can't be connected to active graph.")
+      tracedAbs <-  graph.structure.traceAbsForest(graph.conMnId).map(_.map(_.trg))
+      _ <- tracedAbs.assertSameElems(graph.absMnId, "Some nodes are not connected to any concrete nodes")
+    yield new ActiveAbsDag(backwordKeys, graph)
 
 // TODO Refactoring:
 

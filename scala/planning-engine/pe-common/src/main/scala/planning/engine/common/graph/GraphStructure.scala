@@ -18,6 +18,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.edge.EdgeKey
 import planning.engine.common.values.edge.EdgeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.MnId.Con
 import planning.engine.common.errors.*
 
 import scala.annotation.tailrec
@@ -54,20 +55,25 @@ final case class GraphStructure[F[_]: MonadThrow](
 
   def add(ends: Iterable[EdgeKey]): F[GraphStructure[F]] =
     for
-        _ <- this.keys.assertNoSameElems(ends, "Can't add Edges that already exist")
+        _ <- this.keys.assertContainsNoneOf(ends, "Can't add Edges that already exist")
     yield GraphStructure(this.keys ++ ends)
 
   def findNextEdges(hnIds: Set[MnId]): Set[(MnId, MnId)] =
     hnIds.flatMap(hnId => srcMap.get(hnId).toSet.flatMap(_.map(trgId => (hnId, trgId.id))))
 
-  def traceFromNodes(conHnId: Set[MnId]): (Boolean, Set[MnId]) = // (isDag, tracedAbsHnIds)
-    @tailrec def trace(conHnId: Set[MnId], visited: Set[(MnId, MnId)]): (Boolean, Set[MnId]) =
-      findNextEdges(conHnId) match
-        case frw if visited.intersect(frw).nonEmpty => (false, visited.map(_._2)) // cycle detected
-        case frw if frw.isEmpty                     => (true, visited.map(_._2)) // no more edges
-        case frw                                    => trace(frw.map(_._2), visited ++ frw)
+  def findNextLinks(ids: Set[MnId]): Set[(MnId, Link.End)] =
+    ids.flatMap(id => srcLinkMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
-    trace(conHnId, Set.empty)
+  def traceAbsForest(mnIds: Set[Con]): F[Set[Link]] =
+    @tailrec def trace(nextMnId: Set[MnId], visited: Set[(MnId, Link.End)]): F[Set[(MnId, Link.End)]] =
+      val frwLinks = findNextLinks(nextMnId)
+      (frwLinks, visited.intersect(frwLinks)) match
+        case (_, int) if int.nonEmpty               => s"Cycle detected on: $int".assertionError
+        case (frw, _) if !frw.forall(_._2.id.isAbs) => s"Found LINK pointed on concrete node $frw".assertionError
+        case (frw, _) if frw.isEmpty                => visited.pure
+        case (frw, _)                               => trace(frw.map(_._2.id), visited ++ frw)
+
+    trace(mnIds.map(_.asMnId), Set.empty).map(_.map((src, trg) => trg.asSrcKey(src)))
 
   lazy val linkRoots: Set[MnId] = srcLinkMap.keySet -- trgLinkMap.keySet
   lazy val thenRoots: Set[MnId] = srcThenMap.keySet -- trgThenMap.keySet

@@ -155,7 +155,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
   override def findConcreteNodesByIoValues(values: Map[IoName, IoIndex]): F[List[ConcreteWithParentIds[F]]] =
     skipIfEmpty(values, List[ConcreteWithParentIds[F]]()):
       for
-        _ <- ioNodes.keys.assertContainsAll(values.keys, "Unknown IO nodes names")
+        _ <- ioNodes.keys.assertContainsAllOf(values.keys, "Unknown IO nodes names")
         ioNodeWithIndex <- values.toList.traverse((n, i) => getIoNode(n).map(io => io -> i))
         foundNodes <- database.findHiddenNodesByIoValues(ioNodeWithIndex)
         _ <- logger.info(s"Found nodes = $foundNodes for values = $values")

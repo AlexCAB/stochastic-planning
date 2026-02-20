@@ -73,8 +73,8 @@ class ValidationSpec extends UnitSpecWithData:
     "return true when both collections have different elements" in newCase[CaseData]: (_, _) =>
       val obj = new Validation:
         def validations = validate("testObj")(
-          List(1, 2, 3).haveDifferentElems(List(4, 5), "Collections have different elements"),
-          List(1, 2, 3).haveDifferentElems(List(3, 4), "Collections do not have different elements")
+          List(1, 2, 3).containsNoneOf(List(4, 5), "Collections have different elements"),
+          List(1, 2, 3).containsNoneOf(List(3, 4), "Collections do not have different elements")
         )
       obj.pure[IO].asserting(_.validations._2
         .map(_.getMessage) mustBe List("Collections do not have different elements, have same elements: 3"))

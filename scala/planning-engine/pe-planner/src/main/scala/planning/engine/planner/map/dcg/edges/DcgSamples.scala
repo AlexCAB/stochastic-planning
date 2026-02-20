@@ -30,9 +30,9 @@ final case class DcgSamples[F[_]: MonadThrow](indexies: Map[SampleId, Indexies])
 
   def join(other: DcgSamples[F]): F[DcgSamples[F]] =
     for
-      _ <- indexies.keySet.assertNoSameElems(other.indexies.keySet, "Map edge can't have duplicate sample")
-      _ <- srcHnIndex.assertNoSameElems(other.srcHnIndex, "Map edge can't have duplicate source indexes")
-      _ <- trgHnIndex.assertNoSameElems(other.trgHnIndex, "Map edge can't have duplicate target indexes")
+      _ <- indexies.keySet.assertContainsNoneOf(other.indexies.keySet, "Map edge can't have duplicate sample")
+      _ <- srcHnIndex.assertContainsNoneOf(other.srcHnIndex, "Map edge can't have duplicate source indexes")
+      _ <- trgHnIndex.assertContainsNoneOf(other.trgHnIndex, "Map edge can't have duplicate target indexes")
     yield this.copy(indexies = indexies ++ other.indexies)
 
   override lazy val toString: String = indexies

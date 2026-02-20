@@ -24,101 +24,110 @@ import planning.engine.common.values.edge.EdgeKey
 class GraphStructureSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    lazy val n1 = Con(1)
-    lazy val n2 = Con(2)
-    lazy val n3 = Con(3)
+    lazy val c1 = Con(1)
+    lazy val c2 = Con(2)
+    lazy val c3 = Con(3)
 
-    lazy val n4 = Abs(4)
-    lazy val n5 = Abs(5)
-    lazy val n6 = Abs(6)
+    lazy val a4 = Abs(4)
+    lazy val a5 = Abs(5)
+    lazy val a6 = Abs(6)
 
-    lazy val conGraph = GraphStructure[IO](Set(Link(n1, n2), Link(n2, n3)))
-    lazy val nonConGraph = GraphStructure[IO](Set(Link(n1, n2), Link(n3, n4)))
-    lazy val cycleGraph = GraphStructure[IO](Set(Link(n1, n2), Link(n2, n1)))
+    lazy val conGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, a5)))
+    lazy val nonConGraph = GraphStructure[IO](Set(Link(c1, a4), Link(c2, a5)))
+    lazy val cycleGraph = GraphStructure[IO](Set(Then(c1, c2), Then(c2, c1)))
 
-    lazy val sampleEnds = Set(Link(n1, n2), Link(n2, n3), Link(n1, n4), Then(n1, n2), Then(n1, n3))
-    lazy val sampleGraph = GraphStructure[IO](sampleEnds)
+    lazy val simpleEnds = Set(
+      Link(c1, a4),
+      Link(a4, a5),
+      Link(c1, a6),
+      Then(c1, c2),
+      Then(c1, c3)
+    )
+
+    lazy val simpleGraph = GraphStructure[IO](simpleEnds)
 
     lazy val complexGraph = GraphStructure[IO](Set(
-      Link(n1, n4),
-      Link(n2, n4),
-      Link(n3, n5),
-      Link(n4, n6),
-      Link(n5, n6),
-      Then(n1, n2),
-      Then(n2, n3),
-      Then(n4, n5),
-      Then(n6, n6)
+      Link(c1, a4),
+      Link(c2, a4),
+      Link(c3, a5),
+      Link(a4, a6),
+      Link(a5, a6),
+      Then(c1, c2),
+      Then(c2, c3),
+      Then(a4, a5),
+      Then(a6, a6)
     ))
 
   "GraphStructure.mnIds" should:
     "return all MnIds in the graph" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
-      sampleGraph.mnIds.pure[IO].logValue(tn).asserting(_ mustBe Set(n1, n2, n3, n4))
+      import data.*
+      simpleGraph.mnIds.pure[IO].logValue(tn).asserting(_ mustBe Set(c1, c2, c3, a4, a5, a6))
 
   "GraphStructure.filterByEndType(...)" should:
     "filter ends by given type" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, sampleGraph}
+      import data.{c1, c2, c3, simpleGraph}
       async[IO]:
         val inMap: Map[MnId, Set[EdgeKey.End]] = Map(
-          n1 -> Set(Link.End(n1), Then.End(n1)),
-          n2 -> Set(Link.End(n2)),
-          n3 -> Set(Then.End(n3))
+          c1 -> Set(Link.End(c1), Then.End(c1)),
+          c2 -> Set(Link.End(c2)),
+          c3 -> Set(Then.End(c3))
         )
 
-        sampleGraph.filterByEndType[Link.End](inMap) mustBe Map(n1 -> Set(Link.End(n1)), n2 -> Set(Link.End(n2)))
-        sampleGraph.filterByEndType[Then.End](inMap) mustBe Map(n1 -> Set(Then.End(n1)), n3 -> Set(Then.End(n3)))
+        simpleGraph.filterByEndType[Link.End](inMap) mustBe Map(c1 -> Set(Link.End(c1)), c2 -> Set(Link.End(c2)))
+        simpleGraph.filterByEndType[Then.End](inMap) mustBe Map(c1 -> Set(Then.End(c1)), c3 -> Set(Then.End(c3)))
 
   "GraphStructure.srcLinkMap" should:
     "return source to target Link ends mapping" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
+      import data.*
 
-      sampleGraph.srcLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
-        n1 -> Set(Link.End(n2), Link.End(n4)),
-        n2 -> Set(Link.End(n3))
+      simpleGraph.srcLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
+        c1 -> Set(Link.End(a4), Link.End(a6)),
+        a4 -> Set(Link.End(a5))
       ))
 
   "GraphStructure.srcThenMap" should:
     "return source to target Then ends mapping" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, sampleGraph}
-      sampleGraph.srcThenMap.pure[IO].logValue(tn).asserting(_ mustBe Map(n1 -> Set(Then.End(n2), Then.End(n3))))
+      import data.{c1, c2, c3, simpleGraph}
+      simpleGraph.srcThenMap.pure[IO].logValue(tn).asserting(_ mustBe Map(c1 -> Set(Then.End(c2), Then.End(c3))))
 
   "GraphStructure.trgLinkMap" should:
     "return target to source Link ends mapping" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
+      import data.*
 
-      sampleGraph.trgLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
-        n2 -> Set(Link.End(n1)),
-        n3 -> Set(Link.End(n2)),
-        n4 -> Set(Link.End(n1))
+      simpleGraph.trgLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
+        a4 -> Set(Link.End(c1)),
+        a5 -> Set(Link.End(a4)),
+        a6 -> Set(Link.End(c1))
       ))
 
   "GraphStructure.trgThenMap" should:
     "return target to source Then ends mapping" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, sampleGraph}
+      import data.{c1, c2, c3, simpleGraph}
 
-      sampleGraph.trgThenMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
-        n2 -> Set(Then.End(n1)),
-        n3 -> Set(Then.End(n1))
+      simpleGraph.trgThenMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
+        c2 -> Set(Then.End(c1)),
+        c3 -> Set(Then.End(c1))
       ))
 
   "GraphStructure.neighbours" should:
     "return neighbours mapping" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
+      import data.*
 
-      sampleGraph.neighbours.pure[IO].logValue(tn).asserting(_ mustBe Map(
-        n1 -> Set(n2, n3, n4),
-        n2 -> Set(n1, n3),
-        n3 -> Set(n1, n2),
-        n4 -> Set(n1)
+      simpleGraph.neighbours.pure[IO].logValue(tn).asserting(_ mustBe Map(
+        c1 -> Set(c2, c3, a4, a6),
+        c2 -> Set(c1),
+        c3 -> Set(c1),
+        a4 -> Set(c1, a5),
+        a5 -> Set(a4),
+        a6 -> Set(c1)
       ))
 
   "GraphStructure.findConnected" should:
-    "return set of connected MnIds for given hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, conGraph, nonConGraph}
+    "return set of connected MnIds for given mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
       async[IO]:
-        conGraph.findConnected(n1, Set.empty) mustBe Set(n1, n2, n3)
-        nonConGraph.findConnected(n1, Set.empty) mustBe Set(n1, n2)
+        conGraph.findConnected(c1, Set.empty) mustBe Set(c1, a4, a5)
+        nonConGraph.findConnected(c1, Set.empty) mustBe Set(c1, a4)
 
   "GraphStructure.isConnected" should:
     "return whether the graph is connected" in newCase[CaseData]: (tn, data) =>
@@ -129,61 +138,90 @@ class GraphStructureSpec extends UnitSpecWithData:
 
   "GraphStructure.add" should:
     "add new edges to the graph" in newCase[CaseData]: (tn, data) =>
-      import data.{n2, n3, n4, sampleGraph}
+      import data.{c2, c3, a4, simpleGraph}
       async[IO]:
-        val newEdges = Set(Link(n2, n4), Link(n3, n4))
-        val newGraph: GraphStructure[IO] = sampleGraph.add(newEdges).await
-        newGraph.keys mustBe (sampleGraph.keys ++ newEdges)
+        val newEdges = Set(Link(c2, a4), Link(c3, a4))
+        val newGraph: GraphStructure[IO] = simpleGraph.add(newEdges).await
+        newGraph.keys mustBe (simpleGraph.keys ++ newEdges)
 
   "GraphStructure.findNextEdges(...)" should:
-    "return next edges from given hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
+    "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
       async[IO]:
-        sampleGraph.findNextEdges(Set(n1)) mustBe Set((n1, n2), (n1, n4), (n1, n3))
-        sampleGraph.findNextEdges(Set(n2)) mustBe Set((n2, n3))
-        sampleGraph.findNextEdges(Set(n3)) mustBe Set()
-        sampleGraph.findNextEdges(Set(n1, n2)) mustBe Set((n1, n2), (n1, n4), (n1, n3), (n2, n3))
+        simpleGraph.findNextEdges(Set(c1)) mustBe Set((c1, c2), (c1, a4), (c1, c3), (c1, a6))
+        simpleGraph.findNextEdges(Set(a4)) mustBe Set((a4, a5))
+        simpleGraph.findNextEdges(Set(c3)) mustBe Set()
+        simpleGraph.findNextEdges(Set(c1, c2)) mustBe Set((c1, c2), (c1, a4), (c1, c3), (c1, a6))
+
+  "GraphStructure.findNextLinks(...)" should:
+    "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        simpleGraph.findNextLinks(Set(c1)) mustBe Set(c1 -> Link.End(a4), c1 -> Link.End(a6))
+        simpleGraph.findNextLinks(Set(a4)) mustBe Set(a4 -> Link.End(a5))
+        simpleGraph.findNextLinks(Set(c3)) mustBe Set()
 
   "GraphStructure.traceFromNodes(...)" should:
-    "trace abstract nodes from connected hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph, cycleGraph}
-      async[IO]:
-        sampleGraph.traceFromNodes(Set(n1)) mustBe (true, Set(n2, n3, n4))
-        cycleGraph.traceFromNodes(Set(n1)) mustBe (false, Set(n1, n2))
+    "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
+
+      simpleGraph.traceAbsForest(Set(c1)).logValue(tn)
+        .asserting(_ mustBe Set(Link(c1, a4), Link(c1, a6), Link(a4, a5)))
+
+    "fail if cycle found" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, a5), Link(a5, a4)))
+
+      invalidGraph.traceAbsForest(Set(c1)).logValue(tn)
+        .assertThrowsError(_.getMessage must include("Cycle detected"))
+
+    "fail if invalid edge found" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, c2)))
+
+      invalidGraph.traceAbsForest(Set(c1)).logValue(tn)
+        .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
 
   "GraphStructure.linkRoots" should:
-    "return link root hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, sampleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
+    "return link root mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.{c1, c2, c3, simpleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
       async[IO]:
-        sampleGraph.linkRoots mustBe Set(n1)
-        conGraph.linkRoots mustBe Set(n1)
-        nonConGraph.linkRoots mustBe Set(n1, n3)
+        simpleGraph.linkRoots mustBe Set(c1)
+        conGraph.linkRoots mustBe Set(c1)
+        nonConGraph.linkRoots mustBe Set(c1, c2)
         cycleGraph.linkRoots mustBe Set()
-        complexGraph.linkRoots mustBe Set(n1, n2, n3)
+        complexGraph.linkRoots mustBe Set(c1, c2, c3)
 
   "GraphStructure.thenRoots" should:
-    "return then root hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n4, sampleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
+    "return then root mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.{c1, a4, simpleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
       async[IO]:
-        sampleGraph.thenRoots mustBe Set(n1)
+        simpleGraph.thenRoots mustBe Set(c1)
         conGraph.thenRoots mustBe Set()
         nonConGraph.thenRoots mustBe Set()
         cycleGraph.thenRoots mustBe Set()
-        complexGraph.thenRoots mustBe Set(n1, n4)
+        complexGraph.thenRoots mustBe Set(c1, a4)
 
   "GraphStructure.findForward" should:
-    "find forward neighbours for given hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, n4, sampleGraph}
+    "find forward neighbours for given mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
       async[IO]:
-        sampleGraph.findForward(Set(n1)) mustBe Set(Link(n1, n2), Link(n1, n4), Then(n1, n2), Then(n1, n3))
-        sampleGraph.findForward(Set(n2)) mustBe Set(Link(n2, n3))
+        simpleGraph.findForward(Set(a4)) mustBe Set(Link(a4, a5))
+
+        simpleGraph.findForward(Set(c1)) mustBe Set(
+          Then(c1, c2),
+          Link(c1, a6),
+          Link(c1, a4),
+          Then(c1, c2),
+          Then(c1, c3)
+        )
 
   "GraphStructure.findBackward" should:
-    "find backward neighbours for given hnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{n1, n2, n3, sampleGraph}
+    "find backward neighbours for given mnIds" in newCase[CaseData]: (tn, data) =>
+      import data.{c1, c2, c3, simpleGraph}
       async[IO]:
-        sampleGraph.findBackward(Set(n2)) mustBe Set(Link(n1, n2), Then(n1, n2))
-        sampleGraph.findBackward(Set(n3)) mustBe Set(Link(n2, n3), Then(n1, n3))
+        simpleGraph.findBackward(Set(c2)) mustBe Set(Then(c1, c2))
+        simpleGraph.findBackward(Set(c3)) mustBe Set(Then(c1, c3))
 
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>
@@ -195,17 +233,20 @@ class GraphStructureSpec extends UnitSpecWithData:
 
   "GraphStructure.apply(Set[Edge])" should:
     "construct GraphStructure from edges" in newCase[CaseData]: (tn, data) =>
-      import data.{sampleEnds, n1, n2, n3, n4}
-      val graph = GraphStructure[IO](sampleEnds)
+      import data.*
+      val graph = GraphStructure[IO](simpleEnds)
       async[IO]:
-        graph.keys mustBe sampleEnds
+        graph.keys mustBe simpleEnds
 
         graph.srcMap mustBe Map(
-          n1 -> Set(Link.End(n2), Then.End(n2), Then.End(n3), Link.End(n4)),
-          n2 -> Set(Link.End(n3))
+          c1 -> Set(Then.End(c2), Then.End(c3), Link.End(a4), Link.End(a6)),
+          a4 -> Set(Link.End(a5))
         )
+
         graph.trgMap mustBe Map(
-          n2 -> Set(Link.End(n1), Then.End(n1)),
-          n3 -> Set(Then.End(n1), Link.End(n2)),
-          n4 -> Set(Link.End(n1))
+          c2 -> Set(Then.End(c1)),
+          c3 -> Set(Then.End(c1)),
+          a4 -> Set(Link.End(c1)),
+          a5 -> Set(Link.End(a4)),
+          a6 -> Set(Link.End(c1))
         )

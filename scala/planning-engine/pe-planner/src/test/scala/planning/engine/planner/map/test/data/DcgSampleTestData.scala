@@ -37,7 +37,7 @@ trait DcgSampleTestData:
     description = Description.some(s"Test DCG Sample Data, ID $id")
   )
 
-  def makeDcgSample(id: SampleId)(keys: EdgeKey*): DcgSample[IO] = DcgSample[IO](
+  def makeDcgSample(id: SampleId)(keys: EdgeKey*): DcgSample[IO] = new DcgSample[IO](
     data = makeDcgSampleData(id),
     structure = GraphStructure[IO](keys.toSet)
   )

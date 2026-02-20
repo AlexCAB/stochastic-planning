@@ -17,54 +17,25 @@ import planning.engine.common.graph.GraphStructure
 import planning.engine.common.values.node.HnName
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.nodes.DcgNode
-import planning.engine.planner.map.test.data.DcgSampleTestData
+import planning.engine.planner.map.test.data.DcgGraphTestData
 import cats.effect.cps.*
 import cats.syntax.all.*
 import org.scalatest.compatible.Assertion
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.validation.{Validation, ValidationCheck, ValidationError}
 import planning.engine.planner.map.dcg.samples.DcgSample
-import planning.engine.common.values.node.{MnId, HnIndex}
+import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.test.data.{DcgNodeTestData, MapSampleTestData, DcgEdgeTestData}
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.common.values.edge.EdgeKey
 import planning.engine.common.values.edge.EdgeKey.{Link, Then}
 
-class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
+class DcgGraphSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case
-      with DcgNodeTestData with DcgEdgeTestData with MapSampleTestData with DcgSampleTestData:
-
-    def makeEdgLink(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-      makeDcgEdgeLink(srcId, trgId, makeSampleIds(allHnId, ids.toSeq*))
-
-    def makeEdgThen(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-      makeDcgEdgeThen(srcId, trgId, makeSampleIds(allHnId, ids.toSeq*))
-
-    lazy val nuHnId = MnId.Abs(-1)
-    lazy val emptyDcgGraph = DcgGraph.empty[IO]
-    lazy val allNodes = conNodes ++ absNodes
-
-    lazy val graphWithNodes = emptyDcgGraph
-      .copy(nodes = allNodes.map(n => n.id -> n).toMap)
-
-    lazy val lEdge1 = makeEdgLink(hnId1, hnId3, Set(sampleId1, sampleId2))
-    lazy val lEdge2 = makeEdgLink(hnId2, hnId4, Set(sampleId1))
-    lazy val lEdge3 = makeEdgLink(hnId4, hnId5, Set(sampleId2))
-    lazy val lEdge4 = makeEdgLink(hnId2, hnId5, Set(sampleId2))
-
-    lazy val tEdge1 = makeEdgThen(hnId2, hnId1, Set(sampleId2))
-    lazy val tEdge2 = makeEdgThen(hnId5, hnId1, Set(sampleId1, sampleId2))
-
-    lazy val dcgEdges: List[DcgEdge[IO]] = List(lEdge1, lEdge2, lEdge3, lEdge4, tEdge1, tEdge2)
-    lazy val sampleData: List[SampleData] = List(sampleId1, sampleId2).map(id => makeSampleData(id = id))
-
-    lazy val graphWithEdges: DcgGraph[IO] = graphWithNodes.copy(
-      edges = dcgEdges.map(e => e.key -> e).toMap,
-      samples = sampleData.map(s => s.id -> s).toMap,
-      structure = GraphStructure[IO](dcgEdges.map(_.key).toSet)
-    )
+  private class CaseData extends Case with DcgGraphTestData:
+    val nodesMap = allNodes.map(n => n.id -> n).toMap
+    val edgesMap = dcgEdges.map(e => e.key -> e).toMap
+    val samplesMap = sampleData.map(s => s.id -> s).toMap
+    val structureMap = GraphStructure[IO](dcgEdges.map(_.key).toSet)
 
   "DcgGraph.mnIds" should:
     "return all MnIds" in newCase[CaseData]: (tn, data) =>
@@ -99,62 +70,6 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         allIndexies must not be empty
         allIndexies.keySet mustBe data.graphWithEdges.mnIds
         allIndexies mustBe allIndexiesMap
-
-  "DcgGraph.validationName" should:
-    "return correct name" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgGraph.checkValidationName("DcgGraph", tn)
-
-  "DcgGraph.validationErrors" should:
-    "return no errors for valid graph" in newCase[CaseData]: (tn, data) =>
-      data.graphWithEdges.checkNoValidationError(tn)
-
-    "return error when concrete nodes map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
-      data
-        .graphWithEdges.copy(nodes = data.graphWithEdges.nodes + (data.nuHnId -> data.conNodes.head))
-        .checkOneValidationError("Nodes map keys and values IDs mismatch", tn)
-
-    "return error when edges data map keys and values mismatch" in newCase[CaseData]: (tn, data) =>
-      data.graphWithEdges
-        .copy(edges = data.graphWithEdges.edges + (EdgeKey.Link(data.hnId3, data.hnId3) -> data.lEdge1))
-        .checkOneOfValidationErrors("Edges data map keys and values key mismatch", tn)
-
-    "return error when samples data map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
-      data.graphWithEdges
-        .copy(samples = data.graphWithEdges.samples + (data.sampleId1 -> data.makeSampleData(SampleId(9999))))
-        .checkOneValidationError("Samples data map keys and values IDs mismatch", tn)
-
-    "return error when edge refers to unknown MnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{graphWithEdges, allHnId, nuHnId, sampleId1, makeDcgEdgeLink, makeSampleIds}
-      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allHnId + nuHnId, sampleId1))
-
-      graphWithEdges
-        .copy(edges = graphWithEdges.edges + (invalidEdge.key -> invalidEdge))
-        .checkOneOfValidationErrors("Edge refers to unknown MnIds", tn)
-
-    "return error when edges mapping refers to unknown HnIds and unknown edge ends" in newCase[CaseData]: (tn, data) =>
-      val invalidGraph = data.graphWithEdges.copy(
-        structure = data.graphWithEdges.structure.copy(
-          srcMap = data.graphWithEdges.structure.srcMap + (data.nuHnId -> Set(EdgeKey.Link.End(data.hnId1))),
-          trgMap = data.graphWithEdges.structure.trgMap + (data.hnId1 -> Set(EdgeKey.Link.End(data.nuHnId)))
-        )
-      )
-
-      invalidGraph.checkOneOfValidationErrors("Graph structure refers to unknown MnIds", tn)
-
-    "return error when graph structure refers to unknown edge key" in newCase[CaseData]: (tn, data) =>
-      val invalidGraph = data.graphWithEdges.copy(
-        structure = data.graphWithEdges.structure
-          .copy(keys = data.graphWithEdges.structure.keys + EdgeKey.Link(data.hnId1, data.hnId5))
-      )
-
-      invalidGraph.checkOneOfValidationErrors("Graph structure refers to unknown edge key", tn)
-
-    "return error when some sample IDs used in edges are not found" in newCase[CaseData]: (tn, data) =>
-      val invalidEdge = data.makeEdgLink(data.hnId1, data.hnId3, Set(data.sampleId1, SampleId(9999)))
-
-      data.graphWithEdges
-        .copy(edges = data.graphWithEdges.edges + (invalidEdge.key -> invalidEdge))
-        .checkOneValidationError("Some sample IDs used in edges are not found", tn)
 
   "DcgGraph.getNodes(...)" should:
     "get concrete node for MnId" in newCase[CaseData]: (tn, data) =>
@@ -237,13 +152,10 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
       import data.*
       async[IO]:
         val newSampleId = add.sample.data.id
-
         val upGraph: DcgGraph[IO] = graph.addSamples(List(add)).await
-        Validation.validate[IO](upGraph).await
-
         val upEdges: Map[EdgeKey, DcgEdge[IO]] = upGraph.getEdges[EdgeKey](add.sample.structure.keys).await
-        logInfo(tn, s"upEdges:\n${upEdges.values.mkString("\n")}").await
 
+        logInfo(tn, s"upEdges:\n${upEdges.values.mkString("\n")}").await
         upEdges.keySet mustBe add.sample.structure.keys
 
         upEdges.foreach: (key, edge) =>
@@ -254,32 +166,25 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         succeed
 
     "add samples with exist edges" in newCase[CaseData]: (tn, data) =>
-      import data.{makeDcgSampleAdd, hnId2, hnId4, hnId5, hnId1}
-      val addWithExistEdges = makeDcgSampleAdd(SampleId(1))(Link(hnId2, hnId4), Link(hnId4, hnId5), Then(hnId2, hnId1))
+      import data.{makeDcgSampleAdd, mnId2, mnId4, mnId5, mnId1}
+      val addWithExistEdges = makeDcgSampleAdd(SampleId(1))(Link(mnId2, mnId4), Link(mnId4, mnId5), Then(mnId2, mnId1))
       checkSampleAdded(data.graphWithEdges, addWithExistEdges, data, tn)
 
     "add samples with new edges" in newCase[CaseData]: (tn, data) =>
-      import data.{makeDcgSampleAdd, hnId1, hnId2, hnId3}
-      val addWithNewEdges = makeDcgSampleAdd(SampleId(2))(Link(hnId1, hnId2), Link(hnId2, hnId3), Then(hnId3, hnId1))
+      import data.{makeDcgSampleAdd, mnId1, mnId2, mnId3}
+      val addWithNewEdges = makeDcgSampleAdd(SampleId(2))(Link(mnId1, mnId2), Link(mnId2, mnId3), Then(mnId3, mnId1))
       checkSampleAdded(data.graphWithEdges, addWithNewEdges, data, tn)
 
-    "fail if sample is invalid" in newCase[CaseData]: (tn, data) =>
-      import data.{makeDcgSampleAdd, hnId1, hnId2, hnId3, hnId4}
-      val invalidSampleAdd = makeDcgSampleAdd(SampleId(3))(Link(hnId1, hnId2), Link(hnId3, hnId4))
-
-      data.graphWithEdges.addSamples(List(invalidSampleAdd)).logValue(tn)
-        .assertThrowsError[ValidationError](_.getMessage must include("DcgSample edges must form a connected graph"))
-
     "fail if duplicate sample IDs detected" in newCase[CaseData]: (tn, data) =>
-      import data.{graphWithEdges, makeDcgSampleAdd, hnId1, hnId2}
-      val sampleAdd = makeDcgSampleAdd(SampleId(4))(Link(hnId1, hnId2))
+      import data.{graphWithEdges, makeDcgSampleAdd, mnId1, mnId2}
+      val sampleAdd = makeDcgSampleAdd(SampleId(4))(Link(mnId1, mnId2))
 
       graphWithEdges.addSamples(List(sampleAdd, sampleAdd)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Duplicate sample IDs detected"))
 
     "fail if some sample IDs already exists in the graph" in newCase[CaseData]: (tn, data) =>
-      import data.{makeDcgSampleAdd, graphWithEdges, sampleId1, hnId1, hnId2}
-      val sampleAdd = makeDcgSampleAdd(sampleId1)(Link(hnId1, hnId2))
+      import data.{makeDcgSampleAdd, graphWithEdges, sampleId1, mnId1, mnId2}
+      val sampleAdd = makeDcgSampleAdd(sampleId1)(Link(mnId1, mnId2))
 
       graphWithEdges.addSamples(List(sampleAdd)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Some sample IDs already exists in the graph"))
@@ -298,7 +203,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
   "DcgGraph.findForwardLinkEdges(...)" should:
     "find forward link edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val sourceHnIds = Set[MnId](data.hnId1, data.hnId2)
+        val sourceHnIds = Set[MnId](data.mnId1, data.mnId2)
 
         val result: Map[EdgeKey.Link, DcgEdge[IO]] = data.graphWithEdges.findForwardLinkEdges(sourceHnIds).await
         logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
@@ -311,7 +216,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
   "DcgGraph.findForwardActiveLinkEdges(...)" should:
     "find forward active link edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val sourceHnIds = Set[MnId](data.hnId1, data.hnId2)
+        val sourceHnIds = Set[MnId](data.mnId1, data.mnId2)
         val activeSampleIds = Set(data.sampleId1)
 
         val result: Map[EdgeKey.Link, DcgEdge[IO]] = data.graphWithEdges
@@ -333,7 +238,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
   "DcgGraph.findBackwardThenEdges(...)" should:
     "find backward then edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val targetHnIds = Set[MnId](data.hnId1)
+        val targetHnIds = Set[MnId](data.mnId1)
 
         val result: Map[EdgeKey.Then, DcgEdge[IO]] = data.graphWithEdges.findBackwardThenEdges(targetHnIds).await
         logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
@@ -346,7 +251,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
   "DcgGraph.findBackwardActiveThenEdges(...)" should:
     "find backward active then edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val targetHnIds = Set[MnId](data.hnId1)
+        val targetHnIds = Set[MnId](data.mnId1)
         val activeSampleIds = Set(data.sampleId2)
 
         val result: Map[EdgeKey.Then, DcgEdge[IO]] = data.graphWithEdges
@@ -376,7 +281,7 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         emptyGraph.samples mustBe Map.empty
         emptyGraph.structure.keys mustBe Set.empty
 
-  "DcgGraph.apply(...)" should:
+  "DcgGraph.apply(nodes, edges, samples)" should:
     "create correct graph from components" in newCase[CaseData]: (tn, data) =>
       import data.{allNodes, dcgEdges, sampleData}
       async[IO]:
@@ -413,9 +318,66 @@ class DcgGraphSpec extends UnitSpecWithData with ValidationCheck:
         .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown HnIds"))
 
     "fail if some sample IDs used in edges are not found" in newCase[CaseData]: (tn, data) =>
-      import data.{allNodes, dcgEdges, sampleData, makeEdgLink, hnId4, sampleId1}
-      val invalidEdge = makeEdgLink(hnId4, hnId4, Set(sampleId1, SampleId(9999)))
+      import data.{allNodes, dcgEdges, sampleData, makeEdgLink, mnId4, sampleId1}
+      val invalidEdge = makeEdgLink(mnId4, mnId4, Set(sampleId1, SampleId(9999)))
 
       DcgGraph[IO](allNodes, dcgEdges :+ invalidEdge, sampleData)
         .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Some sample IDs used in edges are not found"))
+
+  "DcgGraph.apply(nodes, edges, samples, structure)" should:
+    "create graph from valid data" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      DcgGraph[IO](nodesMap, edgesMap, samplesMap, structureMap).logValue(tn).asserting(_ mustBe graphWithEdges)
+
+    "return error when concrete nodes map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidNodes = nodesMap + (nuHnId -> conNodes.head)
+
+      DcgGraph[IO](invalidNodes, edgesMap, samplesMap, structureMap).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Nodes map keys and values IDs mismatch"))
+
+    "return error when edges data map keys and values mismatch" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidEdges = edgesMap + (EdgeKey.Link(mnId3, mnId3) -> lEdge1)
+
+      DcgGraph[IO](nodesMap, invalidEdges, samplesMap, structureMap).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Edges data map keys and values key mismatch"))
+
+    "return error when samples data map keys and values IDs mismatch" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidSamples = samplesMap + (sampleId1 -> makeDcgSampleData(SampleId(9999)))
+
+      DcgGraph[IO](nodesMap, edgesMap, invalidSamples, structureMap).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Samples data map keys and values IDs mismatch"))
+
+    "return error when edge refers to unknown MnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allHnId + nuHnId, sampleId1))
+
+      DcgGraph[IO](nodesMap, edgesMap + (invalidEdge.key -> invalidEdge), samplesMap, structureMap).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown MnIds"))
+
+    "return error when edges mapping refers to unknown HnIds and unknown edge ends" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val srcMap = graphWithEdges.structure.srcMap + (nuHnId -> Set(EdgeKey.Link.End(mnId1)))
+      val trgMap = graphWithEdges.structure.trgMap + (mnId1 -> Set(EdgeKey.Link.End(nuHnId)))
+      val invalidStructure = graphWithEdges.structure.copy[IO](srcMap = srcMap, trgMap = trgMap)
+
+      DcgGraph[IO](nodesMap, edgesMap, samplesMap, invalidStructure).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Graph structure refers to unknown MnIds"))
+
+    "return error when graph structure refers to unknown edge key" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val keys = graphWithEdges.structure.keys + EdgeKey.Link(mnId1, mnId5)
+      val invalidStructure = graphWithEdges.structure.copy[IO](keys = keys)
+
+      DcgGraph[IO](nodesMap, edgesMap, samplesMap, invalidStructure).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Graph structure refers to unknown edge key"))
+
+    "return error when some sample IDs used in edges are not found" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val invalidEdge = data.makeEdgLink(data.mnId1, data.mnId3, Set(data.sampleId1, SampleId(9999)))
+
+      DcgGraph[IO](nodesMap, edgesMap + (invalidEdge.key -> invalidEdge), samplesMap, structureMap).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Some sample IDs used in edges are not found"))

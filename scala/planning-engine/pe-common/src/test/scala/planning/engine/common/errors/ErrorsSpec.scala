@@ -36,6 +36,13 @@ class ErrorsSpec extends UnitSpecIO:
     "raise an error when the condition is false" in: tn =>
       -1L.assertAnNumberOf[IO]("Value is not positive").assertThrows[AssertionError]
 
+  "assertPositive" should:
+    "complete successfully when the condition is true" in: _ =>
+      5L.assertPositive[IO]("Value is not positive").assertNoException
+
+    "raise an error when the condition is false" in: tn =>
+      -1L.assertPositive[IO]("Value is not positive").assertThrows[AssertionError]
+
   "assertEqual" should:
     "complete successfully when both values are equal" in: _ =>
       42.assertEqual[IO, Int](42, "Values must be equal").assertNoException
@@ -117,34 +124,34 @@ class ErrorsSpec extends UnitSpecIO:
       val right = List(4, 5, 6)
       left.assertSameElems[IO](right, "Collections do not have the same elements").assertThrows[AssertionError]
 
-  "assertContainsAll" should:
+  "assertContainsAllOf" should:
     "return the collections when all elements in the second collection are present in the first" in: _ =>
       val left = Seq(1, 2, 3, 4)
       val right = Seq(2, 3)
-      left.assertContainsAll[IO](right, "Not all elements are contained").assertNoException
+      left.assertContainsAllOf[IO](right, "Not all elements are contained").assertNoException
 
     "raise an error when the second collection has elements not present in the first" in: _ =>
       val left = Seq(1, 2, 3)
       val right = Seq(4, 5)
-      left.assertContainsAll[IO](right, "Not all elements are contained").assertThrows[AssertionError]
+      left.assertContainsAllOf[IO](right, "Not all elements are contained").assertThrows[AssertionError]
 
     "return the collections when the second collection is empty" in: _ =>
       val left = Seq(1, 2, 3)
       val right = Seq.empty[Int]
-      left.assertContainsAll[IO](right, "Not all elements are contained").assertNoException
+      left.assertContainsAllOf[IO](right, "Not all elements are contained").assertNoException
 
     "raise an error when the first collection is empty and the second is not" in: _ =>
       val left = Seq.empty[Int]
       val right = Seq(1, 2)
-      left.assertContainsAll[IO](right, "Not all elements are contained").assertThrows[AssertionError]
+      left.assertContainsAllOf[IO](right, "Not all elements are contained").assertThrows[AssertionError]
 
-  "assertNoSameElems" should:
+  "assertContainsNoneOf" should:
     "return the input collections when no common elements exist" in: _ =>
       val left = List(1, 2, 3)
       val right = List(4, 5, 6)
-      left.assertNoSameElems[IO](right, "No common elements").assertNoException
+      left.assertContainsNoneOf[IO](right, "No common elements").assertNoException
 
     "raise an error when common elements exist" in: _ =>
       val left = List(1, 2, 3)
       val right = List(3, 4, 5)
-      left.assertNoSameElems[IO](right, "Common elements found").assertThrows[AssertionError]
+      left.assertContainsNoneOf[IO](right, "Common elements found").assertThrows[AssertionError]

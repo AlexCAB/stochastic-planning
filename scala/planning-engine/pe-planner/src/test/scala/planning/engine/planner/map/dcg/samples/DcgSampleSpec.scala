@@ -16,12 +16,11 @@ import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.map.test.data.MapSampleTestData
 
-class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
+class DcgSampleSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with MapSampleTestData:
     lazy val n1 = MnId.Con(1)
@@ -38,24 +37,10 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
     lazy val structure = GraphStructure[IO](edges)
     lazy val indexMap = IndexMap(Map(n1 -> HnIndex(11), n2 -> HnIndex(12), n3 -> HnIndex(13), n4 -> HnIndex(14)))
 
-    lazy val dcgSample = DcgSample[IO](sampleData, structure)
+    lazy val dcgSample = new DcgSample[IO](sampleData, structure)
     lazy val dcgSampleAdd = DcgSample.Add[IO](dcgSample, indexMap)
 
     lazy val newSampleData = makeNewSampleData(sampleData, edges)
-
-  "DcgSample.validationName" should:
-    "return correct name" in newCase[CaseData]: (tn, data) =>
-      data.dcgSample.checkValidationName(s"DcgSample(id=${data.sampleData.id}, name=${data.sampleData.name.toStr})", tn)
-
-  "DcgSample.validationErrors" should:
-    "return no errors for valid sample" in newCase[CaseData]: (tn, data) =>
-      data.dcgSample.checkNoValidationError(tn)
-
-    "return error for non-connected edges" in newCase[CaseData]: (tn, data) =>
-      val invalidEdges = Set(EdgeKey.Link(data.n1, data.n2), EdgeKey.Then(MnId.Con(5), MnId.Con(6)))
-
-      data.dcgSample.copy(structure = GraphStructure[IO](invalidEdges))
-        .checkOneValidationError("DcgSample edges must form a connected graph", tn)
 
   "DcgSample.Add.idsByKey" should:
     "return correct set of ids by edge keys" in newCase[CaseData]: (tn, data) =>
@@ -67,3 +52,20 @@ class DcgSampleSpec extends UnitSpecWithData with ValidationCheck:
       import data.*
       DcgSample[IO](sampleData.id, newSampleData, conNodes, absNodes)
         .logValue(tn).asserting(_ mustBe dcgSample)
+
+  "DcgSample.apply(SampleData, GraphStructure)" should:
+    "return reate valid sample" in newCase[CaseData]: (tn, data) =>
+      import data.{sampleData, structure, dcgSample}
+      DcgSample[IO](sampleData, structure).logValue(tn).asserting(_ mustBe dcgSample)
+
+    "return error if probability count not positive" in newCase[CaseData]: (tn, data) =>
+      import data.{sampleData, structure}
+      DcgSample[IO](sampleData.copy(probabilityCount = 0), structure).logValue(tn)
+        .assertThrowsError(_.getMessage must include("Sample probability count must be positive"))
+
+    "return error for non-connected edges" in newCase[CaseData]: (tn, data) =>
+      import data.sampleData
+      val invalidEdges = Set(EdgeKey.Link(data.n1, data.n2), EdgeKey.Then(MnId.Con(5), MnId.Con(6)))
+
+      DcgSample[IO](sampleData, GraphStructure[IO](invalidEdges)).logValue(tn)
+        .assertThrowsError(_.getMessage must include("DcgSample edges must form a connected graph"))

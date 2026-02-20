@@ -24,6 +24,7 @@ import planning.engine.planner.map.dcg.repr.DcgNodeRepr
 sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def id: MnId
   def name: Option[HnName]
+  def asConcrete: Option[DcgNode.Concrete[F]]
   def asDcgNode: DcgNode[F] = this
 
 object DcgNode:
@@ -35,6 +36,7 @@ object DcgNode:
       valueIndex: IoIndex
   ) extends DcgNode[F]:
     lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
+    lazy val asConcrete: Option[DcgNode.Concrete[F]] = Some(this)
 
   object Concrete:
     def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[Concrete[F]] = new Concrete[F](
@@ -64,7 +66,8 @@ object DcgNode:
       id: MnId.Abs,
       name: Option[HnName],
       description: Option[Description]
-  ) extends DcgNode[F]
+  ) extends DcgNode[F]:
+    lazy val asConcrete: Option[DcgNode.Concrete[F]] = None
 
   object Abstract:
     def apply[F[_]: MonadThrow](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](

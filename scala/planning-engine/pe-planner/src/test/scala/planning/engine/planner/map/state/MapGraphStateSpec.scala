@@ -1,34 +1,35 @@
-///*|||||||||||||||||||||||||||||||||
-//|| 0 * * * * * * * * * ▲ * * * * ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * ||  * * * * * ||       || 0 ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * * ▲ * * 0|| * ||   (< * * * ||
-//|| * ||||||||||| * ||  ||||||||||||
-//|| * * * * * * * * *   ||||||||||||
-//| author: CAB |||||||||||||||||||||
-//| website: github.com/alexcab |||||
-//| created: 2025-12-13 |||||||||||*/
-//
-//package planning.engine.planner.map.state
-//
-//import cats.effect.IO
-//import cats.effect.cps.*
-//import cats.syntax.all.*
-//import planning.engine.common.UnitSpecWithData
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2025-12-13 |||||||||||*/
+
+package planning.engine.planner.map.state
+
+import cats.effect.IO
+import cats.effect.cps.*
+import cats.syntax.all.*
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.values.io.{IoIndex, IoValue}
+import planning.engine.common.values.node.MnId
 //import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 //import planning.engine.common.values.node.{HnId, HnIndex}
 //import planning.engine.common.values.sample.SampleId
-//import planning.engine.planner.map.test.data.{DcgGraphTestData, MapSampleTestData}
-//import planning.engine.planner.map.dcg.edges.DcgEdgeData
+import planning.engine.planner.map.test.data.DcgStatesTestData
+//import planning.engine.planner.map.dcg.edges.DcgEdge
 //import planning.engine.common.values.edge.EdgeKey
-//import planning.engine.planner.map.dcg.edges.DcgSamples.{Indexies, Links, Thens}
 //import planning.engine.planner.map.dcg.nodes.DcgNode
 //import planning.engine.planner.map.state.MapGraphState
-//
-//class MapGraphStateSpec extends UnitSpecWithData:
-//
-//  private class CaseData extends Case with DcgGraphTestData with MapSampleTestData:
+
+class MapGraphStateSpec extends UnitSpecWithData:
+
+  private class CaseData extends Case with DcgStatesTestData
 //    lazy val emptyDcgState: MapGraphState[IO] = MapGraphState.empty[IO]
 //
 //    lazy val hnId1 = HnId(1)
@@ -79,14 +80,56 @@
 //
 //    lazy val List(s1, s2, s3) = List(1, 2, 3).map(id => makeSampleData(id = SampleId(id)))
 //    lazy val nodes = List(1, 2, 3).map(id => makeAbstractDcgNode(id = HnId(id)))
-//
-//  "MapGraphState.isEmpty" should:
-//    "return true for empty state" in newCase[CaseData]: (tn, data) =>
-//      data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
-//
-//    "return false for non empty state" in newCase[CaseData]: (tn, data) =>
-//      data.stateWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
-//
+
+  "MapGraphState.isEmpty" should:
+    "return true for empty state" in newCase[CaseData]: (_, data) =>
+      data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
+
+    "return false for non empty state" in newCase[CaseData]: (_, data) =>
+      data.initDcgState.pure[IO].asserting(_.isEmpty mustBe false)
+
+  "MapGraphState.ioValuesMnId" should:
+    "return ioValues to MnIds mapping" in newCase[CaseData]: (tn, data) =>
+      data.initDcgState.ioValuesMnId.pure[IO].logValue(tn)
+        .asserting(_ mustBe data.graphWithEdges.conMnId)
+
+  "MapGraphState.updateOrAddIoValues" should:
+    "update existing ioValues" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val existIoValues = initDcgState.ioValues.keys.head
+        existIoValues.name mustBe testBoolInNode.name
+
+        val newNode = makeConDcgNode(MnId.Con(1001), existIoValues.index)
+        val (ioValue, conMnIds): (IoValue, Set[MnId.Con]) = initDcgState.updateOrAddIoValues(newNode).await
+        logInfo(tn, s"ioValue: $ioValue, conMnIds: $conMnIds").await
+
+        ioValue mustBe existIoValues
+        conMnIds must contain(newNode.id)
+
+    "add new ioValues" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val newNode = makeConDcgNode(MnId.Con(1002), IoIndex(999))
+        val (ioValue, conMnIds): (IoValue, Set[MnId.Con]) = initDcgState.updateOrAddIoValues(newNode).await
+        logInfo(tn, s"ioValue: $ioValue, conMnIds: $conMnIds").await
+
+        ioValue mustBe newNode.ioValue
+        conMnIds must contain(newNode.id)
+
+    "fail if ioValue already exist for different node" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val existMnId = initDcgState.ioValuesMnId.head
+      val existIoValues = initDcgState.ioValues.keys.head
+      val invalidNode = makeConDcgNode(existMnId, existIoValues.index)
+
+      initDcgState.updateOrAddIoValues(invalidNode).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate node id"))
+
+
+
+
+
 //  "MapGraphState.addConcreteNodes(...)" should:
 //    "add concrete nodes" in newCase[CaseData]: (tn, data) =>
 //      async[IO]:

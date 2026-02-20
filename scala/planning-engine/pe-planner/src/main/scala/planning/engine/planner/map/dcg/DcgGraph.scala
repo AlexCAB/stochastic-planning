@@ -22,6 +22,7 @@ import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
+import planning.engine.common.values.io.IoValue
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 import scala.reflect.ClassTag
@@ -35,11 +36,11 @@ final case class DcgGraph[F[_]: MonadThrow](
   lazy val mnIds: Set[MnId] = nodes.keySet
   lazy val sampleIds: Set[SampleId] = samples.keySet
   lazy val edgesMdIds: Set[MnId] = edges.values.flatMap(_.mnIds).toSet
+  lazy val ioValues: Set[IoValue] = nodes.values.flatMap(_.asConcrete.map(_.ioValue)).toSet
+  lazy val isEmpty: Boolean = nodes.isEmpty
 
   lazy val conMnId: Set[MnId.Con] = mnIds.collect { case c: MnId.Con => c }
   lazy val absMnId: Set[MnId.Abs] = mnIds.collect { case c: MnId.Abs => c }
-
-  lazy val isEmpty: Boolean = nodes.isEmpty
 
   // Map of all HnIndexes for each MnId, collected from all edges in the graph.
   // Used for validating new edges in samples added to the graph, since only validation in DcgEdge.DcgSamples

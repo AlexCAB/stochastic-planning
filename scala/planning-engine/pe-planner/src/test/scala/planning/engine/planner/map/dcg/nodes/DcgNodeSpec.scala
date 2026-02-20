@@ -46,6 +46,15 @@ class DcgNodeSpec extends UnitSpecWithData:
     lazy val conDcgNode = DcgNode.Concrete[IO](concreteNode.id.asCon, conNodeNew, getIoNode).unsafeRunSync()
     lazy val absDcgNode = DcgNode.Abstract[IO](abstractNode.id.asAbs, absNodeNew).unsafeRunSync()
 
+  "DcgNode.asConcrete" should:
+    "return Some for Concrete nodes" in newCase[CaseData]: (tn, data) =>
+      import data.conDcgNode
+      conDcgNode.asConcrete.pure[IO].logValue(tn).asserting(_ mustBe Some(conDcgNode))
+
+    "return None for Abstract nodes" in newCase[CaseData]: (tn, data) =>
+      import data.absDcgNode
+      absDcgNode.asConcrete.pure[IO].logValue(tn).asserting(_ mustBe None)
+
   "DcgNode.Concrete.apply(ConcreteNode)" should:
     "crete DcgNode.Concrete correctly from ConcreteNode" in newCase[CaseData]: (tn, data) =>
       import data.concreteNode

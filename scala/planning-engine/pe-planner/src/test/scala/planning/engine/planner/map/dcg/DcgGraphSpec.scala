@@ -39,11 +39,28 @@ class DcgGraphSpec extends UnitSpecWithData:
 
   "DcgGraph.mnIds" should:
     "return all MnIds" in newCase[CaseData]: (tn, data) =>
-      data.graphWithNodes.mnIds.pure[IO].asserting(_ mustBe data.allHnId)
+      data.graphWithNodes.mnIds.pure[IO].asserting(_ mustBe data.allMnId)
 
-  "DcgGraph.allSampleIds" should:
+  "DcgGraph.sampleIds" should:
     "return all SampleIds" in newCase[CaseData]: (tn, data) =>
       data.graphWithEdges.sampleIds.pure[IO].asserting(_ mustBe Set(data.sampleId1, data.sampleId2))
+
+  "DcgGraph.edgesMdIds" should:
+    "return all MnIds used in edges" in newCase[CaseData]: (tn, data) =>
+      val expectedMnIds = data.dcgEdges.flatMap(_.mnIds).toSet
+      data.graphWithEdges.edgesMdIds.pure[IO].asserting(_ mustBe expectedMnIds)
+
+  "DcgGraph.ioValues" should:
+    "return all IoValues from concrete nodes" in newCase[CaseData]: (tn, data) =>
+      val expectedIoValues = data.conNodes.map(_.ioValue).toSet
+      data.graphWithNodes.ioValues.pure[IO].asserting(_ mustBe expectedIoValues)
+
+  "DcgGraph.isEmpty" should:
+    "return true for empty graph" in newCase[CaseData]: (tn, data) =>
+      data.emptyDcgGraph.pure[IO].asserting(_.isEmpty mustBe true)
+
+    "return false for non empty graph" in newCase[CaseData]: (tn, data) =>
+      data.graphWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
 
   "DcgGraph.conMnId" should:
     "return all concrete MnIds" in newCase[CaseData]: (tn, data) =>
@@ -52,13 +69,6 @@ class DcgGraphSpec extends UnitSpecWithData:
   "DcgGraph.absMnId" should:
     "return all abstract MnIds" in newCase[CaseData]: (tn, data) =>
       data.graphWithNodes.absMnId.pure[IO].asserting(_ mustBe data.allAbsMnId)
-
-  "DcgGraph.isEmpty" should:
-    "return true for empty graph" in newCase[CaseData]: (tn, data) =>
-      data.emptyDcgGraph.pure[IO].asserting(_.isEmpty mustBe true)
-
-    "return false for non empty graph" in newCase[CaseData]: (tn, data) =>
-      data.graphWithNodes.pure[IO].asserting(_.isEmpty mustBe false)
 
   "DcgGraph.allIndexies" should:
     "return all HnIndexies" in newCase[CaseData]: (tn, data) =>
@@ -311,7 +321,7 @@ class DcgGraphSpec extends UnitSpecWithData:
 
     "fail if edges refer to unknown MnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidEdges = dcgEdges :+ makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allHnId + nuHnId, sampleId1))
+      val invalidEdges = dcgEdges :+ makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allMnId + nuHnId, sampleId1))
 
       DcgGraph[IO](allNodes, invalidEdges, sampleData)
         .logValue(tn)
@@ -353,7 +363,7 @@ class DcgGraphSpec extends UnitSpecWithData:
 
     "return error when edge refers to unknown MnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allHnId + nuHnId, sampleId1))
+      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allMnId + nuHnId, sampleId1))
 
       DcgGraph[IO](nodesMap, edgesMap + (invalidEdge.key -> invalidEdge), samplesMap, structureMap).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown MnIds"))

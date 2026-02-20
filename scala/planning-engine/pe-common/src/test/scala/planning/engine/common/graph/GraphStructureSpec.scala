@@ -161,7 +161,7 @@ class GraphStructureSpec extends UnitSpecWithData:
         simpleGraph.findNextLinks(Set(a4)) mustBe Set(a4 -> Link.End(a5))
         simpleGraph.findNextLinks(Set(c3)) mustBe Set()
 
-  "GraphStructure.traceFromNodes(...)" should:
+  "GraphStructure.traceAbsForest(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
 

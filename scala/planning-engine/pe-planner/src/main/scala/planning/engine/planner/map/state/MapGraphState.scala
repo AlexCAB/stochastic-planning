@@ -26,6 +26,7 @@ final case class MapGraphState[F[_]: MonadThrow](
     graph: DcgGraph[F]
 ):
   lazy val isEmpty: Boolean = ioValues.isEmpty && graph.isEmpty
+  lazy val ioValuesMnId: Set[MnId.Con] = ioValues.values.flatten.toSet
 
   private[state] def updateOrAddIoValues(node: DcgNode.Concrete[F]): F[(IoValue, Set[MnId.Con])] =
     ioValues.get(node.ioValue) match
@@ -36,6 +37,7 @@ final case class MapGraphState[F[_]: MonadThrow](
   def addNodes(nodes: Iterable[DcgNode[F]]): F[MapGraphState[F]] =
     for
       conNodes <- nodes.filter(_.isInstanceOf[DcgNode.Concrete[F]]).map(_.asInstanceOf[DcgNode.Concrete[F]]).pure
+      _ <- ioValuesMnId.assertContainsNoneOf(conNodes.map(_.id).toSet, "Two or more nodes can't have the same MnId")
       updatedIoValues <- conNodes.toList.traverse(n => updateOrAddIoValues(n)).map(_.toMap)
       newGraph <- graph.addNodes(nodes)
     yield this.copy(
@@ -65,3 +67,11 @@ object MapGraphState:
     ioValues = Map.empty,
     graph = DcgGraph.empty[F]
   )
+
+  def apply[F[_]: MonadThrow](ioValues: Map[IoValue, Set[MnId.Con]], graph: DcgGraph[F]): F[MapGraphState[F]] =
+    for
+      allIds <- ioValues.values.flatMap(_.toList).pure
+      _ <- allIds.assertDistinct("Two or more IoValue cant refer to the same MnId")
+      _ <- graph.conMnId.assertSameElems(allIds, "IoValues refer to unknown nodes")
+      _ <- graph.ioValues.assertSameElems(ioValues.keySet, "IoValues refer to unknown nodes")
+    yield new MapGraphState(ioValues, graph)

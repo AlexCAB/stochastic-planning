@@ -22,6 +22,7 @@ final case class HnId(value: Long) extends AnyVal with LongVal:
   def increase: HnId = HnId(value + 1L)
   def asCon: MnId.Con = MnId.Con(value)
   def asAbs: MnId.Abs = MnId.Abs(value)
+  override def toString: String = s"⟨$value⟩"
 
   def toMnId[F[_]: MonadThrow](conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[MnId] =
     (conIds.contains(this.asCon), absIds.contains(this.asAbs)) match

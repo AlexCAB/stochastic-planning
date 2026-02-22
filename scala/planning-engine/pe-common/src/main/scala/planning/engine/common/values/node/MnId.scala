@@ -28,6 +28,9 @@ sealed trait MnId:
     case _: MnId.Con => s"[$reprValue]"
     case _: MnId.Abs => s"($reprValue)"
 
+  override def toString: String = reprNode
+
 object MnId:
   final case class Con(value: Long) extends MnId
+
   final case class Abs(value: Long) extends MnId

@@ -23,7 +23,9 @@ final case class Observation(
     utility: Option[Double] // Optional utility value associated with the observation
 ) extends IoValues
 
-final case class Action(values: Set[IoValue]) extends IoValues
+final case class Action(
+    values: Set[IoValue]
+) extends IoValues
 
 object Action:
   val empty: Action = Action(Set.empty)

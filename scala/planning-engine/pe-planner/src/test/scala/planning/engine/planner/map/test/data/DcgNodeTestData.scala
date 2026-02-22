@@ -13,12 +13,15 @@
 package planning.engine.planner.map.test.data
 
 import cats.effect.IO
-import planning.engine.common.values.io.IoIndex
-import planning.engine.common.values.node.{MnId, HnName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.map.dcg.nodes.DcgNode
 
 trait DcgNodeTestData extends MapNodeTestData:
+  def makeIoValue(name: String = "TestIoVariable", index: Long = 100): IoValue = 
+    IoValue(IoName(name), IoIndex(index))
+  
   def makeConDcgNode(
       id: MnId.Con = MnId.Con(3000005),
       valueIndex: IoIndex = IoIndex(102)

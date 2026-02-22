@@ -14,12 +14,14 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
+import planning.engine.common.values.node.MnId
+import planning.engine.common.values.io.{IoValue, IoValueMap}
 
 trait DcgStatesTestData extends DcgGraphTestData with DcgSampleTestData:
   lazy val emptyDcgState: MapGraphState[IO] = MapGraphState.empty[IO]
 
   lazy val initDcgState: MapGraphState[IO] = new MapGraphState(
-    ioValues = conNodes.groupBy(_.ioValue).map((io , ns) => io -> ns.map(_.id).toSet).toMap,
+    ioValues = new IoValueMap[IO](conNodes.groupBy(_.ioValue).map((io, ns) => io -> ns.map(_.id).toSet)),
     graph = graphWithEdges
   )
 
@@ -28,3 +30,5 @@ trait DcgStatesTestData extends DcgGraphTestData with DcgSampleTestData:
     inNodes = testInNodes.map(n => n.name -> n).toMap,
     outNodes = testOutNodes.map(n => n.name -> n).toMap
   )
+
+  def makeIoValueMap(values: (IoValue, Set[MnId.Con])*): IoValueMap[IO] = new IoValueMap[IO](values.toMap)

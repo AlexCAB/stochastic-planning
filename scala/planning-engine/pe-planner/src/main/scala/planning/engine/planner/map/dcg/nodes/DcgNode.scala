@@ -27,6 +27,8 @@ sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def asConcrete: Option[DcgNode.Concrete[F]]
   def asDcgNode: DcgNode[F] = this
 
+  protected lazy val idRepr: String = s"${id.value}${name.map(n => s", \'${n.value}\'").getOrElse("")}"
+
 object DcgNode:
   final case class Concrete[F[_]: MonadThrow](
       id: MnId.Con,
@@ -37,6 +39,7 @@ object DcgNode:
   ) extends DcgNode[F]:
     lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
     lazy val asConcrete: Option[DcgNode.Concrete[F]] = Some(this)
+    override lazy val toString: String = s"[C, $idRepr, ${ioValue.toString}]"
 
   object Concrete:
     def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[Concrete[F]] = new Concrete[F](
@@ -68,6 +71,7 @@ object DcgNode:
       description: Option[Description]
   ) extends DcgNode[F]:
     lazy val asConcrete: Option[DcgNode.Concrete[F]] = None
+    override lazy val toString: String = s"(A, $idRepr)"
 
   object Abstract:
     def apply[F[_]: MonadThrow](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](

@@ -29,7 +29,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val stateUpdatedStub = stubFunction[MapGraphState[IO], IO[Unit]]
     lazy val visualizationStub = stub[MapVisualizationLike[IO]]
 
-    lazy val changedDcgState = initDcgState.copy(ioValues = Map(testIoValue -> Set()))
+    lazy val changedDcgState = initDcgState.copy(ioValues = makeIoValueMap(testIoValue -> Set()))
 
     lazy val mapInfoCell: AtomicCell[IO, MapInfoState[IO]] = AtomicCell[IO].of(initMapInfoState).unsafeRunSync()
     lazy val dcgStateCell: AtomicCell[IO, MapGraphState[IO]] = AtomicCell[IO].of(initDcgState).unsafeRunSync()

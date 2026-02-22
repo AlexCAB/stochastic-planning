@@ -27,8 +27,8 @@ sealed trait EdgeKey:
   def trgEnd: EdgeKey.End
 
   def asKey: EdgeKey = this
-  
-  lazy val isLink: Boolean = this.isInstanceOf[EdgeKey.Link]  
+
+  lazy val isLink: Boolean = this.isInstanceOf[EdgeKey.Link]
   lazy val isThen: Boolean = this.isInstanceOf[EdgeKey.Then]
 
   lazy val asEdgeType: EdgeType = this match
@@ -41,6 +41,8 @@ sealed trait EdgeKey:
       case _: EdgeKey.Then => "-then->"
 
     s"${src.reprNode} $arrow ${trg.reprNode}"
+
+  override def toString: String = repr
 
 object EdgeKey:
   sealed trait End:

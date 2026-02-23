@@ -25,11 +25,14 @@ final case class HnId(value: Long) extends AnyVal with LongVal:
   override def toString: String = s"⟨$value⟩"
 
   def toMnId[F[_]: MonadThrow](conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[MnId] =
+    def idsToStr: String =
+      s"conIds: [${conIds.map(_.value).mkString(", ")}], absIds: [${absIds.map(_.value).mkString(", ")}]"
+
     (conIds.contains(this.asCon), absIds.contains(this.asAbs)) match
       case (true, false)  => this.asCon.pure
       case (false, true)  => this.asAbs.pure
-      case (true, true)   => s"Provided $this is both Con and Abs".assertionError
-      case (false, false) => s"Provided $this is neither Con nor Abs".assertionError
+      case (true, true)   => s"Provided $this is both Con and Abs, $idsToStr".assertionError
+      case (false, false) => s"Provided $this is neither Con nor Abs, $idsToStr".assertionError
 
 object HnId:
   val init: HnId = HnId(1L)

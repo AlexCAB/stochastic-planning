@@ -42,39 +42,6 @@ class MapGraphStateSpec extends UnitSpecWithData:
       data.initDcgState.ioValuesMnId.pure[IO].logValue(tn)
         .asserting(_ mustBe data.graphWithEdges.conMnId)
 
-//  "MapGraphState.updateOrAddIoValues" should:
-//    "update existing ioValues" in newCase[CaseData]: (tn, data) =>
-//      import data.*
-//      async[IO]:
-//        val existIoValues = initDcgState.ioValues.keySet.head
-//        existIoValues.name mustBe testBoolInNode.name
-//
-//        val newNode = makeConDcgNode(MnId.Con(1001), existIoValues.index)
-//        val (ioValue, conMnIds): (IoValue, Set[MnId.Con]) = initDcgState.updateOrAddIoValues(newNode).await
-//        logInfo(tn, s"ioValue: $ioValue, conMnIds: $conMnIds").await
-//
-//        ioValue mustBe existIoValues
-//        conMnIds must contain(newNode.id)
-//
-//    "add new ioValues" in newCase[CaseData]: (tn, data) =>
-//      import data.*
-//      async[IO]:
-//        val newNode = makeConDcgNode(MnId.Con(1002), IoIndex(999))
-//        val (ioValue, conMnIds): (IoValue, Set[MnId.Con]) = initDcgState.updateOrAddIoValues(newNode).await
-//        logInfo(tn, s"ioValue: $ioValue, conMnIds: $conMnIds").await
-//
-//        ioValue mustBe newNode.ioValue
-//        conMnIds must contain(newNode.id)
-//
-//    "fail if ioValue already exist for different node" in newCase[CaseData]: (tn, data) =>
-//      import data.*
-//      val existMnId = initDcgState.ioValuesMnId.head
-//      val existIoValues = initDcgState.ioValues.keys.head
-//      val invalidNode = makeConDcgNode(existMnId, existIoValues.index)
-//
-//      initDcgState.updateOrAddIoValues(invalidNode).logValue(tn)
-//        .assertThrowsError[AssertionError](_.getMessage must include("Duplicate node id"))
-
   "MapGraphState.addNodes" should:
     "add nodes" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -139,7 +106,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
     "return empty state" in newCase[CaseData]: (tn, data) =>
       data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
 
-  "MapGraphState.apply(Map[IoValue, Set[MnId.Con]], DcgGraph[F])" should:    
+  "MapGraphState.apply(Map[IoValue, Set[MnId.Con]], DcgGraph[F])" should:
     "create new state" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
@@ -148,13 +115,17 @@ class MapGraphStateSpec extends UnitSpecWithData:
 
         newState.ioValues mustBe initDcgState.ioValues
         newState.graph mustBe initDcgState.graph
-        
-//    "fail if two or more IoValue cant refer to the same MnId" in newCase[CaseData]: (tn, data) =>
-//        import data.*
-//        val invalidIoValues = Map(
-//            IoValue(IoName("io1"), IoIndex(1)) -> Set(MnId.Con(1001)),
-//            IoValue(IoName("io2"), IoIndex(2)) -> Set(MnId.Con(1001))
-//        )
-//    
-//        MapGraphState(invalidIoValues, initDcgState.graph).logValue(tn)
-//            .assertThrowsError[AssertionError](_.getMessage must include("Two or more IoValue cant refer to the same MnId"))
+
+    "fail if con MnId refer to unknown nodes" in newCase[CaseData]: (tn, data) =>
+      import data.{makeIoValueMap, initDcgState}
+      val invalidIoValues = makeIoValueMap(initDcgState.ioValues.keySet.head -> Set(MnId.Con(9999)))
+
+      MapGraphState(invalidIoValues, initDcgState.graph).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Con MnId in ioValues refer to unknown nodes"))
+
+    "fail if IoValues refer to unknown nodes in graph" in newCase[CaseData]: (tn, data) =>
+      import data.{makeIoValueMap, makeIoValue, initDcgState}
+      val invalidIoValues = makeIoValueMap(makeIoValue("not_in_set", 123) -> initDcgState.graph.conMnId)
+
+      MapGraphState(invalidIoValues, initDcgState.graph).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("IoValues refer to unknown nodes in graph"))

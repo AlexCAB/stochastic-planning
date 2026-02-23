@@ -66,6 +66,6 @@ object MapGraphState:
 
   def apply[F[_]: MonadThrow](ioValues: IoValueMap[F], graph: DcgGraph[F]): F[MapGraphState[F]] =
     for
-      _ <- graph.conMnId.assertSameElems(ioValues.allMnIds, "Con MnId refer to unknown nodes")
-      _ <- graph.ioValues.assertSameElems(ioValues.keySet, "IoValues refer to unknown nodes")
+      _ <- graph.conMnId.assertSameElems(ioValues.allMnIds, "Con MnId in ioValues refer to unknown nodes in graph")
+      _ <- graph.ioValues.assertSameElems(ioValues.keySet, "IoValues refer to unknown nodes in graph")
     yield new MapGraphState(ioValues, graph)

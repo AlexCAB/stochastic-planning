@@ -28,6 +28,8 @@ trait DcgSampleTestData extends DcgNodeTestData:
   lazy val sampleId1 = SampleId(1001)
   lazy val sampleId2 = SampleId(1002)
   lazy val sampleId3 = SampleId(1003)
+  lazy val sampleId4 = SampleId(1004)
+  lazy val sampleId5 = SampleId(1005)
   lazy val simpleSampleId = SampleId(2003)
 
   def makeDcgSampleData(id: SampleId): SampleData = SampleData(

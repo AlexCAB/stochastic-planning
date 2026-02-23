@@ -1,108 +1,108 @@
-///*|||||||||||||||||||||||||||||||||
-//|| 0 * * * * * * * * * ▲ * * * * ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * ||  * * * * * ||       || 0 ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * * ▲ * * 0|| * ||   (< * * * ||
-//|| * ||||||||||| * ||  ||||||||||||
-//|| * * * * * * * * *   ||||||||||||
-//| author: CAB |||||||||||||||||||||
-//| website: github.com/alexcab |||||
-//| created: 2025-12-14 |||||||||||*/
-//
-//package planning.engine.planner.map
-//
-//import cats.effect.IO
-//import cats.effect.cps.*
-//import planning.engine.common.validation.ValidationError
-//import planning.engine.common.values.io.IoValue
-//import planning.engine.common.values.node.HnId
-//import planning.engine.map.subgraph.MapSubGraph
-//import org.scalamock.scalatest.AsyncMockFactory
-//import planning.engine.common.UnitSpecWithData
-//import planning.engine.common.values.sample.SampleId
-//import planning.engine.map.MapGraphLake
-//import planning.engine.map.samples.sample.Sample
-//import planning.engine.planner.map.dcg.edges.DcgEdgeData
-//import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
-//import planning.engine.planner.map.test.data.SimpleMemStateTestData
-//import planning.engine.planner.map.visualization.MapVisualizationLike
-//
-//class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
-//
-//  private class CaseData extends Case with SimpleMemStateTestData:
-//    val mapGraphStub = stub[MapGraphLake[IO]]
-//    val visualizationStub = stub[MapVisualizationLike[IO]]
-//    val mapCache = MapCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
-//
-//    def setLoadSubgraphForIoValue(
-//        expectedValues: List[IoValue],
-//        expectedLoadedSamples: List[SampleId],
-//        result: MapSubGraph[IO]
-//    ): Unit = mapGraphStub.loadSubgraphForIoValue.when(*, *)
-//      .onCall: (values, loadedSamples) =>
-//        for
-//          _ <- IO.delay(values mustBe expectedValues)
-//          _ <- IO.delay(loadedSamples mustBe expectedLoadedSamples)
-//        yield result
-//      .once()
-//
-//    def setAddNewSamples(
-//        expectedSamples: Sample.ListNew,
-//        result: List[Sample]
-//    ): Unit = mapGraphStub.addNewSamples.when(*)
-//      .onCall: params =>
-//        for
-//            _ <- IO.delay(params mustBe expectedSamples)
-//        yield result
-//      .once()
-//
-//    def setStateUpdated(expectedInfo: MapInfoState[IO], expectedState: MapGraphState[IO]): Unit =
-//      visualizationStub.stateUpdated.when(expectedInfo, expectedState).returns(IO.unit).once()
-//
-//  "MapCache.load(...)" should:
-//    "load map graph from cache" in newCase[CaseData]: (tn, data) =>
-//      data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph)
-//
-//      data.mapCache
-//        .load(data.ioValues.toSet, Set(data.sampleId1))
-//        .logValue(tn)
-//        .asserting(_ mustBe data.mapSubGraph)
-//
-//    "fail sub graph is failed" in newCase[CaseData]: (tn, data) =>
-//      data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(concreteNodes = List()))
-//
-//      data.mapCache
-//        .load(data.ioValues.toSet, Set(data.sampleId1))
-//        .logValue(tn)
-//        .assertThrowsError[ValidationError](_.getMessage must startWith("Validation failed for MapSubGraph"))
-//
-//    "fail if superfluous nodes presented" in newCase[CaseData]: (tn, data) =>
-//      val invConNodes = data.mapSubGraph.concreteNodes :+ data.makeConcreteNode(HnId(-1))
-//      data.setLoadSubgraphForIoValue(
-//        data.ioValues,
-//        List(data.sampleId1),
-//        data.mapSubGraph.copy(concreteNodes = invConNodes)
-//      )
-//
-//      data.mapCache
-//        .load(data.ioValues.toSet, Set(data.sampleId1))
-//        .logValue(tn)
-//        .assertThrowsError[AssertionError](_.getMessage must startWith("Superfluous nodes presented"))
-//
-//    "fail if abstract nodes none empty" in newCase[CaseData]: (tn, data) =>
-//      val invNode = List(data.makeAbstractNode(HnId(-3)))
-//      data.setLoadSubgraphForIoValue(
-//        data.ioValues,
-//        List(data.sampleId1),
-//        data.mapSubGraph.copy(abstractNodes = invNode)
-//      )
-//
-//      data.mapCache
-//        .load(data.ioValues.toSet, Set(data.sampleId1))
-//        .logValue(tn)
-//        .assertThrowsError[AssertionError](_.getMessage must startWith("Abstract nodes should not be loaded"))
-//
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2025-12-14 |||||||||||*/
+
+package planning.engine.planner.map
+
+import cats.effect.IO
+import planning.engine.common.validation.ValidationError
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.HnId
+import planning.engine.map.subgraph.MapSubGraph
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.MapGraphLake
+import planning.engine.map.samples.sample.Sample
+import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
+import planning.engine.planner.map.test.data.MapTestData
+import planning.engine.planner.map.visualization.MapVisualizationLike
+
+class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
+
+  private class CaseData extends Case with MapTestData:
+    val mapGraphStub = stub[MapGraphLake[IO]]
+    val visualizationStub = stub[MapVisualizationLike[IO]]
+    val mapCache = MapCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
+
+    def setLoadSubgraphForIoValue(
+        expectedValues: List[IoValue],
+        expectedLoadedSamples: List[SampleId],
+        result: MapSubGraph[IO]
+    ): Unit = mapGraphStub.loadSubgraphForIoValue.when(*, *)
+      .onCall: (values, loadedSamples) =>
+        for
+          _ <- IO.delay(values mustBe expectedValues)
+          _ <- IO.delay(loadedSamples mustBe expectedLoadedSamples)
+        yield result
+      .once()
+
+    def setAddNewSamples(
+        expectedSamples: Sample.ListNew,
+        result: List[Sample]
+    ): Unit = mapGraphStub.addNewSamples.when(*)
+      .onCall: params =>
+        for
+            _ <- IO.delay(params mustBe expectedSamples)
+        yield result
+      .once()
+
+    def setStateUpdated(expectedInfo: MapInfoState[IO], expectedState: MapGraphState[IO]): Unit =
+      visualizationStub.stateUpdated.when(expectedInfo, expectedState).returns(IO.unit).once()
+
+  "MapCache.load(...)" should:
+    "load map graph from cache" in newCase[CaseData]: (tn, data) =>
+      data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph)
+
+      data.mapCache
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(tn)
+        .asserting(_ mustBe data.mapSubGraph)
+
+    "fail sub graph is failed" in newCase[CaseData]: (tn, data) =>
+      data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(concreteNodes = List()))
+
+      data.mapCache
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(tn)
+        .assertThrowsError[ValidationError](_.getMessage must startWith("Validation failed for MapSubGraph"))
+
+    "fail if superfluous nodes presented" in newCase[CaseData]: (tn, data) =>
+      val invConNodes = data.mapSubGraph.concreteNodes :+ data.makeConcreteNode(HnId(-1))
+      data.setLoadSubgraphForIoValue(
+        data.ioValues,
+        List(data.sampleId1),
+        data.mapSubGraph.copy(concreteNodes = invConNodes)
+      )
+
+      data.mapCache
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must startWith("Superfluous nodes presented"))
+
+    "fail if abstract nodes none empty" in newCase[CaseData]: (tn, data) =>
+      val invNode = List(data.makeAbstractNode(HnId(-3)))
+      data.setLoadSubgraphForIoValue(
+        data.ioValues,
+        List(data.sampleId1),
+        data.mapSubGraph.copy(abstractNodes = invNode)
+      )
+
+      data.mapCache
+        .load(data.ioValues.toSet, Set(data.sampleId1))
+        .logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must startWith("Abstract nodes should not be loaded"))
+
+// TODO: To refactor:
+
 //  "MapCache.getForIoValues(...)" should:
 //    "get nodes from map graph and update empty cache" in newCase[CaseData]: (tn, data) =>
 //      val request = data.ioValues :+ data.testNotInMap

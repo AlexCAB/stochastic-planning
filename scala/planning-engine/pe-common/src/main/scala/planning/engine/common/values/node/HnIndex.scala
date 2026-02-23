@@ -19,5 +19,7 @@ import planning.engine.common.values.LongVal
 final case class HnIndex(value: Long) extends AnyVal with LongVal:
   def increase: HnIndex = HnIndex(value + 1L)
 
+  override def toString: String = s"i=$value"
+
 object HnIndex:
   val init: HnIndex = HnIndex(1L)

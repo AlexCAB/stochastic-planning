@@ -35,7 +35,7 @@ final case class MapAddSamplesRequest(
     (hiddenNodes.map(_.name).distinct.size == hiddenNodes.size) -> "Hidden nodes names must be unique",
     hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty",
     hnNamesSet.containsAllOf(samples.flatMap(_.edgesHnNames), "Sample edges must reference only provided")
-  ) 
+  )
 
   def listNewNotFoundHn[F[_]: MonadThrow](
       foundHnNames: Set[HnName],

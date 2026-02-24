@@ -33,8 +33,8 @@ class MnIdSpec extends UnitSpecIO:
 
     "return string representation of the value for Abs MnId" in: _ =>
       testAbsId.reprValue.pure[IO].asserting(_ mustBe "2")
-      
-  "MnId.reprNode"  should:  
+
+  "MnId.reprNode" should:
     "return string representation of the node for Con MnId" in: _ =>
       testConId.reprNode.pure[IO].asserting(_ mustBe "[1]")
 

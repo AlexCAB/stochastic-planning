@@ -26,7 +26,7 @@ import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.common.values.edge.EdgeKey
+import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.common.values.edge.EdgeKey.{Link, Then}
 
 class DcgGraphSpec extends UnitSpecWithData:
@@ -156,6 +156,52 @@ class DcgGraphSpec extends UnitSpecWithData:
 
       graphWithNodes.addNodes(List(existingNode)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Can't add nodes that already exist"))
+
+  "DcgGraph.checkHnIndex(...)" should:
+    "pass if no duplicate indexes" in newCase[CaseData]: (tn, data) =>
+      import data.{graphWithEdges, mnId1}
+      graphWithEdges.checkHnIndex(mnId1, Set(HnIndex(9998), HnIndex(9999))).logValue(tn)
+        .asserting(_ mustBe ())
+
+    "fail if duplicate indexes detected" in newCase[CaseData]: (tn, data) =>
+      import data.{graphWithEdges, mnId1, lEdge1}
+      graphWithEdges.checkHnIndex(mnId1, lEdge1.samples.srcHnIndex).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include(s"Duplicate indexes for MnId $mnId1"))
+
+  "DcgGraph.updateOrAddEdge(...)" should:
+    def getIndexiesForSampleId(indMap: Map[SampleId, IndexMap], sId: SampleId): Set[HnIndex] = indMap
+      .getOrElse(sId, fail(s"IndexMap for $sId not found"))
+      .indexies.values.toSet
+
+    "add new edge if not exist" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val newKey = EdgeKey.Link(mnId1, mnId5)
+      val indexiesForSampleIds = makeIndexiesForSampleIds(Set(mnId1, mnId5), sampleId3).toMap
+      val indexies = getIndexiesForSampleId(indexiesForSampleIds, sampleId3)
+
+      logInfo(tn, s"indexies = $indexies").unsafeRunSync()
+
+      graphWithEdges.updateOrAddEdge(newKey, indexiesForSampleIds).logValue(tn)
+        .asserting(edge =>
+          edge.key mustBe newKey
+          edge.samples.sampleIds mustBe Set(sampleId3)
+          indexies must contain(edge.samples.getSrcIndex(sampleId3))
+          indexies must contain(edge.samples.getTrgIndex(sampleId3))
+        )
+
+    "update existing edge if exist" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val existingKey = lEdge1.key
+      val indexiesForSampleIds = makeIndexiesForSampleIds(existingKey.mnIds, sampleId3).toMap
+      val indexies = getIndexiesForSampleId(indexiesForSampleIds, sampleId3)
+
+      graphWithEdges.updateOrAddEdge(existingKey, indexiesForSampleIds).logValue(tn)
+        .asserting(edge =>
+          edge.key mustBe existingKey
+          edge.samples.sampleIds mustBe Set(sampleId1, sampleId2, sampleId3)
+          indexies must contain(edge.samples.getSrcIndex(sampleId3))
+          indexies must contain(edge.samples.getTrgIndex(sampleId3))
+        )
 
   "DcgGraph.addSamples(...)" should:
     def checkSampleAdded(graph: DcgGraph[IO], add: DcgSample.Add[IO], data: CaseData, tn: String): IO[Assertion] =
@@ -321,7 +367,8 @@ class DcgGraphSpec extends UnitSpecWithData:
 
     "fail if edges refer to unknown MnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidEdges = dcgEdges :+ makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allMnId + nuHnId, sampleId1))
+      val invalidEdges =
+        dcgEdges :+ makeDcgEdgeLink(nuHnId, nuHnId, makeIndexiesForSampleIds(allMnId + nuHnId, sampleId1))
 
       DcgGraph[IO](allNodes, invalidEdges, sampleData)
         .logValue(tn)
@@ -363,7 +410,7 @@ class DcgGraphSpec extends UnitSpecWithData:
 
     "return error when edge refers to unknown MnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeSampleIds(allMnId + nuHnId, sampleId1))
+      val invalidEdge = makeDcgEdgeLink(nuHnId, nuHnId, makeIndexiesForSampleIds(allMnId + nuHnId, sampleId1))
 
       DcgGraph[IO](nodesMap, edgesMap + (invalidEdge.key -> invalidEdge), samplesMap, structureMap).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Edge refers to unknown MnIds"))

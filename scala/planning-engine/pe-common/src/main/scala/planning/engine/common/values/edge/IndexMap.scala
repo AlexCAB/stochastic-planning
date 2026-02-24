@@ -21,4 +21,3 @@ final case class IndexMap(indexies: Map[MnId, HnIndex]):
   def get[F[_]: MonadThrow](srcId: MnId, trgId: MnId): F[Indexies] = (indexies.get(srcId), indexies.get(trgId)) match
     case (Some(srcIndex), Some(trgIndex)) => MonadThrow[F].pure(Indexies(srcIndex, trgIndex))
     case (srcIndex, trgIndex)             => s"Source ($srcId) or target ($trgId) not found in IndexMap".assertionError
-

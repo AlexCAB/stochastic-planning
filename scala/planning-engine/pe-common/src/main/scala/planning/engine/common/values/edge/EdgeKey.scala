@@ -28,6 +28,8 @@ sealed trait EdgeKey:
 
   def asKey: EdgeKey = this
 
+  lazy val mnIds: Set[MnId] = Set(src, trg)
+
   lazy val isLink: Boolean = this.isInstanceOf[EdgeKey.Link]
   lazy val isThen: Boolean = this.isInstanceOf[EdgeKey.Then]
 

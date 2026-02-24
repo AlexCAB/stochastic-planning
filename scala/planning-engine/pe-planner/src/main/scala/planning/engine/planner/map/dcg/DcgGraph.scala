@@ -78,12 +78,17 @@ final case class DcgGraph[F[_]: MonadThrow](
       _ <- mnIds.assertContainsNoneOf(ids, "Can't add nodes that already exist")
     yield this.copy(nodes = this.nodes ++ nodes.map(n => n.id -> n).toMap)
 
+  private[map] def checkHnIndex(mnId: MnId, indexies: Set[HnIndex]): F[Unit] = allIndexies
+    .get(mnId)
+    .map(_.assertContainsNoneOf(indexies, s"Duplicate indexes for MnId $mnId"))
+    .getOrElse(().pure)
+
   private[map] def updateOrAddEdge(key: EdgeKey, indexies: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
     for
       newEdge <- DcgEdge(key, indexies)
-      _ <- allIndexies.keySet.assertContainsAllOf(Set(key.src, key.trg), s"Edge key $key refers to unknown MnIds")
-      _ <- allIndexies(key.src).assertContainsNoneOf(newEdge.samples.srcHnIndex, s"Duplicate source indexes")
-      _ <- allIndexies(key.trg).assertContainsNoneOf(newEdge.samples.trgHnIndex, s"Duplicate target indexes")
+      _ <- mnIds.assertContainsAllOf(Set(key.src, key.trg), s"Edge key $key refers to unknown MnIds")
+      _ <- checkHnIndex(key.src, newEdge.samples.srcHnIndex)
+      _ <- checkHnIndex(key.trg, newEdge.samples.trgHnIndex)
       edge <- edges.get(key).map(_.join(newEdge)).getOrElse(newEdge.pure)
     yield edge
 

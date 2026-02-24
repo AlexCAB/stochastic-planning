@@ -28,8 +28,8 @@ trait DcgEdgeTestData:
   def makeDcgEdgeThen(srcId: MnId, trgId: MnId, samples: DcgSamples[IO]): DcgEdge[IO] =
     DcgEdge[IO](EdgeKey.Then(srcId, trgId), samples)
 
-  def makeIndexiesMap(sId: SampleId, mnIds: Set[MnId]): Map[MnId, HnIndex] = mnIds
-    .zipWithIndex.map((id, i) => id -> HnIndex(100 + sId.value + i + 1)).toMap
+  def makeIndexiesMap(sId: SampleId, mnIds: Set[MnId]): IndexMap =
+    IndexMap(mnIds.map(id => id -> HnIndex(10000000 + sId.value + id.value)).toMap)
 
   def makeDcgSamples(sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): DcgSamples[IO] =
     DcgSamples[IO](Map(sId -> Indexies(srcInd, trgInd))).unsafeRunSync()
@@ -45,8 +45,8 @@ trait DcgEdgeTestData:
   def makeDcgEdgeThen(srcId: MnId, trgId: MnId, samples: Iterable[(SampleId, IndexMap)]): DcgEdge[IO] =
     makeDcgEdgeThen(srcId, trgId, makeDcgSamples(srcId, trgId, samples))
 
-  def makeSampleIds(allMnIds: Set[MnId], ids: SampleId*): Iterable[(SampleId, IndexMap)] =
-    ids.map(sId => sId -> IndexMap(makeIndexiesMap(sId, allMnIds)))
+  def makeIndexiesForSampleIds(allMnIds: Set[MnId], ids: SampleId*): Iterable[(SampleId, IndexMap)] =
+    ids.map(sId => sId -> makeIndexiesMap(sId, allMnIds))
 
   lazy val srcCon = MnId.Con(1001)
   lazy val trgAbs = MnId.Abs(1002)

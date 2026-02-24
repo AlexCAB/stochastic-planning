@@ -218,7 +218,7 @@ trait TestApiData:
 
   lazy val testDcgEdge = DcgEdge[IO](
     key = EdgeKey.Link(tesConcreteDcgNode.id, testAbstractDcgNode.id),
-    samples =  DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync()
+    samples = DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync()
   )
 
   lazy val testDcgState = new MapGraphState[IO](
@@ -240,8 +240,8 @@ trait TestApiData:
   lazy val testMapVisualizationMsg = MapVisualizationMsg(
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
-    ioValues =  testDcgState.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
+    ioValues = testDcgState.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
     concreteNodes = testDcgState.graph.nodes.keySet.filter(_.isCon).map(_.asHnId),
-    abstractNodes =testDcgState.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
-    edgesMapping =testDcgState.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
+    abstractNodes = testDcgState.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
+    edgesMapping = testDcgState.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
   )

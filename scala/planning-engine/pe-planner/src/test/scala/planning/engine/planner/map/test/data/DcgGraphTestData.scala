@@ -22,10 +22,10 @@ import planning.engine.planner.map.dcg.edges.DcgEdge
 
 trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampleTestData:
   def makeEdgLink(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-    makeDcgEdgeLink(srcId, trgId, makeSampleIds(allMnId, ids.toSeq *))
+    makeDcgEdgeLink(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq *))
 
   def makeEdgThen(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-    makeDcgEdgeThen(srcId, trgId, makeSampleIds(allMnId, ids.toSeq *))
+    makeDcgEdgeThen(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq *))
 
   lazy val nuHnId = MnId.Abs(-1)
   lazy val emptyDcgGraph = DcgGraph.empty[IO]

@@ -83,4 +83,4 @@ class MapSubGraphSpec extends UnitSpecWithData with MapGraphTestData with Valida
       val invalidEdge = makeHiddenEdge(HnId(1), HnId(4), List(SampleId(-1)), EdgeType.LINK)
 
       data.subGraph.copy(edges = data.edges :+ invalidEdge)
-        .checkOneValidationError("All edge sample IDs must exist in loaded or skipped samples, not same elements", tn)
+        .checkOneValidationError("All edge sample IDs must exist in loaded or skipped", tn)

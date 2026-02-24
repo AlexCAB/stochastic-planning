@@ -14,8 +14,9 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.io.{IoIndex, IoValue, IoValueMap}
-import planning.engine.common.values.node.{HnId, MnId, HnIndex}
+import planning.engine.common.values.node.{HnId, HnIndex, MnId}
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
@@ -24,7 +25,7 @@ import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
-import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
+import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState}
 
 trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -46,8 +47,8 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTe
 
   lazy val conDcgMnId: Set[MnId.Con] = conDcgNodes.map(_.id).toSet
   lazy val absDcgMnId: Set[MnId.Abs] = absDcgNodes.map(_.id).toSet
-  
-  def  hnIdToMnId(id: HnId): MnId = id.toMnId[IO](conDcgMnId, absDcgMnId).unsafeRunSync()
+
+  def hnIdToMnId(id: HnId): MnId = id.toMnId[IO](conDcgMnId, absDcgMnId).unsafeRunSync()
 
   lazy val initSamples: List[Sample] = List(
     makeSample(sampleId1, hnId1, hnId2),
@@ -63,6 +64,8 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTe
   lazy val initialDcgState = MapGraphState.empty[IO]
     .addNodes(allDcgNodes)
     .unsafeRunSync()
+
+  lazy val initialMapIdsCountState = MapIdsCountState.init.copy(nextMnId = allDcgNodes.map(_.id.value).max + 1L)
 
   lazy val sampleInd1 = SampleIndexies(sampleId1, HnIndex(201), HnIndex(202))
   lazy val sampleInd2 = SampleIndexies(sampleId2, HnIndex(203), HnIndex(204))
@@ -87,8 +90,8 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTe
   ).unsafeRunSync()
 
   lazy val sampleListNew = Sample.ListNew(List(
-    makeNewSampleData(hnId1, hnId2, name = Name.some("New Sample 01")),
-    makeNewSampleData(hnId2, hnId3, name = Name.some("New Sample 02"))
+    makeNewSampleData(hnId1, hnId2, name = Name.some("New Sample 01"), edgeType = EdgeType.THEN),
+    makeNewSampleData(hnId2, hnId3, name = Name.some("New Sample 02"), edgeType = EdgeType.LINK)
   ))
 
   lazy val concreteNodesNew = ConcreteNode
@@ -97,8 +100,5 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTe
   lazy val abstractNodesNew = AbstractNode
     .ListNew(mapAbsNodes.map(n => AbstractNode.New(n.name, n.description)))
 
-  lazy val testMapInfoState: MapInfoState[IO] = MapInfoState[IO](
-    metadata = testMetadata,
-    inNodes = testInNodes.map(n => n.name -> n).toMap,
-    outNodes = testOutNodes.map(n => n.name -> n).toMap
-  )
+  extension (counter: MapIdsCountState)
+    def isInit: Boolean = counter.nextMnId == 1L && counter.nextSampleId == 1L && counter.nextHnIndexMap.isEmpty

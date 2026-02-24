@@ -29,6 +29,10 @@ class EdgeKeySpec extends UnitSpecIO:
   lazy val edgeLink = Link(n1, n2)
   lazy val edgeThen = Then(n3, n4)
 
+  "EdgeKey.mnIds" should:
+    "return source and target MnId" in: _ =>
+      edgeLink.mnIds mustBe Set(edgeLink.src, edgeLink.trg)
+
   "EdgeKey.isLink" should:
     "return true for Link edge" in: _ =>
       edgeLink.isLink.pure[IO].asserting(_ mustBe true)

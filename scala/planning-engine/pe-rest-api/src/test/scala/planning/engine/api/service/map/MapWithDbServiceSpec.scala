@@ -92,7 +92,7 @@ class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with T
         mapInfo.numHiddenNodes mustEqual data.testNumOfHiddenNodes
 
 // TODO To refactor when DB added:
-        
+
 //  "MapService.addSamples(...)" should:
 //    "add new samples to the map" in newCase[CaseData]: (tn, data) =>
 //      async[IO]:

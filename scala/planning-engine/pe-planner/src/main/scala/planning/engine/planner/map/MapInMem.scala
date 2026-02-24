@@ -41,7 +41,9 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     idsCountCell: AtomicCell[F, MapIdsCountState]
 ) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
+  
   private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get
+  private[map] def setIdsCount(newCount: MapIdsCountState): F[Unit] = idsCountCell.set(newCount)
 
   override def init(
       metadata: MapMetadata,
@@ -153,7 +155,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     yield ()
 
 object MapInMem:
-  def init[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
+  def empty[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
       dcgState <- AtomicCell[F].of(MapGraphState.empty[F])
@@ -161,4 +163,4 @@ object MapInMem:
     yield new MapInMem(visualization, mapInfo, dcgState, idsCount)
 
   def apply[F[_]: {Async, LoggerFactory}](visualization: MapVisualizationLike[F]): Resource[F, MapInMem[F]] =
-    Resource.eval(init(visualization))
+    Resource.eval(empty(visualization))

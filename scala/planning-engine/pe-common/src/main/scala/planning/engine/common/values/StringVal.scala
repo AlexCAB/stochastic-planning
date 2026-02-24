@@ -23,4 +23,3 @@ object StringVal:
   extension (strVal: Option[StringVal])
     def toStr: String = strVal.map(_.value).getOrElse("None")
     def repr: String = strVal.map(v => s", \"${v.value}\"").getOrElse("")
-

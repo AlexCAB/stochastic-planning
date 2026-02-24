@@ -32,26 +32,27 @@ trait DcgSampleTestData extends DcgNodeTestData:
   lazy val sampleId5 = SampleId(1005)
   lazy val simpleSampleId = SampleId(2003)
 
-  def makeDcgSampleData(id: SampleId): SampleData = SampleData(
+  def makeDcgSampleData(id: SampleId, name: Option[String] = None): SampleData = SampleData(
     id = id,
     probabilityCount = 10L,
     utility = 5.0,
-    name = Name.some(s"DCG Sample Data $id"),
+    name = Name.some(name.getOrElse(s"DCG Sample Data $id")),
     description = Description.some(s"Test DCG Sample Data, ID $id")
   )
 
-  def makeDcgSample(id: SampleId)(keys: EdgeKey*): DcgSample[IO] = new DcgSample[IO](
-    data = makeDcgSampleData(id),
+  def makeDcgSample(id: SampleId, name: Option[String] = None)(keys: EdgeKey*): DcgSample[IO] = new DcgSample[IO](
+    data = makeDcgSampleData(id, name),
     structure = GraphStructure[IO](keys.toSet)
   )
 
   def makeDcgIndexMap(sId: SampleId, mnIds: Set[MnId]): IndexMap =
-    IndexMap(mnIds.map(id => id -> HnIndex((sId.value * 10000) + (id.value * 100))).toMap)
+    IndexMap(mnIds.map(id => id -> HnIndex((sId.value * 100000) + (id.value * 1000))).toMap)
 
-  def makeDcgSampleAdd(id: SampleId)(keys: EdgeKey*): DcgSample.Add[IO] = DcgSample.Add[IO](
-    sample = makeDcgSample(id)(keys*),
-    indexMap = makeDcgIndexMap(id, keys.flatMap(k => Set(k.src, k.trg)).toSet)
-  )
+  def makeDcgSampleAdd(id: SampleId, name: Option[String] = None)(keys: EdgeKey*): DcgSample.Add[IO] =
+    DcgSample.Add[IO](
+      sample = makeDcgSample(id, name)(keys*),
+      indexMap = makeDcgIndexMap(id, keys.flatMap(k => Set(k.src, k.trg)).toSet)
+    )
 
   lazy val simpleSampleKeys = Set(EdgeKey.Link(mnId1, mnId3), EdgeKey.Then(mnId3, mnId4))
   lazy val simpleSample = makeDcgSample(simpleSampleId)(simpleSampleKeys.toSeq*)

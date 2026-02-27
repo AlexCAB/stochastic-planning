@@ -15,7 +15,7 @@ package planning.engine.planner.map.data
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.*
-import planning.engine.common.values.edge.{EdgeKey, EdgeKeySet}
+import planning.engine.common.graph.edges.{EdgeKey, EdgeKeySet}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.DcgGraph
 

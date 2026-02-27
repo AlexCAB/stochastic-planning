@@ -18,11 +18,11 @@ import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.common.values.node.MnId.{filterCon, filterAbs}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 import planning.engine.common.values.io.IoValue
 import planning.engine.planner.map.dcg.samples.DcgSample
 

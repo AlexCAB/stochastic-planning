@@ -12,8 +12,8 @@
 
 package planning.engine.planner.map.state
 
+import planning.engine.common.graph.edges.IndexMap
 import planning.engine.common.values.node.{MnId, HnIndex}
-import planning.engine.common.values.edge.IndexMap
 import planning.engine.common.values.sample.SampleId
 
 final case class MapIdsCountState(

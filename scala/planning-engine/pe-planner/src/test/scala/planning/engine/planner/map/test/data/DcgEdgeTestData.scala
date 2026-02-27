@@ -14,7 +14,7 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.edge.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}

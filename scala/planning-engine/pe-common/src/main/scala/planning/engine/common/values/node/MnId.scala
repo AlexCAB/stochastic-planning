@@ -13,7 +13,7 @@
 package planning.engine.common.values.node
 
 // Same as HnId, but stronger typed for use in the planning engine.
-sealed trait MnId:
+sealed trait MnId extends Any:
   def value: Long
 
   lazy val asHnId: HnId = HnId(value)
@@ -31,9 +31,9 @@ sealed trait MnId:
   override def toString: String = reprNode
 
 object MnId:
-  final case class Con(value: Long) extends MnId
+  final case class Con(value: Long) extends AnyVal with MnId
 
-  final case class Abs(value: Long) extends MnId
+  final case class Abs(value: Long) extends AnyVal with MnId
 
   extension (mnIds: Set[MnId])
     def filterCon: Set[MnId.Con] = mnIds.collect { case con: MnId.Con => con }

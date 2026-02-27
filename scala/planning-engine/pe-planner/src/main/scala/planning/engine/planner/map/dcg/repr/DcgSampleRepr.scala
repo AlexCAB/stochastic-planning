@@ -14,7 +14,7 @@ package planning.engine.planner.map.dcg.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.edge.EdgeKey.Link
+import planning.engine.common.graph.edges.EdgeKey.Link
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 trait DcgSampleRepr[F[_]: MonadThrow]:

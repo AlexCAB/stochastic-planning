@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-22 |||||||||||*/
 
-package planning.engine.common.values.io
+package planning.engine.common.graph.io
 
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecIO
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.MnId
 
 class IoValueMapSpec extends UnitSpecIO:

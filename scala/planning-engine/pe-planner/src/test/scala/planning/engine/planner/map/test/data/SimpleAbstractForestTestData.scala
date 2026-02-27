@@ -14,11 +14,11 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
+import planning.engine.common.graph.edges.EdgeKey
 import planning.engine.common.values.node.MnId.{Con, Abs}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edge.EdgeKey
-import planning.engine.common.values.edge.EdgeKey.{Link, Then}
+import EdgeKey.{Link, Then}
 
 trait SimpleAbstractForestTestData extends DcgGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

@@ -17,11 +17,11 @@ import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
 import planning.engine.common.values.node.{MnId, HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
-import planning.engine.common.values.edge.{EdgeKey, IndexMap, Indexies}
 
 class DcgEdgeSpec extends UnitSpecWithData:
 

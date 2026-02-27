@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg.repr
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.edge.EdgeKey.{Link, Then}
+import planning.engine.common.graph.edges.EdgeKey.{Link, Then}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.samples.DcgSample

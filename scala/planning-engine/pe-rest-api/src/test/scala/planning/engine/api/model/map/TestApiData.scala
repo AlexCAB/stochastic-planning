@@ -19,10 +19,12 @@ import planning.engine.api.model.map.payload.*
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.GraphStructure
+import planning.engine.common.graph.edges.{EdgeKey, Indexies}
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.io.{IoIndex, IoName, IoValueMap}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.graph.io.IoValueMap
 import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.map.config.MapConfig
 import planning.engine.map.data.MapMetadata
@@ -31,7 +33,6 @@ import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edge.{EdgeKey, Indexies}
 import planning.engine.planner.map.dcg.nodes.*
 import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}
 import planning.engine.planner.map.dcg.samples.DcgSample
@@ -178,8 +179,11 @@ trait TestApiData:
     testAbsNodeDef1.name -> List(testMnIdMap(testAbsNodeDef1.name))
   )
 
-  lazy val newConcreteNodesRes = Map(testMnIdMap(testConNodeDef2.name) -> Some(testConNodeDef2.name))
-  lazy val newAbstractNodesRes = Map(testMnIdMap(testAbsNodeDef2.name) -> Some(testAbsNodeDef2.name))
+  lazy val newConcreteNodesRes: Map[MnId, Some[HnName]] =
+    Map(testMnIdMap(testConNodeDef2.name) -> Some(testConNodeDef2.name))
+
+  lazy val newAbstractNodesRes: Map[MnId, Some[HnName]] =
+    Map(testMnIdMap(testAbsNodeDef2.name) -> Some(testAbsNodeDef2.name))
 
   lazy val expectedSampleNewList = Sample.ListNew(
     testMapAddSamplesRequest.samples.map: sampleData =>

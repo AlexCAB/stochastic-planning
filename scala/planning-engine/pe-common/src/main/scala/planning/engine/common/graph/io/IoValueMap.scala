@@ -10,12 +10,13 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-22 |||||||||||*/
 
-package planning.engine.common.values.io
+package planning.engine.common.graph.io
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.errors.{assertDistinct, assertionError}
+import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId.Con
-import planning.engine.common.errors.{assertionError, assertDistinct}
 
 final case class IoValueMap[F[_]: MonadThrow](
     valueMap: Map[IoValue, Set[Con]]

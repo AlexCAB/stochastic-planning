@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-09 |||||||||||*/
 
-package planning.engine.common.values.edge
+package planning.engine.common.graph.edges
 
 import planning.engine.common.values.node.HnIndex
 

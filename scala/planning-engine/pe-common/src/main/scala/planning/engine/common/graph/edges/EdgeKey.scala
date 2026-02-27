@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-01-26 |||||||||||*/
 
-package planning.engine.common.values.edge
+package planning.engine.common.graph.edges
 
 import cats.MonadThrow
 import cats.syntax.all.*

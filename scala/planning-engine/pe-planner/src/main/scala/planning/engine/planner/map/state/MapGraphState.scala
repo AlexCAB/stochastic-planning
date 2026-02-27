@@ -14,7 +14,8 @@ package planning.engine.planner.map.state
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.io.{IoValue, IoValueMap}
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.graph.io.IoValueMap
 import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
 import planning.engine.planner.map.dcg.DcgGraph

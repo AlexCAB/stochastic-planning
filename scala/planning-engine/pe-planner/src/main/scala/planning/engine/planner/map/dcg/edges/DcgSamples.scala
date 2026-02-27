@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
-import planning.engine.common.values.edge.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class DcgSamples[F[_]: MonadThrow](

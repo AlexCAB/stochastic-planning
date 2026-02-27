@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2026-01-26 |||||||||||*/
 
-package planning.engine.common.values.edge
+package planning.engine.common.graph.edges
 
 import cats.effect.IO
 import cats.syntax.all.*
-
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.edge.EdgeKey.{Link, Then}
+import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.EdgeKey.{Link, Then}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 
 class EdgeKeySpec extends UnitSpecIO:

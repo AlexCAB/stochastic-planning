@@ -14,13 +14,13 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.common.graph.GraphStructure
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 
 trait DcgSampleTestData extends DcgNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

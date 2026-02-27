@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-12 |||||||||||*/
 
-package planning.engine.common.values.edge
+package planning.engine.common.graph.edges
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.values.node.{MnId, HnIndex}
+import planning.engine.common.graph.edges.{IndexMap, Indexies}
+import planning.engine.common.values.node.{HnIndex, MnId}
 
 class IndexMapSpec extends UnitSpecIO:
   lazy val n1 = MnId.Con(1)

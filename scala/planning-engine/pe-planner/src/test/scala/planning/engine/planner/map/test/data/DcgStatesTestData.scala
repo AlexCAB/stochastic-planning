@@ -15,7 +15,8 @@ package planning.engine.planner.map.test.data
 import cats.effect.IO
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.common.values.node.MnId
-import planning.engine.common.values.io.{IoValue, IoValueMap}
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.graph.io.IoValueMap
 
 trait DcgStatesTestData extends DcgGraphTestData with DcgSampleTestData:
   lazy val emptyDcgState: MapGraphState[IO] = MapGraphState.empty[IO]

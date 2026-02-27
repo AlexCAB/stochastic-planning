@@ -14,7 +14,7 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.edge.EdgeKey
+import planning.engine.common.graph.edges.EdgeKey
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}

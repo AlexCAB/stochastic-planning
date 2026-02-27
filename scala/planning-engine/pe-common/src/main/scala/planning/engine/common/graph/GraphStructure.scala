@@ -14,12 +14,11 @@ package planning.engine.common.graph
 
 import cats.MonadThrow
 import cats.syntax.all.*
-
-import planning.engine.common.values.edge.EdgeKey
-import planning.engine.common.values.edge.EdgeKey.{End, Link, Then}
+import planning.engine.common.graph.edges.EdgeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.node.MnId.{Con, filterCon, filterAbs}
 import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.EdgeKey
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -75,7 +74,7 @@ final case class GraphStructure[F[_]: MonadThrow](
         case (_, int) if int.nonEmpty               => s"Cycle detected on: $int".assertionError
         case (frw, _) if !frw.forall(_._2.id.isAbs) => s"Found LINK pointed on concrete node $frw".assertionError
         case (frw, _) if frw.isEmpty                => acc.pure
-          
+
         case (frw, _) =>
           val trgMnIds = frw.map(_._2.id)
           val layer = frw.map((src, trg) => trg.asSrcKey(src))

@@ -16,10 +16,10 @@ import cats.effect.IO
 import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.edge.EdgeKey.{End, Link, Then}
+import planning.engine.common.graph.edges.EdgeKey
+import EdgeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.node.MnId
-import planning.engine.common.values.edge.EdgeKey
 
 class GraphStructureSpec extends UnitSpecWithData:
 

@@ -22,12 +22,12 @@ import cats.effect.cps.*
 import cats.syntax.all.*
 import org.scalatest.compatible.Assertion
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.edges.DcgEdge
-import planning.engine.common.values.edge.{EdgeKey, IndexMap}
-import planning.engine.common.values.edge.EdgeKey.{Link, Then}
+import planning.engine.common.graph.edges.EdgeKey.{Link, Then}
 
 class DcgGraphSpec extends UnitSpecWithData:
 

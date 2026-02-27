@@ -15,7 +15,8 @@ package planning.engine.planner.map.test.data
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.io.{IoIndex, IoValue, IoValueMap}
+import planning.engine.common.graph.io.IoValueMap
+import planning.engine.common.values.io.{IoIndex, IoValue}
 import planning.engine.common.values.node.{HnId, HnIndex, MnId}
 import planning.engine.common.values.text.Name
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies

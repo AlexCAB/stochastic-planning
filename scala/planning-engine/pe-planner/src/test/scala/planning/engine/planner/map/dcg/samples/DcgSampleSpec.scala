@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.values.edge.{EdgeKey, IndexMap}
+import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.map.test.data.MapSampleTestData
 

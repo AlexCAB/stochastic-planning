@@ -40,3 +40,11 @@ class MnIdSpec extends UnitSpecIO:
 
     "return string representation of the node for Abs MnId" in: _ =>
       testAbsId.reprNode.pure[IO].asserting(_ mustBe "(2)")
+
+  "MnId.filterCon" should:
+    "filter only Con MnIds from a set" in: _ =>
+      Set(testConId, testAbsId).filterCon.pure[IO].asserting(_ mustBe Set(testConId))
+
+  "MnId.filterAbs" should:
+    "filter only Abs MnIds from a set" in: _ =>
+      Set(testConId, testAbsId).filterAbs.pure[IO].asserting(_ mustBe Set(testAbsId))

@@ -14,18 +14,18 @@ package planning.engine.planner.map.dcg.samples
 
 import cats.MonadThrow
 import cats.syntax.all.*
-
 import planning.engine.common.graph.GraphStructure
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.common.values.edge.{EdgeKey, IndexMap}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.errors.*
+import planning.engine.planner.map.dcg.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MonadThrow](
     data: SampleData,
     structure: GraphStructure[F]
-):
+) extends DcgSampleRepr[F]:
   override lazy val toString: String =
     s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
 

@@ -15,6 +15,7 @@ package planning.engine.planner.map.dcg
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.node.{HnIndex, HnName, MnId}
+import planning.engine.common.values.node.MnId.{filterCon, filterAbs}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.common.values.edge.{EdgeKey, IndexMap}
@@ -39,8 +40,8 @@ final case class DcgGraph[F[_]: MonadThrow](
   lazy val ioValues: Set[IoValue] = nodes.values.flatMap(_.asConcrete.map(_.ioValue)).toSet
   lazy val isEmpty: Boolean = nodes.isEmpty
 
-  lazy val conMnId: Set[MnId.Con] = mnIds.collect { case c: MnId.Con => c }
-  lazy val absMnId: Set[MnId.Abs] = mnIds.collect { case c: MnId.Abs => c }
+  lazy val conMnId: Set[MnId.Con] = nodes.keySet.filterCon
+  lazy val absMnId: Set[MnId.Abs] = nodes.keySet.filterAbs
 
   // Map of all HnIndexes for each MnId, collected from all edges in the graph.
   // Used for validating new edges in samples added to the graph, since only validation in DcgEdge.DcgSamples

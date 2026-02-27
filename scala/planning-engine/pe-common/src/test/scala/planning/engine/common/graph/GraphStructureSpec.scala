@@ -58,10 +58,27 @@ class GraphStructureSpec extends UnitSpecWithData:
       Then(a6, a6)
     ))
 
+    lazy val invalidLinkGraph = GraphStructure[IO](Set(
+      Link(c1, a4),
+      Link(a4, a5),
+      Link(a5, a6),
+      Link(a6, a4)
+    ))
+
   "GraphStructure.mnIds" should:
     "return all MnIds in the graph" in newCase[CaseData]: (tn, data) =>
       import data.*
       simpleGraph.mnIds.pure[IO].logValue(tn).asserting(_ mustBe Set(c1, c2, c3, a4, a5, a6))
+
+  "GraphStructure.conMnId" should:
+    "return all concrete MnIds in the graph" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      simpleGraph.conMnId.pure[IO].logValue(tn).asserting(_ mustBe Set(c1, c2, c3))
+
+  "GraphStructure.absMnId" should:
+    "return all abstract MnIds in the graph" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      simpleGraph.absMnId.pure[IO].logValue(tn).asserting(_ mustBe Set(a4, a5, a6))
 
   "GraphStructure.filterByEndType(...)" should:
     "filter ends by given type" in newCase[CaseData]: (tn, data) =>
@@ -161,25 +178,31 @@ class GraphStructureSpec extends UnitSpecWithData:
         simpleGraph.findNextLinks(Set(a4)) mustBe Set(a4 -> Link.End(a5))
         simpleGraph.findNextLinks(Set(c3)) mustBe Set()
 
-  "GraphStructure.traceAbsForest(...)" should:
+  "GraphStructure.traceAbsForestLayers(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
+      async[IO]:
+        simpleGraph.traceAbsForestLayers(Set(c1)).await mustBe List(
+          Set(Link(c1, a4), Link(c1, a6)),
+          Set(Link(a4, a5))
+        )
 
-      simpleGraph.traceAbsForest(Set(c1)).logValue(tn)
-        .asserting(_ mustBe Set(Link(c1, a4), Link(c1, a6), Link(a4, a5)))
+        complexGraph.traceAbsForestLayers(Set(c1, c2, c3)).await mustBe List(
+          Set(Link(c1, a4), Link(c2, a4), Link(c3, a5)),
+          Set(Link(a4, a6), Link(a5, a6))
+        )
 
     "fail if cycle found" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, a5), Link(a5, a4)))
 
-      invalidGraph.traceAbsForest(Set(c1)).logValue(tn)
+      invalidLinkGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
         .assertThrowsError(_.getMessage must include("Cycle detected"))
 
     "fail if invalid edge found" in newCase[CaseData]: (tn, data) =>
       import data.*
       val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, c2)))
 
-      invalidGraph.traceAbsForest(Set(c1)).logValue(tn)
+      invalidGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
         .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
 
   "GraphStructure.linkRoots" should:

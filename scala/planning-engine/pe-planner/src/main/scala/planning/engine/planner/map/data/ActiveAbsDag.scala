@@ -10,14 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2026-01-11 |||||||||||*/
 
-package planning.engine.planner.map.dcg
+package planning.engine.planner.map.data
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.errors.*
+import planning.engine.common.values.edge.{EdgeKey, EdgeKeySet}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.DcgGraph
-import planning.engine.common.values.edge.{EdgeKey, EdgeKeySet}
-import planning.engine.common.errors.*
 
 // Is DAG where leafs are concrete hidden nodes and rest of the tree is abstract hidden nodes.
 // Edges with type LINK pointed form higher abstract root nodes to concrete leaf nodes.
@@ -36,7 +36,7 @@ object ActiveAbsDag:
       _ <- graph.mnIds.assertContainsAllOf(backwordKeys.mnIds, "Back THEN edges refer to unknown HnIds")
       _ <- graph.edgesMdIds.assertContainsAllOf(backwordKeys.trgIds, "Target do not connected to active graph.")
       _ <- graph.edgesMdIds.assertContainsNoneOf(backwordKeys.srcIds, "Source can't be connected to active graph.")
-      tracedAbs <-  graph.structure.traceAbsForest(graph.conMnId).map(_.map(_.trg))
+      tracedAbs <- graph.structure.traceAbsForestLayers(graph.conMnId).map(_.flatten.map(_.trg))
       _ <- tracedAbs.assertSameElems(graph.absMnId, "Some nodes are not connected to any concrete nodes")
     yield new ActiveAbsDag(backwordKeys, graph)
 

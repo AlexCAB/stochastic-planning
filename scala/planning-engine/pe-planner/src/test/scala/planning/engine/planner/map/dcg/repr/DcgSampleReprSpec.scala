@@ -1,90 +1,87 @@
-///*|||||||||||||||||||||||||||||||||
-//|| 0 * * * * * * * * * ▲ * * * * ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * ||  * * * * * ||       || 0 ||
-//|| * ||||||||||| * ||||||||||| * ||
-//|| * * ▲ * * 0|| * ||   (< * * * ||
-//|| * ||||||||||| * ||  ||||||||||||
-//|| * * * * * * * * *   ||||||||||||
-//| author: CAB |||||||||||||||||||||
-//| website: github.com/alexcab |||||
-//| created: 2026-02-02 |||||||||||*/
-//
-//package planning.engine.planner.map.dcg.repr
-//
-//import cats.effect.IO
-//import cats.effect.cps.*
-//import planning.engine.common.UnitSpecWithData
-//import planning.engine.common.values.edge.EdgeKey
-//import planning.engine.planner.map.test.data.MapSampleTestData
-//import planning.engine.common.values.node.HnId
-//import planning.engine.planner.map.dcg.samples.DcgSample
-//
-//class DcgSampleReprSpec extends UnitSpecWithData:
-//
-//  private class CaseData extends Case with MapSampleTestData:
-//    lazy val n11 = HnId(11)
-//    lazy val n12 = HnId(12)
-//    lazy val n13 = HnId(13)
-//    lazy val n14 = HnId(14)
-//
-//    lazy val n21 = HnId(21)
-//    lazy val n22 = HnId(22)
-//    lazy val n23 = HnId(23)
-//
-//    lazy val n31 = HnId(31)
-//    lazy val n32 = HnId(32)
-//
-//    lazy val n41 = HnId(41)
-//
-//    lazy val sampleData = makeSampleData()
-//
-//    lazy val edges = Set(
-//      // LINK Level 1 to 2
-//      EdgeKey.Link(n11, n21),
-//      EdgeKey.Link(n11, n22),
-//      EdgeKey.Link(n12, n22),
-//      EdgeKey.Link(n13, n22),
-//      EdgeKey.Link(n13, n23),
-//      EdgeKey.Link(n14, n23),
-//      // LINK Level 2 to 3
-//      EdgeKey.Link(n21, n31),
-//      EdgeKey.Link(n21, n32),
-//      EdgeKey.Link(n22, n32),
-//      EdgeKey.Link(n23, n32),
-//      // LINK Level 3 to 4
-//      EdgeKey.Link(n31, n41),
-//      EdgeKey.Link(n32, n41),
-//      // THEN path 1
-//      EdgeKey.Then(n11, n12),
-//      EdgeKey.Then(n12, n13),
-//      EdgeKey.Then(n13, n14),
-//      // THEN path 2
-//      EdgeKey.Then(n21, n22),
-//      EdgeKey.Then(n22, n23),
-//      // THEN path 2
-//      EdgeKey.Then(n23, n22),
-//      EdgeKey.Then(n22, n21),
-//      // THEN path 3
-//      EdgeKey.Then(n11, n21),
-//      EdgeKey.Then(n21, n31),
-//      EdgeKey.Then(n31, n41),
-//      EdgeKey.Then(n41, n32),
-//      EdgeKey.Then(n32, n23),
-//      EdgeKey.Then(n23, n14),
-//      // THEN path/loop 3
-//      EdgeKey.Then(n31, n32),
-//      EdgeKey.Then(n32, n31),
-//      // THEN path/loop 4
-//      EdgeKey.Then(n41, n41)
-//    )
-//
-//    lazy val dcgSample = DcgSample(sampleData, edges)
-//
-//  "DcgSampleRepr.repr" should:
-//    "return correct string representation" in newCase[CaseData]: (tn, data) =>
-//      async[IO]:
-//        val strRepr = data.dcgSample.repr
-//        logInfo(tn, s"DcgSample.repr = $strRepr")
-//
-//        strRepr mustBe "[123]"
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2026-02-02 |||||||||||*/
+
+package planning.engine.planner.map.dcg.repr
+
+import cats.effect.IO
+import cats.effect.cps.*
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.values.edge.EdgeKey.{Link, Then}
+import planning.engine.common.values.node.MnId.{Abs, Con}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.map.dcg.samples.DcgSample
+import planning.engine.planner.map.test.data.DcgSampleTestData
+
+class DcgSampleReprSpec extends UnitSpecWithData:
+
+  private class CaseData extends Case with DcgSampleTestData:
+    lazy val c11 = Con(11)
+    lazy val c12 = Con(12)
+    lazy val c13 = Con(13)
+    lazy val c14 = Con(14)
+
+    lazy val a21 = Abs(21)
+    lazy val a22 = Abs(22)
+    lazy val a23 = Abs(23)
+
+    lazy val a31 = Abs(31)
+    lazy val a32 = Abs(32)
+
+    lazy val a41 = Abs(41)
+
+    lazy val dcgSample: DcgSample[IO] = makeDcgSample(SampleId(1001))(
+      // LINK Level 1 to 2
+      Link(c11, a21),
+      Link(c11, a22),
+      Link(c12, a22),
+      Link(c13, a22),
+      Link(c13, a23),
+      Link(c14, a23),
+      // LINK Level 2 to 3
+      Link(a21, a31),
+      Link(a21, a32),
+      Link(a22, a32),
+      Link(a23, a32),
+      // LINK Level 3 to 4
+      Link(a31, a41),
+      Link(a32, a41),
+      // THEN path 1
+      Then(c11, c12),
+      Then(c12, c13),
+      Then(c13, c14),
+      // THEN path 2
+      Then(a21, a22),
+      Then(a22, a23),
+      // THEN path 2
+      Then(a23, a22),
+      Then(a22, a21),
+      // THEN path 3
+      Then(c11, a21),
+      Then(a21, a31),
+      Then(a31, a41),
+      Then(a41, a32),
+      Then(a32, a23),
+      Then(a23, c14),
+      // THEN path/loop 3
+      Then(a31, a32),
+      Then(a32, a31),
+      // THEN path/loop 4
+      Then(a41, a41)
+    )
+
+  "DcgSampleRepr.repr" should:
+    "return correct string representation" in newCase[CaseData]: (tn, data) =>
+      async[IO]:
+        val strRepr = data.dcgSample.repr.await
+        logInfo(tn, s"DcgSample.repr:\n$strRepr").await
+
+        strRepr must include("DcgSample")

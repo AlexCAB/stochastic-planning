@@ -10,13 +10,13 @@
 | website: github.com/alexcab |||||
 | created: 2026-01-18 |||||||||||*/
 
-package planning.engine.planner.map.dcg
+package planning.engine.planner.map.data
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.values.edge.EdgeKeySet
 import planning.engine.common.values.edge.EdgeKey.Then
+import planning.engine.common.values.edge.EdgeKeySet
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.test.data.DcgGraphTestData
 
@@ -32,5 +32,5 @@ class ActiveAbsDagSpec extends UnitSpecWithData with ValidationCheck:
 
   "ActiveAbsDag.apply(EdgeKeySet, DcgGraph)" should:
     "create instance from valid data" in newCase[CaseData]: (tn, data) =>
-      import data.{backwordKeys, dcgGraph, activeAbsDag}
+      import data.{activeAbsDag, backwordKeys, dcgGraph}
       ActiveAbsDag[IO](backwordKeys, dcgGraph).logValue(tn).asserting(_ mustBe activeAbsDag)

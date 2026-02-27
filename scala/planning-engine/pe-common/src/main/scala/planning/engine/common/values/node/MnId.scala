@@ -34,3 +34,7 @@ object MnId:
   final case class Con(value: Long) extends MnId
 
   final case class Abs(value: Long) extends MnId
+
+  extension (mnIds: Set[MnId])
+    def filterCon: Set[MnId.Con] = mnIds.collect { case con: MnId.Con => con }
+    def filterAbs: Set[MnId.Abs] = mnIds.collect { case abs: MnId.Abs => abs }

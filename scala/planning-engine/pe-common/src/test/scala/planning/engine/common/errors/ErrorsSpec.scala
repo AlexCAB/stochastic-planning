@@ -155,3 +155,12 @@ class ErrorsSpec extends UnitSpecIO:
       val left = List(1, 2, 3)
       val right = List(3, 4, 5)
       left.assertContainsNoneOf[IO](right, "Common elements found").assertThrows[AssertionError]
+
+  "assertAllEqual" should:
+    "return the input collection when all values are equal" in: _ =>
+      val items = List((1, 1), (2, 2), (3, 3))
+      items.assertAllEqual[IO]("All values must be equal").assertNoException
+
+    "raise an error when not all values are equal" in: _ =>
+      val items = List((1, 1), (2, 3), (3, 3))
+      items.assertAllEqual[IO]("All values must be equal").assertThrows[AssertionError]

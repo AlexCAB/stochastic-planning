@@ -76,3 +76,11 @@ extension [L](left: IterableOnce[L])
     val rightSet = right.iterator.toSet
     val int = rightSet.intersect(leftSet)
     predicateAssert(int.isEmpty, msg + s", found same elements: ${int.mkString(", ")}, in seq: $leftSet and $rightSet")
+
+extension [L, R](items: IterableOnce[(L, R)])
+  inline def assertAllEqual[F[_]: ApplicativeThrow](msg: String): F[Unit] =
+    val notEq = items.iterator.map((l, r) => (l, r) -> (l == r)).filterNot((_, isEq) => isEq).map(_._1)
+    predicateAssert(
+      notEq.isEmpty,
+      msg + s", found not equal pairs: ${notEq.iterator.mkString(", ")}; in seq: ${items.iterator.mkString(", ")}"
+    )

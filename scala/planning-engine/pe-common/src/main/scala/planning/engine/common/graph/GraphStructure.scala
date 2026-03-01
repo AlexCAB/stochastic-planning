@@ -16,9 +16,10 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.graph.edges.EdgeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
-import planning.engine.common.values.node.MnId.{Con, filterCon, filterAbs}
+import planning.engine.common.values.node.MnId.{Con, filterAbs, filterCon}
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.paths.Path
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -59,15 +60,12 @@ final case class GraphStructure[F[_]: MonadThrow](
         _ <- this.keys.assertContainsNoneOf(ends, "Can't add Edges that already exist")
     yield GraphStructure(this.keys ++ ends)
 
-  def findNextEdges(hnIds: Set[MnId]): Set[(MnId, MnId)] =
-    hnIds.flatMap(hnId => srcMap.get(hnId).toSet.flatMap(_.map(trgId => (hnId, trgId.id))))
-
-  def findNextLinks(ids: Set[MnId]): Set[(MnId, Link.End)] =
-    ids.flatMap(id => srcLinkMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
+  private[graph] def findNextLinks[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
+    srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
   def traceAbsForestLayers(conIds: Set[Con]): F[List[Set[Link]]] =
     @tailrec def trace(next: Set[MnId], visited: Set[(MnId, Link.End)], acc: List[Set[Link]]): F[List[Set[Link]]] =
-      val forward = findNextLinks(next)
+      val forward = findNextLinks(next, srcLinkMap)
       val intersect = visited.intersect(forward)
 
       (forward, intersect) match
@@ -92,15 +90,14 @@ final case class GraphStructure[F[_]: MonadThrow](
   def findBackward(trgHnIds: Set[MnId]): Set[EdgeKey] =
     trgHnIds.flatMap(trgId => trgMap.getOrElse(trgId, Set()).map(_.asTrgKey(trgId)))
 
-//  def traceAbstractLayers(conHnId: Set[HnId]): List[Set[HnId]] =
-//    @tailrec def traceLayers(currentHnIds: Set[HnId], acc: List[Set[HnId]]): List[Set[HnId]] =
-//      if currentHnIds.isEmpty then acc.reverse
-//      else
-//        val nextHnIds = findNextEdges(currentHnIds).map(_._2)
-//        traceLayers(nextHnIds, currentHnIds :: acc)
-//
-//    traceLayers(conHnId, Nil)
-//
+  def traceThenPaths(beginHnIds: Set[MnId]): F[Set[Path]] =
+    def trace(cur: MnId, vis: Set[MnId], acc: Vector[(MnId, Then.End)]): F[Set[Path]] = srcThenMap.get(cur) match
+      case None                                                            => Path.Direct(acc).map(Set(_))
+      case Some(ends) if vis.contains(cur) && acc.headOption.contains(cur) => Path.Loop(acc).map(Set(_))
+      case Some(ends) if vis.contains(cur)                                 => Path.Noose(acc).map(Set(_))
+      case Some(ends) => ends.toList.traverse(end => trace(end.id, vis + cur, acc :+ (cur, end))).map(_.flatten.toSet)
+
+    beginHnIds.toList.traverse(id => trace(id, Set.empty, Vector.empty)).map(_.flatten.toSet)
 
 object GraphStructure:
   def empty[F[_]: MonadThrow]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)

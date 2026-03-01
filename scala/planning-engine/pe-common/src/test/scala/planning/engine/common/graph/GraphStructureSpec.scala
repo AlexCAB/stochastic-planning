@@ -18,6 +18,8 @@ import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.EdgeKey
 import EdgeKey.{End, Link, Then}
+import cats.data.NonEmptyChain
+import planning.engine.common.graph.paths.Path
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.node.MnId
 
@@ -64,6 +66,10 @@ class GraphStructureSpec extends UnitSpecWithData:
       Link(a5, a6),
       Link(a6, a4)
     ))
+
+    def pathWalk(edges: EdgeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain
+      .fromSeq(edges.map(e => e.src -> e.trgEnd))
+      .getOrElse(fail("Edges list must not be empty"))
 
   "GraphStructure.mnIds" should:
     "return all MnIds in the graph" in newCase[CaseData]: (tn, data) =>
@@ -161,22 +167,13 @@ class GraphStructureSpec extends UnitSpecWithData:
         val newGraph: GraphStructure[IO] = simpleGraph.add(newEdges).await
         newGraph.keys mustBe (simpleGraph.keys ++ newEdges)
 
-  "GraphStructure.findNextEdges(...)" should:
-    "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.findNextEdges(Set(c1)) mustBe Set((c1, c2), (c1, a4), (c1, c3), (c1, a6))
-        simpleGraph.findNextEdges(Set(a4)) mustBe Set((a4, a5))
-        simpleGraph.findNextEdges(Set(c3)) mustBe Set()
-        simpleGraph.findNextEdges(Set(c1, c2)) mustBe Set((c1, c2), (c1, a4), (c1, c3), (c1, a6))
-
   "GraphStructure.findNextLinks(...)" should:
     "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        simpleGraph.findNextLinks(Set(c1)) mustBe Set(c1 -> Link.End(a4), c1 -> Link.End(a6))
-        simpleGraph.findNextLinks(Set(a4)) mustBe Set(a4 -> Link.End(a5))
-        simpleGraph.findNextLinks(Set(c3)) mustBe Set()
+        simpleGraph.findNextLinks(Set(c1), simpleGraph.srcLinkMap) mustBe Set(c1 -> Link.End(a4), c1 -> Link.End(a6))
+        simpleGraph.findNextLinks(Set(a4), simpleGraph.srcLinkMap) mustBe Set(a4 -> Link.End(a5))
+        simpleGraph.findNextLinks(Set(c3), simpleGraph.srcLinkMap) mustBe Set()
 
   "GraphStructure.traceAbsForestLayers(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
@@ -245,6 +242,21 @@ class GraphStructureSpec extends UnitSpecWithData:
       async[IO]:
         simpleGraph.findBackward(Set(c2)) mustBe Set(Then(c1, c2))
         simpleGraph.findBackward(Set(c3)) mustBe Set(Then(c1, c3))
+
+  "GraphStructure.traceThenPaths" should:
+    "trace direct path (with no loops)" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        simpleGraph.traceThenPaths(Set(c1)).await mustBe Set(
+          Path.Direct(pathWalk(Then(c1, c2))),
+          Path.Direct(pathWalk(Then(c1, c3)))
+        )
+
+        complexGraph.traceThenPaths(Set(c1)).await mustBe Set(
+          Path.Direct(pathWalk(Then(c1, c2), Then(c2, c3)))
+        )
+
+
 
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>

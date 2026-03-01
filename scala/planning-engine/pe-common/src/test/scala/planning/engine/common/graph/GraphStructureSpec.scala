@@ -17,60 +17,15 @@ import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.EdgeKey
-import EdgeKey.{End, Link, Then}
-import cats.data.NonEmptyChain
-import planning.engine.common.graph.paths.Path
-import planning.engine.common.values.node.MnId.{Abs, Con}
+
 import planning.engine.common.values.node.MnId
 
 class GraphStructureSpec extends UnitSpecWithData:
+  import EdgeKey.{End, Link, Then}
+  import MnId.{Abs, Con}
 
-  private class CaseData extends Case:
-    lazy val c1 = Con(1)
-    lazy val c2 = Con(2)
-    lazy val c3 = Con(3)
-
-    lazy val a4 = Abs(4)
-    lazy val a5 = Abs(5)
-    lazy val a6 = Abs(6)
-
-    lazy val conGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, a5)))
-    lazy val nonConGraph = GraphStructure[IO](Set(Link(c1, a4), Link(c2, a5)))
-    lazy val cycleGraph = GraphStructure[IO](Set(Then(c1, c2), Then(c2, c1)))
-
-    lazy val simpleEnds = Set(
-      Link(c1, a4),
-      Link(a4, a5),
-      Link(c1, a6),
-      Then(c1, c2),
-      Then(c1, c3)
-    )
-
-    lazy val simpleGraph = GraphStructure[IO](simpleEnds)
-
-    lazy val complexGraph = GraphStructure[IO](Set(
-      Link(c1, a4),
-      Link(c2, a4),
-      Link(c3, a5),
-      Link(a4, a6),
-      Link(a5, a6),
-      Then(c1, c2),
-      Then(c2, c3),
-      Then(a4, a5),
-      Then(a6, a6)
-    ))
-
-    lazy val invalidLinkGraph = GraphStructure[IO](Set(
-      Link(c1, a4),
-      Link(a4, a5),
-      Link(a5, a6),
-      Link(a6, a4)
-    ))
-
-    def pathWalk(edges: EdgeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain
-      .fromSeq(edges.map(e => e.src -> e.trgEnd))
-      .getOrElse(fail("Edges list must not be empty"))
-
+  private class CaseData extends Case with GraphStructureTestData
+  
   "GraphStructure.mnIds" should:
     "return all MnIds in the graph" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -166,42 +121,7 @@ class GraphStructureSpec extends UnitSpecWithData:
         val newEdges = Set(Link(c2, a4), Link(c3, a4))
         val newGraph: GraphStructure[IO] = simpleGraph.add(newEdges).await
         newGraph.keys mustBe (simpleGraph.keys ++ newEdges)
-
-  "GraphStructure.findNextLinks(...)" should:
-    "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.findNextLinks(Set(c1), simpleGraph.srcLinkMap) mustBe Set(c1 -> Link.End(a4), c1 -> Link.End(a6))
-        simpleGraph.findNextLinks(Set(a4), simpleGraph.srcLinkMap) mustBe Set(a4 -> Link.End(a5))
-        simpleGraph.findNextLinks(Set(c3), simpleGraph.srcLinkMap) mustBe Set()
-
-  "GraphStructure.traceAbsForestLayers(...)" should:
-    "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.traceAbsForestLayers(Set(c1)).await mustBe List(
-          Set(Link(c1, a4), Link(c1, a6)),
-          Set(Link(a4, a5))
-        )
-
-        complexGraph.traceAbsForestLayers(Set(c1, c2, c3)).await mustBe List(
-          Set(Link(c1, a4), Link(c2, a4), Link(c3, a5)),
-          Set(Link(a4, a6), Link(a5, a6))
-        )
-
-    "fail if cycle found" in newCase[CaseData]: (tn, data) =>
-      import data.*
-
-      invalidLinkGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
-        .assertThrowsError(_.getMessage must include("Cycle detected"))
-
-    "fail if invalid edge found" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, c2)))
-
-      invalidGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
-        .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
-
+  
   "GraphStructure.linkRoots" should:
     "return link root mnIds" in newCase[CaseData]: (tn, data) =>
       import data.{c1, c2, c3, simpleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
@@ -242,22 +162,7 @@ class GraphStructureSpec extends UnitSpecWithData:
       async[IO]:
         simpleGraph.findBackward(Set(c2)) mustBe Set(Then(c1, c2))
         simpleGraph.findBackward(Set(c3)) mustBe Set(Then(c1, c3))
-
-  "GraphStructure.traceThenPaths" should:
-    "trace direct path (with no loops)" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.traceThenPaths(Set(c1)).await mustBe Set(
-          Path.Direct(pathWalk(Then(c1, c2))),
-          Path.Direct(pathWalk(Then(c1, c3)))
-        )
-
-        complexGraph.traceThenPaths(Set(c1)).await mustBe Set(
-          Path.Direct(pathWalk(Then(c1, c2), Then(c2, c3)))
-        )
-
-
-
+  
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>
       async[IO]:

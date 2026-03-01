@@ -56,10 +56,17 @@ class EdgeKeySpec extends UnitSpecIO:
 
   "EdgeKey.repr" should:
     "return correct string representation for Link edge" in: _ =>
-      edgeLink.reprArrow.pure[IO].asserting(_ mustBe "-link->")
+      edgeLink.reprArrow.pure[IO].asserting(_ mustBe "=link=>")
 
     "return correct string representation for Then edge" in: _ =>
       edgeThen.reprArrow.pure[IO].asserting(_ mustBe "-then->")
+
+  "EdgeKey.End.repr" should:
+    "return correct string representation for Link end" in: _ =>
+      edgeLink.srcEnd.repr.pure[IO].asserting(_ mustBe "==>" + edgeLink.src.reprNode)
+
+    "return correct string representation for Then end" in: _ =>
+      edgeThen.trgEnd.repr.pure[IO].asserting(_ mustBe "-->" + edgeThen.trg.reprNode)
 
   "EdgeKey.Link.srcEnd" should:
     "return source end as End.Link" in: _ =>

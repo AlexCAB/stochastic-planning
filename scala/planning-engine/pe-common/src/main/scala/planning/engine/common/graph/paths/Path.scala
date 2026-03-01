@@ -15,7 +15,6 @@ package planning.engine.common.graph.paths
 import cats.MonadThrow
 import cats.syntax.all.*
 import cats.data.NonEmptyChain
-
 import planning.engine.common.graph.edges.EdgeKey.End
 import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
@@ -25,6 +24,13 @@ sealed trait Path:
 
   lazy val begin: MnId = walk.head._1
   lazy val end: MnId = walk.last._2.id
+
+  lazy val repr: String = this match
+    case _: Path.Direct => "Direct"
+    case _: Path.Loop   => "Loop"
+    case _: Path.Noose  => "Noose"
+
+  override lazy val toString: String = s"$repr(${walk.head._1.reprNode}${walk.map(_._2.repr).toList.mkString("")})"
 
 object Path:
   private[paths] def makePath[F[_]: MonadThrow, P <: Path](

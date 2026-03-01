@@ -14,14 +14,13 @@ package planning.engine.common.graph
 
 import cats.MonadThrow
 import cats.syntax.all.*
+
 import planning.engine.common.graph.edges.EdgeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
-import planning.engine.common.values.node.MnId.{Con, filterAbs, filterCon}
+import planning.engine.common.values.node.MnId.{filterAbs, filterCon}
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.EdgeKey
-import planning.engine.common.graph.paths.Path
 
-import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
 // GraphStructure represents the structure of the graph, providing algorithms
@@ -30,7 +29,7 @@ final case class GraphStructure[F[_]: MonadThrow](
     keys: Set[EdgeKey],
     srcMap: Map[MnId, Set[End]],
     trgMap: Map[MnId, Set[End]]
-):
+) extends GraphTracing[F]:
   lazy val mnIds: Set[MnId] = srcMap.keySet ++ trgMap.keySet
   lazy val conMnId: Set[MnId.Con] = mnIds.filterCon
   lazy val absMnId: Set[MnId.Abs] = mnIds.filterAbs
@@ -43,6 +42,9 @@ final case class GraphStructure[F[_]: MonadThrow](
   lazy val srcThenMap: Map[MnId, Set[Then.End]] = filterByEndType[Then.End](srcMap)
   lazy val trgLinkMap: Map[MnId, Set[Link.End]] = filterByEndType[Link.End](trgMap)
   lazy val trgThenMap: Map[MnId, Set[Then.End]] = filterByEndType[Then.End](trgMap)
+
+  lazy val linkRoots: Set[MnId] = srcLinkMap.keySet -- trgLinkMap.keySet
+  lazy val thenRoots: Set[MnId] = srcThenMap.keySet -- trgThenMap.keySet
 
   lazy val neighbours: Map[MnId, Set[MnId]] = (srcMap.keySet ++ trgMap.keySet)
     .map(id => id -> (srcMap.getOrElse(id, Set()).map(_.id) ++ trgMap.getOrElse(id, Set()).map(_.id)))
@@ -60,44 +62,11 @@ final case class GraphStructure[F[_]: MonadThrow](
         _ <- this.keys.assertContainsNoneOf(ends, "Can't add Edges that already exist")
     yield GraphStructure(this.keys ++ ends)
 
-  private[graph] def findNextLinks[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
-    srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
-
-  def traceAbsForestLayers(conIds: Set[Con]): F[List[Set[Link]]] =
-    @tailrec def trace(next: Set[MnId], visited: Set[(MnId, Link.End)], acc: List[Set[Link]]): F[List[Set[Link]]] =
-      val forward = findNextLinks(next, srcLinkMap)
-      val intersect = visited.intersect(forward)
-
-      (forward, intersect) match
-        case (_, int) if int.nonEmpty               => s"Cycle detected on: $int".assertionError
-        case (frw, _) if !frw.forall(_._2.id.isAbs) => s"Found LINK pointed on concrete node $frw".assertionError
-        case (frw, _) if frw.isEmpty                => acc.pure
-
-        case (frw, _) =>
-          val trgMnIds = frw.map(_._2.id)
-          val layer = frw.map((src, trg) => trg.asSrcKey(src))
-
-          trace(trgMnIds, visited ++ frw, layer +: acc)
-
-    trace(conIds.map(_.asMnId), Set.empty, List.empty).map(_.reverse)
-
-  lazy val linkRoots: Set[MnId] = srcLinkMap.keySet -- trgLinkMap.keySet
-  lazy val thenRoots: Set[MnId] = srcThenMap.keySet -- trgThenMap.keySet
-
   def findForward(srcMnIds: Set[MnId]): Set[EdgeKey] =
     srcMnIds.flatMap(srcId => srcMap.getOrElse(srcId, Set()).map(_.asSrcKey(srcId)))
 
   def findBackward(trgHnIds: Set[MnId]): Set[EdgeKey] =
     trgHnIds.flatMap(trgId => trgMap.getOrElse(trgId, Set()).map(_.asTrgKey(trgId)))
-
-  def traceThenPaths(beginHnIds: Set[MnId]): F[Set[Path]] =
-    def trace(cur: MnId, vis: Set[MnId], acc: Vector[(MnId, Then.End)]): F[Set[Path]] = srcThenMap.get(cur) match
-      case None                                                            => Path.Direct(acc).map(Set(_))
-      case Some(ends) if vis.contains(cur) && acc.headOption.contains(cur) => Path.Loop(acc).map(Set(_))
-      case Some(ends) if vis.contains(cur)                                 => Path.Noose(acc).map(Set(_))
-      case Some(ends) => ends.toList.traverse(end => trace(end.id, vis + cur, acc :+ (cur, end))).map(_.flatten.toSet)
-
-    beginHnIds.toList.traverse(id => trace(id, Set.empty, Vector.empty)).map(_.flatten.toSet)
 
 object GraphStructure:
   def empty[F[_]: MonadThrow]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)

@@ -40,6 +40,20 @@ class PathSpec extends UnitSpecIO:
     "return target MnId of the last edge" in: _ =>
       pathDirect.end mustBe n4
 
+  "Path.reprType" should:
+    "return 'Direct' for Direct path" in: _ =>
+      pathDirect.reprType mustBe "Direct"
+
+    "return 'Loop' for Loop path" in: _ =>
+      pathLoop.reprType mustBe "Loop"
+
+    "return 'Noose' for Noose path" in: _ =>
+      pathNoose.reprType mustBe "Noose"
+
+  "Path.reprChain" should:
+    "return a string representation of the path chain" in: _ =>
+      pathDirect.reprChain mustBe "(1)==>[2]-->[3]==>(4)"
+
   "Path.makePath" should:
     "create a Path if the walk is continuous" in: _ =>
       Path.makePath[IO, Path.Direct](correctWalk, Path.Direct.apply).asserting(_ mustBe pathDirect)

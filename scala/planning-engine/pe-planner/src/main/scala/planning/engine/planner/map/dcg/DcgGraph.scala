@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.node.{HnIndex, HnName, MnId}
-import planning.engine.common.values.node.MnId.{filterCon, filterAbs}
+import planning.engine.common.values.node.MnId.{filterAbs, filterCon}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.edges.DcgEdge
@@ -24,6 +24,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 import planning.engine.common.values.io.IoValue
+import planning.engine.planner.map.dcg.repr.DcgGraphRepr
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 import scala.reflect.ClassTag
@@ -33,7 +34,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     edges: Map[EdgeKey, DcgEdge[F]],
     samples: Map[SampleId, SampleData],
     structure: GraphStructure[F]
-):
+) extends DcgGraphRepr[F]:
   lazy val mnIds: Set[MnId] = nodes.keySet
   lazy val sampleIds: Set[SampleId] = samples.keySet
   lazy val edgesMdIds: Set[MnId] = edges.values.flatMap(_.mnIds).toSet

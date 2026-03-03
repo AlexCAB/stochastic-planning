@@ -25,12 +25,14 @@ sealed trait Path:
   lazy val begin: MnId = walk.head._1
   lazy val end: MnId = walk.last._2.id
 
-  lazy val repr: String = this match
+  lazy val reprType: String = this match
     case _: Path.Direct => "Direct"
     case _: Path.Loop   => "Loop"
     case _: Path.Noose  => "Noose"
 
-  override lazy val toString: String = s"$repr(${walk.head._1.reprNode}${walk.map(_._2.repr).toList.mkString("")})"
+  lazy val reprChain: String = s"${walk.head._1.reprNode}${walk.map(_._2.repr).toList.mkString("")}"
+
+  override lazy val toString: String = s"$reprType(${reprChain})"
 
 object Path:
   private[paths] def makePath[F[_]: MonadThrow, P <: Path](

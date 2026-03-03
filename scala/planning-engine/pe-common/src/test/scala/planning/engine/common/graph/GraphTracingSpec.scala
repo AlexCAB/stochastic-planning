@@ -102,3 +102,19 @@ class GraphTracingSpec extends UnitSpecWithData:
           Path.Loop(pathWalk(Then(c2, c3), Then(c3, c2))),
           Path.Noose(pathWalk(Then(c2, c3), Then(c3, c3)))
         )
+
+  "GraphStructure.allThenPaths" should:
+    "trace all THEN paths in the graph" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val paths: Set[Path] = thenPathExamplesGraph.allThenPaths.await
+        logInfo(tn, s"thenRoots = ${thenPathExamplesGraph.thenRoots}, paths:\n${paths.mkString("\n")}").await
+
+        paths mustBe Set(
+          Path.Direct(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, a4))),
+          Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
+          Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2))),
+          Path.Loop(pathWalk(Then(a5, a5))),
+          Path.Loop(pathWalk(Then(a6, a7), Then(a7, a8), Then(a8, a6))),
+          Path.Loop(pathWalk(Then(a6, a7), Then(a7, a9), Then(a9, a8), Then(a8, a6)))
+        )

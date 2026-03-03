@@ -31,6 +31,10 @@ trait GraphStructureTestData:
   lazy val a4 = Abs(4)
   lazy val a5 = Abs(5)
   lazy val a6 = Abs(6)
+  lazy val a7 = Abs(7)
+  lazy val a8 = Abs(8)
+  lazy val a9 = Abs(9)
+  lazy val a10 = Abs(10)
 
   def graphStructure(edges: EdgeKey*): GraphStructure[IO] = GraphStructure[IO](edges.toSet)
 
@@ -74,6 +78,25 @@ trait GraphStructureTestData:
     Then(c2, c3),
     Then(c3, c3),
     Then(c3, c2)
+  )
+
+  lazy val thenPathExamplesGraph = graphStructure(
+    Link(c1, a4),
+    Link(c2, a4),
+    // Direct path with no loops:
+    Then(c1, c2), // Direct([1]-->[2]-->[3]-->(4))
+    Then(c2, c3),
+    Then(c3, a4),
+    // Paths with noose:
+    Then(c3, c3), // Noose([1]-->[2]-->[3]-->[3])
+    Then(c3, c2), // Noose([1]-->[2]-->[3]-->[2])
+    // Isolated loop:
+    Then(a5, a5), // Loop([(5)-->(5))
+    Then(a6, a7), // Loop([(6)-->(7)-->(8)-->(6))
+    Then(a7, a8),
+    Then(a8, a6),
+    Then(a7, a9), // Loop([(6)-->(7)-->(9)-->(8)-->(6))
+    Then(a9, a8)
   )
 
   def pathWalk(edges: EdgeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain

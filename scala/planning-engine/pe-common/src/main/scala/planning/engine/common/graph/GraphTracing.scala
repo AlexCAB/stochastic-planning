@@ -70,12 +70,10 @@ trait GraphTracing[F[_]: MonadThrow]:
 
     beginHnIds.toList
       .traverse(id => trace(id, Set.empty, Vector.empty))
-      .map(reduce)
+      .map(ps => if ps.nonEmpty then reduce(ps) else (Set.empty, Set.empty))
 
   private[graph] def traceThenCyclesPaths(visited: Set[MnId], acc: Set[Path]): F[Set[Path]] =
     val notVisited = mnIds -- visited
-
-    println("Visited: " + visited + " | Not visited: " + notVisited + " | Acc: " + acc)
 
     if notVisited.isEmpty then acc.pure
     else

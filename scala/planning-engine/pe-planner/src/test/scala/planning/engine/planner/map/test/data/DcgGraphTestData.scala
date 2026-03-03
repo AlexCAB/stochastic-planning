@@ -13,19 +13,23 @@
 package planning.engine.planner.map.test.data
 
 import cats.effect.IO
+import cats.effect.unsafe.IORuntime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.graph.GraphStructure
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.samples.DcgSample
 
 trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampleTestData:
+  private implicit lazy val ioRuntime: IORuntime = IORuntime.global
+
   def makeEdgLink(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-    makeDcgEdgeLink(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq *))
+    makeDcgEdgeLink(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq*))
 
   def makeEdgThen(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
-    makeDcgEdgeThen(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq *))
+    makeDcgEdgeThen(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq*))
 
   lazy val nuHnId = MnId.Abs(-1)
   lazy val emptyDcgGraph = DcgGraph.empty[IO]
@@ -51,31 +55,14 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
     structure = GraphStructure[IO](dcgEdges.map(_.key).toSet)
   )
 
-//
-//  extension (graph: DcgGraph[IO])
-//    def addSample(sampleId: SampleId, edges: Set[(EdgeType, EdgeKey)]): DcgGraph[IO] =
-//      val ends = edges.map(_._2)
-//      val allHdIds = ends.flatMap(e => Set(e.src, e.trg))
-//      val edgesDef = ends -- graph.edgesData.keySet
-//      val hdIdsDef = allHdIds -- graph.allHnIds
-//
-//      assert(edgesDef.isEmpty, s"For sample $sampleId to non-existing edges: $edgesDef")
-//      assert(hdIdsDef.isEmpty, s"For sample $sampleId to edges with non-existing HnIds: $hdIdsDef")
-//
-//      val newIndexies = graph.edgesData.values.toList
-//        .flatMap(e => List(e.ends.src -> e.srcHnIndex, e.ends.trg -> e.trgHnIndex))
-//        .filter((hdId, _) => allHdIds.contains(hdId))
-//        .groupBy(_._1)
-//        .map((hdId, lst) => hdId -> lst.flatMap(_._2).map(_.value).maxOption)
-//        .map((hdId, opMax) => hdId -> opMax.map(i => HnIndex(i + 1)).getOrElse(HnIndex.init))
-//
-////      val edgesDataMap = edges
-////        .map((et, ends) => et -> (graph.edgesData.get(ends), newIndexies.get(ends.src), newIndexies.get(ends.trg)))
-////        .map:
-////          case (LINK, (Some(data), Some(srcInd), Some(trgInd))) => data.copy(
-////              links = DcgEdgeSamples.Links(
-////                data.links.indexies + (sampleId -> Indexies(srcInd, trgInd))
-////              )
-////            )
-//
-//      ???
+  extension (graph: DcgGraph[IO])
+    def makeAndAddNodesFromIds(mnIds: Set[MnId]): DcgGraph[IO] = graph
+      .addNodes(
+        mnIds.map:
+          case id: MnId.Con => makeConDcgNode(id)
+          case id: MnId.Abs => makeAbsDcgNode(id)
+      ).unsafeRunSync()
+
+    def addTestDcgSample(sample: DcgSample[IO]): DcgGraph[IO] = graph
+      .addSamples(List(DcgSample.Add[IO](sample, makeDcgIndexMap(sample.data.id, sample.structure.mnIds))))
+      .unsafeRunSync()

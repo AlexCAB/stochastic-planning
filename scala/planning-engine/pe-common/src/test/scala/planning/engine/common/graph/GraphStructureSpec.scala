@@ -25,7 +25,7 @@ class GraphStructureSpec extends UnitSpecWithData:
   import MnId.{Abs, Con}
 
   private class CaseData extends Case with GraphStructureTestData
-  
+
   "GraphStructure.mnIds" should:
     "return all MnIds in the graph" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -121,7 +121,7 @@ class GraphStructureSpec extends UnitSpecWithData:
         val newEdges = Set(Link(c2, a4), Link(c3, a4))
         val newGraph: GraphStructure[IO] = simpleGraph.add(newEdges).await
         newGraph.keys mustBe (simpleGraph.keys ++ newEdges)
-  
+
   "GraphStructure.linkRoots" should:
     "return link root mnIds" in newCase[CaseData]: (tn, data) =>
       import data.{c1, c2, c3, simpleGraph, conGraph, nonConGraph, cycleGraph, complexGraph}
@@ -162,7 +162,7 @@ class GraphStructureSpec extends UnitSpecWithData:
       async[IO]:
         simpleGraph.findBackward(Set(c2)) mustBe Set(Then(c1, c2))
         simpleGraph.findBackward(Set(c3)) mustBe Set(Then(c1, c3))
-  
+
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>
       async[IO]:

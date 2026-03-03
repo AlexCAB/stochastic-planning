@@ -19,5 +19,5 @@ trait DcgNodeRepr[F[_]]:
   self: DcgNode[F] =>
 
   lazy val repr: String = self match
-    case _: Concrete[F] => s"[${id.value}${name.repr}]"
-    case _: Abstract[F] => s"(${id.value}${name.repr})"
+    case cn: Concrete[F] => s"[$idRepr, ${cn.ioValue.repr}]"
+    case _: Abstract[F]  => s"($idRepr)"

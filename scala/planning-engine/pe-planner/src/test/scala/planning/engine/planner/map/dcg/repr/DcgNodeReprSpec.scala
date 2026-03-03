@@ -32,10 +32,10 @@ class DcgNodeReprSpec extends UnitSpecWithData:
     "return correct string representation for concrete node" in newCase[CaseData]: (_, data) =>
       async[IO]:
         val withName = data.concreteNode.repr
-        withName mustBe "[123, \"TestConNode\"]"
+        withName mustBe "[123, \"TestConNode\", ⟨102 ∈ boolInputNode⟩]"
 
         val noName = data.concreteNode.copy[IO](id = MnId.Con(123), name = None).repr
-        noName mustBe "[123]"
+        noName mustBe "[123, ⟨102 ∈ boolInputNode⟩]"
 
     "return correct string representation for abstract node" in newCase[CaseData]: (_, data) =>
       async[IO]:

@@ -11,6 +11,8 @@
         </encoder>
     </appender>
 
+    <logger name="org.http4s.server.middleware.Logger" level="WARN" />
+
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>

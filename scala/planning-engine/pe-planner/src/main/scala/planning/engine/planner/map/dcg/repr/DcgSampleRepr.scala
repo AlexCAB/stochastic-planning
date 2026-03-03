@@ -14,10 +14,16 @@ package planning.engine.planner.map.dcg.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.graph.edges.EdgeKey.Link
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
   self: DcgSample[F] =>
+
+  protected def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer
+    .groupBy(_.src)
+    .toList.sortBy(_._1.value)
+    .map((src, ls) => src.reprNode +: ls.toList.sortBy(_.trg.value).map(l => s"|${l.reprArrow}${l.trg.reprNode}"))
 
   lazy val repr: F[String] =
     for

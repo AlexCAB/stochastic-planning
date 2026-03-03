@@ -27,7 +27,7 @@ sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def asConcrete: Option[DcgNode.Concrete[F]]
   def asDcgNode: DcgNode[F] = this
 
-  protected lazy val idRepr: String = s"${id.value}${name.map(n => s", \'${n.value}\'").getOrElse("")}"
+  protected lazy val idRepr: String = s"${id.value}${name.repr}"
 
 object DcgNode:
   final case class Concrete[F[_]: MonadThrow](

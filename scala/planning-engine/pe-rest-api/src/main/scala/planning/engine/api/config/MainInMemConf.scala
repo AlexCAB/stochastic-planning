@@ -17,11 +17,13 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.VisualizationServiceConf
 import cats.syntax.all.*
+import planning.engine.planner.config.PlannerMapConfig
 
 final case class MainInMemConf(
     server: ServerConf,
     visRoute: VisualizationRouteConf,
-    visService: VisualizationServiceConf
+    visService: VisualizationServiceConf,
+    plannerMap: PlannerMapConfig
 )
 
 object MainInMemConf:
@@ -30,8 +32,9 @@ object MainInMemConf:
       serverConf <- ServerConf.formConfig(appConf.getConfig("api.server"))
       visRouteConf <- VisualizationRouteConf.fromConfig(appConf.getConfig("api.route.visualization"))
       visServiceConf <- VisualizationServiceConf.fromConfig(appConf.getConfig("api.service.visualization"))
+      plannerMap <- PlannerMapConfig.formConfig(appConf.getConfig("planner.map"))
       _ <- LoggerFactory[F].getLogger.info(s"Loaded configuration: $appConf")
-    yield MainInMemConf(serverConf, visRouteConf, visServiceConf)
+    yield MainInMemConf(serverConf, visRouteConf, visServiceConf, plannerMap)
 
   def default[F[_]: {Sync, LoggerFactory}]: Resource[F, MainInMemConf] =
     Resource.eval(Sync[F].delay(ConfigFactory.load()).flatMap(ac => formConfig[F](ac)))

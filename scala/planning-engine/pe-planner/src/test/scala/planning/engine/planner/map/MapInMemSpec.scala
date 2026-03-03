@@ -20,6 +20,7 @@ import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.ConcreteNode
+import planning.engine.planner.config.PlannerMapConfig
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.test.data.MapTestData
@@ -29,14 +30,15 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with MapTestData:
     lazy val visualizationStub = stub[MapVisualizationLike[IO]]
+    lazy val testConfig =  PlannerMapConfig(reprEnabled = true)
 
     lazy val emptyMapInMem: MapInMem[IO] =
       visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
-      MapInMem.empty[IO](visualizationStub).unsafeRunSync()
+      MapInMem.empty[IO](testConfig, visualizationStub).unsafeRunSync()
 
     lazy val initMapInMem: MapInMem[IO] =
       visualizationStub.stateUpdated.when(*, *).returns(IO.unit).anyNumberOfTimes()
-      MapInMem.empty[IO](visualizationStub)
+      MapInMem.empty[IO](testConfig, visualizationStub)
         .flatTap(_.init(testMetadata, testInNodes, testOutNodes))
         .flatTap(_.setIdsCount(initialMapIdsCountState))
         .flatTap(_.setMapState(initialDcgState))
@@ -266,9 +268,9 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
   
   "MapInMem.empty(...)" should:
     "create empty MapInMem instance" in newCase[CaseData]: (tn, data) =>
-      import data.visualizationStub
+      import data.{testConfig, visualizationStub}
       async[IO]:
-        val mapInMem = MapInMem.empty[IO](visualizationStub).logValue(tn).await
+        val mapInMem = MapInMem.empty[IO](testConfig, visualizationStub).logValue(tn).await
 
         mapInMem.getMapInfo.logValue(tn).await mustBe MapInfoState.empty[IO]
         mapInMem.getMapState.logValue(tn).await mustBe MapGraphState.empty[IO]

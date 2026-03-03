@@ -17,6 +17,7 @@ import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.api.config.VisualizationServiceConf
+import planning.engine.planner.config.PlannerMapConfig
 
 import scala.concurrent.duration.DurationInt
 
@@ -37,6 +38,11 @@ class MainInMemConfSpec extends UnitSpecWithData:
         |  map-enabled = false
         |  long-pull-timeout = 1 minute
         |}
+        |planner {
+        |  map {
+        |    repr-enabled = true
+        |  }
+        |}
         |""".stripMargin
     )
 
@@ -47,5 +53,6 @@ class MainInMemConfSpec extends UnitSpecWithData:
         .asserting(_ mustEqual MainInMemConf(
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           visRoute = VisualizationRouteConf(pingTimeout = 1.minute),
-          visService = VisualizationServiceConf(mapEnabled = false)
+          visService = VisualizationServiceConf(mapEnabled = false),
+          plannerMap = PlannerMapConfig(reprEnabled = true)
         ))

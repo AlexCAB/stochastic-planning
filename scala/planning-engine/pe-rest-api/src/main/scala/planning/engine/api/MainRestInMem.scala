@@ -33,7 +33,7 @@ object MainRestInMem extends AppBase:
       visualizationService <- VisualizationService[IO](mainConf.visService)
       visualizationRoute <- VisualizationRoute[IO](mainConf.visRoute, visualizationService)
 
-      map <- MapInMem[IO](visualizationService)
+      map <- MapInMem[IO](mainConf.plannerMap, visualizationService)
 
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute[IO](maintenanceService)

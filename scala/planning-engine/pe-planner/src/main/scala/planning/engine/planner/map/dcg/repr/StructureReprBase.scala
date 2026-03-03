@@ -13,17 +13,10 @@
 package planning.engine.planner.map.dcg.repr
 
 import cats.MonadThrow
-import planning.engine.common.graph.edges.EdgeKey
 import planning.engine.common.graph.paths.Path
 
 trait StructureReprBase[F[_]: MonadThrow]:
-  import EdgeKey.Link
   import Path.{Direct, Loop, Noose}
-
-  protected def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer
-    .groupBy(_.src)
-    .toList.sortBy(_._1.value)
-    .map((src, ls) => src.reprNode +: ls.toList.sortBy(_.trg.value).map(l => s"|${l.reprArrow}${l.trg.reprNode}"))
 
   protected def formatLayerRepr(layer: List[List[String]]): List[String] =
     val maxColSize = layer.map(_.size).max

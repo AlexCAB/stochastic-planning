@@ -62,12 +62,6 @@ final case class GraphStructure[F[_]: MonadThrow](
         _ <- this.keys.assertContainsNoneOf(ends, "Can't add Edges that already exist")
     yield GraphStructure(this.keys ++ ends)
 
-  def findForward(srcMnIds: Set[MnId]): Set[EdgeKey] =
-    srcMnIds.flatMap(srcId => srcMap.getOrElse(srcId, Set()).map(_.asSrcKey(srcId)))
-
-  def findBackward(trgHnIds: Set[MnId]): Set[EdgeKey] =
-    trgHnIds.flatMap(trgId => trgMap.getOrElse(trgId, Set()).map(_.asTrgKey(trgId)))
-
 object GraphStructure:
   def empty[F[_]: MonadThrow]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)
 

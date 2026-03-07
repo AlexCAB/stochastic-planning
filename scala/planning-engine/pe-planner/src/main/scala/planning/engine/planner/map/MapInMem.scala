@@ -31,6 +31,7 @@ import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 import planning.engine.planner.config.PlannerMapConfig
+import planning.engine.planner.map.inference.MapInMemInference
 
 trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: Iterable[InputNode[F]], outNodes: Iterable[OutputNode[F]]): F[Unit]
@@ -41,7 +42,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, MapGraphState[F]],
     idsCountCell: AtomicCell[F, MapIdsCountState]
-) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemInference[F] with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get
@@ -148,22 +149,11 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       resultMap = state.graph.findHnIdsByNames(names)
     yield resultMap
 
-  override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
+  override def findActiveConNodes(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] =
     for
       state <- getMapState
       (foundNodes, notFoundValues) <- state.findConForIoValues(values)
     yield (foundNodes, notFoundValues)
-
-// TODO Refactoring:
-
-//  override def findActiveAbstractForest(conActiveHnIds: Set[MnId]): F[ActiveAbsDag[F]] =
-//    for
-//      state <- getMapState
-//      initGraph <- buildInitActiveGraph(conActiveHnIds, state)
-//      tracedGraph <- traceActiveAbsNodes(initGraph, Set(), state)
-//      _ <- Validation.validate(tracedGraph)
-//      _ <- logger.info(s"Found active abstract graph for conActiveNodeIds=$conActiveHnIds: $tracedGraph")
-//    yield tracedGraph
 
   override def reset(): F[Unit] =
     for

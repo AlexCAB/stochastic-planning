@@ -235,12 +235,12 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
         result mustBe expectedResult
 
-  "MapInMem.findForIoValues(...)" should:
+  "MapInMem.findActiveConNodes(...)" should:
     "find nodes for io values from in-memory state" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         val (foundNodes, notFoundValues) = initMapInMem
-          .findForIoValues(ioValues.toSet + testNotInMap)
+          .findActiveConNodes(ioValues.toSet + testNotInMap)
           .logValue(tn).await
 
         foundNodes mustBe conDcgNodesMap

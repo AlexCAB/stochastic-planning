@@ -256,75 +256,33 @@ class DcgGraphSpec extends UnitSpecWithData:
 
         result mustBe Map(name1 -> data.absNodes.filter(_.name.contains(name1)).map(_.id).toSet)
 
-  "DcgGraph.findForwardLinkEdges(...)" should:
-    "find forward link edges" in newCase[CaseData]: (tn, data) =>
+  "DcgGraph.findActiveSampleIds(...)" should:
+    "find active sample IDs for MnIds" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val mnIds: Set[MnId] = Set(mnId2, mnId4)
+
       async[IO]:
-        val sourceHnIds = Set[MnId](data.mnId1, data.mnId2)
+        val result = graphWithEdges.findActiveSampleIds(mnIds)
+        logInfo(tn, s"result: $result").await
 
-        val result: Map[EdgeKey.Link, DcgEdge[IO]] = data.graphWithEdges.findForwardLinkEdges(sourceHnIds).await
-        logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
+        val expectedIds = dcgEdges.filter(e => e.mnIds.exists(mnIds.contains)).flatMap(_.samples.sampleIds).toSet
 
-        val expectedEnds = data.dcgEdges.filter(e => sourceHnIds.contains(e.key.src) && e.key.isLink).map(_.key)
+        result mustBe expectedIds
 
-        expectedEnds must not be empty
-        result.keySet mustBe expectedEnds.toSet
+  "DcgGraph.activeLinksFilter(...)" should:
+    "return filter function for active LINK edges" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val activeSampleIds = Set(sampleId1)
+      val filterFunc = graphWithEdges.activeLinksFilter(activeSampleIds)
 
-  "DcgGraph.findForwardActiveLinkEdges(...)" should:
-    "find forward active link edges" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val sourceHnIds = Set[MnId](data.mnId1, data.mnId2)
-        val activeSampleIds = Set(data.sampleId1)
+        val result1 = filterFunc(EdgeKey.Link(mnId1, mnId3))
+        val result2 = filterFunc(EdgeKey.Link(mnId4, mnId5))
 
-        val result: Map[EdgeKey.Link, DcgEdge[IO]] = data.graphWithEdges
-          .findForwardActiveLinkEdges(sourceHnIds, activeSampleIds).await
+        logInfo(tn, s"result1: $result1, result2: $result2").await
 
-        logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
-
-        val expectedEnds = data.dcgEdges
-          .filter(e =>
-            sourceHnIds.contains(e.key.src)
-              && e.key.isLink
-              && e.samples.sampleIds.exists(activeSampleIds.contains)
-          )
-          .map(_.key)
-
-        expectedEnds must not be empty
-        result.keySet mustBe expectedEnds.toSet
-
-  "DcgGraph.findBackwardThenEdges(...)" should:
-    "find backward then edges" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        val targetHnIds = Set[MnId](data.mnId1)
-
-        val result: Map[EdgeKey.Then, DcgEdge[IO]] = data.graphWithEdges.findBackwardThenEdges(targetHnIds).await
-        logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
-
-        val expectedEnds = data.dcgEdges.filter(e => targetHnIds.contains(e.key.trg) && e.key.isThen).map(_.key)
-
-        expectedEnds must not be empty
-        result.keySet mustBe expectedEnds.toSet
-
-  "DcgGraph.findBackwardActiveThenEdges(...)" should:
-    "find backward active then edges" in newCase[CaseData]: (tn, data) =>
-      async[IO]:
-        val targetHnIds = Set[MnId](data.mnId1)
-        val activeSampleIds = Set(data.sampleId2)
-
-        val result: Map[EdgeKey.Then, DcgEdge[IO]] = data.graphWithEdges
-          .findBackwardActiveThenEdges(targetHnIds, activeSampleIds).await
-
-        logInfo(tn, s"result:\n${result.values.mkString("\n")}").await
-
-        val expectedEnds = data.dcgEdges
-          .filter(e =>
-            targetHnIds.contains(e.key.trg) &&
-              e.key.isThen &&
-              e.samples.sampleIds.exists(activeSampleIds.contains)
-          )
-          .map(_.key)
-
-        expectedEnds must not be empty
-        result.keySet mustBe expectedEnds.toSet
+        result1 mustBe true // lEdge1 is active for sampleId1
+        result2 mustBe false // lEdge3 is not active for sampleId1
 
   "DcgGraph.empty" should:
     "create empty graph" in newCase[CaseData]: (tn, data) =>

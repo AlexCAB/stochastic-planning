@@ -117,17 +117,13 @@ final case class DcgGraph[F[_]: MonadThrow](
     .view.mapValues(_.map(_.id).toSet)
     .toMap
 
-  def findForwardLinkEdges(srcMnIds: Set[MnId]): F[Map[EdgeKey.Link, DcgEdge[F]]] =
-    getEdges[EdgeKey.Link](structure.findForward(srcMnIds).filter(_.isInstanceOf[EdgeKey.Link]))
+  def findActiveSampleIds(mnIds: Set[MnId]): Set[SampleId] = edges.values
+    .filter(e => e.mnIds.exists(mnIds.contains))
+    .flatMap(_.samples.sampleIds)
+    .toSet
 
-  def findForwardActiveLinkEdges(srcMnIds: Set[MnId], sampleIds: Set[SampleId]): F[Map[EdgeKey.Link, DcgEdge[F]]] =
-    findForwardLinkEdges(srcMnIds).map(_.filter((_, e) => e.isActive(sampleIds)))
-
-  def findBackwardThenEdges(trgHnIds: Set[MnId]): F[Map[EdgeKey.Then, DcgEdge[F]]] =
-    getEdges[EdgeKey.Then](structure.findBackward(trgHnIds).filter(_.isInstanceOf[EdgeKey.Then]))
-
-  def findBackwardActiveThenEdges(trgMnIds: Set[MnId], sampleIds: Set[SampleId]): F[Map[EdgeKey.Then, DcgEdge[F]]] =
-    findBackwardThenEdges(trgMnIds).map(_.filter((_, e) => e.isActive(sampleIds)))
+  def activeLinksFilter(sampleIds: Set[SampleId])(key: EdgeKey.Link): Boolean = 
+    edges.get(key).exists(_.isActive(sampleIds))
 
   override lazy val toString: String =
     s"""DcgGraph(

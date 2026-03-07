@@ -21,6 +21,8 @@ import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 
+// Base/common logic for MapInMem and MapCache implementations,
+// providing common state management and operations on the map graph state.
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
@@ -39,36 +41,9 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
     yield res
 
   private[map] def addNewSamplesToState(
-      newSamples:  MapGraphState[F] => F[Iterable[DcgSample.Add[F]]]
+      newSamples: MapGraphState[F] => F[Iterable[DcgSample.Add[F]]]
   ): F[Map[SampleId, DcgSample[F]]] = modifyMapState: state =>
     for
       samples <- newSamples(state)
       newSate <- state.addSamples(samples)
     yield (newSate, samples.map(s => s.sample.data.id -> s.sample).toMap)
-
-// TODO Refactoring:
-
-//  private[map] def buildInitActiveGraph(conActiveHnIds: Set[HnId], state: MapGraphState[F]): F[ActiveAbsDag[F]] =
-//    for
-//      conNodes <- state.graph.getConForHnIds(conActiveHnIds)
-//      linkEdges <- state.graph.findForwardLinkEdges(conNodes.keySet)
-//      absNodes <- state.graph.getAbsForHnIds(linkEdges.keySet.map(_.trg))
-//      thenEdges <- state.graph.findBackwardThenEdges(conActiveHnIds)
-//      sampleIds = (thenEdges.values.flatMap(_.sampleIds) ++ thenEdges.values.flatMap(_.sampleIds)).toSet
-//      samples <- state.graph.getSamples(thenEdges.values.flatMap(e => e.linksIds ++ e.thensIds).toSet)
-//      newDag <- ActiveAbsDag(conNodes.values, absNodes.values, linkEdges.values, thenEdges.keySet, samples.values)
-//    yield newDag
-//
-//  private[map] def traceActiveAbsNodes(
-//      dag: ActiveAbsDag[F],
-//      nextAbsHnIds: Set[HnId], // next abstract HnIds to trace which data already in active graph
-//      state: MapGraphState[F]
-//  ): F[ActiveAbsDag[F]] =
-//    for
-//      sampleIds <- dag.graph.samples.keySet.pure
-//      forwardLinkEdges <- state.graph.findForwardActiveLinkEdges(nextAbsHnIds, sampleIds)
-//      nextAbsNodes <- state.graph.getAbsForHnIds(forwardLinkEdges.keySet.map(_.trg))
-//      backwordThenEdges <- state.graph.findBackwardActiveThenEdges(nextAbsHnIds, sampleIds)
-//      newDag <- if nextAbsNodes.nonEmpty then traceActiveAbsNodes(dag, nextAbsNodes.keySet, state) else dag.pure
-//      updatedDag <- newDag.addAbstractLevel(nextAbsNodes.values, forwardLinkEdges.values, backwordThenEdges.keySet)
-//    yield updatedDag

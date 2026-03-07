@@ -142,27 +142,6 @@ class GraphStructureSpec extends UnitSpecWithData:
         cycleGraph.thenRoots mustBe Set()
         complexGraph.thenRoots mustBe Set(c1, a4)
 
-  "GraphStructure.findForward" should:
-    "find forward neighbours for given mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.findForward(Set(a4)) mustBe Set(Link(a4, a5))
-
-        simpleGraph.findForward(Set(c1)) mustBe Set(
-          Then(c1, c2),
-          Link(c1, a6),
-          Link(c1, a4),
-          Then(c1, c2),
-          Then(c1, c3)
-        )
-
-  "GraphStructure.findBackward" should:
-    "find backward neighbours for given mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.{c1, c2, c3, simpleGraph}
-      async[IO]:
-        simpleGraph.findBackward(Set(c2)) mustBe Set(Then(c1, c2))
-        simpleGraph.findBackward(Set(c3)) mustBe Set(Then(c1, c3))
-
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>
       async[IO]:

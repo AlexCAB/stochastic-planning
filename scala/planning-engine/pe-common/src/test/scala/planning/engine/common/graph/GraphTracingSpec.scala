@@ -15,50 +15,47 @@ package planning.engine.common.graph
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.EdgeKey
-
 import planning.engine.common.graph.paths.Path
 import planning.engine.common.values.node.MnId
 
 class GraphTracingSpec extends UnitSpecWithData:
   import EdgeKey.{Link, Then}
-  import MnId.{Abs, Con}
+  import MnId.Con
 
   private class CaseData extends Case with GraphStructureTestData
-
-  "GraphStructure.findNextLinks(...)" should:
-    "return next edges from given mnIds" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        simpleGraph.findNextLinks(Set(c1), simpleGraph.srcLinkMap) mustBe Set(c1 -> Link.End(a4), c1 -> Link.End(a6))
-        simpleGraph.findNextLinks(Set(a4), simpleGraph.srcLinkMap) mustBe Set(a4 -> Link.End(a5))
-        simpleGraph.findNextLinks(Set(c3), simpleGraph.srcLinkMap) mustBe Set()
-
+  
   "GraphStructure.traceAbsForestLayers(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        simpleGraph.traceAbsForestLayers(Set(c1)).await mustBe List(
+        simpleGraph.traceAbsForestLayers(Set(c1), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c1, a6)),
           Set(Link(a4, a5))
         )
 
-        complexGraph.traceAbsForestLayers(Set(c1, c2, c3)).await mustBe List(
+        complexGraph.traceAbsForestLayers(Set(c1, c2, c3), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c2, a4), Link(c3, a5)),
           Set(Link(a4, a6), Link(a5, a6))
         )
 
+    "trace abstract nodes and filter links" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        simpleGraph.traceAbsForestLayers(Set(c1), l => l != Link(c1, a4)).await mustBe List(Set(Link(c1, a6)))
+
     "fail if cycle found" in newCase[CaseData]: (tn, data) =>
       import data.*
 
-      invalidLinkGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
+      invalidLinkGraph.traceAbsForestLayers(Set(c1), allLinksFilter).logValue(tn)
         .assertThrowsError(_.getMessage must include("Cycle detected"))
 
     "fail if invalid edge found" in newCase[CaseData]: (tn, data) =>
       import data.*
       val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, c2)))
 
-      invalidGraph.traceAbsForestLayers(Set(c1)).logValue(tn)
+      invalidGraph.traceAbsForestLayers(Set(c1), allLinksFilter).logValue(tn)
         .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
 
   "GraphStructure.traceThenPaths" should:

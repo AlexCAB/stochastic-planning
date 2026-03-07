@@ -14,6 +14,7 @@ package planning.engine.planner.map.dcg.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.EdgeKey.Link
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.DcgGraph
@@ -40,7 +41,7 @@ class DcgGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
 
   lazy val repr: F[String] =
     for
-      layers <- structure.traceAbsForestLayers(structure.conMnId)
+      layers <- structure.traceAbsForestLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
       terminalLayer = builtTerminalLayer(layers)
       formatedLayers = builtLayers.map(formatLayerRepr)

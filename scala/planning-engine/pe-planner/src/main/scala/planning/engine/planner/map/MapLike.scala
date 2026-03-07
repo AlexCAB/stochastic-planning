@@ -13,11 +13,12 @@
 package planning.engine.planner.map
 
 import planning.engine.common.values.io.{IoName, IoValue}
-import planning.engine.common.values.node.{MnId, HnName}
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
+import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 
@@ -33,8 +34,10 @@ trait MapLike[F[_]]:
 
   // Lookup methods
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[MnId]]]
-  def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
-//  def findActiveAbstractForest(conActiveNodeIds: Set[MnId]): F[ActiveAbsDag[F]]
+  def findActiveConNodes(ioValues: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
+  
+  // Inference methods
+  def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]]
 
   // Service methods
   def reset(): F[Unit]

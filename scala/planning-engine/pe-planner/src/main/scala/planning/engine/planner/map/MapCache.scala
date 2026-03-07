@@ -27,6 +27,7 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
+import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.logic.MapBaseLogic
 import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
@@ -61,7 +62,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
   override def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[MnId]]] = ???
 
   // TODO: To refactor:
-  override def findForIoValues(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] = ???
+  override def findActiveConNodes(values: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])] = ???
 //    modifyMapState: state =>
 //      for
 //        notLoaded <- values.filterNot(state.ioValues.contains).pure
@@ -77,7 +78,10 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 //        _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
 //      yield (stateWithSamples, (foundNodes, notFoundValues))
 
-//  override def findActiveAbstractForest(conActiveNodeIds: Set[MnId]): F[ActiveAbsDag[F]] = ???
+  override def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] = ???
+    // TODO: Implementation similar to MapInMem, but before build active graph,
+    // TODO: need to load all missing nodes and edges to the state, and then build active
+    // TODO: graph based on the state.
 
   override def reset(): F[Unit] = ???
 

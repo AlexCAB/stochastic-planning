@@ -29,12 +29,12 @@ import scala.annotation.tailrec
 trait GraphTracing[F[_]: MonadThrow]:
   self: GraphStructure[F] =>
 
-  private[graph] def findNextLinks[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
+  private[graph] def findInEdgeMap[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
     srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
-  def traceAbsForestLayers(conIds: Set[Con]): F[List[Set[Link]]] =
+  def traceAbsForestLayers(conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =
     @tailrec def trace(next: Set[MnId], visited: Set[(MnId, Link.End)], acc: List[Set[Link]]): F[List[Set[Link]]] =
-      val forward = findNextLinks(next, srcLinkMap)
+      val forward = findInEdgeMap(next, srcLinkMap).filter((src, end) => filterForward(end.asSrcKey(src)))
       val intersect = visited.intersect(forward)
 
       (forward, intersect) match
@@ -85,3 +85,9 @@ trait GraphTracing[F[_]: MonadThrow]:
       (rootedPaths, visited) <- traceThenPaths(thenRoots)
       cyclesPaths <- traceThenCyclesPaths(visited, Set.empty)
     yield rootedPaths ++ cyclesPaths
+    
+  def findBackwardThenEdges(trgIds: Set[MnId]): Set[Then] =
+    findInEdgeMap(trgIds, trgThenMap).map((id, end) => end.asTrgKey(id))
+
+object GraphTracing:
+  val allLinksFilter: Link => Boolean = _ => true

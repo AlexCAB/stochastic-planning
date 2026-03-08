@@ -20,7 +20,7 @@ import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
-import planning.engine.planner.map.dcg.repr.DcgSampleRepr
+import planning.engine.planner.map.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MonadThrow](
     data: SampleData,

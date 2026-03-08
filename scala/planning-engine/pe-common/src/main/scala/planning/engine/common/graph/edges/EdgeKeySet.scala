@@ -19,6 +19,8 @@ final case class EdgeKeySet[K <: EdgeKey](keys: Set[K]):
   lazy val trgIds: Set[MnId] = keys.map(_.trg)
   lazy val mnIds: Set[MnId] = srcIds ++ trgIds
 
+  lazy val reprByTrg: List[String] = keys.toList.sortBy(_.trg.value).map(_.repr)
+
   def contains(src: MnId, trg: MnId): Boolean = keys.exists(k => k.src == src && k.trg == trg)
 
 object EdgeKeySet:

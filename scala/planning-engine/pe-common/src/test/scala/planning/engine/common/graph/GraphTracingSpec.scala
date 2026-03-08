@@ -25,7 +25,7 @@ class GraphTracingSpec extends UnitSpecWithData:
   import MnId.Con
 
   private class CaseData extends Case with GraphStructureTestData
-  
+
   "GraphStructure.traceAbsForestLayers(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*

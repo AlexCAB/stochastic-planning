@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-03-03 |||||||||||*/
 
-package planning.engine.planner.map.dcg.repr
+package planning.engine.planner.map.repr
 
 import cats.MonadThrow
 import planning.engine.common.graph.paths.Path
@@ -29,9 +29,7 @@ trait StructureReprBase[F[_]: MonadThrow]:
       .map(_.mkString(" "))
 
   protected def renderLayerRepr(layers: List[List[String]]): List[String] = layers
-    .map(lines => lines.map(l => "      " + l).mkString("\n"))
-    .zipWithIndex
-    .map((l, i) => s"    Layer $i:\n" + l)
+    .map(_.tab2).zipWithIndex.flatMap((ls, i) => s"Layer $i:" +: ls)
 
   protected def groupPaths(paths: Set[Path]): (List[Direct], List[Loop], List[Noose]) = paths
     .foldLeft((List[Direct](), List[Loop](), List[Noose]())):
@@ -39,6 +37,11 @@ trait StructureReprBase[F[_]: MonadThrow]:
       case ((ds, ls, ns), l: Loop)   => (ds, l +: ls, ns)
       case ((ds, ls, ns), n: Noose)  => (ds, ls, n +: ns)
 
-  protected def renderPathRepr(paths: List[Path]): String =
-    if paths.isEmpty then "      ---"
-    else paths.sortBy(_.walk.length).reverse.map(p => s"      ${p.reprChain}").mkString("\n")
+  protected def renderPathRepr(paths: List[Path]): List[String] =
+    if paths.isEmpty then List("---")
+    else paths.sortBy(_.walk.length).reverse.map(_.reprChain)
+
+  extension (list: List[String])
+    def tab2: List[String] = list.map("  " + _)
+    def tab4: List[String] = list.map("    " + _)
+    def tab6: List[String] = list.map("      " + _)

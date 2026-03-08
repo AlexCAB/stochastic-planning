@@ -24,7 +24,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
 import planning.engine.common.values.io.IoValue
-import planning.engine.planner.map.dcg.repr.DcgGraphRepr
+import planning.engine.planner.map.repr.DcgGraphRepr
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 import scala.reflect.ClassTag

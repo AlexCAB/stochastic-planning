@@ -85,7 +85,7 @@ trait GraphTracing[F[_]: MonadThrow]:
       (rootedPaths, visited) <- traceThenPaths(thenRoots)
       cyclesPaths <- traceThenCyclesPaths(visited, Set.empty)
     yield rootedPaths ++ cyclesPaths
-    
+
   def findBackwardThenEdges(trgIds: Set[MnId]): Set[Then] =
     findInEdgeMap(trgIds, trgThenMap).map((id, end) => end.asTrgKey(id))
 

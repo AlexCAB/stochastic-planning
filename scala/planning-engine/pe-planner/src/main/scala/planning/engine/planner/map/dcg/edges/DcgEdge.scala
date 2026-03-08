@@ -20,7 +20,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
-import planning.engine.planner.map.dcg.repr.DcgEdgeRepr
+import planning.engine.planner.map.repr.DcgEdgeRepr
 
 final case class DcgEdge[F[_]: MonadThrow](
     key: EdgeKey,

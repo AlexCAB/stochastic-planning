@@ -19,7 +19,7 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
-import planning.engine.planner.map.dcg.repr.DcgNodeRepr
+import planning.engine.planner.map.repr.DcgNodeRepr
 
 sealed trait DcgNode[F[_]: MonadThrow] extends DcgNodeRepr[F]:
   def id: MnId

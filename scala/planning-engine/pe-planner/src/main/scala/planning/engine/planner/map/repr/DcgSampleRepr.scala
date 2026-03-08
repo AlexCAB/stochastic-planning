@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-25 |||||||||||*/
 
-package planning.engine.planner.map.dcg.repr
+package planning.engine.planner.map.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
@@ -34,14 +34,12 @@ trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       paths <- structure.allThenPaths
       (directs, loops, nooses) = groupPaths(paths)
     yield List(
-      s"DcgSample(${data.id.vStr}${data.name.map(n => ", " + n.value).getOrElse("")}):",
-      "  ABSTRACT LAYERS:",
-      renderLayerRepr(formatedLayers).mkString("\n"),
-      "  PLANING PATHS:",
-      "    Direct:",
-      renderPathRepr(directs),
-      "    Loop:",
-      renderPathRepr(loops),
-      "    Noose:",
-      renderPathRepr(nooses)
-    ).mkString("\n")
+      List(s"DcgSample(${data.id.vStr}${data.name.map(n => ", " + n.value).getOrElse("")}):", "  ABSTRACT LAYERS:"),
+      renderLayerRepr(formatedLayers).tab4,
+      List("  PLANING PATHS:", "    Direct:"),
+      renderPathRepr(directs).tab6,
+      List("    Loop:"),
+      renderPathRepr(loops).tab6,
+      List("    Noose:"),
+      renderPathRepr(nooses).tab6,
+    ).flatten.mkString("\n")

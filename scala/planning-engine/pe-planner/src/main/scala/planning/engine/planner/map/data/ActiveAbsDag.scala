@@ -22,6 +22,7 @@ import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
+import planning.engine.planner.map.repr.ActiveAbsDagRepr
 
 // Is DAG where leafs are concrete hidden nodes and rest of the tree is abstract hidden nodes.
 // Edges with type LINK pointed form higher abstract root nodes to concrete leaf nodes.
@@ -29,7 +30,7 @@ import planning.engine.planner.map.dcg.nodes.DcgNode
 final case class ActiveAbsDag[F[_]: MonadThrow](
     backwordKeys: EdgeKeySet[EdgeKey.Then], // Targets of THEN edges is nodes in this graph
     graph: DcgGraph[F]
-)
+) extends ActiveAbsDagRepr[F]
 
 object ActiveAbsDag:
   def apply[F[_]: MonadThrow](

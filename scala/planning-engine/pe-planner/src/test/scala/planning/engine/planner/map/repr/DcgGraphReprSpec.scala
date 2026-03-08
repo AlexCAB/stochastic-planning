@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-03-03 |||||||||||*/
 
-package planning.engine.planner.map.dcg.repr
+package planning.engine.planner.map.repr
 
 import cats.effect.IO
 import cats.effect.cps.*

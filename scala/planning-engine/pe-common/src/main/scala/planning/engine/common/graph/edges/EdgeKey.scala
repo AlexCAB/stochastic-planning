@@ -41,7 +41,8 @@ sealed trait EdgeKey:
     case _: EdgeKey.Link => "=link=>"
     case _: EdgeKey.Then => "-then->"
 
-  override def toString: String = s"${src.reprNode} $reprArrow ${trg.reprNode}"
+  lazy val repr: String = s"${src.reprNode}$reprArrow${trg.reprNode}"
+  override def toString: String = repr
 
 object EdgeKey:
   sealed trait End:

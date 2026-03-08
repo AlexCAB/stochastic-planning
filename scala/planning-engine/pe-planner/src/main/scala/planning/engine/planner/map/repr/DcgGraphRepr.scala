@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-02-10 |||||||||||*/
 
-package planning.engine.planner.map.dcg.repr
+package planning.engine.planner.map.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
@@ -33,32 +33,43 @@ class DcgGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
     val allLinks = layers.toSet.flatten
     (allLinks.map(_.trg) -- allLinks.map(_.src)).toList.sortBy(_.value).map(srcNode)
 
-  private[repr] def renderNotConnectedNodes: String =
+  private[repr] def renderNotConnectedNodes: List[String] =
     val notConnectedNodes = mnIds -- edgesMdIds
 
-    if notConnectedNodes.isEmpty then "---"
-    else notConnectedNodes.flatMap(nodes.get).toList.sortBy(_.id.value).map(_.repr).mkString("\n    ")
+    if notConnectedNodes.isEmpty then List("---")
+    else notConnectedNodes.flatMap(nodes.get).toList.sortBy(_.id.value).map(_.repr)
 
-  lazy val repr: F[String] =
+  lazy val reprAbsLayers: F[List[String]] =
     for
       layers <- structure.traceAbsForestLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
       terminalLayer = builtTerminalLayer(layers)
       formatedLayers = builtLayers.map(formatLayerRepr)
+    yield List(
+      List("ABSTRACT LAYERS:"),
+      renderLayerRepr(formatedLayers).tab2,
+      List("  Terminal layer:"),
+      terminalLayer.tab4
+    ).flatten
+
+  lazy val reprPlanningPath: F[List[String]] =
+    for
       paths <- structure.allThenPaths
       (directs, loops, nooses) = groupPaths(paths)
     yield List(
-      s"DcgGraph(${nodes.size} nodes, ${edges.size} edges, ${samples.size} samples):",
-      "  ABSTRACT LAYERS:",
-      renderLayerRepr(formatedLayers).mkString("\n"),
-      "    Terminal layer:",
-      s"     ${terminalLayer.mkString(" ")}",
-      "  PLANING PATHS:",
-      "    Direct:",
-      renderPathRepr(directs),
-      "    Loop:",
-      renderPathRepr(loops),
-      "    Noose:",
-      renderPathRepr(nooses),
-      s"  NOT CONNECTED NODES:\n    $renderNotConnectedNodes"
-    ).mkString("\n")
+      List("PLANING PATHS:", "  Direct:"),
+      renderPathRepr(directs).tab4,
+      List("  Loop:"),
+      renderPathRepr(loops).tab4,
+      List("  Noose:"),
+      renderPathRepr(nooses).tab4
+    ).flatten
+
+  lazy val reprNotConnectedNodes: List[String] = s"NOT CONNECTED NODES:" +: renderNotConnectedNodes.tab2
+
+  lazy val repr: F[String] =
+    for
+      absLayers <- reprAbsLayers.map(_.tab2)
+      planningPath <- reprPlanningPath.map(_.tab2)
+      header = s"DcgGraph(${nodes.size} nodes, ${edges.size} edges, ${samples.size} samples):"
+    yield (header +: (absLayers ++ planningPath ++ reprNotConnectedNodes)).mkString("\n")

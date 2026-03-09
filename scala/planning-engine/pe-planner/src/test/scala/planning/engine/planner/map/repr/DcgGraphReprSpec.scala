@@ -24,7 +24,7 @@ class DcgGraphReprSpec extends UnitSpecWithData:
     lazy val notConnected = Set(MnId.Con(998), MnId.Abs(999))
 
     lazy val dcgDcgGraph = emptyDcgGraph
-      .makeAndAddNodesFromIds(allMnIds ++ notConnected)
+      .makeAndAddTestNodes(allMnIds ++ notConnected)
       .addTestDcgSample(complexDcgSample)
 
   "DcgGraphRepr.repr" should:

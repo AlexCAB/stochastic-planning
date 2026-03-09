@@ -17,10 +17,13 @@ import cats.effect.unsafe.IORuntime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.graph.GraphStructure
+import planning.engine.common.graph.io.IoValueMap
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.DcgGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
+import planning.engine.planner.map.state.MapGraphState
 
 trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampleTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -56,7 +59,10 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
   )
 
   extension (graph: DcgGraph[IO])
-    def makeAndAddNodesFromIds(mnIds: Set[MnId]): DcgGraph[IO] = graph
+    def addTestNodes(nodes: Set[DcgNode[IO]]): DcgGraph[IO] = graph
+      .addNodes(nodes).unsafeRunSync()
+    
+    def makeAndAddTestNodes(mnIds: Set[MnId]): DcgGraph[IO] = graph
       .addNodes(
         mnIds.map:
           case id: MnId.Con => makeConDcgNode(id)
@@ -66,3 +72,9 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
     def addTestDcgSample(sample: DcgSample[IO]): DcgGraph[IO] = graph
       .addSamples(List(DcgSample.Add[IO](sample, makeDcgIndexMap(sample.data.id, sample.structure.mnIds))))
       .unsafeRunSync()
+    
+    def toMapGraphState: MapGraphState[IO] = MapGraphState(
+      ioValues = IoValueMap(graph.edges.values.flatMap(_.ioValues).toSet),
+      graph = graph
+    )
+    

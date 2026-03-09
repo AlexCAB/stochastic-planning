@@ -14,18 +14,22 @@ package planning.engine.planner.map.inference
 
 import cats.effect.kernel.Async
 import cats.syntax.all.*
-
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.graph.edges.EdgeKey
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.planner.map.dcg.nodes.DcgNode
-import planning.engine.planner.map.{MapInMem, MapInMemLike}
+import planning.engine.planner.map.state.MapGraphState
+
+trait MapInferenceLike[F[_]]:
+  def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]]
 
 // This trait contains implementation of inference algorithms specific for the in-memory map.
-trait MapInMemInference[F[_]: {Async, LoggerFactory}] extends MapInMemLike[F]:
-  self: MapInMem[F] =>
-
+trait MapInference[F[_]: {Async, LoggerFactory}] extends MapInferenceLike[F]:
+  
+  // Implementation in MapBaseLogic
+  private[map] def getMapState: F[MapGraphState[F]]
+  
   // This is naive initial approach (i.e. without probability calculation and local outcome joints)
   // based on idea of extracting active DAG (active forest) from map graph,
   // by tracing LINK edges from active concrete nodes with filtering out inactive part
@@ -33,7 +37,7 @@ trait MapInMemInference[F[_]: {Async, LoggerFactory}] extends MapInMemLike[F]:
   // Better algorithm should calculate nodes probability and filter out edges base one probability threshold.
   override def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] =
     for
-      graph <- self.getMapState.map(_.graph)
+      graph <- getMapState.map(_.graph)
       activeSampleIds <- graph.findActiveSampleIds(activeIds.map(_.asMnId)).pure
       linkKeys <- graph.structure.traceAbsForestLayers(activeIds, graph.activeLinksFilter(activeSampleIds))
       mnIds = linkKeys.toSet.flatMap(_.flatMap(_.mnIds))

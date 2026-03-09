@@ -12,48 +12,45 @@
 
 package planning.engine.planner.map.test.data
 
-import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.graph.edges.EdgeKey
-import planning.engine.common.values.node.MnId.{Con, Abs}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.map.dcg.DcgGraph
 import EdgeKey.{Link, Then}
 
-trait SimpleAbstractForestTestData extends DcgGraphTestData:
+trait AbstractForestTestData extends DcgGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
-  lazy val con_1p1 = makeConDcgNode(id = Con(101))
-  lazy val con_1p2 = makeConDcgNode(id = Con(102))
+  lazy val con_1p1 = makeConDcgNode(id = 101, name = Some("con_1p1"))
+  lazy val con_1p2 = makeConDcgNode(id = 102, name = Some("con_1p2"))
 
-  lazy val con_1c1 = makeConDcgNode(id = Con(111))
-  lazy val con_1c2 = makeConDcgNode(id = Con(112))
-  lazy val con_1c3 = makeConDcgNode(id = Con(113))
-  lazy val con_1c4 = makeConDcgNode(id = Con(114))
+  lazy val con_1c1 = makeConDcgNode(id = 111, name = Some("con_1c1"))
+  lazy val con_1c2 = makeConDcgNode(id = 112, name = Some("con_1c2"))
+  lazy val con_1c3 = makeConDcgNode(id = 113, name = Some("con_1c3"))
+  lazy val con_1c4 = makeConDcgNode(id = 114, name = Some("con_1c4"))
 
-  lazy val con_1n1 = makeConDcgNode(id = Con(121))
-  lazy val con_1n2 = makeConDcgNode(id = Con(122))
+  lazy val con_1n1 = makeConDcgNode(id = 121, name = Some("con_1n1"))
+  lazy val con_1n2 = makeConDcgNode(id = 122, name = Some("con_1n2"))
 
-  lazy val all234ConNodes = List(con_1p1, con_1p2, con_1c1, con_1c2, con_1c3, con_1c4, con_1n1, con_1n2)
+  lazy val all234ConNodes = Set(con_1p1, con_1p2, con_1c1, con_1c2, con_1c3, con_1c4, con_1n1, con_1n2)
 
-  lazy val abs_2p1 = makeAbsDcgNode(id = Abs(201))
-  lazy val abs_2p2 = makeAbsDcgNode(id = Abs(202))
+  lazy val abs_2p1 = makeAbsDcgNode(id = 201, name = Some("abs_2p1"))
+  lazy val abs_2p2 = makeAbsDcgNode(id = 202, name = Some("abs_2p2"))
 
-  lazy val abs_2c1 = makeAbsDcgNode(id = Abs(211))
-  lazy val abs_2c2 = makeAbsDcgNode(id = Abs(212))
-  lazy val abs_2c3 = makeAbsDcgNode(id = Abs(213))
+  lazy val abs_2c1 = makeAbsDcgNode(id = 211, name = Some("abs_2c1"))
+  lazy val abs_2c2 = makeAbsDcgNode(id = 212, name = Some("abs_2c2"))
+  lazy val abs_2c3 = makeAbsDcgNode(id = 213, name = Some("abs_2c3"))
 
-  lazy val abs_2n1 = makeAbsDcgNode(id = Abs(221))
+  lazy val abs_2n1 = makeAbsDcgNode(id = 221, name = Some("abs_2n1"))
 
-  lazy val abs_3p1 = makeAbsDcgNode(id = Abs(301))
+  lazy val abs_3p1 = makeAbsDcgNode(id = 301, name = Some("abs_3p1"))
 
-  lazy val abs_3c1 = makeAbsDcgNode(id = Abs(311))
-  lazy val abs_3c2 = makeAbsDcgNode(id = Abs(312))
+  lazy val abs_3c1 = makeAbsDcgNode(id = 311, name = Some("abs_3c1"))
+  lazy val abs_3c2 = makeAbsDcgNode(id = 312, name = Some("abs_3c2"))
 
-  lazy val abs_3n1 = makeAbsDcgNode(id = Abs(321))
+  lazy val abs_3n1 = makeAbsDcgNode(id = 321, name = Some("abs_3n1"))
 
   lazy val all234AbsNodes =
-    List(abs_2p1, abs_2p2, abs_2c1, abs_2c2, abs_2c3, abs_2n1, abs_3p1, abs_3c1, abs_3c2, abs_3n1)
+    Set(abs_2p1, abs_2p2, abs_2c1, abs_2c2, abs_2c3, abs_2n1, abs_3p1, abs_3c1, abs_3c2, abs_3n1)
 
   lazy val e_1c1_2c1 = Link(src = con_1c1.id, trg = abs_2c1.id)
   lazy val e_1c2_2c2 = Link(src = con_1c2.id, trg = abs_2c2.id)
@@ -217,5 +214,3 @@ trait SimpleAbstractForestTestData extends DcgGraphTestData:
     e_1c1_1n1,
     e_3c1_3n1
   )
-
-  lazy val dcgGraph234Empty = DcgGraph(all234ConNodes ++ all234AbsNodes, List(), List()).unsafeRunSync()

@@ -18,11 +18,11 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample
-import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
+import planning.engine.planner.map.inference.MapInferenceLike
 
-trait MapLike[F[_]]:
+trait MapLike[F[_]] extends MapInferenceLike[F]:
 
   // Addition methods
   def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[MnId, Option[HnName]]]
@@ -35,9 +35,6 @@ trait MapLike[F[_]]:
   // Lookup methods
   def findHnIdsByNames(names: Set[HnName]): F[Map[HnName, Set[MnId]]]
   def findActiveConNodes(ioValues: Set[IoValue]): F[(Map[IoValue, Set[DcgNode.Concrete[F]]], Set[IoValue])]
-  
-  // Inference methods
-  def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]]
 
   // Service methods
   def reset(): F[Unit]

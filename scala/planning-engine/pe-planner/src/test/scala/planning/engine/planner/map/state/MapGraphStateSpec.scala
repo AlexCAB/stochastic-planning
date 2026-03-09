@@ -27,7 +27,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
     lazy val cMnId1 = MnId.Con(1001)
     lazy val aMnId2 = MnId.Abs(1002)
 
-    lazy val conNode1 = makeConDcgNode(id = cMnId1, valueIndex = IoIndex(102))
+    lazy val conNode1 = makeConDcgNode(id = cMnId1.value, valueIndex = 102)
     lazy val absNode2 = makeAbsDcgNode(id = aMnId2)
 
   "MapGraphState.isEmpty" should:
@@ -62,7 +62,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
 
     "fail if nodes with duplicate ids added" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val duplicateNode = makeConDcgNode(conNodes.head.id, IoIndex(999))
+      val duplicateNode = makeConDcgNode(id = conNodes.head.id.value, valueIndex = 999)
 
       data.initDcgState.addNodes(List(duplicateNode)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Two or more nodes can't have the same MnId"))

@@ -31,7 +31,7 @@ import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.map.visualization.MapVisualizationLike
 import planning.engine.planner.config.PlannerMapConfig
-import planning.engine.planner.map.inference.MapInMemInference
+import planning.engine.planner.map.inference.MapInference
 
 trait MapInMemLike[F[_]] extends MapLike[F]:
   def init(metadata: MapMetadata, inNodes: Iterable[InputNode[F]], outNodes: Iterable[OutputNode[F]]): F[Unit]
@@ -42,7 +42,7 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, MapGraphState[F]],
     idsCountCell: AtomicCell[F, MapIdsCountState]
-) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInMemInference[F] with MapInMemLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInference[F] with MapInMemLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get

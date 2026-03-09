@@ -15,18 +15,15 @@ package planning.engine.planner.map.repr
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.test.data.DcgNodeTestData
 
 class DcgNodeReprSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with DcgNodeTestData:
-    lazy val concreteNode: DcgNode.Concrete[IO] = makeConDcgNode()
-      .copy[IO](id = MnId.Con(123), name = Some(HnName("TestConNode")))
-
-    lazy val abstractNode: DcgNode.Abstract[IO] = makeAbsDcgNode()
-      .copy[IO](id = MnId.Abs(123), name  = Some(HnName("TestAbsNode")))
+    lazy val concreteNode: DcgNode.Concrete[IO] = makeConDcgNode(id = 123, name = Some("TestConNode"))
+    lazy val abstractNode: DcgNode.Abstract[IO] = makeAbsDcgNode(id = 123, name  = Some("TestAbsNode"))
 
   "DcgNodeRepr.repr" should:
     "return correct string representation for concrete node" in newCase[CaseData]: (_, data) =>

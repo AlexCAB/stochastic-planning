@@ -61,7 +61,7 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
   extension (graph: DcgGraph[IO])
     def addTestNodes(nodes: Set[DcgNode[IO]]): DcgGraph[IO] = graph
       .addNodes(nodes).unsafeRunSync()
-    
+
     def makeAndAddTestNodes(mnIds: Set[MnId]): DcgGraph[IO] = graph
       .addNodes(
         mnIds.map:
@@ -72,9 +72,15 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
     def addTestDcgSample(sample: DcgSample[IO]): DcgGraph[IO] = graph
       .addSamples(List(DcgSample.Add[IO](sample, makeDcgIndexMap(sample.data.id, sample.structure.mnIds))))
       .unsafeRunSync()
-    
-    def toMapGraphState: MapGraphState[IO] = MapGraphState(
-      ioValues = IoValueMap(graph.edges.values.flatMap(_.ioValues).toSet),
+
+    def asIoValueMap: IoValueMap[IO] = IoValueMap[IO](
+      graph.nodes.values
+        .map(_.asConcrete)
+        .collect { case Some(node) => node.ioValue -> node.id }
+        .groupBy(_._1).map((k, vs) => k -> vs.map(_._2).toSet)
+    ).unsafeRunSync()
+
+    def asMapGraphState: MapGraphState[IO] = MapGraphState(
+      ioValues = graph.asIoValueMap,
       graph = graph
-    )
-    
+    ).unsafeRunSync()

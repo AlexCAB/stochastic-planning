@@ -43,13 +43,13 @@ class DcgGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
     for
       layers <- structure.traceAbsForestLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
-      terminalLayer = builtTerminalLayer(layers)
+      terminalLayer = builtTerminalLayer(layers).tab4
       formatedLayers = builtLayers.map(formatLayerRepr)
+      renderLayer = renderLayerRepr(formatedLayers).tab2
     yield List(
       List("ABSTRACT LAYERS:"),
-      renderLayerRepr(formatedLayers).tab2,
-      List("  Terminal layer:"),
-      terminalLayer.tab4
+      if renderLayer.isEmpty then List("  ---") else renderLayer,
+      if terminalLayer.isEmpty then List() else "  Terminal layer:" +: terminalLayer
     ).flatten
 
   lazy val reprPlanningPath: F[List[String]] =

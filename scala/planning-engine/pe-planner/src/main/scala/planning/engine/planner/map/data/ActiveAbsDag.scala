@@ -43,7 +43,7 @@ object ActiveAbsDag:
       _ <- linkEdges.forall(_.key.isInstanceOf[EdgeKey.Link]).assertTrue("Only LINK edges can be added")
       graph <- DcgGraph(nodes, linkEdges, samples)
       backwordKeys = EdgeKeySet[EdgeKey.Then](backThenKeys)
-      _ <- graph.mnIds.assertContainsAllOf(backwordKeys.mnIds, "Back THEN edges refer to unknown HnIds")
+      _ <- graph.mnIds.assertContainsAllOf(backwordKeys.trgIds, "Back THEN target edges refer to unknown HnIds")
       _ <- graph.edgesMdIds.assertContainsAllOf(backwordKeys.trgIds, "Target do not connected to active graph")
       tracedAbs <- graph.structure.traceAbsForestLayers(graph.conMnId, allLinksFilter).map(_.flatten.map(_.trg))
       _ <- tracedAbs.assertSameElems(graph.absMnId, "Some nodes are not connected to any concrete nodes")

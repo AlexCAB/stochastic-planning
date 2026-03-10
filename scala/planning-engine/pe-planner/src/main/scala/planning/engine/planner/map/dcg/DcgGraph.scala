@@ -122,7 +122,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     .flatMap(_.samples.sampleIds)
     .toSet
 
-  def activeLinksFilter(sampleIds: Set[SampleId])(key: EdgeKey.Link): Boolean = 
+  def activeLinksFilter(sampleIds: Set[SampleId])(key: EdgeKey.Link): Boolean =
     edges.get(key).exists(_.isActive(sampleIds))
 
   override lazy val toString: String =

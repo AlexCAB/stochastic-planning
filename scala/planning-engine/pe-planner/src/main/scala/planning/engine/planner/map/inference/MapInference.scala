@@ -22,7 +22,7 @@ import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.state.MapGraphState
 
 trait MapInferenceLike[F[_]]:
-  def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]]
+  def naiveInferActiveAbsDag(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]]
 
 // This trait contains implementation of inference algorithms specific for the in-memory map.
 trait MapInference[F[_]: {Async, LoggerFactory}] extends MapInferenceLike[F]:
@@ -31,15 +31,15 @@ trait MapInference[F[_]: {Async, LoggerFactory}] extends MapInferenceLike[F]:
   private[map] def getMapState: F[MapGraphState[F]]
 
   // This is naive initial approach (i.e. without probability calculation and local outcome joints)
-  // based on idea of extracting active DAG (active forest) from map graph,
+  // based on idea of extracting active DAG (active DAG) from map graph,
   // by tracing LINK edges from active concrete nodes with filtering out inactive part
   // of graph (i.e. filtering out edges that not contain active samples).
   // Better algorithm should calculate nodes probability and filter out edges base one probability threshold.
-  override def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] =
+  override def naiveInferActiveAbsDag(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] =
     for
       graph <- getMapState.map(_.graph)
       activeSampleIds <- graph.findActiveSampleIds(activeIds.map(_.asMnId)).pure
-      linkKeys <- graph.structure.traceAbsForestLayers(activeIds, graph.activeLinksFilter(activeSampleIds))
+      linkKeys <- graph.structure.traceAbsDagLayers(activeIds, graph.activeLinksFilter(activeSampleIds))
       mnIds = linkKeys.toSet.flatMap(_.flatMap(_.mnIds)) ++ activeIds
       linkEdges <- graph.getEdges[EdgeKey.Link](linkKeys.flatten.toSet)
       backThenKeys = graph.structure.findBackwardThenEdges(mnIds)

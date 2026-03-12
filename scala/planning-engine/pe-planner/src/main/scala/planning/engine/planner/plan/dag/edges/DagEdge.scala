@@ -17,13 +17,14 @@ import planning.engine.common.values.node.SnId
 import planning.engine.planner.map.dcg.edges.DcgEdge
 
 final case class DagEdge[F[_]: MonadThrow](
-    searchSnId: SnId,
-    targetSnId: SnId,
-    dcgNode: DcgEdge[F]
+    key: DagEdge.Key,
+    dcgEdge: DcgEdge[F]
 ):
-  override lazy val toString: String =
-    s"""DagEdge(
-       |searchSnId = ${searchSnId.value}, 
-       |targetSnId = ${targetSnId.value}, 
-       |dcgNode.key = ${dcgNode})
-       |)""".stripMargin
+  lazy val isLink: Boolean = dcgEdge.key.isLink
+  lazy val isThen: Boolean = dcgEdge.key.isThen
+  
+  override lazy val toString: String = s"${key.src.repr} ${dcgEdge.key.reprArrow} ${key.trg.repr}"
+
+object DagEdge:
+  final case class Key(src: SnId, trg: SnId):
+    override lazy val toString: String = s"${src.repr} --> ${trg.repr}"

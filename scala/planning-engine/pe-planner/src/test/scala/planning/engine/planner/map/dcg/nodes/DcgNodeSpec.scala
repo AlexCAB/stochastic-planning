@@ -45,6 +45,8 @@ class DcgNodeSpec extends UnitSpecWithData:
 
     lazy val conDcgNode = DcgNode.Concrete[IO](concreteNode.id.asCon, conNodeNew, getIoNode).unsafeRunSync()
     lazy val absDcgNode = DcgNode.Abstract[IO](abstractNode.id.asAbs, absNodeNew).unsafeRunSync()
+    lazy val conNodeRepr = conDcgNode.copy[IO](id = MnId.Con(123), name = HnName.some("TestConNode"))
+    lazy val absNodeRepr = absDcgNode.copy[IO](id = MnId.Abs(123), name = HnName.some("TestAbsNode"))
 
   "DcgNode.asConcrete" should:
     "return Some for Concrete nodes" in newCase[CaseData]: (tn, data) =>
@@ -54,6 +56,23 @@ class DcgNodeSpec extends UnitSpecWithData:
     "return None for Abstract nodes" in newCase[CaseData]: (tn, data) =>
       import data.absDcgNode
       absDcgNode.asConcrete.pure[IO].logValue(tn).asserting(_ mustBe None)
+
+  "DcgNode.repr" should:
+    "return correct string representation for concrete node" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        val withName = data.conNodeRepr.repr
+        withName mustBe "[123, \"TestConNode\", ⟨3001004 ∈ boolInputNode⟩]"
+
+        val noName = data.conNodeRepr.copy[IO](id = MnId.Con(123), name = None).repr
+        noName mustBe "[123, ⟨3001004 ∈ boolInputNode⟩]"
+
+    "return correct string representation for abstract node" in newCase[CaseData]: (_, data) =>
+      async[IO]:
+        val withName = data.absNodeRepr.repr
+        withName mustBe "(123, \"TestAbsNode\")"
+
+        val noName = data.absNodeRepr.copy[IO](id = MnId.Abs(123), name = None).repr
+        noName mustBe "(123)"
 
   "DcgNode.Concrete.apply(ConcreteNode)" should:
     "crete DcgNode.Concrete correctly from ConcreteNode" in newCase[CaseData]: (tn, data) =>

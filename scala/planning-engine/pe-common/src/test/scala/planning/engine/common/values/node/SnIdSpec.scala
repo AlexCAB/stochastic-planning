@@ -8,13 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-08-23 |||||||||||*/
+| created: 2026-03-12 |||||||||||*/
 
 package planning.engine.common.values.node
 
+import planning.engine.common.UnitSpecIO
 import planning.engine.common.values.io.IoTime
 
-// Step Node ID in the planning DAG.
-// It consists of the MnId of the node and the step/world time (for each step here will be unique set of MnId).
-final case class SnId(mnId: MnId, time: IoTime):
-  lazy val repr: String = s"${mnId.reprNode}_${time.repr}"
+class SnIdSpec extends UnitSpecIO:
+  lazy val testSnId: SnId = SnId(MnId.Con(123L), IoTime(432L))
+
+  "HnId.repr" should:
+    "return correct string representation" in: _ =>
+      val repr = testSnId.repr
+      repr mustBe "[123]_t=432"

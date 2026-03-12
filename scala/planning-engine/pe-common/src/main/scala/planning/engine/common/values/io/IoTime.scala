@@ -16,6 +16,8 @@ import planning.engine.common.values.LongVal
 
 final case class IoTime(value: Long) extends AnyVal with LongVal:
   def increase: IoTime = IoTime(value + 1L)
+  def repr: String = s"t=$value"
+  override def toString: String = repr
 
 object IoTime:
   val init: IoTime = IoTime(0L)

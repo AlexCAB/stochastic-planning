@@ -32,7 +32,7 @@ trait GraphTracing[F[_]: MonadThrow]:
   private[graph] def findInEdgeMap[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
     srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
-  def traceAbsForestLayers(conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =
+  def traceAbsDagLayers(conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =
     @tailrec def trace(next: Set[MnId], visited: Set[(MnId, Link.End)], acc: List[Set[Link]]): F[List[Set[Link]]] =
       val forward = findInEdgeMap(next, srcLinkMap).filter((src, end) => filterForward(end.asSrcKey(src)))
       val intersect = visited.intersect(forward)

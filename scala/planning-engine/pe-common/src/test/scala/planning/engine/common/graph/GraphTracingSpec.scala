@@ -26,16 +26,16 @@ class GraphTracingSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with GraphStructureTestData
 
-  "GraphStructure.traceAbsForestLayers(...)" should:
+  "GraphStructure.traceAbsDagLayers(...)" should:
     "trace abstract nodes from connected mnIds" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        simpleGraph.traceAbsForestLayers(Set(c1), allLinksFilter).await mustBe List(
+        simpleGraph.traceAbsDagLayers(Set(c1), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c1, a6)),
           Set(Link(a4, a5))
         )
 
-        complexGraph.traceAbsForestLayers(Set(c1, c2, c3), allLinksFilter).await mustBe List(
+        complexGraph.traceAbsDagLayers(Set(c1, c2, c3), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c2, a4), Link(c3, a5)),
           Set(Link(a4, a6), Link(a5, a6))
         )
@@ -43,19 +43,19 @@ class GraphTracingSpec extends UnitSpecWithData:
     "trace abstract nodes and filter links" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        simpleGraph.traceAbsForestLayers(Set(c1), l => l != Link(c1, a4)).await mustBe List(Set(Link(c1, a6)))
+        simpleGraph.traceAbsDagLayers(Set(c1), l => l != Link(c1, a4)).await mustBe List(Set(Link(c1, a6)))
 
     "fail if cycle found" in newCase[CaseData]: (tn, data) =>
       import data.*
 
-      invalidLinkGraph.traceAbsForestLayers(Set(c1), allLinksFilter).logValue(tn)
+      invalidLinkGraph.traceAbsDagLayers(Set(c1), allLinksFilter).logValue(tn)
         .assertThrowsError(_.getMessage must include("Cycle detected"))
 
     "fail if invalid edge found" in newCase[CaseData]: (tn, data) =>
       import data.*
       val invalidGraph = GraphStructure[IO](Set(Link(c1, a4), Link(a4, c2)))
 
-      invalidGraph.traceAbsForestLayers(Set(c1), allLinksFilter).logValue(tn)
+      invalidGraph.traceAbsDagLayers(Set(c1), allLinksFilter).logValue(tn)
         .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
 
   "GraphStructure.traceThenPaths" should:

@@ -28,7 +28,7 @@ trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
 
   lazy val repr: F[String] =
     for
-      layers <- structure.traceAbsForestLayers(structure.conMnId, allLinksFilter)
+      layers <- structure.traceAbsDagLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
       formatedLayers = builtLayers.map(formatLayerRepr)
       paths <- structure.allThenPaths

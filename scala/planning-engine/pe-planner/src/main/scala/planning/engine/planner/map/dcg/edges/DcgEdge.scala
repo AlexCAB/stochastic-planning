@@ -20,12 +20,11 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
-import planning.engine.planner.map.repr.DcgEdgeRepr
 
 final case class DcgEdge[F[_]: MonadThrow](
     key: EdgeKey,
     samples: DcgSamples[F]
-) extends DcgEdgeRepr[F]:
+):
   lazy val mnIds: Set[MnId] = Set(key.src, key.trg)
 
   lazy val edgeType: EdgeType = key match
@@ -40,8 +39,7 @@ final case class DcgEdge[F[_]: MonadThrow](
 
   def isActive(sampleIds: Set[SampleId]): Boolean = samples.sampleIds.exists(sampleIds.contains)
 
-  override lazy val toString: String =
-    s"$edgeType(${key.src.reprNode}->${key.trg.reprNode}, {$samples})"
+  override lazy val toString: String = s"$edgeType(${key.src.reprNode}->${key.trg.reprNode}, {$samples})"
 
 object DcgEdge:
   def apply[F[_]: MonadThrow](edge: HiddenEdge, conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[DcgEdge[F]] =

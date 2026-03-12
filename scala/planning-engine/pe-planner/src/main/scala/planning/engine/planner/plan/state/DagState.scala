@@ -1,0 +1,41 @@
+///*|||||||||||||||||||||||||||||||||
+//|| 0 * * * * * * * * * ▲ * * * * ||
+//|| * ||||||||||| * ||||||||||| * ||
+//|| * ||  * * * * * ||       || 0 ||
+//|| * ||||||||||| * ||||||||||| * ||
+//|| * * ▲ * * 0|| * ||   (< * * * ||
+//|| * ||||||||||| * ||  ||||||||||||
+//|| * * * * * * * * *   ||||||||||||
+//| author: CAB |||||||||||||||||||||
+//| website: github.com/alexcab |||||
+//| created: 2026-01-04 |||||||||||*/
+//
+//package planning.engine.planner.plan.state
+//
+//import cats.MonadThrow
+//import planning.engine.common.values.node.SnId
+//import planning.engine.planner.map.dcg.nodes.DcgNode
+//import planning.engine.planner.plan.dag.nodes.DagNode
+//
+//final case class DagState[F[_]: MonadThrow](
+//    contextConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
+//    contextAbsNodes: Map[SnId, DagNode[F, DcgNode.Abstract[F]]],
+//    planConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
+//    planAbsNodes: Map[SnId, DagNode[F, DcgNode.Abstract[F]]],
+//    forwardLinks: Map[SnId, Set[SnId]],
+//    backwardLinks: Map[SnId, Set[SnId]],
+//    forwardThen: Map[SnId, Set[SnId]],
+//    backwardThen: Map[SnId, Set[SnId]]
+//)
+//
+//object DagState:
+//  def empty[F[_]: MonadThrow]: DagState[F] = DagState(
+//    contextConNodes = Map.empty,
+//    contextAbsNodes = Map.empty,
+//    planConNodes = Map.empty,
+//    planAbsNodes = Map.empty,
+//    forwardLinks = Map.empty,
+//    backwardLinks = Map.empty,
+//    forwardThen = Map.empty,
+//    backwardThen = Map.empty
+//  )

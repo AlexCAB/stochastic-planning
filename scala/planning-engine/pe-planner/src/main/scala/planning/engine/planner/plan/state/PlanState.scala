@@ -8,14 +8,22 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2026-02-02 |||||||||||*/
+| created: 2026-03-12 |||||||||||*/
 
-package planning.engine.planner.map.repr
+
+
+package planning.engine.planner.plan.state
 
 import cats.MonadThrow
-import planning.engine.planner.map.dcg.edges.DcgEdge
+import planning.engine.planner.plan.dag.DagGraph
 
-trait DcgEdgeRepr[F[_]: MonadThrow]:
-  self: DcgEdge[F] =>
-  
-  lazy val repr: String = s"| -[${edgeType.repr}]-> ${key.trg.reprNode}"
+final case class PlanState[F[_]: MonadThrow](
+    graph: DagGraph[F]
+    
+    // ??? Also here ia separation of graph to context and plan
+                                            )
+
+
+
+
+

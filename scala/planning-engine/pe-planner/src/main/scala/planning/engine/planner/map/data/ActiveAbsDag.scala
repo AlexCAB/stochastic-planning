@@ -45,6 +45,6 @@ object ActiveAbsDag:
       backwordKeys = EdgeKeySet[EdgeKey.Then](backThenKeys)
       _ <- graph.mnIds.assertContainsAllOf(backwordKeys.trgIds, "Back THEN target edges refer to unknown HnIds")
       _ <- graph.edgesMdIds.assertContainsAllOf(backwordKeys.trgIds, "Target do not connected to active graph")
-      tracedAbs <- graph.structure.traceAbsForestLayers(graph.conMnId, allLinksFilter).map(_.flatten.map(_.trg))
+      tracedAbs <- graph.structure.traceAbsDagLayers(graph.conMnId, allLinksFilter).map(_.flatten.map(_.trg))
       _ <- tracedAbs.assertSameElems(graph.absMnId, "Some nodes are not connected to any concrete nodes")
     yield new ActiveAbsDag(backwordKeys, graph)

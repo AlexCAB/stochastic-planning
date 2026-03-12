@@ -29,6 +29,9 @@ import planning.engine.planner.map.dcg.samples.DcgSample
 
 import scala.reflect.ClassTag
 
+// TODO May be move samples map to separate state in MapInMem,
+// TODO since samples is not part of graph structur. Or replace SampleId with SampleData
+// TODO in DcgSamples, since SampleData is not mutable and anyway it will be a object link. 
 final case class DcgGraph[F[_]: MonadThrow](
     nodes: Map[MnId, DcgNode[F]],
     edges: Map[EdgeKey, DcgEdge[F]],

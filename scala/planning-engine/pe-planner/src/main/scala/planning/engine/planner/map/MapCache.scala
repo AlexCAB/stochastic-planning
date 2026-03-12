@@ -78,7 +78,7 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 //        _ <- logger.info(s"For IO values: found = $foundNodes, notFound = $notFoundValues, loaded = $loadedNodes")
 //      yield (stateWithSamples, (foundNodes, notFoundValues))
 
-  override def naiveInferActiveAbsForest(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] = ???
+  override def naiveInferActiveAbsDag(activeIds: Set[MnId.Con]): F[ActiveAbsDag[F]] = ???
     // TODO: Implementation similar to MapInMem, but before build active graph,
     // TODO: need to load all missing nodes and edges to the state, and then build active
     // TODO: graph based on the state.

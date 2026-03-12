@@ -53,6 +53,8 @@ class DcgEdgeSpec extends UnitSpecWithData:
       ).unsafeRunSync()
     )
 
+//    def expectedReprTarget(arrow: String): String = s"| -[$arrow]-> ${trgAbs.reprNode}"
+
     lazy val linkEdge: DcgEdge[IO] = makeDcgEdge(heLink)
     lazy val thenEdge1: DcgEdge[IO] = makeDcgEdge(heThen1)
     lazy val thenEdge2: DcgEdge[IO] = makeDcgEdge(heThen2)
@@ -73,7 +75,7 @@ class DcgEdgeSpec extends UnitSpecWithData:
 
     "return correct EdgeType for then edge" in newCase[CaseData]: (tn, data) =>
       data.thenEdge1.pure[IO].logValue(tn).asserting(_.edgeType mustBe EdgeType.THEN)
-
+  
   "DcgEdgeData.join(...)" should:
     "join two DcgEdges correctly" in newCase[CaseData]: (tn, data) =>
       import data.{thenEdge1, thenEdge2}

@@ -19,17 +19,17 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
+import planning.engine.common.graph.edges.{MeKey, IndexMap}
 
 final case class DcgEdge[F[_]: MonadThrow](
-    key: EdgeKey,
-    samples: DcgSamples[F]
+                                            key: MeKey,
+                                            samples: DcgSamples[F]
 ):
   lazy val mnIds: Set[MnId] = Set(key.src, key.trg)
 
   lazy val edgeType: EdgeType = key match
-    case _: EdgeKey.Link => EdgeType.LINK
-    case _: EdgeKey.Then => EdgeType.THEN
+    case _: MeKey.Link => EdgeType.LINK
+    case _: MeKey.Then => EdgeType.THEN
 
   def join(other: DcgEdge[F]): F[DcgEdge[F]] =
     for
@@ -48,8 +48,8 @@ object DcgEdge:
       trgMnId <- edge.targetId.toMnId(conIds, absIds)
       samples <- DcgSamples.fromSamples(edge.samples)
     yield edge.edgeType match
-      case EdgeType.LINK => new DcgEdge(EdgeKey.Link(srcMnId, trgMnId), samples)
-      case EdgeType.THEN => new DcgEdge(EdgeKey.Then(srcMnId, trgMnId), samples)
+      case EdgeType.LINK => new DcgEdge(MeKey.Link(srcMnId, trgMnId), samples)
+      case EdgeType.THEN => new DcgEdge(MeKey.Then(srcMnId, trgMnId), samples)
 
-  def apply[F[_]: MonadThrow](key: EdgeKey, ids: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
+  def apply[F[_]: MonadThrow](key: MeKey, ids: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
     DcgSamples.fromIndexMap(key, ids).map(samples => new DcgEdge(key, samples))

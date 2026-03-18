@@ -15,7 +15,7 @@ package planning.engine.planner.map.dcg.edges
 import cats.effect.IO
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
@@ -25,7 +25,7 @@ class DcgSamplesSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val conN1 = MnId.Con(1)
     lazy val absN2 = MnId.Abs(2)
-    lazy val keyLink1 = EdgeKey.Link(conN1, absN2)
+    lazy val keyLink1 = MeKey.Link(conN1, absN2)
 
     def makeDcgSamples(sId: Int, srcInd: Int, trgInd: Int): DcgSamples[IO] =
       DcgSamples[IO](Map(SampleId(sId) -> Indexies(HnIndex(srcInd), HnIndex(trgInd)))).unsafeRunSync()

@@ -14,12 +14,12 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import planning.engine.common.values.node.MnId
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.common.values.sample.SampleId
 
 trait DcgSampleReprTestData extends DcgSampleTestData:
-  import EdgeKey.{Link, Then}
+  import MeKey.{Link, Then}
   import MnId.{Abs, Con}
 
   lazy val c11 = Con(11)

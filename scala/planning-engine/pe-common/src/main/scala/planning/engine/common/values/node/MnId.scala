@@ -32,7 +32,6 @@ sealed trait MnId extends Any:
 
 object MnId:
   final case class Con(value: Long) extends AnyVal with MnId
-
   final case class Abs(value: Long) extends AnyVal with MnId
 
   extension (mnIds: Set[MnId])

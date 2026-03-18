@@ -15,7 +15,7 @@ package planning.engine.common.graph.paths
 import cats.MonadThrow
 import cats.syntax.all.*
 import cats.data.NonEmptyChain
-import planning.engine.common.graph.edges.EdgeKey.End
+import planning.engine.common.graph.edges.MeKey.End
 import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
 

@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class DcgSamples[F[_]: MonadThrow](
@@ -61,7 +61,7 @@ object DcgSamples:
       dcgSamples <- DcgSamples(indexies)
     yield dcgSamples
 
-  def fromIndexMap[F[_]: MonadThrow](key: EdgeKey, indexMap: Map[SampleId, IndexMap]): F[DcgSamples[F]] =
+  def fromIndexMap[F[_]: MonadThrow](key: MeKey, indexMap: Map[SampleId, IndexMap]): F[DcgSamples[F]] =
     for
       indexies <- indexMap.toList.traverse((sId, ind) => ind.get(key.src, key.trg).map(i => sId -> i)).map(_.toMap)
       dcgSamples <- DcgSamples(indexies)

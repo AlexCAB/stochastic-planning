@@ -15,7 +15,7 @@ package planning.engine.planner.map.data
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
-import planning.engine.common.graph.edges.EdgeKey.Then
+import planning.engine.common.graph.edges.MeKey.Then
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.test.data.ActiveAbsDagTestData
 

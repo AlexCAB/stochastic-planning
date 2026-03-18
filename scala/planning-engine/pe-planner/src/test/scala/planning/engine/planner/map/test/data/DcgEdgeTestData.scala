@@ -14,7 +14,7 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}
@@ -23,10 +23,10 @@ trait DcgEdgeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   def makeDcgEdgeLink(srcId: MnId, trgId: MnId, samples: DcgSamples[IO]): DcgEdge[IO] =
-    DcgEdge[IO](EdgeKey.Link(srcId, trgId), samples)
+    DcgEdge[IO](MeKey.Link(srcId, trgId), samples)
 
   def makeDcgEdgeThen(srcId: MnId, trgId: MnId, samples: DcgSamples[IO]): DcgEdge[IO] =
-    DcgEdge[IO](EdgeKey.Then(srcId, trgId), samples)
+    DcgEdge[IO](MeKey.Then(srcId, trgId), samples)
 
   def makeIndexiesMap(sId: SampleId, mnIds: Set[MnId]): IndexMap =
     IndexMap(mnIds.map(id => id -> HnIndex(10000000 + sId.value + id.value)).toMap)
@@ -51,8 +51,8 @@ trait DcgEdgeTestData:
   lazy val srcCon = MnId.Con(1001)
   lazy val trgAbs = MnId.Abs(1002)
 
-  lazy val keyLink = EdgeKey.Link(srcCon, trgAbs)
-  lazy val keyThen = EdgeKey.Then(srcCon, trgAbs)
+  lazy val keyLink = MeKey.Link(srcCon, trgAbs)
+  lazy val keyThen = MeKey.Then(srcCon, trgAbs)
 
   lazy val samplesLink: DcgSamples[IO] = makeDcgSamples(SampleId(10), HnIndex(1), HnIndex(1))
   lazy val samplesThen: DcgSamples[IO] = makeDcgSamples(SampleId(20), HnIndex(2), HnIndex(3))
@@ -60,7 +60,7 @@ trait DcgEdgeTestData:
   lazy val dcgEdgeLink = makeDcgEdgeLink(srcCon, trgAbs, samplesLink)
   lazy val dcgEdgeThen = makeDcgEdgeThen(srcCon, trgAbs, samplesThen)
   
-  extension (edgeMap: Map[EdgeKey, DcgEdge[IO]])
+  extension (edgeMap: Map[MeKey, DcgEdge[IO]])
     def getAllSampleIds: Set[SampleId] = edgeMap.values.flatMap(_.samples.sampleIds).toSet
 
   extension (samples: DcgSamples[IO])

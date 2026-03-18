@@ -16,12 +16,12 @@ import cats.effect.IO
 import cats.data.NonEmptyChain
 
 import planning.engine.common.values.node.MnId
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 
 import org.scalatest.matchers.must.Matchers.*
 
 trait GraphStructureTestData:
-  import EdgeKey.{End, Link, Then}
+  import MeKey.{End, Link, Then}
   import MnId.{Abs, Con}
 
   lazy val c1 = Con(1)
@@ -36,7 +36,7 @@ trait GraphStructureTestData:
   lazy val a9 = Abs(9)
   lazy val a10 = Abs(10)
 
-  def graphStructure(edges: EdgeKey*): GraphStructure[IO] = GraphStructure[IO](edges.toSet)
+  def graphStructure(edges: MeKey*): GraphStructure[IO] = GraphStructure[IO](edges.toSet)
 
   lazy val conGraph = graphStructure(Link(c1, a4), Link(a4, a5))
   lazy val nonConGraph = graphStructure(Link(c1, a4), Link(c2, a5))
@@ -99,6 +99,6 @@ trait GraphStructureTestData:
     Then(a9, a8)
   )
 
-  def pathWalk(edges: EdgeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain
+  def pathWalk(edges: MeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain
     .fromSeq(edges.map(e => e.src -> e.trgEnd))
     .getOrElse(fail("Edges list must not be empty"))

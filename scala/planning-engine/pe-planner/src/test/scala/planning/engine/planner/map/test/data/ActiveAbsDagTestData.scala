@@ -16,8 +16,8 @@ package planning.engine.planner.map.test.data
 
 import cats.effect.IO
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.EdgeKey.Then
-import planning.engine.common.graph.edges.EdgeKeySet
+import planning.engine.common.graph.edges.MeKey.Then
+import planning.engine.common.graph.edges.MeKeySet
 import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.common.values.node.MnId
 
@@ -34,7 +34,7 @@ trait ActiveAbsDagTestData extends DcgGraphTestData:
     structure = GraphStructure[IO](linkEdges.map(_.key).toSet)
   )
 
-  lazy val backwordKeys = EdgeKeySet[Then](
+  lazy val backwordKeys = MeKeySet[Then](
     Then(mn11.id, mnId1),
     Then(mn12.id, mnId5),
     Then(mnId5, mnId5) // Loop edge also is valid

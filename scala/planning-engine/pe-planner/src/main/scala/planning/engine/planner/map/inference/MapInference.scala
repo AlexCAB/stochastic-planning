@@ -15,7 +15,7 @@ package planning.engine.planner.map.inference
 import cats.effect.kernel.Async
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.planner.map.dcg.nodes.DcgNode
@@ -41,7 +41,7 @@ trait MapInference[F[_]: {Async, LoggerFactory}] extends MapInferenceLike[F]:
       activeSampleIds <- graph.findActiveSampleIds(activeIds.map(_.asMnId)).pure
       linkKeys <- graph.structure.traceAbsDagLayers(activeIds, graph.activeLinksFilter(activeSampleIds))
       mnIds = linkKeys.toSet.flatMap(_.flatMap(_.mnIds)) ++ activeIds
-      linkEdges <- graph.getEdges[EdgeKey.Link](linkKeys.flatten.toSet)
+      linkEdges <- graph.getEdges[MeKey.Link](linkKeys.flatten.toSet)
       backThenKeys = graph.structure.findBackwardThenEdges(mnIds)
       nodes <- graph.getNodes[DcgNode[F]](mnIds)
       samples <- graph.getSamples(activeSampleIds)

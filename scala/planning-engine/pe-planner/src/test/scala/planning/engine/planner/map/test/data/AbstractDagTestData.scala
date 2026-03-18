@@ -13,9 +13,9 @@
 package planning.engine.planner.map.test.data
 
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.sample.SampleId
-import EdgeKey.{Link, Then}
+import MeKey.{Link, Then}
 
 trait AbstractDagTestData extends DcgGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -150,7 +150,7 @@ trait AbstractDagTestData extends DcgGraphTestData:
     e_3c2_3n1
   )
 
-  lazy val allDcg234Edges: List[EdgeKey] = List(
+  lazy val allDcg234Edges: List[MeKey] = List(
     link_1to2,
     link_2to3,
     then_prev1,

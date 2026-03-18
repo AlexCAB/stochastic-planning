@@ -16,12 +16,12 @@ import cats.effect.IO
 import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 
 import planning.engine.common.values.node.MnId
 
 class GraphStructureSpec extends UnitSpecWithData:
-  import EdgeKey.{End, Link, Then}
+  import MeKey.{End, Link, Then}
   import MnId.{Abs, Con}
 
   private class CaseData extends Case with GraphStructureTestData
@@ -45,7 +45,7 @@ class GraphStructureSpec extends UnitSpecWithData:
     "filter ends by given type" in newCase[CaseData]: (tn, data) =>
       import data.{c1, c2, c3, simpleGraph}
       async[IO]:
-        val inMap: Map[MnId, Set[EdgeKey.End]] = Map(
+        val inMap: Map[MnId, Set[MeKey.End]] = Map(
           c1 -> Set(Link.End(c1), Then.End(c1)),
           c2 -> Set(Link.End(c2)),
           c3 -> Set(Then.End(c3))

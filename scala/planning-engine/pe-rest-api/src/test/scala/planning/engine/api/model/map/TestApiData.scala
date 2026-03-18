@@ -19,7 +19,7 @@ import planning.engine.api.model.map.payload.*
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{EdgeKey, Indexies}
+import planning.engine.common.graph.edges.{MeKey, Indexies}
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
@@ -221,7 +221,7 @@ trait TestApiData:
   )
 
   lazy val testDcgEdge = DcgEdge[IO](
-    key = EdgeKey.Link(tesConcreteDcgNode.id, testAbstractDcgNode.id),
+    key = MeKey.Link(tesConcreteDcgNode.id, testAbstractDcgNode.id),
     samples = DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync()
   )
 

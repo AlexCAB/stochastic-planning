@@ -20,7 +20,7 @@ import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
+import planning.engine.common.graph.edges.{MeKey, IndexMap}
 
 trait DcgSampleTestData extends DcgNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -40,7 +40,7 @@ trait DcgSampleTestData extends DcgNodeTestData:
     description = Description.some(s"Test DCG Sample Data, ID $id")
   )
 
-  def makeDcgSample(id: SampleId, name: Option[String] = None)(keys: EdgeKey*): DcgSample[IO] = new DcgSample[IO](
+  def makeDcgSample(id: SampleId, name: Option[String] = None)(keys: MeKey*): DcgSample[IO] = new DcgSample[IO](
     data = makeDcgSampleData(id, name),
     structure = GraphStructure[IO](keys.toSet)
   )
@@ -48,12 +48,12 @@ trait DcgSampleTestData extends DcgNodeTestData:
   def makeDcgIndexMap(sId: SampleId, mnIds: Set[MnId]): IndexMap =
     IndexMap(mnIds.map(id => id -> HnIndex((sId.value * 100000) + (id.value * 1000))).toMap)
 
-  def makeDcgSampleAdd(id: SampleId, name: Option[String] = None)(keys: EdgeKey*): DcgSample.Add[IO] =
+  def makeDcgSampleAdd(id: SampleId, name: Option[String] = None)(keys: MeKey*): DcgSample.Add[IO] =
     DcgSample.Add[IO](
       sample = makeDcgSample(id, name)(keys*),
       indexMap = makeDcgIndexMap(id, keys.flatMap(k => Set(k.src, k.trg)).toSet)
     )
 
-  lazy val simpleSampleKeys = Set(EdgeKey.Link(mnId1, mnId3), EdgeKey.Then(mnId3, mnId4))
+  lazy val simpleSampleKeys = Set(MeKey.Link(mnId1, mnId3), MeKey.Then(mnId3, mnId4))
   lazy val simpleSample = makeDcgSample(simpleSampleId)(simpleSampleKeys.toSeq*)
   lazy val simpleSampleAdd = makeDcgSampleAdd(simpleSampleId)(simpleSampleKeys.toSeq*)

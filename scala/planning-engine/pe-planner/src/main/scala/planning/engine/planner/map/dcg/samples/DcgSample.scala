@@ -19,7 +19,7 @@ import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
+import planning.engine.common.graph.edges.{MeKey, IndexMap}
 import planning.engine.planner.map.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MonadThrow](
@@ -34,7 +34,7 @@ object DcgSample:
       sample: DcgSample[F],
       indexMap: IndexMap // Value indexies map should be provided from outside, from DB of from fast counts.
   ):
-    lazy val idsByKey: Set[(EdgeKey, (SampleId, IndexMap))] = sample
+    lazy val idsByKey: Set[(MeKey, (SampleId, IndexMap))] = sample
       .structure.keys
       .map(k => k -> (sample.data.id, indexMap))
 
@@ -45,7 +45,7 @@ object DcgSample:
       absMnId: Set[Abs]
   ): F[DcgSample[F]] =
     for
-      keys <- sample.edges.toList.traverse(e => EdgeKey(e.edgeType, e.source, e.target, conMnId, absMnId))
+      keys <- sample.edges.toList.traverse(e => MeKey(e.edgeType, e.source, e.target, conMnId, absMnId))
       _ <- keys.assertDistinct("Sample edges must be distinct")
       data = sample.toSampleData(id)
       structure = GraphStructure(keys.toSet)

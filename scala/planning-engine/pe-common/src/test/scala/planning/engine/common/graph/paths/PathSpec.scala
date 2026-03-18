@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.data.NonEmptyChain
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.graph.edges.EdgeKey.{End, Link, Then}
+import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
 
 class PathSpec extends UnitSpecIO:

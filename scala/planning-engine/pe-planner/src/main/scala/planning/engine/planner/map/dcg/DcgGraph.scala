@@ -22,7 +22,7 @@ import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap}
+import planning.engine.common.graph.edges.{MeKey, IndexMap}
 import planning.engine.common.values.io.IoValue
 import planning.engine.planner.map.repr.DcgGraphRepr
 import planning.engine.planner.map.dcg.samples.DcgSample
@@ -33,10 +33,10 @@ import scala.reflect.ClassTag
 // TODO since samples is not part of graph structur. Or replace SampleId with SampleData
 // TODO in DcgSamples, since SampleData is not mutable and anyway it will be a object link. 
 final case class DcgGraph[F[_]: MonadThrow](
-    nodes: Map[MnId, DcgNode[F]],
-    edges: Map[EdgeKey, DcgEdge[F]],
-    samples: Map[SampleId, SampleData],
-    structure: GraphStructure[F]
+                                             nodes: Map[MnId, DcgNode[F]],
+                                             edges: Map[MeKey, DcgEdge[F]],
+                                             samples: Map[SampleId, SampleData],
+                                             structure: GraphStructure[F]
 ) extends DcgGraphRepr[F]:
   lazy val mnIds: Set[MnId] = nodes.keySet
   lazy val sampleIds: Set[SampleId] = samples.keySet
@@ -62,7 +62,7 @@ final case class DcgGraph[F[_]: MonadThrow](
       _ <- found.keySet.assertContainsAllOf(ids, "Some node IDs are not found")
     yield found.map((k, v) => k -> v.asInstanceOf[N])
 
-  def getEdges[K <: EdgeKey: ClassTag](keys: Set[EdgeKey]): F[Map[K, DcgEdge[F]]] =
+  def getEdges[K <: MeKey: ClassTag](keys: Set[MeKey]): F[Map[K, DcgEdge[F]]] =
     val rc = implicitly[ClassTag[K]].runtimeClass
     for
       edges <- this.edges.filter((k, _) => keys.contains(k) && rc.isInstance(k)).pure
@@ -88,7 +88,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     .map(_.assertContainsNoneOf(indexies, s"Duplicate indexes for MnId $mnId"))
     .getOrElse(().pure)
 
-  private[map] def updateOrAddEdge(key: EdgeKey, indexies: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
+  private[map] def updateOrAddEdge(key: MeKey, indexies: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
     for
       newEdge <- DcgEdge(key, indexies)
       _ <- mnIds.assertContainsAllOf(Set(key.src, key.trg), s"Edge key $key refers to unknown MnIds")
@@ -125,7 +125,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     .flatMap(_.samples.sampleIds)
     .toSet
 
-  def activeLinksFilter(sampleIds: Set[SampleId])(key: EdgeKey.Link): Boolean =
+  def activeLinksFilter(sampleIds: Set[SampleId])(key: MeKey.Link): Boolean =
     edges.get(key).exists(_.isActive(sampleIds))
 
   override lazy val toString: String =
@@ -160,10 +160,10 @@ object DcgGraph:
     yield new DcgGraph(nodesMap, edgesMap, samplesMap, GraphStructure(edgesMap.keySet))
 
   def apply[F[_]: MonadThrow](
-      nodes: Map[MnId, DcgNode[F]],
-      edges: Map[EdgeKey, DcgEdge[F]],
-      samples: Map[SampleId, SampleData],
-      structure: GraphStructure[F]
+                               nodes: Map[MnId, DcgNode[F]],
+                               edges: Map[MeKey, DcgEdge[F]],
+                               samples: Map[SampleId, SampleData],
+                               structure: GraphStructure[F]
   ): F[DcgGraph[F]] =
     for
       mnIds <- nodes.keySet.pure

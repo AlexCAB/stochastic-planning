@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType.{LINK, THEN}
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.graph.edges.{EdgeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
 import planning.engine.common.values.node.{MnId, HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
@@ -42,9 +42,9 @@ class DcgEdgeSpec extends UnitSpecWithData:
     lazy val heThen1: HiddenEdge = makeHiddenEdge(THEN, sId = 21)
     lazy val heThen2: HiddenEdge = makeHiddenEdge(THEN, sId = 22)
     
-    def makeKey(et: EdgeType, src: MnId, trg: MnId): EdgeKey = et match
-      case LINK => EdgeKey.Link(src, trg)
-      case THEN => EdgeKey.Then(src, trg)
+    def makeKey(et: EdgeType, src: MnId, trg: MnId): MeKey = et match
+      case LINK => MeKey.Link(src, trg)
+      case THEN => MeKey.Then(src, trg)
 
     def makeDcgEdge(edge: HiddenEdge): DcgEdge[IO] = DcgEdge[IO](
       key = makeKey(edge.edgeType, edge.sourceId.asCon, edge.targetId.asAbs),

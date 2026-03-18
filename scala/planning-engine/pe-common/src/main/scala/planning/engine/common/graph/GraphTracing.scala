@@ -15,11 +15,11 @@ package planning.engine.common.graph
 import cats.MonadThrow
 import cats.syntax.all.*
 
-import planning.engine.common.graph.edges.EdgeKey.{Link, Then}
+import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.node.MnId.Con
 import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.paths.Path
 
 import scala.annotation.tailrec
@@ -29,7 +29,7 @@ import scala.annotation.tailrec
 trait GraphTracing[F[_]: MonadThrow]:
   self: GraphStructure[F] =>
 
-  private[graph] def findInEdgeMap[E <: EdgeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
+  private[graph] def findInEdgeMap[E <: MeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
     srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
   def traceAbsDagLayers(conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =

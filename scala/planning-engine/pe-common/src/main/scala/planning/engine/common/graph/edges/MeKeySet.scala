@@ -14,7 +14,7 @@ package planning.engine.common.graph.edges
 
 import planning.engine.common.values.node.MnId
 
-final case class EdgeKeySet[K <: EdgeKey](keys: Set[K]):
+final case class MeKeySet[K <: MeKey](keys: Set[K]):
   lazy val srcIds: Set[MnId] = keys.map(_.src)
   lazy val trgIds: Set[MnId] = keys.map(_.trg)
   lazy val mnIds: Set[MnId] = srcIds ++ trgIds
@@ -23,5 +23,5 @@ final case class EdgeKeySet[K <: EdgeKey](keys: Set[K]):
 
   def contains(src: MnId, trg: MnId): Boolean = keys.exists(k => k.src == src && k.trg == trg)
 
-object EdgeKeySet:
-  def apply[K <: EdgeKey](keys: K*): EdgeKeySet[K] = EdgeKeySet(keys.toSet)
+object MeKeySet:
+  def apply[K <: MeKey](keys: K*): MeKeySet[K] = MeKeySet(keys.toSet)

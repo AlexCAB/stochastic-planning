@@ -16,12 +16,12 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.GraphTracing.allLinksFilter
-import planning.engine.common.graph.edges.EdgeKey
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.paths.Path
 import planning.engine.common.values.node.MnId
 
 class GraphTracingSpec extends UnitSpecWithData:
-  import EdgeKey.{Link, Then}
+  import MeKey.{Link, Then}
   import MnId.Con
 
   private class CaseData extends Case with GraphStructureTestData

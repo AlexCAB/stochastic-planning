@@ -20,6 +20,8 @@ sealed trait PnId:
   def mnId: MnId
   def time: IoTime
 
+  def asPnId: PnId = this
+
   lazy val repr: String = s"${mnId.reprNode}_${time.repr}"
   override def toString: String = repr
 

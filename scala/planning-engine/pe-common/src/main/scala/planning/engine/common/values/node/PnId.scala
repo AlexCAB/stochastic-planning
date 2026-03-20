@@ -22,7 +22,10 @@ sealed trait PnId:
 
   def asPnId: PnId = this
 
-  lazy val repr: String = s"${mnId.reprNode}_${time.repr}"
+  lazy val repr: String = mnId match
+    case _: MnId.Con => s"[${mnId.reprValue}_${time.repr}]"
+    case _: MnId.Abs => s"(${mnId.reprValue}_${time.repr})"
+
   override def toString: String = repr
 
 object PnId:

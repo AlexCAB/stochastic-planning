@@ -106,7 +106,7 @@ class MapGraphStateSpec extends UnitSpecWithData:
     "return empty state" in newCase[CaseData]: (tn, data) =>
       data.emptyDcgState.pure[IO].asserting(_.isEmpty mustBe true)
 
-  "MapGraphState.apply(Map[IoValue, Set[MnId.Con]], DcgGraph[F])" should:
+  "MapGraphState.apply(Map[IoValue, Set[MnId.Con]], DcGraph[F])" should:
     "create new state" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:

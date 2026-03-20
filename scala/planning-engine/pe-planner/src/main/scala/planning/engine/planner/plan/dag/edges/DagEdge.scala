@@ -25,7 +25,7 @@ final case class DagEdge[F[_]: MonadThrow](
   lazy val isLink: Boolean = dcgEdge.key.isLink
   lazy val isThen: Boolean = dcgEdge.key.isThen
 
-  override lazy val toString: String = s"${key.src.repr} ${dcgEdge.key.reprArrow} ${key.trg.repr}"
+  override lazy val toString: String = s"${key.src.repr}${dcgEdge.key.reprArrow}${key.trg.repr}"
 
 object DagEdge:
   def apply[F[_]: MonadThrow](key: PeKey, dcgEdge: DcgEdge[F]): F[DagEdge[F]] =

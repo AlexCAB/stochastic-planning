@@ -19,7 +19,7 @@ import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.{MeKey, MeKeySet}
 import planning.engine.common.values.node.MnId
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.repr.ActiveAbsDagRepr
@@ -29,7 +29,7 @@ import planning.engine.planner.map.repr.ActiveAbsDagRepr
 // Also include THEN edges to previous nodes.
 final case class ActiveAbsDag[F[_]: MonadThrow](
                                                  backwordKeys: MeKeySet[MeKey.Then], // Targets of THEN edges is nodes in this graph
-                                                 graph: DcgGraph[F]
+                                                 graph: DcGraph[F]
 ) extends ActiveAbsDagRepr[F]
 
 object ActiveAbsDag:
@@ -41,7 +41,7 @@ object ActiveAbsDag:
   ): F[ActiveAbsDag[F]] =
     for
       _ <- linkEdges.forall(_.key.isInstanceOf[MeKey.Link]).assertTrue("Only LINK edges can be added")
-      graph <- DcgGraph(nodes, linkEdges, samples)
+      graph <- DcGraph(nodes, linkEdges, samples)
       backwordKeys = MeKeySet[MeKey.Then](backThenKeys)
       _ <- graph.mnIds.assertContainsAllOf(backwordKeys.trgIds, "Back THEN target edges refer to unknown HnIds")
       _ <- graph.edgesMdIds.assertContainsAllOf(backwordKeys.trgIds, "Target do not connected to active graph")

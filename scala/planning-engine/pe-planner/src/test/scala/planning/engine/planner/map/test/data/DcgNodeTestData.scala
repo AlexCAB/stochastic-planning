@@ -52,6 +52,7 @@ trait DcgNodeTestData extends MapNodeTestData:
   lazy val mnId3 = MnId.Abs(3)
   lazy val mnId4 = MnId.Abs(4)
   lazy val mnId5 = MnId.Abs(5)
+  lazy val mnId6 = MnId.Abs(6)
 
   lazy val allConMnId: Set[MnId.Con] = Set(mnId1, mnId2)
   lazy val allAbsMnId: Set[MnId.Abs] = Set(mnId3, mnId4, mnId5)

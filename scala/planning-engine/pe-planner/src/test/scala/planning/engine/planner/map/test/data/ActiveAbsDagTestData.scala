@@ -21,13 +21,13 @@ import planning.engine.common.graph.edges.MeKeySet
 import planning.engine.planner.map.data.ActiveAbsDag
 import planning.engine.common.values.node.MnId
 
-trait ActiveAbsDagTestData extends DcgGraphTestData:
+trait ActiveAbsDagTestData extends DcGraphTestData:
   lazy val mn11 = makeConDcgNode(id = MnId.Con(11))
   lazy val mn12 = makeConDcgNode(id = MnId.Con(12))
 
   lazy val linkEdges = dcgEdges.filter(_.key.isLink)
 
-  lazy val dcgGraph = graphWithNodes.copy(
+  lazy val dcGraph = graphWithNodes.copy(
     nodes = graphWithNodes.nodes ++ List(mn11, mn12).map(n => n.id -> n).toMap,
     edges = linkEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
@@ -40,4 +40,4 @@ trait ActiveAbsDagTestData extends DcgGraphTestData:
     Then(mnId5, mnId5) // Loop edge also is valid
   )
 
-  lazy val activeAbsDag = new ActiveAbsDag[IO](backwordKeys, dcgGraph)
+  lazy val activeAbsDag = new ActiveAbsDag[IO](backwordKeys, dcGraph)

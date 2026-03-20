@@ -18,13 +18,13 @@ import planning.engine.common.values.io.IoValue
 import planning.engine.common.graph.io.IoValueMap
 import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 final case class MapGraphState[F[_]: MonadThrow](
     ioValues: IoValueMap[F],
-    graph: DcgGraph[F]
+    graph: DcGraph[F]
 ):
   lazy val isEmpty: Boolean = ioValues.isEmpty && graph.isEmpty
   lazy val ioValuesMnId: Set[MnId.Con] = ioValues.values.flatten.toSet
@@ -62,10 +62,10 @@ final case class MapGraphState[F[_]: MonadThrow](
 object MapGraphState:
   def empty[F[_]: MonadThrow]: MapGraphState[F] = new MapGraphState[F](
     ioValues = IoValueMap.empty,
-    graph = DcgGraph.empty
+    graph = DcGraph.empty
   )
 
-  def apply[F[_]: MonadThrow](ioValues: IoValueMap[F], graph: DcgGraph[F]): F[MapGraphState[F]] =
+  def apply[F[_]: MonadThrow](ioValues: IoValueMap[F], graph: DcGraph[F]): F[MapGraphState[F]] =
     for
       _ <- graph.conMnId.assertSameElems(ioValues.allMnIds, "Con MnId in ioValues refer to unknown nodes in graph")
       _ <- graph.ioValues.assertSameElems(ioValues.keySet, "IoValues refer to unknown nodes in graph")

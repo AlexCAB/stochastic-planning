@@ -19,13 +19,13 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.io.IoValueMap
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.dcg.samples.DcgSample
 import planning.engine.planner.map.state.MapGraphState
 
-trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampleTestData:
+trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampleTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   def makeEdgLink(srcId: MnId, trgId: MnId, ids: Set[SampleId]): DcgEdge[IO] =
@@ -35,10 +35,10 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
     makeDcgEdgeThen(srcId, trgId, makeIndexiesForSampleIds(allMnId, ids.toSeq*))
 
   lazy val nuHnId = MnId.Abs(-1)
-  lazy val emptyDcgGraph = DcgGraph.empty[IO]
+  lazy val emptyDcGraph = DcGraph.empty[IO]
   lazy val allNodes = conNodes ++ absNodes
 
-  lazy val graphWithNodes = emptyDcgGraph
+  lazy val graphWithNodes = emptyDcGraph
     .copy(nodes = allNodes.map(n => n.id -> n).toMap)
 
   lazy val lEdge1 = makeEdgLink(mnId1, mnId3, Set(sampleId1, sampleId2))
@@ -52,24 +52,24 @@ trait DcgGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSamp
   lazy val dcgEdges: List[DcgEdge[IO]] = List(lEdge1, lEdge2, lEdge3, lEdge4, tEdge1, tEdge2)
   lazy val sampleData: List[SampleData] = List(sampleId1, sampleId2).map(id => makeDcgSampleData(id = id))
 
-  lazy val graphWithEdges: DcgGraph[IO] = graphWithNodes.copy(
+  lazy val graphWithEdges: DcGraph[IO] = graphWithNodes.copy(
     edges = dcgEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
     structure = GraphStructure[IO](dcgEdges.map(_.key).toSet)
   )
 
-  extension (graph: DcgGraph[IO])
-    def addTestNodes(nodes: Set[DcgNode[IO]]): DcgGraph[IO] = graph
+  extension (graph: DcGraph[IO])
+    def addTestNodes(nodes: Set[DcgNode[IO]]): DcGraph[IO] = graph
       .addNodes(nodes).unsafeRunSync()
 
-    def makeAndAddTestNodes(mnIds: Set[MnId]): DcgGraph[IO] = graph
+    def makeAndAddTestNodes(mnIds: Set[MnId]): DcGraph[IO] = graph
       .addNodes(
         mnIds.map:
           case id: MnId.Con => makeConDcgNode(id)
           case id: MnId.Abs => makeAbsDcgNode(id)
       ).unsafeRunSync()
 
-    def addTestDcgSample(sample: DcgSample[IO]): DcgGraph[IO] = graph
+    def addTestDcgSample(sample: DcgSample[IO]): DcGraph[IO] = graph
       .addSamples(List(DcgSample.Add[IO](sample, makeDcgIndexMap(sample.data.id, sample.structure.mnIds))))
       .unsafeRunSync()
 

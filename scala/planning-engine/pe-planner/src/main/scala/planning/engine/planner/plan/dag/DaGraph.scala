@@ -21,16 +21,16 @@ import planning.engine.planner.plan.dag.nodes.DagNode
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.PeKey
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
-import planning.engine.planner.plan.repr.DagGraphRepr
+import planning.engine.planner.plan.repr.DaGraphRepr
 
 import scala.annotation.tailrec
 
 // Planning DAG, here algorithms for building and tracing (similar to GraphStructure[F])
 // It represent whole general plan-graph structure, so context node and plan node are together in this graph.
-final case class DagGraph[F[_]: MonadThrow](
+final case class DaGraph[F[_]: MonadThrow](
     nodes: Map[PnId, DagNode[F]],
     edges: Map[PeKey, DagEdge[F]]
-) extends DagGraphRepr[F]:
+) extends DaGraphRepr[F]:
 
   private[dag] lazy val linkEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isLink)
   private[dag] lazy val thenEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isThen)
@@ -68,5 +68,5 @@ final case class DagGraph[F[_]: MonadThrow](
 
     trace(conIds.map(_.asPnId), Set.empty, List.empty).map(_.reverse)
 
-object DagGraph:
-  def empty[F[_]: MonadThrow]: DagGraph[F] = DagGraph(Map.empty, Map.empty)
+object DaGraph:
+  def empty[F[_]: MonadThrow]: DaGraph[F] = DaGraph(Map.empty, Map.empty)

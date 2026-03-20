@@ -17,7 +17,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.sample.SampleId
 import MeKey.{Link, Then}
 
-trait AbstractDagTestData extends DcgGraphTestData:
+trait AbstractDagTestData extends DcGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   lazy val c_1p1_101 = makeConDcgNode(id = 101, name = Some("con_1p1"))

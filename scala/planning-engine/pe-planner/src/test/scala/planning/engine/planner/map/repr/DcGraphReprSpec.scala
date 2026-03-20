@@ -16,21 +16,21 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.map.test.data.{DcgGraphTestData, DcgSampleReprTestData}
+import planning.engine.planner.map.test.data.{DcGraphTestData, DcgSampleReprTestData}
 
-class DcgGraphReprSpec extends UnitSpecWithData:
+class DcGraphReprSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case with DcgGraphTestData with DcgSampleReprTestData:
+  private class CaseData extends Case with DcGraphTestData with DcgSampleReprTestData:
     lazy val notConnected = Set(MnId.Con(998), MnId.Abs(999))
 
-    lazy val dcgDcgGraph = emptyDcgGraph
+    lazy val dcDcGraph = emptyDcGraph
       .makeAndAddTestNodes(allMnIds ++ notConnected)
       .addTestDcgSample(complexDcgSample)
 
-  "DcgGraphRepr.repr" should:
+  "DcGraphRepr.repr" should:
     "return correct string representation" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val strRepr = data.dcgDcgGraph.repr.await
+        val strRepr = data.dcDcGraph.repr.await
         logInfo(tn, s"DcgSample.repr:\n$strRepr").await
 
-        strRepr must include("DcgGraph")
+        strRepr must include("DcGraph")

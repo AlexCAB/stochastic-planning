@@ -15,10 +15,10 @@
 package planning.engine.planner.plan.state
 
 import cats.MonadThrow
-import planning.engine.planner.plan.dag.DagGraph
+import planning.engine.planner.plan.dag.DaGraph
 
 final case class PlanState[F[_]: MonadThrow](
-    graph: DagGraph[F]
+    graph: DaGraph[F]
     
     // ??? Also here ia separation of graph to context and plan
                                             )

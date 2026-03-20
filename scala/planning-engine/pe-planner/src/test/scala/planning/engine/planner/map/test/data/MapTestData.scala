@@ -23,12 +23,12 @@ import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.dcg.edges.DcgEdge
 import planning.engine.planner.map.dcg.nodes.DcgNode
 import planning.engine.planner.map.state.{MapGraphState, MapIdsCountState}
 
-trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTestData:
+trait MapTestData extends MapNodeTestData with MapSampleTestData with DcGraphTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   lazy val testNotInMap = IoValue(testBoolInNode.name, IoIndex(-1))
@@ -87,7 +87,7 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcgGraphTe
 
   lazy val dcgStateFromSubGraph = MapGraphState[IO](
     ioValues = IoValueMap[IO](conDcgNodesMap.map((k, ns) => k -> ns.map(_.id))).unsafeRunSync(),
-    graph = DcgGraph[IO](allDcgNodes, mapDcgEdges, mapSubGraph.loadedSamples).unsafeRunSync()
+    graph = DcGraph[IO](allDcgNodes, mapDcgEdges, mapSubGraph.loadedSamples).unsafeRunSync()
   ).unsafeRunSync()
 
   lazy val sampleListNew = Sample.ListNew(List(

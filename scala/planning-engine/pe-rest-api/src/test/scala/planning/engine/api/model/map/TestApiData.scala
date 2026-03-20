@@ -32,7 +32,7 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.dcg.nodes.*
 import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}
 import planning.engine.planner.map.dcg.samples.DcgSample
@@ -227,7 +227,7 @@ trait TestApiData:
 
   lazy val testDcgState = new MapGraphState[IO](
     ioValues = new IoValueMap[IO](Map(tesConcreteDcgNode.ioValue -> Set(tesConcreteDcgNode.id))),
-    graph = new DcgGraph[IO](
+    graph = new DcGraph[IO](
       nodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode, testAbstractDcgNode.id -> testAbstractDcgNode),
       edges = Map(testDcgEdge.key -> testDcgEdge),
       samples = Map(testSampleData.id -> testSampleData),

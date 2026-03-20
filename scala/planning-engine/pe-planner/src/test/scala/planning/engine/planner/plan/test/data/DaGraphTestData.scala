@@ -18,11 +18,11 @@ import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.{MnId, PnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.map.test.data.{DcgEdgeTestData, DcgNodeTestData}
-import planning.engine.planner.plan.dag.DagGraph
+import planning.engine.planner.plan.dag.DaGraph
 import planning.engine.planner.plan.dag.edges.DagEdge
 import planning.engine.planner.plan.dag.nodes.DagNode
 
-trait DagGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
+trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   def makeConSnId(mnId: MnId.Con, time: Long = 0L): PnId.Con = PnId.Con(mnId, IoTime(time))
   def makeAbsSnId(mnId: MnId.Abs, time: Long = 0L): PnId.Abs = PnId.Abs(mnId, IoTime(time))
 
@@ -39,6 +39,7 @@ trait DagGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   lazy val snId3 = makeAbsSnId(mnId3, time = 1)
   lazy val snId4 = makeAbsSnId(mnId4, time = 2)
   lazy val snId5 = makeAbsSnId(mnId5, time = 3)
+  lazy val snId6 = makeAbsSnId(mnId6, time = 4)
 
   lazy val allConSnId: Set[PnId] = Set(snId1, snId2)
   lazy val allAbsSnId: Set[PnId] = Set(snId3, snId4, snId5)
@@ -52,7 +53,11 @@ trait DagGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   def makeDagEdgeThen(src: PnId, trg: PnId, samples: Iterable[(SampleId, IndexMap)] = Iterable.empty): DagEdge[IO] =
     new DagEdge[IO](PeKey.Then(src, trg), makeDcgEdgeThen(src.mnId, trg.mnId, samples))
 
-  lazy val dagEdgesLink = List(makeDagEdgeLink(snId1, snId3), makeDagEdgeLink(snId2, snId4))
+  lazy val dagEdgesLink = List(
+    makeDagEdgeLink(snId1, snId3), 
+    makeDagEdgeLink(snId3, snId6),
+    makeDagEdgeLink(snId2, snId4)
+  )
 
   lazy val dagEdgesThen = List(
     makeDagEdgeThen(snId1, snId2),
@@ -60,7 +65,7 @@ trait DagGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
     makeDagEdgeThen(snId4, snId5)
   )
 
-  def makeDagGraph(nodes: Iterable[DagNode[IO]], edges: Iterable[DagEdge[IO]]): DagGraph[IO] =
-    new DagGraph[IO](nodes = nodes.map(n => n.id -> n).toMap, edges = edges.map(e => e.key -> e).toMap)
+  def makeDaGraph(nodes: Iterable[DagNode[IO]], edges: Iterable[DagEdge[IO]]): DaGraph[IO] =
+    new DaGraph[IO](nodes = nodes.map(n => n.id -> n).toMap, edges = edges.map(e => e.key -> e).toMap)
 
-  lazy val simpleDagGraph = makeDagGraph(conDagNodes ++ absDagNodes, dagEdgesLink ++ dagEdgesThen)
+  lazy val simpleDaGraph = makeDaGraph(conDagNodes ++ absDagNodes, dagEdgesLink ++ dagEdgesThen)

@@ -18,7 +18,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.graph.io.IoValueMap
 
-trait DcgStatesTestData extends DcgGraphTestData with DcgSampleTestData:
+trait DcgStatesTestData extends DcGraphTestData with DcgSampleTestData:
   lazy val emptyDcgState: MapGraphState[IO] = MapGraphState.empty[IO]
 
   lazy val initDcgState: MapGraphState[IO] = new MapGraphState(

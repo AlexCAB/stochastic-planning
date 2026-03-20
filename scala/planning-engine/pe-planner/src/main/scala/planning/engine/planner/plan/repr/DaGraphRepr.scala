@@ -13,7 +13,7 @@
 package planning.engine.planner.plan.repr
 
 import cats.MonadThrow
-import planning.engine.planner.plan.dag.DagGraph
+import planning.engine.planner.plan.dag.DaGraph
 
-trait DagGraphRepr[F[_]: MonadThrow]:
-  self: DagGraph[F] =>
+trait DaGraphRepr[F[_]: MonadThrow]:
+  self: DaGraph[F] =>

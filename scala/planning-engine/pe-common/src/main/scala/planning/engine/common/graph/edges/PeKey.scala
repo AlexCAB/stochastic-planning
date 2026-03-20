@@ -22,7 +22,7 @@ sealed trait PeKey:
     case _: PeKey.Link => "==>"
     case _: PeKey.Then => "-->"
 
-  override lazy val toString: String = s"${src.repr} ${reprArrow} ${trg.repr}"
+  override lazy val toString: String = s"${src.repr}$reprArrow${trg.repr}"
 
 object PeKey:
   final case class Link(src: PnId, trg: PnId) extends PeKey

@@ -16,27 +16,27 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 import planning.engine.planner.map.state.MapGraphState
 import planning.engine.planner.map.test.data.AbstractDagTestData
 
 class MapInMemInferenceSpec extends UnitSpecWithData:
 
   private class CaseData extends Case with AbstractDagTestData:
-    lazy val dcgGraph = emptyDcgGraph
+    lazy val dcGraph = emptyDcGraph
       .addTestNodes(all234ConNodes ++ all234AbsNodes)
 
-    def makeMapInference(graph: DcgGraph[IO]): MapInference[IO] = new MapInference[IO]:
+    def makeMapInference(graph: DcGraph[IO]): MapInference[IO] = new MapInference[IO]:
       private[map] override def getMapState: IO[MapGraphState[IO]] = graph.asMapGraphState.pure[IO]
 
   "MapInMemInference.naiveInferActiveAbsDag" should:
     "return correct ActiveAbsDag" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val initDcgGraph = dcgGraph.addSamples(List(dcg234SampleAllEdges)).unsafeRunSync()
-        logInfo(tn, s"\n##### Initial DcgGraph: ${initDcgGraph.repr.await}").await
+        val initDcGraph = dcGraph.addSamples(List(dcg234SampleAllEdges)).unsafeRunSync()
+        logInfo(tn, s"\n##### Initial DcGraph: ${initDcGraph.repr.await}").await
 
-        val mapInference = makeMapInference(initDcgGraph)
+        val mapInference = makeMapInference(initDcGraph)
 
         val singleNode = mapInference.naiveInferActiveAbsDag(Set(c_1p1_101.id)).await
         logInfo(tn, s"\n##### Single node: ${singleNode.repr.await}").await

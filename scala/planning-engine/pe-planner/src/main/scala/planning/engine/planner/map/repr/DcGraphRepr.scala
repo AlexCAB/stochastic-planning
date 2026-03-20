@@ -17,10 +17,10 @@ import cats.syntax.all.*
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.map.dcg.DcgGraph
+import planning.engine.planner.map.dcg.DcGraph
 
-class DcgGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
-  self: DcgGraph[F] =>
+class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
+  self: DcGraph[F] =>
 
   private[repr] def srcNode(id: MnId): String = nodes.get(id).map(_.repr).getOrElse(id.reprNode)
 
@@ -71,5 +71,5 @@ class DcgGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
     for
       absLayers <- reprAbsLayers.map(_.tab2)
       planningPath <- reprPlanningPath.map(_.tab2)
-      header = s"DcgGraph(${nodes.size} nodes, ${edges.size} edges, ${samples.size} samples):"
+      header = s"DcGraph(${nodes.size} nodes, ${edges.size} edges, ${samples.size} samples):"
     yield (header +: (absLayers ++ planningPath ++ reprNotConnectedNodes)).mkString("\n")

@@ -24,20 +24,20 @@ import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{MeKey, IndexMap}
 import planning.engine.common.values.io.IoValue
-import planning.engine.planner.map.repr.DcgGraphRepr
+import planning.engine.planner.map.repr.DcGraphRepr
 import planning.engine.planner.map.dcg.samples.DcgSample
 
 import scala.reflect.ClassTag
 
 // TODO May be move samples map to separate state in MapInMem,
 // TODO since samples is not part of graph structur. Or replace SampleId with SampleData
-// TODO in DcgSamples, since SampleData is not mutable and anyway it will be a object link. 
-final case class DcgGraph[F[_]: MonadThrow](
-                                             nodes: Map[MnId, DcgNode[F]],
-                                             edges: Map[MeKey, DcgEdge[F]],
-                                             samples: Map[SampleId, SampleData],
-                                             structure: GraphStructure[F]
-) extends DcgGraphRepr[F]:
+// TODO in DcgSamples, since SampleData is not mutable and anyway it will be a object link.
+final case class DcGraph[F[_]: MonadThrow](
+    nodes: Map[MnId, DcgNode[F]],
+    edges: Map[MeKey, DcgEdge[F]],
+    samples: Map[SampleId, SampleData],
+    structure: GraphStructure[F]
+) extends DcGraphRepr[F]:
   lazy val mnIds: Set[MnId] = nodes.keySet
   lazy val sampleIds: Set[SampleId] = samples.keySet
   lazy val edgesMdIds: Set[MnId] = edges.values.flatMap(_.mnIds).toSet
@@ -76,7 +76,7 @@ final case class DcgGraph[F[_]: MonadThrow](
     yield found
 
   // Add new nodes to the graph, checking that their IDs are distinct and do not already exist in the graph
-  def addNodes(nodes: Iterable[DcgNode[F]]): F[DcgGraph[F]] =
+  def addNodes(nodes: Iterable[DcgNode[F]]): F[DcGraph[F]] =
     for
       ids <- nodes.map(_.id).pure
       _ <- ids.assertDistinct("Duplicate Node IDs detected")
@@ -99,7 +99,7 @@ final case class DcgGraph[F[_]: MonadThrow](
 
   // Add a new DCG samples to the graph. For each edge in sample if exist edge with the same key, add sample to it,
   // otherwise create new DcgEdge.
-  def addSamples(samples: Iterable[DcgSample.Add[F]]): F[DcgGraph[F]] =
+  def addSamples(samples: Iterable[DcgSample.Add[F]]): F[DcGraph[F]] =
     for
       sampleIds <- samples.map(_.sample.data.id).pure
       _ <- sampleIds.assertDistinct("Duplicate sample IDs detected")
@@ -129,14 +129,14 @@ final case class DcgGraph[F[_]: MonadThrow](
     edges.get(key).exists(_.isActive(sampleIds))
 
   override lazy val toString: String =
-    s"""DcgGraph(
+    s"""DcGraph(
        | nodes count: ${nodes.size}
        | edges count: ${edges.size}
        | samples count: ${samples.size}
        |)""".stripMargin
 
-object DcgGraph:
-  def empty[F[_]: MonadThrow]: DcgGraph[F] = new DcgGraph[F](
+object DcGraph:
+  def empty[F[_]: MonadThrow]: DcGraph[F] = new DcGraph[F](
     nodes = Map.empty,
     edges = Map.empty,
     samples = Map.empty,
@@ -147,7 +147,7 @@ object DcgGraph:
       nodes: Iterable[DcgNode[F]],
       edges: Iterable[DcgEdge[F]],
       samples: Iterable[SampleData]
-  ): F[DcgGraph[F]] =
+  ): F[DcGraph[F]] =
     for
       _ <- nodes.map(_.id).assertDistinct("Duplicate node IDs detected")
       _ <- edges.map(_.key).assertDistinct("Duplicate Edge Keys detected")
@@ -157,14 +157,14 @@ object DcgGraph:
       samplesMap = samples.map(s => s.id -> s).toMap
       edgesSampleIds = edges.flatMap(_.samples.sampleIds)
       _ <- samplesMap.keySet.assertContainsAllOf(edgesSampleIds, "Some sample IDs used in edges are not found")
-    yield new DcgGraph(nodesMap, edgesMap, samplesMap, GraphStructure(edgesMap.keySet))
+    yield new DcGraph(nodesMap, edgesMap, samplesMap, GraphStructure(edgesMap.keySet))
 
   def apply[F[_]: MonadThrow](
-                               nodes: Map[MnId, DcgNode[F]],
-                               edges: Map[MeKey, DcgEdge[F]],
-                               samples: Map[SampleId, SampleData],
-                               structure: GraphStructure[F]
-  ): F[DcgGraph[F]] =
+      nodes: Map[MnId, DcgNode[F]],
+      edges: Map[MeKey, DcgEdge[F]],
+      samples: Map[SampleId, SampleData],
+      structure: GraphStructure[F]
+  ): F[DcGraph[F]] =
     for
       mnIds <- nodes.keySet.pure
       sampleIds = samples.keySet
@@ -176,4 +176,4 @@ object DcgGraph:
       _ <- mnIds.assertContainsAllOf(structure.mnIds, "Graph structure refers to unknown MnIds")
       _ <- structure.keys.assertSameElems(edges.keySet, "Graph structure refers to unknown edge key")
       _ <- sampleIds.assertContainsAllOf(edgeSampleIds, "Some sample IDs used in edges are not found")
-    yield new DcgGraph(nodes, edges, samples, structure)
+    yield new DcGraph(nodes, edges, samples, structure)

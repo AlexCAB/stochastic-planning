@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-03-03 |||||||||||*/
 
-package planning.engine.planner.map.repr
+package planning.engine.common.repr
 
 import cats.MonadThrow
 import planning.engine.common.graph.paths.Path

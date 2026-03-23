@@ -16,6 +16,7 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey.Link
+import planning.engine.common.repr.StructureReprBase
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.map.dcg.DcGraph
 

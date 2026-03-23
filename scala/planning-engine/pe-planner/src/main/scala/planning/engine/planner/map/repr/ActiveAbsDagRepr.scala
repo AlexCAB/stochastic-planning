@@ -14,6 +14,7 @@ package planning.engine.planner.map.repr
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.repr.StructureReprBase
 import planning.engine.planner.map.data.ActiveAbsDag
 
 trait ActiveAbsDagRepr[F[_]: MonadThrow] extends StructureReprBase[F]:

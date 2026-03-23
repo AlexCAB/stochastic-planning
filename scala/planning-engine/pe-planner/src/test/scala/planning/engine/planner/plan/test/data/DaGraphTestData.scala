@@ -23,8 +23,8 @@ import planning.engine.planner.plan.dag.edges.DagEdge
 import planning.engine.planner.plan.dag.nodes.DagNode
 
 trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
-  def makeConSnId(mnId: MnId.Con, time: Long = 0L): PnId.Con = PnId.Con(mnId, IoTime(time))
-  def makeAbsSnId(mnId: MnId.Abs, time: Long = 0L): PnId.Abs = PnId.Abs(mnId, IoTime(time))
+  def makeConPnId(mnId: MnId.Con, time: Long = 0L): PnId.Con = PnId.Con(mnId, IoTime(time))
+  def makeAbsPnId(mnId: MnId.Abs, time: Long = 0L): PnId.Abs = PnId.Abs(mnId, IoTime(time))
 
   def makeDagNode(id: PnId, name: Option[String] = None): DagNode[IO] = DagNode[IO](
     id,
@@ -33,19 +33,19 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
       case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name)
   )
 
-  lazy val snId1 = makeConSnId(mnId1, time = 1)
-  lazy val snId2 = makeConSnId(mnId2, time = 2)
+  lazy val pnId1 = makeConPnId(mnId1, time = 1)
+  lazy val pnId2 = makeConPnId(mnId2, time = 2)
 
-  lazy val snId3 = makeAbsSnId(mnId3, time = 1)
-  lazy val snId4 = makeAbsSnId(mnId4, time = 2)
-  lazy val snId5 = makeAbsSnId(mnId5, time = 3)
-  lazy val snId6 = makeAbsSnId(mnId6, time = 4)
+  lazy val pnId3 = makeAbsPnId(mnId3, time = 1)
+  lazy val pnId4 = makeAbsPnId(mnId4, time = 2)
+  lazy val pnId5 = makeAbsPnId(mnId5, time = 3)
+  lazy val pnId6 = makeAbsPnId(mnId6, time = 4)
 
-  lazy val allConSnId: Set[PnId] = Set(snId1, snId2)
-  lazy val allAbsSnId: Set[PnId] = Set(snId3, snId4, snId5)
+  lazy val allConPnIds: Set[PnId.Con] = Set(pnId1, pnId2)
+  lazy val allAbsPnIds: Set[PnId.Abs] = Set(pnId3, pnId4, pnId5)
 
-  lazy val conDagNodes: List[DagNode[IO]] = List(snId1, snId2).map(id => makeDagNode(id = id))
-  lazy val absDagNodes: List[DagNode[IO]] = List(snId3, snId4, snId5).map(id => makeDagNode(id = id))
+  lazy val allConDagNodes: List[DagNode[IO]] = List(pnId1, pnId2).map(id => makeDagNode(id = id))
+  lazy val allAbsDagNodes: List[DagNode[IO]] = List(pnId3, pnId4, pnId5).map(id => makeDagNode(id = id))
 
   def makeDagEdgeLink(src: PnId, trg: PnId, samples: Iterable[(SampleId, IndexMap)] = Iterable.empty): DagEdge[IO] =
     new DagEdge[IO](PeKey.Link(src, trg), makeDcgEdgeLink(src.mnId, trg.mnId, samples))
@@ -54,18 +54,18 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
     new DagEdge[IO](PeKey.Then(src, trg), makeDcgEdgeThen(src.mnId, trg.mnId, samples))
 
   lazy val dagEdgesLink = List(
-    makeDagEdgeLink(snId1, snId3), 
-    makeDagEdgeLink(snId3, snId6),
-    makeDagEdgeLink(snId2, snId4)
+    makeDagEdgeLink(pnId1, pnId3), 
+    makeDagEdgeLink(pnId3, pnId6),
+    makeDagEdgeLink(pnId2, pnId4)
   )
 
   lazy val dagEdgesThen = List(
-    makeDagEdgeThen(snId1, snId2),
-    makeDagEdgeThen(snId3, snId4),
-    makeDagEdgeThen(snId4, snId5)
+    makeDagEdgeThen(pnId1, pnId2),
+    makeDagEdgeThen(pnId3, pnId4),
+    makeDagEdgeThen(pnId4, pnId5)
   )
 
   def makeDaGraph(nodes: Iterable[DagNode[IO]], edges: Iterable[DagEdge[IO]]): DaGraph[IO] =
     new DaGraph[IO](nodes = nodes.map(n => n.id -> n).toMap, edges = edges.map(e => e.key -> e).toMap)
 
-  lazy val simpleDaGraph = makeDaGraph(conDagNodes ++ absDagNodes, dagEdgesLink ++ dagEdgesThen)
+  lazy val simpleDaGraph = makeDaGraph(allConDagNodes ++ allAbsDagNodes, dagEdgesLink ++ dagEdgesThen)

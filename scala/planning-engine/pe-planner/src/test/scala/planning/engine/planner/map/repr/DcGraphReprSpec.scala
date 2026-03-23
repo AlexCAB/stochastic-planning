@@ -31,6 +31,6 @@ class DcGraphReprSpec extends UnitSpecWithData:
     "return correct string representation" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         val strRepr = data.dcDcGraph.repr.await
-        logInfo(tn, s"DcgSample.repr:\n$strRepr").await
+        logInfo(tn, s"DcGraph.repr:\n$strRepr").await
 
         strRepr must include("DcGraph")

@@ -38,15 +38,15 @@ class DaGraphSpec extends UnitSpecWithData:
       import data.*
       async[IO]:
         simpleDaGraph.makeSrcMap[Link](dagEdgesLink) mustBe Map(
-          snId1 -> Set(Link(snId1, snId3)),
-          snId2 -> Set(Link(snId2, snId4)),
-          snId3 -> Set(Link(snId3, snId6))
+          pnId1 -> Set(Link(pnId1, pnId3)),
+          pnId2 -> Set(Link(pnId2, pnId4)),
+          pnId3 -> Set(Link(pnId3, pnId6))
         )
 
         simpleDaGraph.makeSrcMap[Then](dagEdgesThen) mustBe Map(
-          snId1 -> Set(Then(snId1, snId2)),
-          snId3 -> Set(Then(snId3, snId4)),
-          snId4 -> Set(Then(snId4, snId5))
+          pnId1 -> Set(Then(pnId1, pnId2)),
+          pnId3 -> Set(Then(pnId3, pnId4)),
+          pnId4 -> Set(Then(pnId4, pnId5))
         )
 
   "DaGraph.makeTrgLinkMap(...)" should:
@@ -55,9 +55,9 @@ class DaGraphSpec extends UnitSpecWithData:
 
       simpleDaGraph.makeTrgLinkMap(dagEdgesLink).pure[IO].logValue(tn)
         .asserting(_ mustBe Map(
-          snId3 -> Set(Link(snId1, snId3)),
-          snId4 -> Set(Link(snId2, snId4)),
-          snId6 -> Set(Link(snId3, snId6))
+          pnId3 -> Set(Link(pnId1, pnId3)),
+          pnId4 -> Set(Link(pnId2, pnId4)),
+          pnId6 -> Set(Link(pnId3, pnId6))
         ))
 
   "DaGraph.makeTrgThenMap(...)" should:
@@ -65,11 +65,11 @@ class DaGraphSpec extends UnitSpecWithData:
       import data.*
 
       simpleDaGraph.makeTrgThenMap(dagEdgesThen).logValue(tn)
-        .asserting(_ mustBe Map(snId5 -> Then(snId4, snId5), snId4 -> Then(snId3, snId4), snId2 -> Then(snId1, snId2)))
+        .asserting(_ mustBe Map(pnId5 -> Then(pnId4, pnId5), pnId4 -> Then(pnId3, pnId4), pnId2 -> Then(pnId1, pnId2)))
 
     "fail of planning DAG is not a forest" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidThenEdges = List(makeDagEdgeThen(snId1, snId5), makeDagEdgeThen(snId2, snId5))
+      val invalidThenEdges = List(makeDagEdgeThen(pnId1, pnId5), makeDagEdgeThen(pnId2, pnId5))
 
       simpleDaGraph.makeTrgThenMap(invalidThenEdges).logValue(tn)
         .assertThrowsError(_.getMessage must include("Planning DAG need to be a forest"))
@@ -78,33 +78,33 @@ class DaGraphSpec extends UnitSpecWithData:
     "trace simple DAG layers" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        simpleDaGraph.traceAbsDagLayers(Set(snId1)).await mustBe List(
-          Set(Link(snId1, snId3)),
-          Set(Link(snId3, snId6))
+        simpleDaGraph.traceAbsDagLayers(Set(pnId1)).await mustBe List(
+          Set(Link(pnId1, pnId3)),
+          Set(Link(pnId3, pnId6))
         )
 
-        simpleDaGraph.traceAbsDagLayers(Set(snId1, snId2)).await mustBe List(
-          Set(Link(snId1, snId3), Link(snId2, snId4)),
-          Set(Link(snId3, snId6))
+        simpleDaGraph.traceAbsDagLayers(Set(pnId1, pnId2)).await mustBe List(
+          Set(Link(pnId1, pnId3), Link(pnId2, pnId4)),
+          Set(Link(pnId3, pnId6))
         )
 
     "fail if cycle detected" in newCase[CaseData]: (tn, data) =>
       import data.*
       val invalidLinkEdges = List(
-        makeDagEdgeLink(snId1, snId3),
-        makeDagEdgeLink(snId3, snId6),
-        makeDagEdgeLink(snId6, snId3)
+        makeDagEdgeLink(pnId1, pnId3),
+        makeDagEdgeLink(pnId3, pnId6),
+        makeDagEdgeLink(pnId6, pnId3)
       )
 
-      val invalidDaGraph = makeDaGraph(conDagNodes ++ absDagNodes, invalidLinkEdges ++ dagEdgesThen)
+      val invalidDaGraph = makeDaGraph(allConDagNodes ++ allAbsDagNodes, invalidLinkEdges ++ dagEdgesThen)
 
-      invalidDaGraph.traceAbsDagLayers(Set(snId1)).logValue(tn)
+      invalidDaGraph.traceAbsDagLayers(Set(pnId1)).logValue(tn)
         .assertThrowsError(_.getMessage must include("Cycle detected on"))
 
     "fail if found LINK pointed on concrete node" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val invalidLinkEdges = List(makeDagEdgeLink(snId1, snId3), makeDagEdgeLink(snId3, snId1))
-      val invalidDaGraph = makeDaGraph(conDagNodes ++ absDagNodes, invalidLinkEdges ++ dagEdgesThen)
+      val invalidLinkEdges = List(makeDagEdgeLink(pnId1, pnId3), makeDagEdgeLink(pnId3, pnId1))
+      val invalidDaGraph = makeDaGraph(allConDagNodes ++ allAbsDagNodes, invalidLinkEdges ++ dagEdgesThen)
 
-      invalidDaGraph.traceAbsDagLayers(Set(snId1)).logValue(tn)
+      invalidDaGraph.traceAbsDagLayers(Set(pnId1)).logValue(tn)
         .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))

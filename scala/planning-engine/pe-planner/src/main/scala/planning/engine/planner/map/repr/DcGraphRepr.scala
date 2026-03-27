@@ -45,7 +45,7 @@ class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       layers <- structure.traceAbsDagLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
       terminalLayer = builtTerminalLayer(layers).tab4
-      formatedLayers = builtLayers.map(formatLayerRepr)
+      formatedLayers = builtLayers.map(l => formatLayerRepr(l))
       renderLayer = renderLayerRepr(formatedLayers).tab2
     yield List(
       List("ABSTRACT LAYERS:"),

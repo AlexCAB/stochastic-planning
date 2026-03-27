@@ -32,6 +32,9 @@ final case class DaGraph[F[_]: MonadThrow](
     edges: Map[PeKey, DagEdge[F]]
 ) extends DaGraphRepr[F]:
 
+  lazy val conPnId: Set[PnId.Con] = nodes.keySet.filterCon
+  lazy val absPnId: Set[PnId.Abs] = nodes.keySet.filterAbs
+
   private[dag] lazy val linkEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isLink)
   private[dag] lazy val thenEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isThen)
 

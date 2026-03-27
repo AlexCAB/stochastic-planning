@@ -17,18 +17,23 @@ import planning.engine.common.graph.paths.Path
 
 trait StructureReprBase[F[_]: MonadThrow]:
   import Path.{Direct, Loop, Noose}
+  
+  type Column = List[String]
+  type Rows = List[String]
+  type Columns = List[Column]
+  type Layers = List[Columns]
 
-  protected def formatLayerRepr(layer: List[List[String]]): List[String] =
+  protected def formatColumn(column: Column, height: Int, width: Int): Column =
+    (column ++ List.fill(height - column.size)("")).map(s => s + " " * (width - s.length))
+
+  protected def formatLayerRepr(layer: Columns): List[String] =
     val maxColSize = layer.map(_.size).max
     layer
-      .map(column => column ++ List.fill(maxColSize - column.size)(""))
-      .map: column =>
-        val maxRecLen = column.map(_.length).max
-        column.map(s => s + " " * (maxRecLen - s.length))
+      .map(column => formatColumn(column, maxColSize, column.map(_.length).max))
       .transpose
       .map(_.mkString(" "))
 
-  protected def renderLayerRepr(layers: List[List[String]]): List[String] = layers
+  protected def renderLayerRepr(layers: List[Rows]): List[String] = layers
     .map(_.tab2).zipWithIndex.flatMap((ls, i) => s"Layer $i:" +: ls)
 
   protected def groupPaths(paths: Set[Path]): (List[Direct], List[Loop], List[Noose]) = paths

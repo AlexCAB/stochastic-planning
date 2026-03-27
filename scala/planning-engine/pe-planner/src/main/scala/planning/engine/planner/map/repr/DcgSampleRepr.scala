@@ -31,7 +31,7 @@ trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
     for
       layers <- structure.traceAbsDagLayers(structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
-      formatedLayers = builtLayers.map(formatLayerRepr)
+      formatedLayers = builtLayers.map(l => formatLayerRepr(l))
       paths <- structure.allThenPaths
       (directs, loops, nooses) = groupPaths(paths)
     yield List(

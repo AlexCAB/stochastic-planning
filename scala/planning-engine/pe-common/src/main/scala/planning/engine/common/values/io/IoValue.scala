@@ -16,7 +16,7 @@ final case class IoValue(value: (IoName, IoIndex)) extends AnyVal:
   def name: IoName = value._1
   def index: IoIndex = value._2
 
-  def repr: String = s"⟨${index.value} ∈ ${name.value}⟩"
+  def repr: String = s"<${index.value} of ${name.value}>"
 
   override def toString: String = repr
 

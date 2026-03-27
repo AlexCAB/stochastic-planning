@@ -31,3 +31,7 @@ sealed trait PnId:
 object PnId:
   final case class Con(mnId: MnId.Con, time: IoTime) extends PnId
   final case class Abs(mnId: MnId.Abs, time: IoTime) extends PnId
+
+  extension (pnIds: Set[PnId])
+    def filterCon: Set[PnId.Con] = pnIds.collect { case con: PnId.Con => con }
+    def filterAbs: Set[PnId.Abs] = pnIds.collect { case abs: PnId.Abs => abs }

@@ -38,6 +38,7 @@ final case class DcGraph[F[_]: MonadThrow](
     samples: Map[SampleId, SampleData],
     structure: GraphStructure[F]
 ) extends DcGraphRepr[F]:
+  
   lazy val mnIds: Set[MnId] = nodes.keySet
   lazy val sampleIds: Set[SampleId] = samples.keySet
   lazy val edgesMdIds: Set[MnId] = edges.values.flatMap(_.mnIds).toSet

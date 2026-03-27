@@ -35,10 +35,28 @@ trait ChainDagTestData extends DaGraphTestData:
   lazy val a2_2_2 = makeAbsPnId(mnId6, time = 2)
   lazy val a2_1_3 = makeAbsPnId(mnId5, time = 3)
 
-  lazy val conPnIds: Set[PnId.Con] = Set(c_1_1, c_1_2, c_2_2, c_1_3)
-  lazy val absPnIds: Set[PnId.Abs] = Set(a1_1_1, a1_2_1, a1_1_2, a1_1_3, a1_2_3, a2_1_1, a2_1_2, a2_2_2, a2_1_3)
+  lazy val conPnIds: Map[PnId.Con, String] = Map(
+    c_1_1 -> "c_1_1",
+    c_1_2 -> "c_1_2",
+    c_2_2 -> "c_2_2",
+    c_1_3 -> "c_1_3",
+  )
 
-  lazy val dagNodes: Set[DagNode[IO]] = (conPnIds ++ absPnIds).map(id => makeDagNode(id = id))
+  lazy val absPnIds: Map[PnId.Abs, String] = Map(
+    a1_1_1 -> "a1_1_1",
+    a1_2_1 -> "a1_2_1",
+    a1_1_2 -> "a1_1_2",
+    a1_1_3 -> "a1_1_3",
+    a1_2_3 -> "a1_2_3",
+    a2_1_1 -> "a2_1_1",
+    a2_1_2 -> "a2_1_2",
+    a2_2_2 -> "a2_2_2",
+    a2_1_3 -> "a2_1_3",
+  )
+
+  lazy val dagNodes: Set[DagNode[IO]] = (conPnIds ++ absPnIds)
+    .map((id, name) => makeDagNode(id = id, name = Some(name)))
+    .toSet
 
   lazy val linkEdges = List(
     makeDagEdgeLink(c_1_1, a1_1_1),
@@ -50,7 +68,7 @@ trait ChainDagTestData extends DaGraphTestData:
     makeDagEdgeLink(c_2_2, a1_1_2),
     makeDagEdgeLink(a1_1_2, a2_1_2),
     makeDagEdgeLink(a1_1_2, a2_2_2),
-    makeDagEdgeLink(a1_1_2, a1_1_3),
+    makeDagEdgeLink(a1_1_2, a2_1_3),
     makeDagEdgeLink(c_1_3, a1_1_3),
     makeDagEdgeLink(c_1_3, a1_2_3),
     makeDagEdgeLink(a1_1_3, a2_1_3),

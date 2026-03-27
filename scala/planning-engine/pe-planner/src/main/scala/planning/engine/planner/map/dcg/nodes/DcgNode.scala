@@ -26,7 +26,7 @@ sealed trait DcgNode[F[_]: MonadThrow]:
   def asConcrete: Option[DcgNode.Concrete[F]]
   def asDcgNode: DcgNode[F] = this
 
-  protected lazy val idRepr: String = s"${id.value}${name.repr}"
+  lazy val idRepr: String = s"${id.value}${name.repr}"
 
   lazy val repr: String = this match
     case cn: DcgNode.Concrete[F] => s"[$idRepr, ${cn.ioValue.repr}]"

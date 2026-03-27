@@ -20,4 +20,8 @@ final case class DagNode[F[_]: MonadThrow](
     id: PnId,
     dcgNode: DcgNode[F]
 ):
+  lazy val repr: String = dcgNode match
+    case cn: DcgNode.Concrete[F] => s"[${id.time.repr}, ${cn.idRepr}, ${cn.ioValue.repr}]"
+    case an: DcgNode.Abstract[F] => s"(${id.time.repr}, ${an.idRepr})"
+  
   override lazy val toString: String = s"${dcgNode.repr}_${id.time.repr}"

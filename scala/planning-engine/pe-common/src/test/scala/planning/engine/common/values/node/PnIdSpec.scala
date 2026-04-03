@@ -13,11 +13,10 @@
 package planning.engine.common.values.node
 
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.values.io.IoTime
 
 class PnIdSpec extends UnitSpecIO:
-  lazy val conPnId = PnId.Con(MnId.Con(123L), IoTime(432L))
-  lazy val absPnId = PnId.Abs(MnId.Abs(321L), IoTime(234L))
+  lazy val conPnId = PnId.Con(MnId.Con(123L), 432L)
+  lazy val absPnId = PnId.Abs(MnId.Abs(321L), 234L)
   lazy val pnIdSet = Set(conPnId, absPnId)
 
   "PnId.repr" should:

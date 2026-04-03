@@ -13,49 +13,50 @@
 package planning.engine.planner.plan.dag
 
 import cats.effect.IO
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.plan.test.data.DaGraphTestData
 import planning.engine.planner.plan.dag.nodes.DagNode
 
 trait ChainDagTestData extends DaGraphTestData:
 
-  lazy val c_1_1 = makeConPnId(mnId1, time = 1)
-  lazy val c_1_2 = makeConPnId(mnId1, time = 2)
-  lazy val c_2_2 = makeConPnId(mnId2, time = 2)
-  lazy val c_1_3 = makeConPnId(mnId1, time = 3)
+  lazy val c_1_1 = makeConPnId(mnId1, count = 1)
+  lazy val c_1_2 = makeConPnId(mnId1, count = 2)
+  lazy val c_2_2 = makeConPnId(mnId2, count = 1)
+  lazy val c_1_3 = makeConPnId(mnId1, count = 3)
 
-  lazy val a1_1_1 = makeAbsPnId(mnId3, time = 1)
-  lazy val a1_2_1 = makeAbsPnId(mnId4, time = 1)
-  lazy val a1_1_2 = makeAbsPnId(mnId3, time = 2)
-  lazy val a1_1_3 = makeAbsPnId(mnId3, time = 3)
-  lazy val a1_2_3 = makeAbsPnId(mnId4, time = 3)
+  lazy val a1_1_1 = makeAbsPnId(mnId3, count = 1)
+  lazy val a1_2_1 = makeAbsPnId(mnId4, count = 1)
+  lazy val a1_1_2 = makeAbsPnId(mnId3, count = 2)
+  lazy val a1_1_3 = makeAbsPnId(mnId3, count = 3)
+  lazy val a1_2_3 = makeAbsPnId(mnId4, count = 2)
 
-  lazy val a2_1_1 = makeAbsPnId(mnId5, time = 1)
-  lazy val a2_1_2 = makeAbsPnId(mnId5, time = 2)
-  lazy val a2_2_2 = makeAbsPnId(mnId6, time = 2)
-  lazy val a2_1_3 = makeAbsPnId(mnId5, time = 3)
+  lazy val a2_1_1 = makeAbsPnId(mnId5, count = 1)
+  lazy val a2_1_2 = makeAbsPnId(mnId5, count = 2)
+  lazy val a2_2_2 = makeAbsPnId(mnId6, count = 1)
+  lazy val a2_1_3 = makeAbsPnId(mnId5, count = 3)
 
-  lazy val conPnIds: Map[PnId.Con, String] = Map(
-    c_1_1 -> "c_1_1",
-    c_1_2 -> "c_1_2",
-    c_2_2 -> "c_2_2",
-    c_1_3 -> "c_1_3",
+  lazy val conPnIds: Map[PnId.Con, (String, Option[IoTime])] = Map(
+    c_1_1 -> ("c_1_1", Some(IoTime(1L))),
+    c_1_2 -> ("c_1_2", Some(IoTime(2L))),
+    c_2_2 -> ("c_2_2", Some(IoTime(2L))),
+    c_1_3 -> ("c_1_3", None)
   )
 
-  lazy val absPnIds: Map[PnId.Abs, String] = Map(
-    a1_1_1 -> "a1_1_1",
-    a1_2_1 -> "a1_2_1",
-    a1_1_2 -> "a1_1_2",
-    a1_1_3 -> "a1_1_3",
-    a1_2_3 -> "a1_2_3",
-    a2_1_1 -> "a2_1_1",
-    a2_1_2 -> "a2_1_2",
-    a2_2_2 -> "a2_2_2",
-    a2_1_3 -> "a2_1_3",
+  lazy val absPnIds: Map[PnId.Abs, (String, Option[IoTime])] = Map(
+    a1_1_1 -> ("a1_1_1", Some(IoTime(1L))),
+    a1_2_1 -> ("a1_2_1", Some(IoTime(1L))),
+    a1_1_2 -> ("a1_1_2", Some(IoTime(2L))),
+    a1_1_3 -> ("a1_1_3", None),
+    a1_2_3 -> ("a1_2_3", None),
+    a2_1_1 -> ("a2_1_1", Some(IoTime(1L))),
+    a2_1_2 -> ("a2_1_2", Some(IoTime(2L))),
+    a2_2_2 -> ("a2_2_2", Some(IoTime(2L))),
+    a2_1_3 -> ("a2_1_3", None)
   )
 
   lazy val dagNodes: Set[DagNode[IO]] = (conPnIds ++ absPnIds)
-    .map((id, name) => makeDagNode(id = id, name = Some(name)))
+    .map((id, params) => makeDagNode(id = id, time = params._2, name = Some(params._1)))
     .toSet
 
   lazy val linkEdges = List(

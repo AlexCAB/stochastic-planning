@@ -23,23 +23,24 @@ import planning.engine.planner.plan.dag.edges.DagEdge
 import planning.engine.planner.plan.dag.nodes.DagNode
 
 trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
-  def makeConPnId(mnId: MnId.Con, time: Long = 0L): PnId.Con = PnId.Con(mnId, IoTime(time))
-  def makeAbsPnId(mnId: MnId.Abs, time: Long = 0L): PnId.Abs = PnId.Abs(mnId, IoTime(time))
+  def makeConPnId(mnId: MnId.Con, count: Long = 0L): PnId.Con = PnId.Con(mnId, count)
+  def makeAbsPnId(mnId: MnId.Abs, count: Long = 0L): PnId.Abs = PnId.Abs(mnId, count)
 
-  def makeDagNode(id: PnId, name: Option[String] = None): DagNode[IO] = DagNode[IO](
-    id,
-    id.mnId match
+  def makeDagNode(id: PnId, time: Option[IoTime] = None, name: Option[String] = None): DagNode[IO] = new DagNode[IO](
+    id = id,
+    time = time,
+    dcgNode = id.mnId match
       case mnId: MnId.Con => makeConDcgNode(id = mnId.value, name = name)
       case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name)
   )
 
-  lazy val pnId1 = makeConPnId(mnId1, time = 1)
-  lazy val pnId2 = makeConPnId(mnId2, time = 2)
+  lazy val pnId1 = makeConPnId(mnId1, count = 1)
+  lazy val pnId2 = makeConPnId(mnId2, count = 2)
 
-  lazy val pnId3 = makeAbsPnId(mnId3, time = 1)
-  lazy val pnId4 = makeAbsPnId(mnId4, time = 2)
-  lazy val pnId5 = makeAbsPnId(mnId5, time = 3)
-  lazy val pnId6 = makeAbsPnId(mnId6, time = 4)
+  lazy val pnId3 = makeAbsPnId(mnId3, count = 1)
+  lazy val pnId4 = makeAbsPnId(mnId4, count = 2)
+  lazy val pnId5 = makeAbsPnId(mnId5, count = 3)
+  lazy val pnId6 = makeAbsPnId(mnId6, count = 4)
 
   lazy val allConPnIds: Set[PnId.Con] = Set(pnId1, pnId2)
   lazy val allAbsPnIds: Set[PnId.Abs] = Set(pnId3, pnId4, pnId5)
@@ -54,7 +55,7 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
     new DagEdge[IO](PeKey.Then(src, trg), makeDcgEdgeThen(src.mnId, trg.mnId, samples))
 
   lazy val dagEdgesLink = List(
-    makeDagEdgeLink(pnId1, pnId3), 
+    makeDagEdgeLink(pnId1, pnId3),
     makeDagEdgeLink(pnId3, pnId6),
     makeDagEdgeLink(pnId2, pnId4)
   )

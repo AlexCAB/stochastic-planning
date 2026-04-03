@@ -23,39 +23,42 @@ import planning.engine.planner.plan.dag.DaGraph
 trait DaGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
   self: DaGraph[F] =>
 
-  private[repr] def srcNode(id: PnId): String = nodes.get(id).map(_.repr).getOrElse(id.repr)
+  private[repr] def renderSrc(id: PnId): String = nodes.get(id).map(_.repr).getOrElse(id.repr)
+  private[repr] def renderTrg(id: PnId): String = s"|==>${id.repr}"
+  private[repr] def getIoTime(id: PnId): Option[IoTime] = nodes.get(id).flatMap(_.time)
 
   // Builds the string representation of a layer of the DAG, in next format:
   // List of lists of columns sorted by time[
   //   List of columns sorted by source node ID[
   //     List of colum rows where first element is source node and the rest are target nodes sorted by ID]]
-  private[repr] def buildLayerRepr(layer: Set[Link]): List[(IoTime, Columns)] = layer
+  private[repr] def buildLayerRepr(layer: Set[Link]): List[(Option[IoTime], Columns)] = layer
     .groupBy(_.src).toList
-    .map((src, rows) => src -> rows.toList.sortBy(r => (r.trg.time.value, r.trg.mnId.value)))
-    .map((src, rows) => src -> (srcNode(src) +: rows.map(r => s"|==>${r.trg.repr}")))
-    .groupBy(_._1.time).toList.sortBy(_._1.value).map((t, cols) => t -> cols.map(_._2))
+    .map((src, rows) => src -> rows.toList.sortBy(_.trg.mnId.value))
+    .map((src, rows) => src -> (renderSrc(src) +: rows.map(r => renderTrg(r.trg))))
+    .groupBy((src, _) => getIoTime(src)).toList
+    .sortBy(_._1.getValue).map((t, cols) => t -> cols.map(_._2))
 
   // Builds the string representation of terminal layer (abstract DAG leaf nodes), in next format:
   // List of lists of columns sorted by time[
   //   List of columns sorted by source node ID[
   //     String leaf nodes representation]]
-  private[repr] def builtTerminalLayer(layers: List[Set[Link]]): List[(IoTime, Columns)] =
+  private[repr] def builtTerminalLayer(layers: List[Set[Link]]): List[(Option[IoTime], Columns)] =
     val links = layers.toSet.flatten
     val termNodes = links.map(_.trg) -- links.map(_.src)
 
     termNodes
-      .groupBy(_.time).toList.sortBy(_._1.value)
-      .map((t, cols) => t -> cols.toList.sortBy(_.mnId.value).map(id => List(srcNode(id))))
+      .groupBy(n => getIoTime(n)).toList.sortBy(_._1.getValue)
+      .map((t, cols) => t -> cols.toList.sortBy(_.mnId.value).map(id => List(renderSrc(id))))
 
-  private[repr] def formatLayers(layer: List[(IoTime, Columns)], addTime: Boolean): List[Rows] =
+  private[repr] def formatLayers(layer: List[(Option[IoTime], Columns)], addTime: Boolean): List[Rows] =
     val height = layer.flatMap(_._2.map(_.size)).maxOption.getOrElse(0)
     val width = layer.flatMap(_._2.flatMap(_.map(_.length))).maxOption.getOrElse(0)
 
-    val formattedRows: List[(IoTime, Rows)] = layer
+    val formattedRows: List[(Option[IoTime], Rows)] = layer
       .map((t, cols) => t -> cols.map(col => formatColumn(col, height, width)).transpose.map(_.mkString(" " * 2)))
 
     formattedRows.map: (t, rows) =>
-      val timeStr = if addTime then ":t" + t.value.toString else ""
+      val timeStr = if addTime then ":t" + t.map(_.value.toString).getOrElse("?") else ""
       val splitBar = (timeStr + ":" * (rows.size - timeStr.length)).take(rows.size)
       rows.zip(splitBar).map((row, s) => s.toString + " " + row)
 
@@ -84,19 +87,9 @@ trait DaGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       allRows = formatTimes(layerRows :+ terminalRow).tab2
     yield "ABSTRACT LAYERS:" +: (if allRows.isEmpty then List("  ---") else allRows)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
   lazy val repr: F[String] =
     for
       absLayers <- reprAbsLayers.map(_.tab2)

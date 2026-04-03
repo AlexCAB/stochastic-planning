@@ -17,7 +17,7 @@ import planning.engine.common.graph.paths.Path
 
 trait StructureReprBase[F[_]: MonadThrow]:
   import Path.{Direct, Loop, Noose}
-  
+
   type Column = List[String]
   type Rows = List[String]
   type Columns = List[Column]

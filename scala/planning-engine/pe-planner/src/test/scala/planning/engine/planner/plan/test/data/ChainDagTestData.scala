@@ -10,13 +10,13 @@
 | website: github.com/alexcab |||||
 | created: 2026-03-20 |||||||||||*/
 
-package planning.engine.planner.plan.dag
+package planning.engine.planner.plan.test.data
 
 import cats.effect.IO
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
-import planning.engine.planner.plan.test.data.DaGraphTestData
 import planning.engine.planner.plan.dag.nodes.DagNode
+import planning.engine.planner.plan.test.data.DaGraphTestData
 
 trait ChainDagTestData extends DaGraphTestData:
 
@@ -91,4 +91,24 @@ trait ChainDagTestData extends DaGraphTestData:
     makeDagEdgeThen(a2_2_2, a2_1_3)
   )
 
+  // The structure of chainDaGraph is:
+  //
+  //                Time 1                Time 2                 Time ?
+  // CONCRETE
+  //                [c_1_1] ───then───▶ [c_1_2] ───then───▶ [c_1_3]
+  //                   └────────then───▶ [c_2_2] ───then────▶──┘
+  //                   │                     │                 │
+  //                   │link                 │link             │link
+  //                   ▼                     ▼                 ▼
+  // ABSTRACT-1
+  //
+  //               (a1_1_1) ───then───▶ (a1_1_2) ───then───▶ (a1_1_3)
+  //               (a1_2_1) ───then───▶──┘   │  └───then───▶ (a1_2_3)
+  //                   │                     │                   │
+  //                   │link                 │link               │link
+  //                   ▼                     ▼                   ▼
+  // ABSTRACT-2
+  //               (a2_1_1) ───then───▶ (a2_1_2) ───then───▶ (a2_1_3)
+  //                  └─────────then───▶ (a2_2_2) ───then────▶──┘
+  //
   lazy val chainDaGraph = makeDaGraph(dagNodes, linkEdges ++ thenEdges)

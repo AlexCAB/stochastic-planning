@@ -24,7 +24,10 @@ import planning.engine.planner.plan.dag.nodes.DagNode
 
 trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   def makeConPnId(mnId: MnId.Con, count: Long = 0L): PnId.Con = PnId.Con(mnId, count)
+  def makeConPnId(mnId: Long): PnId.Con = makeConPnId(MnId.Con(mnId))
+
   def makeAbsPnId(mnId: MnId.Abs, count: Long = 0L): PnId.Abs = PnId.Abs(mnId, count)
+  def makeAbsPnId(mnId: Long): PnId.Abs = makeAbsPnId(MnId.Abs(mnId))
 
   def makeDagNode(id: PnId, time: Option[IoTime] = None, name: Option[String] = None): DagNode[IO] = new DagNode[IO](
     id = id,
@@ -42,11 +45,11 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   lazy val pnId5 = makeAbsPnId(mnId5, count = 3)
   lazy val pnId6 = makeAbsPnId(mnId6, count = 4)
 
-  lazy val allConPnIds: Set[PnId.Con] = Set(pnId1, pnId2)
-  lazy val allAbsPnIds: Set[PnId.Abs] = Set(pnId3, pnId4, pnId5)
+  lazy val allConPnIds: List[PnId.Con] = List(pnId1, pnId2)
+  lazy val allAbsPnIds: List[PnId.Abs] = List(pnId3, pnId4, pnId5, pnId6)
 
-  lazy val allConDagNodes: List[DagNode[IO]] = List(pnId1, pnId2).map(id => makeDagNode(id = id))
-  lazy val allAbsDagNodes: List[DagNode[IO]] = List(pnId3, pnId4, pnId5).map(id => makeDagNode(id = id))
+  lazy val allConDagNodes: List[DagNode[IO]] = allConPnIds.map(id => makeDagNode(id = id))
+  lazy val allAbsDagNodes: List[DagNode[IO]] = allAbsPnIds.map(id => makeDagNode(id = id))
 
   def makeDagEdgeLink(src: PnId, trg: PnId, samples: Iterable[(SampleId, IndexMap)] = Iterable.empty): DagEdge[IO] =
     new DagEdge[IO](PeKey.Link(src, trg), makeDcgEdgeLink(src.mnId, trg.mnId, samples))
@@ -69,4 +72,19 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   def makeDaGraph(nodes: Iterable[DagNode[IO]], edges: Iterable[DagEdge[IO]]): DaGraph[IO] =
     new DaGraph[IO](nodes = nodes.map(n => n.id -> n).toMap, edges = edges.map(e => e.key -> e).toMap)
 
-  lazy val simpleDaGraph = makeDaGraph(allConDagNodes ++ allAbsDagNodes, dagEdgesLink ++ dagEdgesThen)
+  lazy val allDagNodes = allConDagNodes ++ allAbsDagNodes
+  lazy val allDagEdges = dagEdgesLink ++ dagEdgesThen
+  
+  // The structure of simpleDaGraph is:
+  //
+  //  [pnId1] ───then───▶ [pnId2]
+  //     │                   │
+  //     │link               │link
+  //     ▼                   ▼
+  //  (pnId3) ───then───▶ (pnId4) ───then───▶ (pnId5)
+  //     │
+  //     │link
+  //     ▼
+  //  (pnId6)
+  //
+  lazy val simpleDaGraph = makeDaGraph(allDagNodes, allDagEdges)

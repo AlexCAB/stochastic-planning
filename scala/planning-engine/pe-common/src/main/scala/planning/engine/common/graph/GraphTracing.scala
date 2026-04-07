@@ -20,7 +20,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.node.MnId.Con
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.graph.paths.Path
+import planning.engine.common.graph.paths.MapPath
 
 import scala.annotation.tailrec
 
@@ -50,19 +50,19 @@ trait GraphTracing[F[_]: MonadThrow]:
 
     trace(conIds.map(_.asMnId), Set.empty, List.empty).map(_.reverse)
 
-  def traceThenPaths(beginHnIds: Set[MnId]): F[(Set[Path], Set[MnId])] =
-    def reduce(res: List[(Set[Path], Set[MnId])]): (Set[Path], Set[MnId]) =
+  def traceThenPaths(beginHnIds: Set[MnId]): F[(Set[MapPath], Set[MnId])] =
+    def reduce(res: List[(Set[MapPath], Set[MnId])]): (Set[MapPath], Set[MnId]) =
       res.reduce((a, b) => (a._1 ++ b._1, a._2 ++ b._2))
 
-    def trace(cur: MnId, vis: Set[MnId], acc: Vector[(MnId, Then.End)]): F[(Set[Path], Set[MnId])] =
+    def trace(cur: MnId, vis: Set[MnId], acc: Vector[(MnId, Then.End)]): F[(Set[MapPath], Set[MnId])] =
       srcThenMap.get(cur) match
         case None if acc.isEmpty => (Set(), vis + cur).pure // Single node with no outgoing THEN edges
-        case None                => Path.Direct(acc).map(ps => (Set(ps), vis + cur))
+        case None                => MapPath.Direct(acc).map(ps => (Set(ps), vis + cur))
 
         case Some(ends) if vis.contains(cur) && acc.headOption.exists(_._1 == cur) =>
-          Path.Loop(acc).map(ps => (Set(ps), vis)) // Is Loop if current node is visited and is start of the path
+          MapPath.Loop(acc).map(ps => (Set(ps), vis)) // Is Loop if current node is visited and is start of the path
 
-        case Some(ends) if vis.contains(cur) => Path.Noose(acc).map(ps => (Set(ps), vis))
+        case Some(ends) if vis.contains(cur) => MapPath.Noose(acc).map(ps => (Set(ps), vis))
 
         case Some(ends) => ends.toList
             .traverse(end => trace(end.id, vis + cur, acc :+ (cur, end)))
@@ -72,7 +72,7 @@ trait GraphTracing[F[_]: MonadThrow]:
       .traverse(id => trace(id, Set.empty, Vector.empty))
       .map(ps => if ps.nonEmpty then reduce(ps) else (Set.empty, Set.empty))
 
-  private[graph] def traceThenCyclesPaths(visited: Set[MnId], acc: Set[Path]): F[Set[Path]] =
+  private[graph] def traceThenCyclesPaths(visited: Set[MnId], acc: Set[MapPath]): F[Set[MapPath]] =
     val notVisited = mnIds -- visited
 
     if notVisited.isEmpty then acc.pure
@@ -80,7 +80,7 @@ trait GraphTracing[F[_]: MonadThrow]:
       traceThenPaths(Set(notVisited.minBy(_.value)))
         .flatMap((paths, vis) => traceThenCyclesPaths(visited ++ vis, acc ++ paths))
 
-  lazy val allThenPaths: F[Set[Path]] =
+  lazy val allThenPaths: F[Set[MapPath]] =
     for
       (rootedPaths, visited) <- traceThenPaths(thenRoots)
       cyclesPaths <- traceThenCyclesPaths(visited, Set.empty)

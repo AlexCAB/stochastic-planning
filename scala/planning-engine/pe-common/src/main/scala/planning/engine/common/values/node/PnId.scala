@@ -27,8 +27,8 @@ sealed trait PnId:
   lazy val reprCount: String = s"i=$count"
 
   lazy val repr: String = mnId match
-    case _: MnId.Con => s"[${mnId.reprValue}_$reprCount]"
-    case _: MnId.Abs => s"(${mnId.reprValue}_$reprCount)"
+    case _: MnId.Con => s"[${mnId.reprValue},$reprCount]"
+    case _: MnId.Abs => s"(${mnId.reprValue},$reprCount)"
 
   override def toString: String = repr
 

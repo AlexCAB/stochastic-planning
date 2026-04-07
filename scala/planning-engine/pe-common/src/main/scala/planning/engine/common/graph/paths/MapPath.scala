@@ -19,23 +19,23 @@ import planning.engine.common.graph.edges.MeKey.End
 import planning.engine.common.values.node.MnId
 import planning.engine.common.errors.*
 
-sealed trait Path:
+sealed trait MapPath:
   def walk: NonEmptyChain[(MnId, End)]
 
   lazy val begin: MnId = walk.head._1
   lazy val end: MnId = walk.last._2.id
 
   lazy val reprType: String = this match
-    case _: Path.Direct => "Direct"
-    case _: Path.Loop   => "Loop"
-    case _: Path.Noose  => "Noose"
+    case _: MapPath.Direct => "Direct"
+    case _: MapPath.Loop   => "Loop"
+    case _: MapPath.Noose  => "Noose"
 
   lazy val reprChain: String = s"${walk.head._1.reprNode}${walk.map(_._2.repr).toList.mkString("")}"
 
   override lazy val toString: String = s"$reprType(${reprChain})"
 
-object Path:
-  private[paths] def makePath[F[_]: MonadThrow, P <: Path](
+object MapPath:
+  private[paths] def makePath[F[_]: MonadThrow, P <: MapPath](
       walk: Vector[(MnId, End)],
       make: NonEmptyChain[(MnId, End)] => P
   ): F[P] =
@@ -45,17 +45,17 @@ object Path:
       list <- opList.map(_.pure).getOrElse(s"Path must contain at least one edge".assertionError)
     yield make.apply(list)
 
-  final case class Direct(walk: NonEmptyChain[(MnId, End)]) extends Path
+  final case class Direct(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Direct:
     def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Direct] = makePath(walk, Direct.apply)
 
-  final case class Loop(walk: NonEmptyChain[(MnId, End)]) extends Path
+  final case class Loop(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Loop:
     def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Loop] = makePath(walk, Loop.apply)
 
-  final case class Noose(walk: NonEmptyChain[(MnId, End)]) extends Path
+  final case class Noose(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Noose:
     def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Noose] = makePath(walk, Noose.apply)

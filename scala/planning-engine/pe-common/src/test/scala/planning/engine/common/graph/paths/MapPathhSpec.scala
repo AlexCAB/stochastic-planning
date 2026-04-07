@@ -19,7 +19,7 @@ import planning.engine.common.UnitSpecIO
 import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
 
-class PathSpec extends UnitSpecIO:
+class MapPathhSpec extends UnitSpecIO:
   lazy val n1: Abs = Abs(1L)
   lazy val n2: Con = Con(2L)
   lazy val n3: Con = Con(3L)
@@ -28,19 +28,19 @@ class PathSpec extends UnitSpecIO:
   lazy val correctWalk: Vector[(MnId, End)] = Vector((n1, Link.End(n2)), (n2, Then.End(n3)), (n3, Link.End(n4)))
   lazy val disruptWalk: Vector[(MnId, End)] = Vector((n1, Link.End(n2)), (n3, Link.End(n4)))
 
-  lazy val pathDirect = new Path.Direct(NonEmptyChain.fromSeq(correctWalk).get)
-  lazy val pathLoop = new Path.Loop(NonEmptyChain.fromSeq(correctWalk).get)
-  lazy val pathNoose = new Path.Noose(NonEmptyChain.fromSeq(correctWalk).get)
+  lazy val pathDirect = new MapPath.Direct(NonEmptyChain.fromSeq(correctWalk).get)
+  lazy val pathLoop = new MapPath.Loop(NonEmptyChain.fromSeq(correctWalk).get)
+  lazy val pathNoose = new MapPath.Noose(NonEmptyChain.fromSeq(correctWalk).get)
 
-  "Path.begin" should:
+  "MapPath.begin" should:
     "return source MnId of the first edge" in: _ =>
       pathDirect.begin mustBe n1
 
-  "Path.end" should:
+  "MapPath.end" should:
     "return target MnId of the last edge" in: _ =>
       pathDirect.end mustBe n4
 
-  "Path.reprType" should:
+  "MapPath.reprType" should:
     "return 'Direct' for Direct path" in: _ =>
       pathDirect.reprType mustBe "Direct"
 
@@ -50,30 +50,30 @@ class PathSpec extends UnitSpecIO:
     "return 'Noose' for Noose path" in: _ =>
       pathNoose.reprType mustBe "Noose"
 
-  "Path.reprChain" should:
+  "MapPath.reprChain" should:
     "return a string representation of the path chain" in: _ =>
       pathDirect.reprChain mustBe "(1)==>[2]-->[3]==>(4)"
 
-  "Path.makePath" should:
+  "MapPath.makePath" should:
     "create a Path if the walk is continuous" in: _ =>
-      Path.makePath[IO, Path.Direct](correctWalk, Path.Direct.apply).asserting(_ mustBe pathDirect)
+      MapPath.makePath[IO, MapPath.Direct](correctWalk, MapPath.Direct.apply).asserting(_ mustBe pathDirect)
 
     "fail if the walk is not continuous" in: _ =>
-      Path.makePath[IO, Path.Direct](disruptWalk, Path.Direct.apply)
+      MapPath.makePath[IO, MapPath.Direct](disruptWalk, MapPath.Direct.apply)
         .assertThrowsError[AssertionError](_.getMessage must include("Path must be continuous"))
 
     "fail if the walk is empty" in: _ =>
-      Path.makePath[IO, Path.Direct](Vector.empty, Path.Direct.apply)
+      MapPath.makePath[IO, MapPath.Direct](Vector.empty, MapPath.Direct.apply)
         .assertThrowsError[AssertionError](_.getMessage must include("Path must contain at least one edge"))
 
-  "Path.Direct.apply(...)" should:
+  "MapPath.Direct.apply(...)" should:
     "create a Direct path if the walk is continuous" in: _ =>
-      Path.Direct[IO](correctWalk).asserting(_ mustBe pathDirect)
+      MapPath.Direct[IO](correctWalk).asserting(_ mustBe pathDirect)
 
-  "Path.Loop.apply(...)" should:
+  "MapPath.Loop.apply(...)" should:
     "create a Loop path if the walk is continuous" in: _ =>
-      Path.Loop[IO](correctWalk).asserting(_ mustBe pathLoop)
+      MapPath.Loop[IO](correctWalk).asserting(_ mustBe pathLoop)
 
-  "Path.Noose.apply(...)" should:
+  "MapPath.Noose.apply(...)" should:
     "create a Noose path if the walk is continuous" in: _ =>
-      Path.Noose[IO](correctWalk).asserting(_ mustBe pathNoose)
+      MapPath.Noose[IO](correctWalk).asserting(_ mustBe pathNoose)

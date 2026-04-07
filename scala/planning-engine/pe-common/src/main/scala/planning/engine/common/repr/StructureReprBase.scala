@@ -13,10 +13,10 @@
 package planning.engine.common.repr
 
 import cats.MonadThrow
-import planning.engine.common.graph.paths.Path
+import planning.engine.common.graph.paths.MapPath
 
 trait StructureReprBase[F[_]: MonadThrow]:
-  import Path.{Direct, Loop, Noose}
+  import MapPath.{Direct, Loop, Noose}
 
   type Column = List[String]
   type Rows = List[String]
@@ -36,13 +36,13 @@ trait StructureReprBase[F[_]: MonadThrow]:
   protected def renderLayerRepr(layers: List[Rows]): List[String] = layers
     .map(_.tab2).zipWithIndex.flatMap((ls, i) => s"Layer $i:" +: ls)
 
-  protected def groupPaths(paths: Set[Path]): (List[Direct], List[Loop], List[Noose]) = paths
+  protected def groupPaths(paths: Set[MapPath]): (List[Direct], List[Loop], List[Noose]) = paths
     .foldLeft((List[Direct](), List[Loop](), List[Noose]())):
       case ((ds, ls, ns), d: Direct) => (d +: ds, ls, ns)
       case ((ds, ls, ns), l: Loop)   => (ds, l +: ls, ns)
       case ((ds, ls, ns), n: Noose)  => (ds, ls, n +: ns)
 
-  protected def renderPathRepr(paths: List[Path]): List[String] =
+  protected def renderPathRepr(paths: List[MapPath]): List[String] =
     if paths.isEmpty then List("---")
     else paths.sortBy(_.walk.length).reverse.map(_.reprChain)
 

@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.effect.cps.async
 import planning.engine.common.UnitSpecWithData
-import planning.engine.planner.plan.dag.ChainDagTestData
+import planning.engine.planner.plan.test.data.ChainDagTestData
 
 class DaGraphReprSpec extends UnitSpecWithData:
 

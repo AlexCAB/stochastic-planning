@@ -38,6 +38,10 @@ class DagEdgeSpec extends UnitSpecWithData:
       data.linkEdge.isThen.pure[IO].logValue(tn).asserting(_ mustBe false)
       data.thenEdge.isThen.pure[IO].logValue(tn).asserting(_ mustBe true)
 
+  "DagEdge.pnIds" should:
+    "return set of source and target PnIds" in newCase[CaseData]: (tn, data) =>
+      data.linkEdge.pnIds.pure[IO].logValue(tn).asserting(_ mustBe Set(data.pnId1, data.pnId3))
+  
   "DagEdge.apply(...)" should:
     "create DagEdge if PeKey and DcgEdge MnIds match" in newCase[CaseData]: (tn, data) =>
       import data.*

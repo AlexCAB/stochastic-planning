@@ -16,6 +16,7 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.assertEqual
 import planning.engine.common.graph.edges.PeKey
+import planning.engine.common.values.node.PnId
 import planning.engine.planner.map.dcg.edges.DcgEdge
 
 final case class DagEdge[F[_]: MonadThrow](
@@ -24,6 +25,7 @@ final case class DagEdge[F[_]: MonadThrow](
 ):
   lazy val isLink: Boolean = dcgEdge.key.isLink
   lazy val isThen: Boolean = dcgEdge.key.isThen
+  lazy val pnIds: Set[PnId] = Set(key.src, key.trg)
 
   override lazy val toString: String = s"${key.src.repr}${dcgEdge.key.reprArrow}${key.trg.repr}"
 

@@ -55,6 +55,10 @@ final case class DaGraph[F[_]: MonadThrow](
 
   lazy val srcThenMap: Map[PnId, Set[Then]] = makeSrcMap[Then](thenEdges)
   lazy val trgThenMap: F[Map[PnId, Then]] = makeTrgThenMap(thenEdges)
+  
+  // Return nodes that have outcoming THEN edges and not have incoming THEN edges (not include nodes 
+  // with no THEN edges at all), so they are roots of THEN forest in the graph.
+  lazy val thenRoots: F[Set[PnId]] = trgThenMap.map(tMap => srcThenMap.keySet -- tMap.keySet)
 
   private[dag] def findInEdgeMap[K <: PeKey](ids: Set[PnId], edgeMap: Map[PnId, Set[K]]): Set[K] =
     ids.flatMap(id => edgeMap.get(id).toSet.flatten)
@@ -72,4 +76,11 @@ final case class DaGraph[F[_]: MonadThrow](
     trace(conIds.map(_.asPnId), Set.empty, List.empty).map(_.reverse)
 
 object DaGraph:
-  def empty[F[_]: MonadThrow]: DaGraph[F] = DaGraph(Map.empty, Map.empty)
+  def empty[F[_]: MonadThrow]: DaGraph[F] = new DaGraph(Map.empty, Map.empty)
+
+  def apply[F[_]: MonadThrow](nodes: Map[PnId, DagNode[F]], edges: Map[PeKey, DagEdge[F]]): F[DaGraph[F]] =
+    for
+      pnIds <- nodes.keySet.pure
+      _ <- pnIds.assertSameElems(nodes.values.map(_.id), "Nodes map keys and values IDs mismatch")
+      _ <- pnIds.assertContainsAllOf(edges.values.flatMap(_.pnIds), "Edge refers to unknown PnId")
+    yield new DaGraph(nodes, edges)

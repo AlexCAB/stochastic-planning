@@ -17,7 +17,7 @@ import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.graph.paths.Path
+import planning.engine.common.graph.paths.MapPath
 import planning.engine.common.values.node.MnId
 
 class GraphTracingSpec extends UnitSpecWithData:
@@ -63,12 +63,12 @@ class GraphTracingSpec extends UnitSpecWithData:
       import data.*
       async[IO]:
         simpleGraph.traceThenPaths(Set(c1)).await mustBe (
-          Set(Path.Direct(pathWalk(Then(c1, c2))), Path.Direct(pathWalk(Then(c1, c3)))),
+          Set(MapPath.Direct(pathWalk(Then(c1, c2))), MapPath.Direct(pathWalk(Then(c1, c3)))),
           Set(c1, c2, c3)
         )
 
         complexGraph.traceThenPaths(Set(c1)).await mustBe (
-          Set(Path.Direct(pathWalk(Then(c1, c2), Then(c2, c3)))),
+          Set(MapPath.Direct(pathWalk(Then(c1, c2), Then(c2, c3)))),
           Set(c1, c2, c3)
         )
 
@@ -76,7 +76,7 @@ class GraphTracingSpec extends UnitSpecWithData:
       import data.*
       async[IO]:
         cycleGraph.traceThenPaths(Set(c1)).await mustBe (
-          Set(Path.Loop(pathWalk(Then(c1, c2), Then(c2, c1)))),
+          Set(MapPath.Loop(pathWalk(Then(c1, c2), Then(c2, c1)))),
           Set(c1, c2)
         )
 
@@ -85,8 +85,8 @@ class GraphTracingSpec extends UnitSpecWithData:
       async[IO]:
         nooseGraph.traceThenPaths(Set(c1)).await mustBe (
           Set(
-            Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
-            Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2)))
+            MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
+            MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2)))
           ),
           Set(c1, c2, c3)
         )
@@ -96,22 +96,22 @@ class GraphTracingSpec extends UnitSpecWithData:
       import data.*
       async[IO]:
         nooseGraph.traceThenCyclesPaths(visited = Set(c1), acc = Set()).await mustBe Set(
-          Path.Loop(pathWalk(Then(c2, c3), Then(c3, c2))),
-          Path.Noose(pathWalk(Then(c2, c3), Then(c3, c3)))
+          MapPath.Loop(pathWalk(Then(c2, c3), Then(c3, c2))),
+          MapPath.Noose(pathWalk(Then(c2, c3), Then(c3, c3)))
         )
 
   "GraphStructure.allThenPaths" should:
     "trace all THEN paths in the graph" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val paths: Set[Path] = thenPathExamplesGraph.allThenPaths.await
+        val paths: Set[MapPath] = thenPathExamplesGraph.allThenPaths.await
         logInfo(tn, s"thenRoots = ${thenPathExamplesGraph.thenRoots}, paths:\n${paths.mkString("\n")}").await
 
         paths mustBe Set(
-          Path.Direct(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, a4))),
-          Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
-          Path.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2))),
-          Path.Loop(pathWalk(Then(a5, a5))),
-          Path.Loop(pathWalk(Then(a6, a7), Then(a7, a8), Then(a8, a6))),
-          Path.Loop(pathWalk(Then(a6, a7), Then(a7, a9), Then(a9, a8), Then(a8, a6)))
+          MapPath.Direct(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, a4))),
+          MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
+          MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2))),
+          MapPath.Loop(pathWalk(Then(a5, a5))),
+          MapPath.Loop(pathWalk(Then(a6, a7), Then(a7, a8), Then(a8, a6))),
+          MapPath.Loop(pathWalk(Then(a6, a7), Then(a7, a9), Then(a9, a8), Then(a8, a6)))
         )

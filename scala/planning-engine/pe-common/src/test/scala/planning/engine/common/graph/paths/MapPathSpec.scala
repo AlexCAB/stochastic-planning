@@ -19,7 +19,7 @@ import planning.engine.common.UnitSpecIO
 import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
 
-class MapPathhSpec extends UnitSpecIO:
+class MapPathSpec extends UnitSpecIO:
   lazy val n1: Abs = Abs(1L)
   lazy val n2: Con = Con(2L)
   lazy val n3: Con = Con(3L)

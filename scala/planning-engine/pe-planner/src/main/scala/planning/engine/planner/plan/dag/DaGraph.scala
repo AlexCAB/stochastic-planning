@@ -21,6 +21,7 @@ import planning.engine.planner.plan.dag.nodes.DagNode
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.PeKey
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
+import planning.engine.common.graph.trees.PlanTree
 import planning.engine.planner.plan.repr.DaGraphRepr
 
 import scala.annotation.tailrec
@@ -55,8 +56,8 @@ final case class DaGraph[F[_]: MonadThrow](
 
   lazy val srcThenMap: Map[PnId, Set[Then]] = makeSrcMap[Then](thenEdges)
   lazy val trgThenMap: F[Map[PnId, Then]] = makeTrgThenMap(thenEdges)
-  
-  // Return nodes that have outcoming THEN edges and not have incoming THEN edges (not include nodes 
+
+  // Return nodes that have outcoming THEN edges and not have incoming THEN edges (not include nodes
   // with no THEN edges at all), so they are roots of THEN forest in the graph.
   lazy val thenRoots: F[Set[PnId]] = trgThenMap.map(tMap => srcThenMap.keySet -- tMap.keySet)
 
@@ -68,12 +69,36 @@ final case class DaGraph[F[_]: MonadThrow](
       val forward = findInEdgeMap(next, srcLinkMap)
       val intersect = visited.intersect(forward)
 
-      if intersect.nonEmpty then s"Cycle detected on: $intersect".assertionError
-      else if !forward.forall(_.trg.mnId.isAbs) then s"Found LINK pointed on concrete node $forward".assertionError
-      else if forward.isEmpty then acc.pure
-      else trace(forward.map(_.trg), visited ++ forward, forward +: acc)
+      (forward, intersect) match
+        case (_, int) if int.nonEmpty                  => s"Cycle detected on: $intersect".assertionError
+        case (frw, _) if !frw.forall(_.trg.mnId.isAbs) => s"Found LINK pointed on concrete node $frw".assertionError
+        case (frw, _) if frw.isEmpty                   => acc.pure
+        case (frw, _)                                  => trace(forward.map(_.trg), visited ++ forward, forward +: acc)
 
     trace(conIds.map(_.asPnId), Set.empty, List.empty).map(_.reverse)
+
+  def tracePlanTree(rootId: PnId): F[PlanTree] =
+    import PlanTree.*
+
+    def fork[N <: Node](current: N, forward: Set[Then], visited: Set[Then]): F[(N, List[Node])] = forward.toList
+      .traverse:
+        case edge if edge.src == current.pnId => trace(current, edge.trg, visited + edge)
+        case e => s"Invalid THEN edge $e, expected src: ${current.pnId}, found: ${e.src}".assertionError
+      .map(next => (current, next))
+
+    def trace(prev: Node, curId: PnId, visited: Set[Then]): F[Node] =
+      val forward = srcThenMap.getOrElse(curId, Set.empty)
+      val intersect = visited.intersect(forward)
+
+      (forward, intersect) match
+        case (_, int) if int.nonEmpty => s"Cycle detected on: $int".assertionError
+        case (frw, _) if frw.isEmpty  => Leaf(prev, curId).pure
+        case (frw, _) => fork(Vertex(prev, List.empty, curId), frw, visited).map((c, ns) => c.copy(next = ns))
+
+    fork(Root(List.empty, rootId), srcThenMap.getOrElse(rootId, Set.empty), Set.empty)
+      .map((r, ns) => PlanTree(r.copy(next = ns)))
+
+  def tracePlanForest(rootIds: Set[PnId]): F[List[PlanTree]] = rootIds.toList.traverse(tracePlanTree)
 
 object DaGraph:
   def empty[F[_]: MonadThrow]: DaGraph[F] = new DaGraph(Map.empty, Map.empty)

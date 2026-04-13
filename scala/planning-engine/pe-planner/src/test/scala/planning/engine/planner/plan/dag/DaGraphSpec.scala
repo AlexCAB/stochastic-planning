@@ -17,13 +17,17 @@ import cats.syntax.all.*
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
+import planning.engine.common.graph.trees.PlanTree
+import planning.engine.common.graph.trees.PlanTree.Vertex
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.plan.dag.nodes.DagNode
 import planning.engine.planner.plan.test.data.DaGraphTestData
 
 class DaGraphSpec extends UnitSpecWithData:
 
-  private class CaseData extends Case with DaGraphTestData
+  private class CaseData extends Case with DaGraphTestData:
+    lazy val pnId1PlanTree = PlanTree(Vertex(List(Vertex(List.empty, pnId2)), pnId1))
+    lazy val pnId3PlanTree = PlanTree(Vertex(List(Vertex(List(Vertex(List.empty, pnId5)), pnId4)), pnId3))
 
   "DaGraph.linkEdges" should:
     "return link edges" in newCase[CaseData]: (tn, data) =>
@@ -155,6 +159,22 @@ class DaGraphSpec extends UnitSpecWithData:
 
       invalidDaGraph.traceAbsDagLayers(Set(pnId1)).logValue(tn)
         .assertThrowsError(_.getMessage must include("Found LINK pointed on concrete node"))
+
+  "DaGraph.tracePlanTree(...)" should:
+    "trace simple plan tree" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val planTree = simpleDaGraph.tracePlanTree(pnId3).await
+        logInfo(tn, s"Traced plan tree:\n$planTree").await
+        planTree mustBe pnId3PlanTree
+
+  "DaGraph.tracePlanForest(...)" should:
+    "trace simple plan forest" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val planForest = simpleDaGraph.tracePlanForest(Set(pnId1, pnId3)).await
+        logInfo(tn, s"Traced plan forest:\n${planForest.mkString("\n")}").await
+        planForest.toSet mustBe Set(pnId1PlanTree, pnId3PlanTree)
 
   "DaGraph.empty" should:
     "return empty DaGraph" in newCase[CaseData]: (tn, data) =>

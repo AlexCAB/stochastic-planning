@@ -84,15 +84,19 @@ trait DaGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       layers <- traceAbsDagLayers(self.conPnId)
       layerRows = layers.map(buildLayerRepr).zipWithIndex.map((l, i) => formatLayers(l, i == 0))
       terminalRow = formatLayers(builtTerminalLayer(layers), addTime = false)
-      allRows = formatTimes(layerRows :+ terminalRow).tab2
-    yield "ABSTRACT LAYERS:" +: (if allRows.isEmpty then List("  ---") else allRows)
+    yield formatTimes(layerRows :+ terminalRow)
 
-  
-  
-  
+  lazy val reprPlanForest: F[List[String]] =
+    for
+      roots <- thenRoots
+      forest <- tracePlanForest(roots).map(_.sortBy(_.root.pnId.count))
+    yield forest.flatMap(_.buildRepr(renderSrc, "-->"))
+
   lazy val repr: F[String] =
     for
-      absLayers <- reprAbsLayers.map(_.tab2)
-      // planningPath <- reprPlanningPath.map(_.tab2)
+      absLayers <- reprAbsLayers.map(_.tab4)
+      absLayersChapter = "  ABSTRACT LAYERS:" +: (if absLayers.isEmpty then List("  ---") else absLayers)
+      planForest <- reprPlanForest.map(_.tab4)
+      planForestChapter = "  PLAN FOREST:" +: (if planForest.isEmpty then List("  ---") else planForest)
       header = s"DaGraph(${nodes.size} nodes, ${edges.size} edges):"
-    yield (header +: absLayers /*++ planningPath ++ reprNotConnectedNodes */ ).mkString("\n")
+    yield (header +: (absLayersChapter ++ planForestChapter)).mkString("\n")

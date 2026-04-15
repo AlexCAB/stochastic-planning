@@ -73,42 +73,44 @@ trait ChainDagTestData extends DaGraphTestData:
     makeDagEdgeLink(c_1_3, a1_1_3),
     makeDagEdgeLink(c_1_3, a1_2_3),
     makeDagEdgeLink(a1_1_3, a2_1_3),
-    makeDagEdgeLink(a1_2_3, a2_1_3)
+    makeDagEdgeLink(a1_2_3, a2_1_3),
   )
 
   lazy val thenEdges = List(
     makeDagEdgeThen(c_1_1, c_1_2),
-    makeDagEdgeThen(c_1_1, c_2_2),
     makeDagEdgeThen(c_1_2, c_1_3),
-    makeDagEdgeThen(c_2_2, c_1_3),
+    makeDagEdgeThen(c_1_1, c_2_2),
+    makeDagEdgeThen(c_1_1, a1_1_1),
     makeDagEdgeThen(a1_1_1, a1_1_2),
-    makeDagEdgeThen(a1_2_1, a1_1_2),
     makeDagEdgeThen(a1_1_2, a1_1_3),
-    makeDagEdgeThen(a1_1_2, a1_2_3),
+    makeDagEdgeThen(a1_2_1, a2_1_1),
+    makeDagEdgeThen(a1_2_1, a2_1_1),
     makeDagEdgeThen(a2_1_1, a2_1_2),
-    makeDagEdgeThen(a2_1_1, a2_2_2),
     makeDagEdgeThen(a2_1_2, a2_1_3),
-    makeDagEdgeThen(a2_2_2, a2_1_3)
+    makeDagEdgeThen(a2_1_1, a2_2_2),
   )
 
   // The structure of chainDaGraph is:
   //
-  //                Time 1                Time 2                 Time ?
+  //                  Time 1                     Time 2                     Time ?
   // CONCRETE
-  //                [c_1_1] ───then───▶ [c_1_2] ───then───▶ [c_1_3]
-  //                   └────────then───▶ [c_2_2] ───then────▶──┘
-  //                   │                     │                 │
-  //                   │link                 │link             │link
-  //                   ▼                     ▼                 ▼
+  //                  [c_1_1] ──────then──────▶ [c_1_2] ──────then──────▶ [c_1_3]
+  //                     └───────────then──────▶ [c_2_2]                     │
+  //                     │                          │                        │
+  //                     │link,then                 │link                    │link
+  //                     ▼                          ▼                        ▼
   // ABSTRACT-1
-  //
-  //               (a1_1_1) ───then───▶ (a1_1_2) ───then───▶ (a1_1_3)
-  //               (a1_2_1) ───then───▶──┘   │  └───then───▶ (a1_2_3)
-  //                   │                     │                   │
-  //                   │link                 │link               │link
-  //                   ▼                     ▼                   ▼
+  //                 (a1_1_1) ─────then─────▶ (a1_1_2) ──────then──────▶ (a1_1_3)
+  //                 (a1_2_1)                                            (a1_2_3)
+  //                     │                          │                        │
+  //                     │link,then                 │link                    │link
+  //                     ▼                          ▼                        ▼
   // ABSTRACT-2
-  //               (a2_1_1) ───then───▶ (a2_1_2) ───then───▶ (a2_1_3)
-  //                  └─────────then───▶ (a2_2_2) ───then────▶──┘
+  //                 (a2_1_1) ─────then─────▶ (a2_1_2) ──────then──────▶ (a2_1_3)
+  //                    └───────────then─────▶ (a2_2_2)
+  //
+  //  Additional link edges not shown above:
+  //    c_1_1 ──link──▶ a1_2_1, a1_1_2    c_2_2 ──link──▶ a1_1_2    c_1_3 ──link──▶ a1_2_3
+  //    a1_2_1 ──link──▶ a2_1_1    a1_1_2 ──link──▶ a2_2_2, a2_1_3    a1_2_3 ──link──▶ a2_1_3
   //
   lazy val chainDaGraph = makeDaGraph(dagNodes, linkEdges ++ thenEdges)

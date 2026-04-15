@@ -80,12 +80,6 @@ final case class DaGraph[F[_]: MonadThrow](
   def tracePlanTree(rootId: PnId): F[PlanTree] =
     import PlanTree.*
 
-//    def fork(curId: PnId, forward: Set[Then], visited: Set[Then]): F[Vertex] = forward.toList
-//      .traverse:
-//        case edge if edge.src == curId => trace(edge.trg, visited + edge)
-//        case e => s"Invalid THEN edge $e, expected src: $curId, found: ${e.src}".assertionError
-//      .map(next => (current, next))
-
     def trace(curId: PnId, visited: Set[Then]): F[Vertex] =
       val forward = srcThenMap.getOrElse(curId, Set.empty)
       val intersect = visited.intersect(forward)
@@ -100,12 +94,7 @@ final case class DaGraph[F[_]: MonadThrow](
               case e => s"Invalid THEN edge $e, expected src: $curId, found: ${e.src}".assertionError
             .map(next => Vertex(next, curId))
 
-//          fork(Vertex(prev, List.empty, curId), frw, visited).map((c, ns) => c.copy(next = ns))
-
     trace(rootId, Set.empty).map(v => PlanTree(v))
-
-//    fork(Root(List.empty, rootId), srcThenMap.getOrElse(rootId, Set.empty), Set.empty)
-//      .map((r, ns) => PlanTree(r.copy(next = ns)))
 
   def tracePlanForest(rootIds: Set[PnId]): F[List[PlanTree]] = rootIds.toList.traverse(tracePlanTree)
 

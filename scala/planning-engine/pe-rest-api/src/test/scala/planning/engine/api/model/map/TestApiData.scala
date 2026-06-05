@@ -19,7 +19,7 @@ import planning.engine.api.model.map.payload.*
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{MeKey, Indexies}
+import planning.engine.common.graph.edges.{Indexies, MeKey}
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
@@ -32,11 +32,11 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
-import planning.engine.planner.map.dcg.DcGraph
-import planning.engine.planner.map.dcg.nodes.*
-import planning.engine.planner.map.dcg.edges.{DcgEdge, DcgSamples}
-import planning.engine.planner.map.dcg.samples.DcgSample
-import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
+import planning.engine.planner.gsi.map.dcg.DcGraph
+import planning.engine.planner.gsi.map.dcg.edges.{DcgEdge, DcgSamples}
+import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
+import planning.engine.planner.gsi.map.dcg.samples.DcgSample
+import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 
 trait TestApiData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

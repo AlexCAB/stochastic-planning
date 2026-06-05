@@ -15,7 +15,7 @@ package planning.engine.api.model.visualization
 import io.circe.{Encoder, Decoder}
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
-import planning.engine.planner.map.state.{MapGraphState, MapInfoState}
+import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 
 final case class MapVisualizationMsg(
     inNodes: Set[IoName],

@@ -23,7 +23,7 @@ import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.MapInMemService
 import planning.engine.api.service.visualization.VisualizationService
-import planning.engine.planner.map.MapInMem
+import planning.engine.planner.gsi.map.MapInMem
 
 object MainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =

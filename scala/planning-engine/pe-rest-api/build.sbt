@@ -18,6 +18,7 @@ val circeVersion = "0.14.15"
 // Subprojects settings
 
 name := "pe-rest-api"
+description := "Rest API for integration with Python tools"
 version := "0.0.0-SNAPSHOT"
 
 Test / fork := true

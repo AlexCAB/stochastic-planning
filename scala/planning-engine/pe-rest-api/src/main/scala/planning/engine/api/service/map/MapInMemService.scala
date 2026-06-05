@@ -19,8 +19,8 @@ import planning.engine.api.model.map.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
-import planning.engine.planner.map.MapInMemLike
 import planning.engine.common.errors.*
+import planning.engine.planner.gsi.map.MapInMemLike
 
 class MapInMemService[F[_]: {Async, LoggerFactory}](map: MapInMemLike[F])
     extends MapServiceBase[F] with MapServiceLike[F]:

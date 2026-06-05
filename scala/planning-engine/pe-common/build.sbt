@@ -29,6 +29,7 @@ val scalamockVersion = "7.5.2"
 // Subprojects settings
 
 name := "pe-common"
+description := "Common definition for all subprojects"
 version := "0.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(

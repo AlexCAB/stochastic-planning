@@ -17,6 +17,7 @@
 // Subprojects settings
 
 name := "pe-map"
+description := "Neo4j based map implementation"
 version := "0.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(

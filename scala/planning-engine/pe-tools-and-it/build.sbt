@@ -17,6 +17,7 @@
 // Subprojects settings
 
 name := "pe-tools-and-it"
+description := "Tools, utils and integration tests"
 version := "0.0.0-SNAPSHOT"
 
 

@@ -19,8 +19,8 @@ import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
-import planning.engine.planner.map.MapInMemLike
-import planning.engine.planner.map.dcg.samples.DcgSample
+import planning.engine.planner.gsi.map.MapInMemLike
+import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
 class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 

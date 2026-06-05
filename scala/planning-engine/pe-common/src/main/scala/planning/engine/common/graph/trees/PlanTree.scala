@@ -33,8 +33,7 @@ final case class PlanTree(root: Vertex):
 
     trace(root, "")
 
-  override lazy val toString: String =
-    "PlanTree:\n" + buildRepr(_.repr, "-->").map(l => "  " + l).mkString("\n")
+  override lazy val toString: String = "PlanTree:\n" + buildRepr(_.repr, "-->").map(l => "  " + l).mkString("\n")
 
 object PlanTree:
   final case class Vertex(next: List[Vertex], pnId: PnId)

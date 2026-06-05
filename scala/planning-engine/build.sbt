@@ -12,7 +12,7 @@
 
 // Common settings
 
-ThisBuild / scalaVersion := "3.7.0"
+ThisBuild / scalaVersion := "3.8.3"
 ThisBuild / scalacOptions ++= Seq(
   "-encoding",
   "utf8",
@@ -20,14 +20,14 @@ ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-feature",
   "-Wunused:imports",
-  "-Xfatal-warnings",
+  "-Werror",
   "-Wshadow:type-parameter-shadow"
 )
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
-// Projects settings
+// Sub-projects settings
 
 lazy val common = project in file("pe-common")
 
@@ -36,7 +36,13 @@ lazy val map = (project in file("pe-map"))
     common % "compile->compile;test->test"
   )
 
-lazy val planner = (project in file("pe-planner"))
+lazy val planner_gsi = (project in file("pe-planner-gsi"))
+  .dependsOn(
+    common % "compile->compile;test->test",
+    map % "compile->compile;test->test"
+  )
+
+lazy val planner_mpi = (project in file("pe-planner-mpi"))
   .dependsOn(
     common % "compile->compile;test->test",
     map % "compile->compile;test->test"
@@ -45,7 +51,8 @@ lazy val planner = (project in file("pe-planner"))
 lazy val api = (project in file("pe-rest-api"))
   .dependsOn(
     common % "compile->compile;test->test",
-    planner % "compile->compile;test->test",
+    planner_gsi % "compile->compile;test->test",
+    planner_mpi % "compile->compile;test->test",
     map % "compile->compile;test->test"
   )
 
@@ -53,10 +60,13 @@ lazy val itAndTools = (project in file("pe-tools-and-it"))
   .dependsOn(
     common % "compile->compile;test->test",
     map % "compile->compile;test->test",
-    planner % "compile->compile;test->test",
+    planner_gsi % "compile->compile;test->test",
+    planner_mpi % "compile->compile;test->test",
     api % "compile->compile;test->test"
   )
 
+// Root project settings
+
 lazy val root = project
   .in(file("."))
-  .aggregate(common, map, api, itAndTools)
+  .aggregate(common, map, planner_gsi, planner_mpi, api, itAndTools)

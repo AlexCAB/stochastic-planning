@@ -1,0 +1,109 @@
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 2026-03-12 |||||||||||*/
+
+package planning.engine.planner.gsi.plan.dag
+
+import cats.MonadThrow
+import cats.syntax.all.*
+import planning.engine.common.values.node.PnId
+import planning.engine.common.values.node.PnId.Con
+import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.PeKey
+import planning.engine.common.graph.edges.PeKey.{Link, Then}
+import planning.engine.common.graph.trees.PlanTree
+import planning.engine.planner.gsi.plan.dag.edges.DagEdge
+import planning.engine.planner.gsi.plan.dag.nodes.DagNode
+import planning.engine.planner.gsi.plan.repr.DaGraphRepr
+
+import scala.annotation.tailrec
+
+// Planning DAG, here algorithms for building and tracing (similar to GraphStructure[F])
+// It represent whole general plan-graph structure, so context node and plan node are together in this graph.
+final case class DaGraph[F[_]: MonadThrow](
+    nodes: Map[PnId, DagNode[F]],
+    edges: Map[PeKey, DagEdge[F]]
+) extends DaGraphRepr[F]:
+
+  lazy val conPnId: Set[PnId.Con] = nodes.keySet.filterCon
+  lazy val absPnId: Set[PnId.Abs] = nodes.keySet.filterAbs
+
+  private[dag] lazy val linkEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isLink)
+  private[dag] lazy val thenEdges: Iterable[DagEdge[F]] = edges.values.filter(_.isThen)
+
+  private[dag] def makeSrcMap[K <: PeKey](edges: Iterable[DagEdge[F]]): Map[PnId, Set[K]] =
+    edges.groupBy(_.key.src).map((k, vs) => k -> vs.map(_.key.asInstanceOf[K]).toSet)
+
+  private[dag] def makeTrgLinkMap(edges: Iterable[DagEdge[F]]): Map[PnId, Set[Link]] =
+    edges.groupBy(_.key.trg).map((k, vs) => k -> vs.map(_.key.asInstanceOf[Link]).toSet)
+
+  private[dag] def makeTrgThenMap(edges: Iterable[DagEdge[F]]): F[Map[PnId, Then]] =
+    edges.groupBy(_.key.trg).foldLeft(Map[PnId, Then]().pure):
+      case (acc, (trg, vs)) if vs.size == 1 && vs.head.isThen => acc.map(_ + (trg -> vs.head.key.asInstanceOf[Then]))
+      case (acc, (trg, vs)) if vs.size == 1 => acc // If it's not THEN edge, we can ignore it for THEN map
+      case (acc, (trg, vs)) => s"Planning DAG need to be a forest, found joint link at trg: $trg".assertionError
+
+  lazy val srcLinkMap: Map[PnId, Set[Link]] = makeSrcMap[Link](linkEdges)
+  lazy val trgLinkMap: Map[PnId, Set[Link]] = makeTrgLinkMap(linkEdges)
+
+  lazy val srcThenMap: Map[PnId, Set[Then]] = makeSrcMap[Then](thenEdges)
+  lazy val trgThenMap: F[Map[PnId, Then]] = makeTrgThenMap(thenEdges)
+
+  // Return nodes that have outcoming THEN edges and not have incoming THEN edges (not include nodes
+  // with no THEN edges at all), so they are roots of THEN forest in the graph.
+  lazy val thenRoots: F[Set[PnId]] = trgThenMap.map(tMap => srcThenMap.keySet -- tMap.keySet)
+
+  private[dag] def findInEdgeMap[K <: PeKey](ids: Set[PnId], edgeMap: Map[PnId, Set[K]]): Set[K] =
+    ids.flatMap(id => edgeMap.get(id).toSet.flatten)
+
+  def traceAbsDagLayers(conIds: Set[Con]): F[List[Set[Link]]] =
+    @tailrec def trace(next: Set[PnId], visited: Set[Link], acc: List[Set[Link]]): F[List[Set[Link]]] =
+      val forward = findInEdgeMap(next, srcLinkMap)
+      val intersect = visited.intersect(forward)
+
+      (forward, intersect) match
+        case (_, int) if int.nonEmpty                  => s"Cycle detected on: $intersect".assertionError
+        case (frw, _) if !frw.forall(_.trg.mnId.isAbs) => s"Found LINK pointed on concrete node $frw".assertionError
+        case (frw, _) if frw.isEmpty                   => acc.pure
+        case (frw, _)                                  => trace(forward.map(_.trg), visited ++ forward, forward +: acc)
+
+    trace(conIds.map(_.asPnId), Set.empty, List.empty).map(_.reverse)
+
+  def tracePlanTree(rootId: PnId): F[PlanTree] =
+    import PlanTree.*
+
+    def trace(curId: PnId, visited: Set[Then]): F[Vertex] =
+      val forward = srcThenMap.getOrElse(curId, Set.empty)
+      val intersect = visited.intersect(forward)
+
+      (forward, intersect) match
+        case (_, int) if int.nonEmpty => s"Cycle detected on: $int".assertionError
+        case (frw, _) if frw.isEmpty  => Vertex(List(), curId).pure
+
+        case (frw, _) => frw.toList
+            .traverse:
+              case edge if edge.src == curId => trace(edge.trg, visited + edge)
+              case e => s"Invalid THEN edge $e, expected src: $curId, found: ${e.src}".assertionError
+            .map(next => Vertex(next, curId))
+
+    trace(rootId, Set.empty).map(v => PlanTree(v))
+
+  def tracePlanForest(rootIds: Set[PnId]): F[List[PlanTree]] = rootIds.toList.traverse(tracePlanTree)
+
+object DaGraph:
+  def empty[F[_]: MonadThrow]: DaGraph[F] = new DaGraph(Map.empty, Map.empty)
+
+  def apply[F[_]: MonadThrow](nodes: Map[PnId, DagNode[F]], edges: Map[PeKey, DagEdge[F]]): F[DaGraph[F]] =
+    for
+      pnIds <- nodes.keySet.pure
+      _ <- pnIds.assertSameElems(nodes.values.map(_.id), "Nodes map keys and values IDs mismatch")
+      _ <- pnIds.assertContainsAllOf(edges.values.flatMap(_.pnIds), "Edge refers to unknown PnId")
+    yield new DaGraph(nodes, edges)

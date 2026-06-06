@@ -12,7 +12,7 @@
 
 //  Versions
 
-
+val akkaVersion = "2.0.0-M3"
 
 // Subprojects settings
 
@@ -21,4 +21,6 @@ description := "Message propagation planner implementation"
 version := "0.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
+  "org.apache.pekko" %% "pekko-actor-typed" % akkaVersion,
+  "org.apache.pekko" %% "pekko-actor-testkit-typed" % akkaVersion % Test,
 )

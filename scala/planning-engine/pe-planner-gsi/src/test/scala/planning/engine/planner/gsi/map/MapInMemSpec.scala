@@ -32,13 +32,13 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val visualizationStub = stub[MapVisualizationLike[IO]]
     lazy val testConfig =  PlannerMapConfig(reprEnabled = true)
 
-    lazy val emptyMapInMem: MapInMem[IO] =
+    lazy val emptyMapInMem: MapGsiInMemGsi[IO] =
       visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
-      MapInMem.empty[IO](testConfig, visualizationStub).unsafeRunSync()
+      MapGsiInMemGsi.empty[IO](testConfig, visualizationStub).unsafeRunSync()
 
-    lazy val initMapInMem: MapInMem[IO] =
+    lazy val initMapInMem: MapGsiInMemGsi[IO] =
       visualizationStub.stateUpdated.when(*, *).returns(IO.unit).anyNumberOfTimes()
-      MapInMem.empty[IO](testConfig, visualizationStub)
+      MapGsiInMemGsi.empty[IO](testConfig, visualizationStub)
         .flatTap(_.init(testMetadata, testInNodes, testOutNodes))
         .flatTap(_.setIdsCount(initialMapIdsCountState))
         .flatTap(_.setMapState(initialDcgState))
@@ -270,7 +270,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
     "create empty MapInMem instance" in newCase[CaseData]: (tn, data) =>
       import data.{testConfig, visualizationStub}
       async[IO]:
-        val mapInMem = MapInMem.empty[IO](testConfig, visualizationStub).logValue(tn).await
+        val mapInMem = MapGsiInMemGsi.empty[IO](testConfig, visualizationStub).logValue(tn).await
 
         mapInMem.getMapInfo.logValue(tn).await mustBe MapInfoState.empty[IO]
         mapInMem.getMapState.logValue(tn).await mustBe MapGraphState.empty[IO]

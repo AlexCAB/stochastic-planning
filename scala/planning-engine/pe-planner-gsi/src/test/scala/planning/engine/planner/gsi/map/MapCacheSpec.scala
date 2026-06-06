@@ -31,7 +31,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
   private class CaseData extends Case with MapTestData:
     val mapGraphStub = stub[MapGraphLake[IO]]
     val visualizationStub = stub[MapVisualizationLike[IO]]
-    val mapCache = MapCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
+    val mapCache = MapGsiCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
 
     def setLoadSubgraphForIoValue(
         expectedValues: List[IoValue],

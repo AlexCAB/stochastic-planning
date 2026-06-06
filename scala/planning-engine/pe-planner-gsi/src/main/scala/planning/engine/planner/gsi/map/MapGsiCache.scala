@@ -33,12 +33,12 @@ import planning.engine.planner.gsi.map.logic.MapBaseLogic
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 
-class MapCache[F[_]: {Async, LoggerFactory}](
+class MapGsiCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     stateCell: AtomicCell[F, MapGraphState[F]]
-) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapGsiLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] def load(values: Set[IoValue], loadedSamples: Set[SampleId]): F[MapSubGraph[F]] =
@@ -85,12 +85,12 @@ class MapCache[F[_]: {Async, LoggerFactory}](
 
   override def reset(): F[Unit] = ???
 
-object MapCache:
+object MapGsiCache:
   def apply[F[_]: {Async, LoggerFactory}](
       mapGraph: MapGraphLake[F],
       visualization: MapVisualizationLike[F]
-  ): F[MapCache[F]] =
+  ): F[MapGsiCache[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
       state <- AtomicCell[F].of(MapGraphState.empty[F])
-    yield new MapCache(mapGraph, visualization, mapInfo, state)
+    yield new MapGsiCache(mapGraph, visualization, mapInfo, state)

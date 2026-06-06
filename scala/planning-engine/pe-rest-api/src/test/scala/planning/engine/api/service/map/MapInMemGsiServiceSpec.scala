@@ -19,14 +19,14 @@ import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
-import planning.engine.planner.gsi.map.MapInMemLike
+import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
-class MapInMemServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
+class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 
   private class CaseData extends Case:
-    val mapInMemStub = stub[MapInMemLike[IO]]
-    val service = new MapInMemService(mapInMemStub)
+    val mapInMemStub = stub[MapInMemGsiLike[IO]]
+    val service = new MapInMemGsiService(mapInMemStub)
 
   "MapInMemService.getState" should:
     "get map state from in-mem map" in newCase[CaseData]: (tn, data) =>

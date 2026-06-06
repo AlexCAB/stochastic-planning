@@ -22,7 +22,7 @@ import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.planner.gsi.map.inference.MapInferenceLike
 
-trait MapLike[F[_]] extends MapInferenceLike[F]:
+trait MapGsiLike[F[_]] extends MapInferenceLike[F]:
 
   // Addition methods
   def addNewConcreteNodes(nodes: ConcreteNode.ListNew): F[Map[MnId, Option[HnName]]]

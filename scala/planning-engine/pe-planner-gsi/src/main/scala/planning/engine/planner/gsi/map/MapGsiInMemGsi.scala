@@ -33,16 +33,16 @@ import planning.engine.planner.gsi.map.logic.MapBaseLogic
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 
-trait MapInMemLike[F[_]] extends MapLike[F]:
+trait MapInMemGsiLike[F[_]] extends MapGsiLike[F]:
   def init(metadata: MapMetadata, inNodes: Iterable[InputNode[F]], outNodes: Iterable[OutputNode[F]]): F[Unit]
 
-class MapInMem[F[_]: {Async, LoggerFactory}](
+class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
     config: PlannerMapConfig,
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, MapGraphState[F]],
     idsCountCell: AtomicCell[F, MapIdsCountState]
-) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInference[F] with MapInMemLike[F]:
+) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInference[F] with MapInMemGsiLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
   private[map] def getIdsCount: F[MapIdsCountState] = idsCountCell.get
@@ -164,15 +164,15 @@ class MapInMem[F[_]: {Async, LoggerFactory}](
       _ <- logger.info(s"Resetting MapInMem with current MapInfoState: $info")
     yield ()
 
-object MapInMem:
+object MapGsiInMemGsi:
   def empty[F[_]: {Async,
-    LoggerFactory}](config: PlannerMapConfig, visualization: MapVisualizationLike[F]): F[MapInMem[F]] =
+    LoggerFactory}](config: PlannerMapConfig, visualization: MapVisualizationLike[F]): F[MapGsiInMemGsi[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])
       dcgState <- AtomicCell[F].of(MapGraphState.empty[F])
       idsCount <- AtomicCell[F].of(MapIdsCountState.init)
-    yield new MapInMem(config, visualization, mapInfo, dcgState, idsCount)
+    yield new MapGsiInMemGsi(config, visualization, mapInfo, dcgState, idsCount)
 
   def apply[F[_]: {Async,
-    LoggerFactory}](config: PlannerMapConfig, visualization: MapVisualizationLike[F]): Resource[F, MapInMem[F]] =
+    LoggerFactory}](config: PlannerMapConfig, visualization: MapVisualizationLike[F]): Resource[F, MapGsiInMemGsi[F]] =
     Resource.eval(empty(config, visualization))

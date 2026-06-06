@@ -21,9 +21,9 @@ import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
-import planning.engine.api.service.map.MapInMemService
+import planning.engine.api.service.map.MapInMemGsiService
 import planning.engine.api.service.visualization.VisualizationService
-import planning.engine.planner.gsi.map.MapInMem
+import planning.engine.planner.gsi.map.MapGsiInMemGsi
 
 object MainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
@@ -33,12 +33,12 @@ object MainRestInMem extends AppBase:
       visualizationService <- VisualizationService[IO](mainConf.visService)
       visualizationRoute <- VisualizationRoute[IO](mainConf.visRoute, visualizationService)
 
-      map <- MapInMem[IO](mainConf.plannerMap, visualizationService)
+      map <- MapGsiInMemGsi[IO](mainConf.plannerMap, visualizationService)
 
       maintenanceService <- MaintenanceService[IO]()
       maintenanceRoute <- MaintenanceRoute[IO](maintenanceService)
 
-      mapService <- MapInMemService[IO](map)
+      mapService <- MapInMemGsiService[IO](map)
       mapRoute <- MapRoute[IO](mapService)
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints

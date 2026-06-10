@@ -17,14 +17,15 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.graph.edges.MeKey.Then
 import planning.engine.common.values.node.MnId
+import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.test.data.ActiveAbsDagTestData
 
 class ActiveAbsDagSpec extends UnitSpecWithData with ValidationCheck:
 
   private class CaseData extends Case with ActiveAbsDagTestData:
-    lazy val testCn1 = makeConDcgNode(id = MnId.Con(997))
-    lazy val testCn2 = makeConDcgNode(id = MnId.Con(998))
-    lazy val testAn2 = makeAbsDcgNode(id = MnId.Abs(999))
+    lazy val testCn1: DcgNode.Concrete[IO] = makeConDcgNode(id = MnId.Con(997))
+    lazy val testCn2: DcgNode.Concrete[IO] = makeConDcgNode(id = MnId.Con(998))
+    lazy val testAn2: DcgNode.Abstract[IO] = makeAbsDcgNode(id = MnId.Abs(999))
 
   "ActiveAbsDag.apply(EdgeKeySet, DcGraph)" should:
     "create instance from valid data" in newCase[CaseData]: (tn, data) =>

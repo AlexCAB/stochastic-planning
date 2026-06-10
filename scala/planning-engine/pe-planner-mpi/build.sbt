@@ -13,6 +13,7 @@
 //  Versions
 
 val akkaVersion = "2.0.0-M3"
+val scalaLoggingVersion = "3.9.5"
 
 // Subprojects settings
 
@@ -23,4 +24,6 @@ version := "0.0.0-SNAPSHOT"
 libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-actor-typed" % akkaVersion,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % akkaVersion % Test,
+
+  "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion % Test,
 )

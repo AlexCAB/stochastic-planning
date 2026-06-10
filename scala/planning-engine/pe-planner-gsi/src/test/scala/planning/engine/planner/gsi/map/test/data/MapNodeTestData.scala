@@ -29,8 +29,8 @@ trait MapNodeTestData:
   lazy val testIntInNode = InputNode[IO](IoName("intInputNode"), IntIoVariable[IO](0, 10000))
   lazy val boolOutNode = OutputNode[IO](IoName("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
 
-  lazy val testInNodes = List(testBoolInNode, testIntInNode)
-  lazy val testOutNodes = List(boolOutNode)
+  lazy val testInNodes: List[InputNode[IO]] = List(testBoolInNode, testIntInNode)
+  lazy val testOutNodes: List[OutputNode[IO]] = List(boolOutNode)
 
   lazy val testIoValue = IoValue(testBoolInNode.name, IoIndex(-2))
 

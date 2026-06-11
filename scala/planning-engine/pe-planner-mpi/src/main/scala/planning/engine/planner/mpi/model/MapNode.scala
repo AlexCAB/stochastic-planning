@@ -14,7 +14,7 @@ package planning.engine.planner.mpi.model
 
 import cats.MonadThrow
 import planning.engine.common.values.io.IoIndex
-import planning.engine.common.values.node.HnName
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.map.io.node.IoNode
 
@@ -24,14 +24,18 @@ object MapNode:
     def name: Option[HnName]
     def description: Option[Description]
 
+    private[mpi] def makeMnId(rawId: Long): MnId
+
   final case class Concrete[F[_]: MonadThrow](
       name: Option[HnName],
       description: Option[Description],
       ioNode: IoNode[F],
       valueIndex: IoIndex
-  ) extends Data
+  ) extends Data:
+    private[mpi] def makeMnId(rawId: Long): MnId = MnId.Con(rawId)
 
   final case class Abstract(
       name: Option[HnName],
       description: Option[Description]
-  ) extends Data
+  ) extends Data:
+    private[mpi] def makeMnId(rawId: Long): MnId = MnId.Abs(rawId)

@@ -12,37 +12,37 @@
 
 package planning.engine.planner.mpi.actors
 
+//import cats.MonadThrow
+import cats.effect.Async
+import cats.effect.std.Dispatcher
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
-import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.MapNodeActor.Message
+//import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.adaptors.PpiMapAdaptor.{NodeAdded, Reply}
-import planning.engine.planner.mpi.model.MapNode
+import planning.engine.planner.mpi.data.MapNode
+import planning.engine.planner.mpi.states.ManagerState
 
 object MapManagerActor:
-  final case class State(
-      nodes: Map[MnId, ActorRef[Message]],
-      nextId: Long
-  ):
-    def withNewNode(id: MnId, ref: ActorRef[Message]): State = copy(nodes = nodes + (id -> ref), nextId = nextId + 1)
-
-  object State:
-    val init: State = State(Map.empty, 1L)
-
   sealed trait Command
 
   final case class AddNode(data: MapNode.Data, replyTo: ActorRef[Reply]) extends Command
 
-  private def behavior(state: State): Behavior[Command] = Behaviors.setup: ctx =>
-    ctx.setLoggerName("map-manager-actor")
+//  final case class UpsertEdge(key: MeKey, data: MapEdge.Data, replyTo: ActorRef[Reply]) extends Command
 
-    Behaviors.receiveMessage:
-      case AddNode(data, sender) =>
-        val id = data.makeMnId(state.nextId)
-        val node = ctx.spawn(MapNodeActor(id, data), id.value.toString)
+  private def behavior[F[_]: Async](state: ManagerState)(using dispatcher: Dispatcher[F]): Behavior[Command] =
+    Behaviors.setup: ctx =>
+      ctx.setLoggerName("map-manager-actor")
 
-        ctx.log.info(s"Adding node: id = $id, ${data.name.repr}")
-        sender ! NodeAdded(id, data.name)
-        behavior(state.withNewNode(id, node))
+      Behaviors.receiveMessage:
+        case AddNode(data, sender) =>
+          val definition = data.toDefinition(state.nextId)
+          val node = ctx.spawn(MapNodeActor(definition), definition.id.value.toString)
 
-  def apply(): Behavior[Command] = behavior(State.init)
+          ctx.log.info(s"Adding node ${definition}")
+          sender ! NodeAdded(definition.id, data.name)
+          behavior(state.withNewNode(definition.id, node))
+
+  def apply[F[_]: Async](using dispatcher: Dispatcher[F]): Behavior[Command] =
+    behavior[F](ManagerState.init)
+
+

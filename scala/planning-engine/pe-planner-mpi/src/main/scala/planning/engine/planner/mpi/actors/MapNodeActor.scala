@@ -12,23 +12,22 @@
 
 package planning.engine.planner.mpi.actors
 
+import cats.effect.Async
+import cats.effect.std.Dispatcher
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.model.MapNode
+import planning.engine.planner.mpi.data.MapNode.Definition
+import planning.engine.planner.mpi.states.NodeState
 
 object MapNodeActor:
-  final case class State(
-      id: MnId,
-      data: MapNode.Data
-  )
-
   sealed trait Message
-
-  private def behavior(state: State): Behavior[Message] = Behaviors.setup: ctx =>
-    ctx.setLoggerName(s"${state.id.reprNode}_${state.data.name.repr}")
+  
+  private def behavior[F[_]: Async](state: NodeState)(using definition: Definition, dispatcher: Dispatcher[F]): Behavior[Message] = Behaviors.setup: ctx =>
+    ctx.setLoggerName(s"${definition.id.reprNode}_${definition.data.name.repr}")
 
     Behaviors.receiveMessage:
       case m: Message => behavior(state)
 
-  def apply(id: MnId, data: MapNode.Data): Behavior[Message] = behavior(State(id, data))
+  def apply[F[_]: Async](definition: Definition)(using dispatcher: Dispatcher[F]): Behavior[Message] = 
+    given Definition = definition
+    behavior(NodeState.init)

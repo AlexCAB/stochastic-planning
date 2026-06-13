@@ -12,6 +12,9 @@
 
 package planning.engine.planner.mpi.actors
 
+import cats.effect.IO
+import cats.effect.std.Dispatcher
+import cats.effect.unsafe.IORuntime
 import com.typesafe.scalalogging.Logger
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.scalatest.{Assertion, BeforeAndAfterAll, Outcome}
@@ -34,10 +37,18 @@ class UnitSpecWithTestKit extends FixtureAnyWordSpecLike with Matchers with Befo
       case _                                    => fail("Invalid constructor found for test case class")
 
   override def withFixture(test: OneArgTest): Outcome = super.withFixture(test.toNoArgTest(test))
-
+  
+  given IORuntime = IORuntime.global
+  private val (dispatcher, dispatcherCancel) = Dispatcher.parallel[IO].allocated.unsafeRunSync()
+  given Dispatcher[IO] = dispatcher
+  
   val testKit = ActorTestKit()
-  override def afterAll(): Unit = testKit.shutdownTestKit()
-
+  
+  
+  override def afterAll(): Unit =  
+    testKit.shutdownTestKit()
+    dispatcherCancel.unsafeRunSync()
+  
   extension (logger: Logger)
     def msg[M](m: M, comment: String = ""): M =
       logger.info(s"${if comment.nonEmpty then comment else "Message"}: $m")

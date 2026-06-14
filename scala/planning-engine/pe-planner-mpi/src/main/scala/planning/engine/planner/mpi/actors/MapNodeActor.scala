@@ -14,20 +14,26 @@ package planning.engine.planner.mpi.actors
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
-import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.data.MapNode.Definition
-import planning.engine.planner.mpi.states.NodeState
+import planning.engine.planner.mpi.model.data.MapNode.Definition
+import planning.engine.planner.mpi.model.messages.NodeMsg
+import planning.engine.planner.mpi.model.states.NodeState
 
 object MapNodeActor:
-  sealed trait Message
-  
-  private def behavior[F[_]: Async](state: NodeState)(using definition: Definition, dispatcher: Dispatcher[F]): Behavior[Message] = Behaviors.setup: ctx =>
+  //import NodeMsg.*
+
+  private type Ctx = ActorContext[NodeMsg]
+  private type St = NodeState
+  private type Bh = Behavior[NodeMsg]
+  private type Def = Definition
+
+  private def behavior[F[_]: {Async, Dispatcher}](state: St)(using definition: Def): Bh = Behaviors.setup: ctx =>
     ctx.setLoggerName(s"${definition.id.reprNode}_${definition.data.name.repr}")
 
     Behaviors.receiveMessage:
-      case m: Message => behavior(state)
+      case m: NodeMsg => behavior(state)
 
-  def apply[F[_]: Async](definition: Definition)(using dispatcher: Dispatcher[F]): Behavior[Message] = 
+  def apply[F[_]: {Async, Dispatcher}](definition: Definition): Behavior[NodeMsg] =
     given Definition = definition
     behavior(NodeState.init)

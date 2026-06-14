@@ -15,18 +15,18 @@ package planning.engine.planner.mpi.actors
 import cats.effect.IO
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.adaptors.PpiMapAdaptor.{NodeAdded, Reply}
-import planning.engine.planner.mpi.data.MapNodeTestData
+import planning.engine.planner.mpi.model.data.MapNodeTestData
+import planning.engine.planner.mpi.model.messages.{AdaptorMsg, ManagerMsg}
 
 class MapManagerActorSpec extends UnitSpecWithTestKit:
-  import MapManagerActor._
+  import AdaptorMsg._, ManagerMsg._
 
   private class CaseData extends Case with MapNodeTestData:
-    lazy val mapManagerActor: ActorRef[Command] = testKit.spawn(MapManagerActor[IO], "map-manager")
+    lazy val mapManagerActor: ActorRef[ManagerMsg] = testKit.spawn(MapManagerActor[IO], "map-manager")
 
   "MapManagerActor" should:
     "add new node" in newCase[CaseData]: (log, data) =>
-      val probe = testKit.createTestProbe[Reply]()
+      val probe = testKit.createTestProbe[NodeResult]()
 
       data.mapManagerActor ! AddNode(data.conNodeData, probe.ref)
 

@@ -12,9 +12,10 @@
 
 
 
-package planning.engine.planner.mpi.data
+package planning.engine.planner.mpi.model.data
 
-object MapEdge:
-  sealed trait Data
-  
+import planning.engine.common.graph.edges.Indexies
+import planning.engine.common.values.sample.SampleId
+
+final case class MapEdgeData(indexies: Map[SampleId, Indexies])
   

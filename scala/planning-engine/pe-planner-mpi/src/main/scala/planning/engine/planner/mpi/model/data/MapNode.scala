@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 08.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.data
+package planning.engine.planner.mpi.model.data
 
 import cats.MonadThrow
 import planning.engine.common.values.io.IoIndex

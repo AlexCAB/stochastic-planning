@@ -11,7 +11,7 @@
 | created: 09.06.2026 |||||||||||*/
 
 
-package planning.engine.planner.mpi.data
+package planning.engine.planner.mpi.model.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
@@ -20,7 +20,6 @@ import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
-import planning.engine.planner.mpi.data.MapNode
 
 trait MapNodeTestData:
   import MapNode._

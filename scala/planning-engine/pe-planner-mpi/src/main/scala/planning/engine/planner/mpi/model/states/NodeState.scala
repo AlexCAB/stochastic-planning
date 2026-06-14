@@ -10,8 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 12.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.states
-
+package planning.engine.planner.mpi.model.states
 
 final case class NodeState()
 

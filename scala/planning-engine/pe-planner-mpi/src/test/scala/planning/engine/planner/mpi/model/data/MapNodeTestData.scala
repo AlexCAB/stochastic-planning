@@ -10,7 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 09.06.2026 |||||||||||*/
 
-
 package planning.engine.planner.mpi.model.data
 
 import cats.effect.IO
@@ -20,10 +19,9 @@ import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
+import planning.engine.planner.mpi.data.node.{AbsData, ConData}
 
 trait MapNodeTestData:
-  import MapNode._
-  
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
 
   lazy val testBoolInNode = InputNode[IO](IoName("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
@@ -34,10 +32,10 @@ trait MapNodeTestData:
     name = Some(HnName("Test Concrete Node")),
     description = Some(Description("A test node for unit testing`.")),
     ioNode = testBoolInNode,
-    valueIndex = IoIndex(0)
+    valueIndex = IoIndex(0),
   )
 
   lazy val absNodeData: AbsData = AbsData(
     name = Some(HnName("Test Abstract Node")),
-    description = Some(Description("A test abstract node for unit testing."))
+    description = Some(Description("A test abstract node for unit testing.")),
   )

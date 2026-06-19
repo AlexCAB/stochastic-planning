@@ -8,11 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 14.06.2026 |||||||||||*/
+| created: 19.06.2026 |||||||||||*/
 
+package planning.engine.planner.mpi.actors.manager
 
-package planning.engine.planner.mpi.model.messages
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
-sealed trait NodeMsg
+private[manager] trait Definitions:
 
-object NodeMsg
+  final case class Definition(
+      visualizer: Visualizer.Ref,
+  )

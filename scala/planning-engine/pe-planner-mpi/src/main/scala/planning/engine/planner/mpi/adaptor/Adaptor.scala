@@ -10,13 +10,18 @@
 | website: github.com/alexcab |||||
 | created: 10.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.adaptors
+package planning.engine.planner.mpi.adaptor
+
+import org.apache.pekko.actor.typed.ActorRef
 
 // Adaptor for connecting Cats Effect-based code with Pekko actors.
 // Use Ask pattern to send messages to actors and receive responses in an effectful way.
-trait PpiMapAdaptorLike
+trait AdaptorLike
 
-class PpiMapAdaptor extends PpiMapAdaptorLike
+class Adaptor extends AdaptorLike
 
-object PpiMapAdaptor:
-  def apply(): PpiMapAdaptor = new PpiMapAdaptor()
+object Adaptor extends Messages:
+  type Msg = Message
+  type Ref = ActorRef[Msg]
+  
+  def apply(): Adaptor = new Adaptor()

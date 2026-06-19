@@ -8,11 +8,10 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 12.06.2026 |||||||||||*/
+| created: 18.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.model.states
+package planning.engine.planner.mpi.actors.visualizer
 
-final case class NodeState()
 
-object NodeState:
-  val init = NodeState()
+private[visualizer] trait States:
+  private[visualizer] final case class State()

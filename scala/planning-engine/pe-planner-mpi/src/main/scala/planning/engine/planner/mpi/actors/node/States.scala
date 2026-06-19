@@ -18,7 +18,7 @@ import planning.engine.planner.mpi.data.edge.EdgeData
 import planning.engine.planner.mpi.data.node.MnRef
 
 private[node] trait States:
-  private[node]  final case class State(
+  private[node] final case class State(
       // Map of outgoing edges: target node ID -> (target node actor reference, edge data)
       outgoing: Map[MnId, (ActorRef[Node.Message], EdgeData)],
 

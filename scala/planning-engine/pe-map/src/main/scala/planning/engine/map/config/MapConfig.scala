@@ -25,16 +25,16 @@ final case class MapConfig(
     initNextHnId: Long,
     initNextSampleId: Long,
     initSampleCount: Long,
-    initNextHnIndex: Long
+    initNextHnIndex: Long,
 ):
   def toRootParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
-    PROP.NEXT_HN_ID -> initNextHnId.toDbParam
+    PROP.NEXT_HN_ID -> initNextHnId.toDbParam,
   )
 
   def toSamplesParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_SAMPLES_ID -> initNextSampleId.toDbParam,
     PROP.SAMPLES_COUNT -> initSampleCount.toDbParam,
-    PROP.NAME -> SAMPLES_LABEL.toDbParam
+    PROP.NAME -> SAMPLES_LABEL.toDbParam,
   )
 
 object MapConfig:

@@ -23,7 +23,7 @@ final case class MainInMemConf(
     server: ServerConf,
     visRoute: VisualizationRouteConf,
     visService: VisualizationServiceConf,
-    plannerMap: PlannerMapConfig
+    plannerMap: PlannerMapConfig,
 )
 
 object MainInMemConf:

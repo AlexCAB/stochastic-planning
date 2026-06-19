@@ -43,7 +43,7 @@ extension [F[_]: MonadThrow, P <: Param | Value](parms: F[Map[String, P]])
 
 inline def paramsOf[F[_]: MonadThrow](items: (
     String,
-    Param | Option[Param] | F[Param] | F[Map[String, Param]]
+    Param | Option[Param] | F[Param] | F[Map[String, Param]],
 )*): F[Map[String, Param]] = items
   .map:
     case (key, value: Param)                    => Map(key -> value).pure
@@ -56,14 +56,14 @@ inline def paramsOf[F[_]: MonadThrow](items: (
 extension (propsMap: Map[String, Value])
   private def validateValue[F[_]: MonadThrow, I, V <: ScalaValue: Typeable](
       in: I,
-      key: String
+      key: String,
   ): F[V] = in match
     case v: V => v.pure
     case v    => s"Type of value '$v' not match expected, for kay: $key".assertionError
 
   private def valueFor[F[_]: MonadThrow, V <: ScalaValue: Typeable](
       value: Value,
-      key: String
+      key: String,
   ): F[V] = value match
     case Value.Integer(l) => validateValue[F, Long, V](l, key)
     case Value.Decimal(d) => validateValue[F, Double, V](d, key)

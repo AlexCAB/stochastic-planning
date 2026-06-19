@@ -24,7 +24,7 @@ import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
 final case class MapGraphState[F[_]: MonadThrow](
     ioValues: IoValueMap[F],
-    graph: DcGraph[F]
+    graph: DcGraph[F],
 ):
   lazy val isEmpty: Boolean = ioValues.isEmpty && graph.isEmpty
   lazy val ioValuesMnId: Set[MnId.Con] = ioValues.values.flatten.toSet
@@ -37,7 +37,7 @@ final case class MapGraphState[F[_]: MonadThrow](
       newGraph <- graph.addNodes(nodes)
     yield this.copy(
       ioValues = newIoValues,
-      graph = newGraph
+      graph = newGraph,
     )
 
   def addSamples(samples: Iterable[DcgSample.Add[F]]): F[MapGraphState[F]] =
@@ -62,7 +62,7 @@ final case class MapGraphState[F[_]: MonadThrow](
 object MapGraphState:
   def empty[F[_]: MonadThrow]: MapGraphState[F] = new MapGraphState[F](
     ioValues = IoValueMap.empty,
-    graph = DcGraph.empty
+    graph = DcGraph.empty,
   )
 
   def apply[F[_]: MonadThrow](ioValues: IoValueMap[F], graph: DcGraph[F]): F[MapGraphState[F]] =

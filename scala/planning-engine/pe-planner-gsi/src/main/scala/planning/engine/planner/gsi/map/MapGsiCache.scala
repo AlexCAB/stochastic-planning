@@ -37,7 +37,7 @@ class MapGsiCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
-    stateCell: AtomicCell[F, MapGraphState[F]]
+    stateCell: AtomicCell[F, MapGraphState[F]],
 ) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapGsiLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
@@ -88,7 +88,7 @@ class MapGsiCache[F[_]: {Async, LoggerFactory}](
 object MapGsiCache:
   def apply[F[_]: {Async, LoggerFactory}](
       mapGraph: MapGraphLake[F],
-      visualization: MapVisualizationLike[F]
+      visualization: MapVisualizationLike[F],
   ): F[MapGsiCache[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])

@@ -21,7 +21,7 @@ import planning.engine.planner.gsi.map.dcg.edges.DcgEdge
 
 final case class DagEdge[F[_]: MonadThrow](
     key: PeKey,
-    dcgEdge: DcgEdge[F]
+    dcgEdge: DcgEdge[F],
 ):
   lazy val isLink: Boolean = dcgEdge.key.isLink
   lazy val isThen: Boolean = dcgEdge.key.isThen

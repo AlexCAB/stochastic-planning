@@ -12,6 +12,5 @@
 
 package planning.engine.planner.mpi.actors.visualizer
 
-
 private[visualizer] trait States:
   private[visualizer] final case class State()

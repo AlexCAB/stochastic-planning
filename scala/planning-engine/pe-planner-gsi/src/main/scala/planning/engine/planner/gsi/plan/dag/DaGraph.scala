@@ -30,7 +30,7 @@ import scala.annotation.tailrec
 // It represent whole general plan-graph structure, so context node and plan node are together in this graph.
 final case class DaGraph[F[_]: MonadThrow](
     nodes: Map[PnId, DagNode[F]],
-    edges: Map[PeKey, DagEdge[F]]
+    edges: Map[PeKey, DagEdge[F]],
 ) extends DaGraphRepr[F]:
 
   lazy val conPnId: Set[PnId.Con] = nodes.keySet.filterCon

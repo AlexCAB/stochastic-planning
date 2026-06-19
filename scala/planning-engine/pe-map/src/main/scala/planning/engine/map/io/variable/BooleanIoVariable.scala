@@ -39,7 +39,7 @@ final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boole
 
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
     PROP.VAR_TYPE -> BOOL_TYPE.toDbParam,
-    PROP.DOMAIN -> acceptableValues.toList.toDbParam
+    PROP.DOMAIN -> acceptableValues.toList.toDbParam,
   )
 
   override lazy val toString: String = s"BooleanIoVariable(acceptableValues = [${acceptableValues.mkString(", ")}])"

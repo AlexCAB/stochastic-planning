@@ -30,7 +30,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
     name: Option[HnName],
     description: Option[Description],
     ioNode: IoNode[F],
-    valueIndex: IoIndex
+    valueIndex: IoIndex,
 ) extends HiddenNode[F]:
 
   lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
@@ -43,10 +43,10 @@ object ConcreteNode:
       extends Validation:
 
     override lazy val validations: (String, List[Throwable]) = validate(
-      s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)"
+      s"ConcreteNode.New(name=$name, ioNodeName=$ioNodeName, valueIndex=$valueIndex)",
     )(
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
-      ioNodeName.value.nonEmpty -> "IoNode name must not be empty"
+      ioNodeName.value.nonEmpty -> "IoNode name must not be empty",
     )
 
     def toProperties[F[_]: MonadThrow](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
@@ -54,7 +54,7 @@ object ConcreteNode:
       PROP.NAME -> name.map(_.toDbParam),
       PROP.DESCRIPTION -> description.map(_.toDbParam),
       PROP.IO_INDEX -> valueIndex.toDbParam,
-      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam,
     )
 
   final case class ListNew(list: List[New])

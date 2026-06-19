@@ -19,7 +19,7 @@ import planning.engine.common.values.sample.SampleId
 final case class MapIdsCountState(
     nextMnId: Long,
     nextSampleId: Long,
-    nextHnIndexMap: Map[MnId, Long]
+    nextHnIndexMap: Map[MnId, Long],
 ):
   private[state] def nextNId[N <: MnId](n: Long, make: Long => N): (MapIdsCountState, List[N]) =
     val mnIds = (nextMnId until (nextMnId + n)).toList.map(make)
@@ -45,5 +45,5 @@ object MapIdsCountState:
   lazy val init: MapIdsCountState = MapIdsCountState(
     nextHnIndexMap = Map[MnId, Long](),
     nextMnId = 1L,
-    nextSampleId = 1L
+    nextSampleId = 1L,
   )

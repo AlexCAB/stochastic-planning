@@ -26,14 +26,14 @@ import planning.engine.map.config.MapConfig
 class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
-    mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]]
+    mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
 ) extends MapServiceBase[F] with MapServiceLike[F]:
 
   private val logger = LoggerFactory[F].getLogger
 
   private def initError(
       graph: MapGraphLake[F],
-      dbName: DbName
+      dbName: DbName,
   ): F[(Option[(MapGraphLake[F], DbName)], MapInfoResponse)] =
     for
       msg <- s"Map graph already initialized, graph = $graph, dbName = $dbName".pure[F]
@@ -95,9 +95,9 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
 object MapWithDbService:
   def apply[F[_]: {Async, LoggerFactory}](
       config: MapConfig,
-      builder: MapBuilderLike[F]
+      builder: MapBuilderLike[F],
   ): Resource[F, MapWithDbService[F]] = Resource.eval(
     AtomicCell[F].of[Option[(MapGraphLake[F], DbName)]](None).map(mgState =>
-      new MapWithDbService[F](config, builder, mgState)
-    )
+      new MapWithDbService[F](config, builder, mgState),
+    ),
   )

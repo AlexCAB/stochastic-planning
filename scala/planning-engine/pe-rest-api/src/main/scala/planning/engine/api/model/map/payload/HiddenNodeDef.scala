@@ -45,7 +45,7 @@ final case class ConcreteNodeDef(name: HnName, description: Option[Description],
       name = Some(name),
       description = description,
       ioNodeName = ioNodeName,
-      valueIndex = valueIndex
+      valueIndex = valueIndex,
     )
 
 final case class AbstractNodeDef(name: HnName, description: Option[Description]) extends HiddenNodeDef:

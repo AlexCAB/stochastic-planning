@@ -20,11 +20,11 @@ trait IoValues:
 final case class Observation(
     time: IoTime, // Monotonically increased value used to track the time of the observation
     values: Set[IoValue], // Set of observed IO variable names to their value indices.
-    utility: Option[Double] // Optional utility value associated with the observation
+    utility: Option[Double], // Optional utility value associated with the observation
 ) extends IoValues
 
 final case class Action(
-    values: Set[IoValue]
+    values: Set[IoValue],
 ) extends IoValues
 
 object Action:

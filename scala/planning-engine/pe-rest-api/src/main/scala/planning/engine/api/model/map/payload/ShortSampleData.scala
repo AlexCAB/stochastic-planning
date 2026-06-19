@@ -18,7 +18,7 @@ import io.circe.{Encoder, Decoder}
 
 final case class ShortSampleData(
     id: SampleId,
-    name: Option[Name]
+    name: Option[Name],
 )
 
 object ShortSampleData:

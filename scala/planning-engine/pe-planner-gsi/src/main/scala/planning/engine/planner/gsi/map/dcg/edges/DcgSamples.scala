@@ -21,7 +21,7 @@ import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class DcgSamples[F[_]: MonadThrow](
-    indexies: Map[SampleId, Indexies]
+    indexies: Map[SampleId, Indexies],
 ):
   lazy val size: Int = indexies.size
   lazy val isEmpty: Boolean = indexies.isEmpty

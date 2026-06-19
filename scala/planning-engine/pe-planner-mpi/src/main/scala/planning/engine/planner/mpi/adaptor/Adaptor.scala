@@ -23,5 +23,5 @@ class Adaptor extends AdaptorLike
 object Adaptor extends Messages:
   type Msg = Message
   type Ref = ActorRef[Msg]
-  
+
   def apply(): Adaptor = new Adaptor()

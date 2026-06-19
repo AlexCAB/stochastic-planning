@@ -19,7 +19,7 @@ import pureconfig.{ConfigReader, ConfigSource}
 import scala.concurrent.duration.FiniteDuration
 
 final case class VisualizationRouteConf(
-    pingTimeout: FiniteDuration
+    pingTimeout: FiniteDuration,
 )
 
 object VisualizationRouteConf:

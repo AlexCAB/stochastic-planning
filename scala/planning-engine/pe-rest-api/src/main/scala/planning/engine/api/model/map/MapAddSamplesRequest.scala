@@ -26,7 +26,7 @@ import planning.engine.map.io.node.IoNode
 
 final case class MapAddSamplesRequest(
     samples: List[NewSampleData],
-    hiddenNodes: List[HiddenNodeDef] // This is a list of hidden nodes used in the samples, should be unique
+    hiddenNodes: List[HiddenNodeDef], // This is a list of hidden nodes used in the samples, should be unique
 ) extends Validation:
   lazy val hnNames: List[HnName] = hiddenNodes.map(_.name)
   private lazy val hnNamesSet = hnNames.toSet
@@ -34,12 +34,12 @@ final case class MapAddSamplesRequest(
   lazy val validations: (String, List[Throwable]) = validate("MapAddSamplesRequest")(
     (hiddenNodes.map(_.name).distinct.size == hiddenNodes.size) -> "Hidden nodes names must be unique",
     hiddenNodes.nonEmpty -> "Hidden nodes names must not be empty",
-    hnNamesSet.containsAllOf(samples.flatMap(_.edgesHnNames), "Sample edges must reference only provided")
+    hnNamesSet.containsAllOf(samples.flatMap(_.edgesHnNames), "Sample edges must reference only provided"),
   )
 
   def listNewNotFoundHn[F[_]: MonadThrow](
       foundHnNames: Set[HnName],
-      getIoNode: IoName => F[IoNode[F]]
+      getIoNode: IoName => F[IoNode[F]],
   ): F[(ConcreteNode.ListNew, AbstractNode.ListNew)] =
     val hns = hiddenNodes.filterNot(hn => foundHnNames.contains(hn.name))
 
@@ -67,7 +67,7 @@ final case class MapAddSamplesRequest(
         utility = raw.utility,
         name = raw.name,
         description = raw.description,
-        edges = edges
+        edges = edges,
       )
 
     samples

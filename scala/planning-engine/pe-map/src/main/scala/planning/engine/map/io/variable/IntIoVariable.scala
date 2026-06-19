@@ -40,7 +40,7 @@ final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends I
   override def toQueryParams: F[Map[String, Param]] = paramsOf(
     PROP.VAR_TYPE -> PROP_VALUE.INT_TYPE.toDbParam,
     PROP.MIN -> min.toDbParam,
-    PROP.MAX -> max.toDbParam
+    PROP.MAX -> max.toDbParam,
   )
 
   override lazy val toString: String = s"IntIoVariable(min = $min, min = $max)"

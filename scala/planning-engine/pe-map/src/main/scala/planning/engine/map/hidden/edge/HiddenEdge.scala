@@ -21,12 +21,12 @@ final case class HiddenEdge(
     edgeType: EdgeType,
     sourceId: HnId,
     targetId: HnId,
-    samples: List[SampleIndexies]
+    samples: List[SampleIndexies],
 )
 
 object HiddenEdge:
   final case class SampleIndexies(
       sampleId: SampleId,
       sourceIndex: HnIndex,
-      targetIndex: HnIndex
+      targetIndex: HnIndex,
   )

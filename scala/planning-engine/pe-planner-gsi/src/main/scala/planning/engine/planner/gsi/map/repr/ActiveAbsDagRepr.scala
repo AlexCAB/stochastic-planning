@@ -29,5 +29,5 @@ trait ActiveAbsDagRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       absLayers.tab2,
       List("  BACKWARD THEN KEYS:"),
       if backKeysRepr.isEmpty then List("    ---") else backKeysRepr.tab4,
-      graph.reprNotConnectedNodes.tab2
+      graph.reprNotConnectedNodes.tab2,
     ).flatten.mkString("\n")

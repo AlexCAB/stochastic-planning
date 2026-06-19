@@ -25,7 +25,7 @@ final case class MapInfoResponse(
     mapName: Option[Name],
     numInputNodes: Long,
     numOutputNodes: Long,
-    numHiddenNodes: Long
+    numHiddenNodes: Long,
 )
 
 object MapInfoResponse:

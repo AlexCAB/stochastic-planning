@@ -41,7 +41,7 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     dcgStateCell: AtomicCell[F, MapGraphState[F]],
-    idsCountCell: AtomicCell[F, MapIdsCountState]
+    idsCountCell: AtomicCell[F, MapIdsCountState],
 ) extends MapBaseLogic[F](visualization, mapInfoCell, dcgStateCell) with MapInference[F] with MapInMemGsiLike[F]:
   private val logger = LoggerFactory[F].getLogger
 
@@ -51,7 +51,7 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
   override def init(
       metadata: MapMetadata,
       inNodes: Iterable[InputNode[F]],
-      outNodes: Iterable[OutputNode[F]]
+      outNodes: Iterable[OutputNode[F]],
   ): F[Unit] = mapInfoCell.evalModify(info =>
     if info.isEmpty then
       for
@@ -63,7 +63,7 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Initialized MapInMem with metadata: $metadata")
       yield (info, ())
     else
-      s"MapInMem is already initialized and cannot be initialized again".assertionError
+      s"MapInMem is already initialized and cannot be initialized again".assertionError,
   )
 
   override def getIoNode(name: IoName): F[IoNode[F]] =
@@ -83,7 +83,7 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
   private[map] def addNodes[I <: MnId, N, M <: DcgNode[F]](
       nodes: Iterable[N],
       getIds: Int => MapIdsCountState => (MapIdsCountState, List[I]),
-      makeNode: (I, N) => F[M]
+      makeNode: (I, N) => F[M],
   ): F[Map[MnId, Option[HnName]]] =
     for
       mnIds <- idsCountCell.modify(getIds(nodes.size))
@@ -99,20 +99,20 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
     addNodes[MnId.Con, ConcreteNode.New, DcgNode.Concrete[F]](
       nodes.list,
       i => _.getNextConIds(i),
-      (mnId, node) => DcgNode.Concrete(mnId, node, n => getIoNode(n))
+      (mnId, node) => DcgNode.Concrete(mnId, node, n => getIoNode(n)),
     )
 
   override def addNewAbstractNodes(nodes: AbstractNode.ListNew): F[Map[MnId, Option[HnName]]] =
     addNodes[MnId.Abs, AbstractNode.New, DcgNode.Abstract[F]](
       nodes.list,
       i => _.getNextAbsIds(i),
-      (mnId, node) => DcgNode.Abstract(mnId, node)
+      (mnId, node) => DcgNode.Abstract(mnId, node),
     )
 
   private[map] def buildDcgSampleAdd(
       sampleId: SampleId,
       sample: Sample.New,
-      state: MapGraphState[F]
+      state: MapGraphState[F],
   ): F[DcgSample.Add[F]] =
     for
       dcgSample <- DcgSample(sampleId, sample, state.graph.conMnId, state.graph.absMnId)

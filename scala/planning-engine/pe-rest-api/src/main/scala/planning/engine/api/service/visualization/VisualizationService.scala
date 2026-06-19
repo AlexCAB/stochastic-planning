@@ -28,7 +28,7 @@ trait VisualizationServiceLike[F[_]]:
 
 class VisualizationService[F[_]: {Async, LoggerFactory}](
     config: VisualizationServiceConf,
-    topic: Topic[F, (MapInfoState[F], MapGraphState[F])]
+    topic: Topic[F, (MapInfoState[F], MapGraphState[F])],
 ) extends VisualizationServiceLike[F] with MapVisualizationLike[F]:
 
   private val topicMaxQueued = 1000

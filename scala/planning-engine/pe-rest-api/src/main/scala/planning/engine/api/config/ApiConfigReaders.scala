@@ -17,9 +17,9 @@ import pureconfig.*
 
 object ApiConfigReaders:
   given HostReader: ConfigReader[Host] = ConfigReader.fromString[Host](
-    ConvertHelpers.catchReadError(s => Host.fromString(s).getOrElse(throw new AssertionError(s"Invalid host: $s")))
+    ConvertHelpers.catchReadError(s => Host.fromString(s).getOrElse(throw new AssertionError(s"Invalid host: $s"))),
   )
 
   given PortReader: ConfigReader[Port] = ConfigReader.fromString[Port](
-    ConvertHelpers.catchReadError(s => Port.fromInt(s.toInt).getOrElse(throw new AssertionError(s"Invalid port: $s")))
+    ConvertHelpers.catchReadError(s => Port.fromInt(s.toInt).getOrElse(throw new AssertionError(s"Invalid port: $s"))),
   )

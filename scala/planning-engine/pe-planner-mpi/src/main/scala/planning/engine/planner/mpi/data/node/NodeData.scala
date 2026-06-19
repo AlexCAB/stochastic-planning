@@ -14,10 +14,9 @@ package planning.engine.planner.mpi.data.node
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.io.IoIndex
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
-import planning.engine.map.io.node.IoNode
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.Node.{AbsDef, ConDef}
 
@@ -28,14 +27,14 @@ sealed trait NodeData:
 
   private[mpi] def toDefinition[B[_]: MonadThrow](rawId: Long, actors: StaticActors): B[Node.Def]
 
-final case class ConData[F[_]: MonadThrow](
+final case class ConData(
     name: Option[HnName],
     description: Option[Description],
-    ioNode: IoNode[F],
+    ioName: IoName,
     valueIndex: IoIndex,
 ) extends NodeData:
   val tp: NodeType = NodeType.Concrete
-  override lazy val toString: String = s"[${name.repr}, ${ioNode.name.value}]"
+  override lazy val toString: String = s"[${name.repr}, ${ioName.value}]"
 
   private[mpi] def toDefinition[B[_]: MonadThrow](rawId: Long, actors: StaticActors): B[Node.Def] =
     ConDef(MnId.Con(rawId), this, actors).asInstanceOf[Node.Def].pure

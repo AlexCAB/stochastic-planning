@@ -46,7 +46,7 @@ trait Neo4jQueries:
 
   protected def createStaticNodesQuery[F[_]: Async](
       rootPrams: Map[String, Param],
-      samplesParams: Map[String, Param]
+      samplesParams: Map[String, Param],
   )(tx: AsyncTransaction[F]): F[List[Node]] =
     c"""
       CREATE (root: #$ROOT_LABEL ${rootPrams.qp}),
@@ -65,7 +65,7 @@ trait Neo4jQueries:
 
   protected def createIoNodeQuery[F[_]: Async](
       label: Label,
-      props: Map[String, Param]
+      props: Map[String, Param],
   )(tx: AsyncTransaction[F]): F[Node] =
     c"""
       MATCH (io_root: #$IO_NODES_LABEL)
@@ -95,7 +95,7 @@ trait Neo4jQueries:
 
   protected def addConcreteNodeQuery[F[_]: Async](
       ioNodeName: String,
-      props: Map[String, Param]
+      props: Map[String, Param],
   )(tx: AsyncTransaction[F]): F[(Long, Option[String])] =
     c"""
       MATCH (io: #$IO_LABEL {#${PROP.NAME}: $ioNodeName})
@@ -142,7 +142,7 @@ trait Neo4jQueries:
   protected def addHiddenEdge[F[_]: Async](
       sourceId: Long,
       targetId: Long,
-      label: Label
+      label: Label,
   )(tx: AsyncTransaction[F]): F[Unit] =
     c"""
       MATCH (source: #$HN_LABEL {#${PROP.HN_ID}: $sourceId}), (target: #$HN_LABEL {#${PROP.HN_ID}: $targetId})
@@ -176,7 +176,7 @@ trait Neo4jQueries:
       tnId: Long,
       label: Label,
       propName: String,
-      propValue: List[Long]
+      propValue: List[Long],
   )(tx: AsyncTransaction[F]): F[String] =
     c"""
       MATCH (:#$HN_LABEL {#${PROP.HN_ID}: $snId})-[edge:#$label]->(:#$HN_LABEL {#${PROP.HN_ID}: $tnId})

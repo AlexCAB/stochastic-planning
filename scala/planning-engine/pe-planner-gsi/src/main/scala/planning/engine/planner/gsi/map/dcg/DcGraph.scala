@@ -36,7 +36,7 @@ final case class DcGraph[F[_]: MonadThrow](
     nodes: Map[MnId, DcgNode[F]],
     edges: Map[MeKey, DcgEdge[F]],
     samples: Map[SampleId, SampleData],
-    structure: GraphStructure[F]
+    structure: GraphStructure[F],
 ) extends DcGraphRepr[F]:
 
   lazy val mnIds: Set[MnId] = nodes.keySet
@@ -112,7 +112,7 @@ final case class DcGraph[F[_]: MonadThrow](
     yield this.copy(
       edges = this.edges ++ updatedEdges,
       samples = this.samples ++ addedSamples,
-      structure = newStructure
+      structure = newStructure,
     )
 
   def findHnIdsByNames(names: Set[HnName]): Map[HnName, Set[MnId]] = nodes.values
@@ -141,13 +141,13 @@ object DcGraph:
     nodes = Map.empty,
     edges = Map.empty,
     samples = Map.empty,
-    structure = GraphStructure.empty
+    structure = GraphStructure.empty,
   )
 
   def apply[F[_]: MonadThrow](
       nodes: Iterable[DcgNode[F]],
       edges: Iterable[DcgEdge[F]],
-      samples: Iterable[SampleData]
+      samples: Iterable[SampleData],
   ): F[DcGraph[F]] =
     for
       _ <- nodes.map(_.id).assertDistinct("Duplicate node IDs detected")
@@ -164,7 +164,7 @@ object DcGraph:
       nodes: Map[MnId, DcgNode[F]],
       edges: Map[MeKey, DcgEdge[F]],
       samples: Map[SampleId, SampleData],
-      structure: GraphStructure[F]
+      structure: GraphStructure[F],
   ): F[DcGraph[F]] =
     for
       mnIds <- nodes.keySet.pure

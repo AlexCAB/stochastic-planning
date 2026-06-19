@@ -24,7 +24,7 @@ import planning.engine.planner.gsi.map.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MonadThrow](
     data: SampleData,
-    structure: GraphStructure[F]
+    structure: GraphStructure[F],
 ) extends DcgSampleRepr[F]:
   override lazy val toString: String =
     s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
@@ -32,7 +32,7 @@ final case class DcgSample[F[_]: MonadThrow](
 object DcgSample:
   final case class Add[F[_]: MonadThrow](
       sample: DcgSample[F],
-      indexMap: IndexMap // Value indexies map should be provided from outside, from DB of from fast counts.
+      indexMap: IndexMap, // Value indexies map should be provided from outside, from DB of from fast counts.
   ):
     lazy val idsByKey: Set[(MeKey, (SampleId, IndexMap))] = sample
       .structure.keys
@@ -42,7 +42,7 @@ object DcgSample:
       id: SampleId,
       sample: Sample.New,
       conMnId: Set[Con],
-      absMnId: Set[Abs]
+      absMnId: Set[Abs],
   ): F[DcgSample[F]] =
     for
       keys <- sample.edges.toList.traverse(e => MeKey(e.edgeType, e.source, e.target, conMnId, absMnId))

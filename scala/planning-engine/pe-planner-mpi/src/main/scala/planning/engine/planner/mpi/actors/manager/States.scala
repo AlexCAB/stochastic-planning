@@ -18,10 +18,9 @@ import planning.engine.planner.mpi.actors.node.Node
 
 private[manager] trait States:
   private[manager] final case class State(
-      
       // List of all node in map network
       nodes: Map[MnId, ActorRef[Node.Message]],
-      
+
       // Next ID to assign to a new node (incremented for each new node)
       nextId: Long,
   ):

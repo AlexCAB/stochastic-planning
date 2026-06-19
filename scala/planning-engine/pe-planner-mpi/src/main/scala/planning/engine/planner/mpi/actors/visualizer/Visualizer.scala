@@ -13,7 +13,6 @@
 package planning.engine.planner.mpi.actors.visualizer
 
 import cats.effect.Sync
-import cats.effect.std.Dispatcher
 import planning.engine.planner.mpi.actors.ActorBase
 
 object Visualizer extends ActorBase with Definitions with States with Messages:
@@ -24,6 +23,6 @@ object Visualizer extends ActorBase with Definitions with States with Messages:
 
   val name = "map-visualizer-actor"
 
-  override protected def receive[F[_]: {S, D}](msg: Msg, state: St)(using Def, Ctx): F[St] = ???
+  override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = ???
 
-  override protected def error[F[_]: {S, D}](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] = ???
+  override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] = ???

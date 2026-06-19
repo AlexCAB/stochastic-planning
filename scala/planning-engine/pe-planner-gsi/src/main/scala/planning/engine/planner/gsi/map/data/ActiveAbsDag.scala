@@ -29,7 +29,7 @@ import planning.engine.planner.gsi.map.repr.ActiveAbsDagRepr
 // Also include THEN edges to previous nodes.
 final case class ActiveAbsDag[F[_]: MonadThrow](
     backwordKeys: MeKeySet[MeKey.Then], // Targets of THEN edges is nodes in this graph
-    graph: DcGraph[F]
+    graph: DcGraph[F],
 ) extends ActiveAbsDagRepr[F]
 
 object ActiveAbsDag:
@@ -37,7 +37,7 @@ object ActiveAbsDag:
       nodes: Iterable[DcgNode[F]],
       linkEdges: Iterable[DcgEdge[F]],
       backThenKeys: Set[MeKey.Then],
-      samples: Iterable[SampleData]
+      samples: Iterable[SampleData],
   ): F[ActiveAbsDag[F]] =
     for
       _ <- linkEdges.forall(_.key.isInstanceOf[MeKey.Link]).assertTrue("Only LINK edges can be added")

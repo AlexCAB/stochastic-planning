@@ -28,10 +28,10 @@ trait MapNodeTestData:
   lazy val testIntInNode = InputNode[IO](IoName("intInputNode"), IntIoVariable[IO](0, 10000))
   lazy val boolOutNode = OutputNode[IO](IoName("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
 
-  lazy val conNodeData: ConData[IO] = ConData(
+  lazy val conNodeData: ConData = ConData(
     name = Some(HnName("Test Concrete Node")),
     description = Some(Description("A test node for unit testing`.")),
-    ioNode = testBoolInNode,
+    ioName = testBoolInNode.name,
     valueIndex = IoIndex(0),
   )
 

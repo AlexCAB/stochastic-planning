@@ -21,7 +21,7 @@ import cats.syntax.all.*
 final case class MainWithDbConf(
     db: DbConf,
     server: ServerConf,
-    mapGraph: MapConfig
+    mapGraph: MapConfig,
 )
 
 object MainWithDbConf:

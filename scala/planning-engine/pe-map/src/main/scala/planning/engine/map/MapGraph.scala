@@ -53,7 +53,7 @@ class MapGraph[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     override val metadata: MapMetadata,
     override val ioNodes: Map[IoName, IoNode[F]],
-    database: Neo4jDatabaseLike[F]
+    database: Neo4jDatabaseLike[F],
 ) extends MapGraphLake[F]:
 
   private val logger = LoggerFactory[F].getLogger
@@ -173,7 +173,7 @@ object MapGraph:
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
       outNodes: List[OutputNode[F]],
-      database: Neo4jDatabaseLike[F]
+      database: Neo4jDatabaseLike[F],
   ): F[MapGraph[F]] =
     for
       _ <- Validation.validateList(inNodes)

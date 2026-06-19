@@ -29,7 +29,7 @@ final case class MapInitRequest(
     name: Option[Name],
     description: Option[Description],
     inputNodes: List[IoNodeApiDef],
-    outputNodes: List[IoNodeApiDef]
+    outputNodes: List[IoNodeApiDef],
 ):
   private def toVariables[F[_]: MonadThrow](definition: IoNodeApiDef): F[IoVariable[F, ?]] = definition match
     case v: BooleanIoNodeDef if v.acceptableValues.nonEmpty => BooleanIoVariable[F](v.acceptableValues).pure
@@ -40,7 +40,7 @@ final case class MapInitRequest(
 
   private def toNode[F[_]: MonadThrow, N <: IoNode[F]](
       definitions: List[IoNodeApiDef],
-      makeNode: (IoName, IoVariable[F, ?]) => F[N]
+      makeNode: (IoName, IoVariable[F, ?]) => F[N],
   ): F[List[N]] = definitions.traverse: definition =>
     for
       variable <- toVariables[F](definition)

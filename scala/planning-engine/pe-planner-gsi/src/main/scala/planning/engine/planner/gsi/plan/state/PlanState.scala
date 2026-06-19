@@ -16,7 +16,7 @@ import cats.MonadThrow
 import planning.engine.planner.gsi.plan.dag.DaGraph
 
 final case class PlanState[F[_]: MonadThrow](
-    graph: DaGraph[F]
+    graph: DaGraph[F],
 
     // ??? Also here ia separation of graph to context and plan
 )

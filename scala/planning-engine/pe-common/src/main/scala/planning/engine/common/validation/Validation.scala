@@ -28,7 +28,7 @@ trait Validation:
 
   protected def validate(
       name: String,
-      prev: (String, List[Throwable])
+      prev: (String, List[Throwable]),
   )(validators: (Boolean, String)*): (String, List[Throwable]) =
     val (curName, curErrors) = validate(name)(validators*)
     val (prevName, prevErrors) = prev

@@ -30,7 +30,7 @@ trait MapBuilderLike[F[_]]:
       config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
-      outNodes: List[OutputNode[F]]
+      outNodes: List[OutputNode[F]],
   ): F[MapGraphLake[F]]
 
   def load(dbName: DbName, config: MapConfig): F[MapGraphLake[F]]
@@ -53,7 +53,7 @@ class MapBuilder[F[_]: {Async, LoggerFactory}](makeDb: DbName => F[Neo4jDatabase
       config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
-      outNodes: List[OutputNode[F]]
+      outNodes: List[OutputNode[F]],
   ): F[MapGraphLake[F]] =
     for
       _ <- checkIoNodesNames(inNodes, outNodes)

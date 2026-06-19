@@ -26,7 +26,7 @@ import planning.engine.common.errors.*
 
 final case class Sample(
     data: SampleData,
-    edges: Set[SampleEdge]
+    edges: Set[SampleEdge],
 ) extends Validation:
   lazy val allHnIds: Set[HnId] = edges.flatMap(e => Set(e.source.hnId, e.target.hnId))
 
@@ -49,7 +49,7 @@ final case class Sample(
       edges.nonEmpty -> "At least one SampleEdge must be defined",
       invalidIndexies.isEmpty -> s"Conflicting HnIndex values for: $invalidIndexies",
       edges.map(_.sampleId).haveSameElems(Set(data.id), "All SampleEdges must have the same SampleId as SampleData"),
-      connectedNodes.haveSameElems(allHnIds, "All HnIds must be connected in the Sample edges")
+      connectedNodes.haveSameElems(allHnIds, "All HnIds must be connected in the Sample edges"),
     )
 
   override lazy val toString: String = "Sample(" +
@@ -65,17 +65,17 @@ object Sample:
       utility: Double,
       name: Option[Name],
       description: Option[Description],
-      edges: Set[SampleEdge.New]
+      edges: Set[SampleEdge.New],
   ) extends Validation:
     lazy val hnIds: Set[HnId] = edges.flatMap(e => List(e.source, e.target))
 
     override lazy val validations: (String, List[Throwable]) = validate(
-      s"Sample.New(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)"
+      s"Sample.New(name=${name.toStr}, probabilityCount=$probabilityCount, utility=$utility)",
     )(
       (probabilityCount > 0) -> "Probability count must be greater than 0",
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
       description.forall(_.value.nonEmpty) -> "Description must not be empty if defined",
-      edges.nonEmpty -> "At least one edge must be provided"
+      edges.nonEmpty -> "At least one edge must be provided",
     )
 
     def findHnIndexies[F[_]: MonadThrow](hnInsToHnIndex: Map[HnId, List[HnIndex]])
@@ -91,7 +91,7 @@ object Sample:
       PROP.PROBABILITY_COUNT -> probabilityCount.toDbParam,
       PROP.UTILITY -> utility.toDbParam,
       PROP.NAME -> name.map(_.toDbParam),
-      PROP.DESCRIPTION -> description.map(_.toDbParam)
+      PROP.DESCRIPTION -> description.map(_.toDbParam),
     )
 
     def toSampleData(id: SampleId): SampleData = SampleData(
@@ -99,7 +99,7 @@ object Sample:
       probabilityCount = probabilityCount,
       utility = utility,
       name = name,
-      description = description
+      description = description,
     )
 
     override lazy val toString: String = s"Sample.New(" +
@@ -123,7 +123,7 @@ object Sample:
   def formNew[F[_]: MonadThrow](
       id: SampleId,
       newData: Sample.New,
-      hnIndexes: Map[HnId, HnIndex]
+      hnIndexes: Map[HnId, HnIndex],
   ): F[Sample] =
     for
       edges <- newData.edges.toList.traverse(e => SampleEdge.fromNew[F](id, e, hnIndexes))
@@ -134,7 +134,7 @@ object Sample:
   def formDataMap[F[_]: MonadThrow](
       id: SampleId,
       sampleDataMap: Map[SampleId, SampleData],
-      edgesMap: Map[SampleId, List[SampleEdge]]
+      edgesMap: Map[SampleId, List[SampleEdge]],
   ): F[Sample] =
     for
       data <- sampleDataMap.get(id).map(_.pure).getOrElse(s"SampleData not found for $id".assertionError)

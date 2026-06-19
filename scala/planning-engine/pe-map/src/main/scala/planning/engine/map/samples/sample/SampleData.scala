@@ -26,7 +26,7 @@ final case class SampleData(
     probabilityCount: Long,
     utility: Double,
     name: Option[Name],
-    description: Option[Description]
+    description: Option[Description],
 ):
   override lazy val toString: String = "SampleData(" +
     s"id = $id, " +
@@ -52,5 +52,5 @@ object SampleData:
     probabilityCount = sampleNew.probabilityCount,
     utility = sampleNew.utility,
     name = sampleNew.name,
-    description = sampleNew.description
+    description = sampleNew.description,
   ).pure

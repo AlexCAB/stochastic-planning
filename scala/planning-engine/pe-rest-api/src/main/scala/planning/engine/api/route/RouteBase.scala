@@ -28,7 +28,7 @@ trait RouteBase[F[_]: {Concurrent, LoggerFactory}]:
 
   private def throwableToJson(err: Throwable): Json = Json.obj(
     "error" -> Json.fromString(err.getMessage),
-    "stackTrace" -> Json.fromValues(err.getStackTrace.map(elem => Json.fromString(elem.toString)))
+    "stackTrace" -> Json.fromValues(err.getStackTrace.map(elem => Json.fromString(elem.toString))),
   )
 
   extension [T](result: F[T])

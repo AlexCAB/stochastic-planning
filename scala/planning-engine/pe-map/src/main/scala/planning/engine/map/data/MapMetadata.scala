@@ -23,7 +23,7 @@ import planning.engine.common.values.text.{Description, Name}
 
 final case class MapMetadata(
     name: Option[Name],
-    description: Option[Description]
+    description: Option[Description],
 ):
   def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
     paramsOf(PROP.NAME -> name.map(_.toDbParam), PROP.DESCRIPTION -> description.map(_.toDbParam))

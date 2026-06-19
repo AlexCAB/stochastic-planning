@@ -40,7 +40,7 @@ class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
     yield info.copy(
       mapName = metadata.name,
       numInputNodes = inputNodes.size,
-      numOutputNodes = outputNodes.size
+      numOutputNodes = outputNodes.size,
     )
 
   override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])

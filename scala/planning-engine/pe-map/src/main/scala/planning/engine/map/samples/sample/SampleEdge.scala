@@ -24,7 +24,7 @@ final case class SampleEdge(
     source: SampleEdge.End,
     target: SampleEdge.End,
     edgeType: EdgeType,
-    sampleId: SampleId
+    sampleId: SampleId,
 ):
   override lazy val toString: String = s"SampleEdge($source -- ${sampleId.value}:$edgeType -> $target)"
 
@@ -47,7 +47,7 @@ object SampleEdge:
 
   def fromEdgesBySampleId[F[_]: MonadThrow](
       edges: List[(HnId, Relationship, HnId)],
-      sampleId: SampleId
+      sampleId: SampleId,
   ): F[List[SampleEdge]] =
     val propName = sampleId.toPropName
 
@@ -59,13 +59,13 @@ object SampleEdge:
               source = End(sourceHnId, HnIndex(sv)),
               target = End(targetHnId, HnIndex(tv)),
               edgeType = edgeType,
-              sampleId = sampleId
-            ))
+              sampleId = sampleId,
+            )),
           )
         case Nil => None.pure
         case props =>
           s"Expected exactly one sample property by key '$propName' with list value of two elements, but got: $props"
-            .assertionError
+            .assertionError,
     ).map(_.flatten)
 
     for
@@ -74,8 +74,8 @@ object SampleEdge:
       _ <- ends.traverse((hnId, es) =>
         es.map(_.value).assertUniform(
           s"Seems bug: all SampleEdge ends which belong to the same hidden node ($hnId) must have " +
-            s"the same index value, got ends = $es, for sampleId = $sampleId"
-        )
+            s"the same index value, got ends = $es, for sampleId = $sampleId",
+        ),
       )
     yield edges
 
@@ -97,8 +97,8 @@ object SampleEdge:
         source = End(sourceHnId, vals._1),
         target = End(targetHnId, vals._2),
         edgeType = edgeType,
-        sampleId = sId
-      )
+        sampleId = sId,
+      ),
     )
 
   def fromNew[F[_]: MonadThrow](sampleId: SampleId, edge: New, indexies: Map[HnId, HnIndex]): F[SampleEdge] =
@@ -113,5 +113,5 @@ object SampleEdge:
       source = End(edge.source, sourceValue),
       target = End(edge.target, targetValue),
       edgeType = edge.edgeType,
-      sampleId = sampleId
+      sampleId = sampleId,
     )

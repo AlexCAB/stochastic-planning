@@ -17,7 +17,7 @@ import com.typesafe.config.Config
 import pureconfig.{ConfigReader, ConfigSource}
 
 final case class PlannerMapConfig(
-    reprEnabled: Boolean
+    reprEnabled: Boolean,
 )
 
 object PlannerMapConfig:

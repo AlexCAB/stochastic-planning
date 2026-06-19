@@ -44,7 +44,7 @@ extension [L](left: IterableOnce[L])
 
   inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(
     left.iterator.isEmpty || (left.iterator.toSet.size == 1),
-    msg + s", seq: ${left.iterator.mkString(",")}"
+    msg + s", seq: ${left.iterator.mkString(",")}",
   )
 
   inline def assertNonEmpty[F[_]: ApplicativeThrow](msg: String): F[Unit] =
@@ -58,12 +58,12 @@ extension [L](left: IterableOnce[L])
 
   inline def assertSameSize[F[_]: ApplicativeThrow, R](right: IterableOnce[R], msg: String): F[Unit] = predicateAssert(
     left.iterator.size == right.iterator.size,
-    msg + s", left size: ${left.iterator.size}, right size: ${right.iterator.size}"
+    msg + s", left size: ${left.iterator.size}, right size: ${right.iterator.size}",
   )
 
   inline def assertSameElems[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] = predicateAssert(
     left.iterator.toSet == right.iterator.toSet,
-    msg + s", left seq: ${left.iterator.toSet}, right seq: ${right.iterator.toSet}"
+    msg + s", left seq: ${left.iterator.toSet}, right seq: ${right.iterator.toSet}",
   )
 
   inline def assertContainsAllOf[F[_]: ApplicativeThrow](right: IterableOnce[L], msg: String): F[Unit] =
@@ -82,5 +82,5 @@ extension [L, R](items: IterableOnce[(L, R)])
     val notEq = items.iterator.map((l, r) => (l, r) -> (l == r)).filterNot((_, isEq) => isEq).map(_._1)
     predicateAssert(
       notEq.isEmpty,
-      msg + s", found not equal pairs: ${notEq.iterator.mkString(", ")}; in seq: ${items.iterator.mkString(", ")}"
+      msg + s", found not equal pairs: ${notEq.iterator.mkString(", ")}; in seq: ${items.iterator.mkString(", ")}",
     )

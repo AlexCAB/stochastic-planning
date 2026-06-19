@@ -26,7 +26,7 @@ import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
     visualization: MapVisualizationLike[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
-    stateCell: AtomicCell[F, MapGraphState[F]]
+    stateCell: AtomicCell[F, MapGraphState[F]],
 ):
   private[map] def getMapInfo: F[MapInfoState[F]] = mapInfoCell.get
   private[map] def setMapInfo(info: MapInfoState[F]): F[Unit] = mapInfoCell.set(info)
@@ -41,7 +41,7 @@ abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
     yield res
 
   private[map] def addNewSamplesToState(
-      newSamples: MapGraphState[F] => F[Iterable[DcgSample.Add[F]]]
+      newSamples: MapGraphState[F] => F[Iterable[DcgSample.Add[F]]],
   ): F[Map[SampleId, DcgSample[F]]] = modifyMapState: state =>
     for
       samples <- newSamples(state)

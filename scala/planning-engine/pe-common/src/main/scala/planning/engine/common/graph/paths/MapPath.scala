@@ -37,7 +37,7 @@ sealed trait MapPath:
 object MapPath:
   private[paths] def makePath[F[_]: MonadThrow, P <: MapPath](
       walk: Vector[(MnId, End)],
-      make: NonEmptyChain[(MnId, End)] => P
+      make: NonEmptyChain[(MnId, End)] => P,
   ): F[P] =
     for
       _ <- walk.zip(walk.drop(1)).map((c, n) => (c._2.id, n._1)).assertAllEqual("Path must be continuous")

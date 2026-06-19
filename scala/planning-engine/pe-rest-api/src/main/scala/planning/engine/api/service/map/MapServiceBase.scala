@@ -21,7 +21,7 @@ import planning.engine.common.errors.*
 abstract class MapServiceBase[F[_]: {Async, LoggerFactory}]:
   private[map] def composeHnIdMap(
       foundHnIdMap: Map[HnName, Set[HnId]],
-      newHnIds: Map[HnId, Option[HnName]]
+      newHnIds: Map[HnId, Option[HnName]],
   ): F[Map[HnName, HnId]] =
     for
       foundIds <- foundHnIdMap.toList.traverse:

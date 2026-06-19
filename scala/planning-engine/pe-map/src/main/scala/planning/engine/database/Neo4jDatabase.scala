@@ -47,7 +47,7 @@ trait Neo4jDatabaseLike[F[_]]:
       config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
-      outNodes: List[OutputNode[F]]
+      outNodes: List[OutputNode[F]],
   ): F[List[Node]]
 
   def checkConnection: F[Long]
@@ -56,7 +56,7 @@ trait Neo4jDatabaseLike[F[_]]:
   def createAbstractNodes(initNextHnIndex: Long, params: List[AbstractNode.New]): F[Map[HnId, Option[HnName]]]
   def findHiddenNodesByNames(
       names: List[HnName],
-      getIoNode: IoName => F[IoNode[F]]
+      getIoNode: IoName => F[IoNode[F]],
   ): F[Map[HnName, List[HiddenNode[F]]]]
 
   def findHnIdsByNames(names: List[HnName]): F[Map[HnName, List[HnId]]]
@@ -82,7 +82,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   private def loadConcreteNodes(
       ids: List[Long],
-      getIoNode: IoName => F[IoNode[F]]
+      getIoNode: IoName => F[IoNode[F]],
   )(tx: AsyncTransaction[F]): F[List[ConcreteNode[F]]] =
     for
       withIoNames <- findConcreteNodesByIdsQuery(ids)(tx).map(_.map((hn, ioName) => (hn, IoName(ioName))))
@@ -98,7 +98,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
       config: MapConfig,
       metadata: MapMetadata,
       inNodes: List[InputNode[F]],
-      outNodes: List[OutputNode[F]]
+      outNodes: List[OutputNode[F]],
   ): F[List[Node]] = driver.transact(writeConf): tx =>
     for
       mtParams <- metadata.toQueryParams
@@ -129,7 +129,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def createConcreteNodes(
       initNextHnIndex: Long,
-      params: List[ConcreteNode.New]
+      params: List[ConcreteNode.New],
   ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
@@ -141,7 +141,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def createAbstractNodes(
       initNextHnIndex: Long,
-      params: List[AbstractNode.New]
+      params: List[AbstractNode.New],
   ): F[Map[HnId, Option[HnName]]] = driver.transact(writeConf): tx =>
     for
       newIds <- getNextHnIdQuery(params.size)(tx).map(_.map(HnId.apply))
@@ -153,7 +153,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
   override def findHiddenNodesByNames(
       names: List[HnName],
-      getIoNode: IoName => F[IoNode[F]]
+      getIoNode: IoName => F[IoNode[F]],
   ): F[Map[HnName, List[HiddenNode[F]]]] = driver.transact(readConf): tx =>
     def buildMap(allNodes: List[HiddenNode[F]]): F[Map[HnName, List[HiddenNode[F]]]] = allNodes
       .foldRight(List[(HnName, HiddenNode[F])]().pure):
@@ -192,7 +192,7 @@ class Neo4jDatabase[F[_]: Async](driver: AsyncDriver[F], val dbName: DbName) ext
 
       def addSampleEdge(
           samples: List[(SampleId, Sample.New)],
-          hnInsToHnIndex: Map[HnId, List[HnIndex]]
+          hnInsToHnIndex: Map[HnId, List[HnIndex]],
       ): F[List[(SampleId, Sample.New, Map[HnId, HnIndex], List[String])]] = samples
         .foldRight((hnInsToHnIndex, List[(SampleId, Sample.New, Map[HnId, HnIndex], List[String])]()).pure):
           case ((sampleId, sample), accF) =>

@@ -25,7 +25,7 @@ final case class MapSubGraph[F[_]: MonadThrow](
     abstractNodes: List[AbstractNode[F]],
     edges: List[HiddenEdge],
     loadedSamples: List[SampleData],
-    skippedSamples: List[SampleId]
+    skippedSamples: List[SampleId],
 ) extends Validation:
   lazy val allIoValues: Set[IoValue] = concreteNodes.map(_.ioValue).toSet
   lazy val allSampleIds: Set[SampleId] = loadedSamples.map(_.id).toSet ++ skippedSamples.toSet
@@ -47,7 +47,7 @@ final case class MapSubGraph[F[_]: MonadThrow](
       edgeKeys.isDistinct("Edge keys (type, sourceId, targetId) must be distinct"),
       allIds.containsAllOf(allEdgeHdIds, "All Edge node IDs must exist in concrete or abstract nodes list"),
       allSamplesIds.isDistinct("Sample IDs must be distinct"),
-      allSamplesIds.haveSameElems(allEdgeSamplesIds, "All edge sample IDs must exist in loaded or skipped samples")
+      allSamplesIds.haveSameElems(allEdgeSamplesIds, "All edge sample IDs must exist in loaded or skipped samples"),
     )
 
 object MapSubGraph:
@@ -56,5 +56,5 @@ object MapSubGraph:
     abstractNodes = List.empty,
     edges = List.empty,
     loadedSamples = List.empty,
-    skippedSamples = List.empty
+    skippedSamples = List.empty,
   )

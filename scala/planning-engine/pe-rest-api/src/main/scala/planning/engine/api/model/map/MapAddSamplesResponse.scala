@@ -18,7 +18,7 @@ import planning.engine.common.values.text.Name
 import io.circe.{Encoder, Decoder}
 
 final case class MapAddSamplesResponse(
-    addedSamples: List[ShortSampleData]
+    addedSamples: List[ShortSampleData],
 )
 
 object MapAddSamplesResponse:

@@ -26,14 +26,14 @@ final case class NextSampleEdge[F[_]](
     currentValue: HnIndex,
     edgeType: EdgeType,
     nextValue: HnIndex,
-    nextHn: HiddenNode[F]
+    nextHn: HiddenNode[F],
 )
 
 object NextSampleEdge:
   def fromSampleEdge[F[_]: MonadThrow](
       edge: SampleEdge,
       sampleDataMap: Map[SampleId, SampleData],
-      hnMap: Map[HnId, HiddenNode[F]]
+      hnMap: Map[HnId, HiddenNode[F]],
   ): F[NextSampleEdge[F]] =
     for
       sampleData <- sampleDataMap.get(edge.sampleId) match
@@ -47,5 +47,5 @@ object NextSampleEdge:
       currentValue = edge.source.value,
       edgeType = edge.edgeType,
       nextValue = edge.target.value,
-      nextHn = nextHn
+      nextHn = nextHn,
     )

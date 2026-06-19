@@ -26,7 +26,7 @@ import planning.engine.common.validation.Validation
 final case class AbstractNode[F[_]: MonadThrow](
     id: HnId,
     name: Option[HnName],
-    description: Option[Description]
+    description: Option[Description],
 ) extends HiddenNode[F]:
 
   override lazy val toString: String = s"AbstractHiddenNode(id = $id, name = $name, description = $description)"
@@ -35,14 +35,14 @@ object AbstractNode:
   final case class New(name: Option[HnName], description: Option[Description]) extends Validation:
 
     override lazy val validations: (String, List[Throwable]) = validate(s"AbstractNode.New(name=$name)")(
-      name.forall(_.value.nonEmpty) -> "Name must not be empty if defined"
+      name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
     )
 
     def toProperties[F[_]: MonadThrow](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.map(_.toDbParam),
       PROP.DESCRIPTION -> description.map(_.toDbParam),
-      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam,
     )
 
   final case class ListNew(list: List[New])

@@ -12,7 +12,6 @@
 
 package planning.engine.planner.mpi.actors.node
 
-import cats.MonadThrow
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.data.node.{AbsData, ConData, NodeData, StaticActors}
 
@@ -22,9 +21,9 @@ private[node] trait Definitions:
     def data: NodeData
     def actors: StaticActors
 
-  final case class ConDef[F[_]: MonadThrow](
+  final case class ConDef(
       id: MnId.Con,
-      data: ConData[F],
+      data: ConData,
       actors: StaticActors,
   ) extends Definition:
     override lazy val toString: String = s"[${id.reprValue}, ${data.name.repr}]"

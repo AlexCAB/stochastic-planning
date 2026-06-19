@@ -23,7 +23,7 @@ final case class MapVisualizationMsg(
     ioValues: Set[(IoName, Set[HnId])],
     concreteNodes: Set[HnId],
     abstractNodes: Set[HnId],
-    edgesMapping: Set[(HnId, Set[HnId])]
+    edgesMapping: Set[(HnId, Set[HnId])],
 )
 
 object MapVisualizationMsg:
@@ -40,5 +40,5 @@ object MapVisualizationMsg:
     ioValues = state.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
     concreteNodes = state.graph.nodes.keySet.filter(_.isCon).map(_.asHnId),
     abstractNodes = state.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
-    edgesMapping = state.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
+    edgesMapping = state.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId))),
   )

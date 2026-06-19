@@ -12,8 +12,6 @@
 
 package planning.engine.planner.mpi.actors.manager
 
-import cats.effect.Sync
-import cats.effect.std.Dispatcher
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
@@ -29,23 +27,21 @@ object Manager extends ActorBase with Definitions with States with Messages:
 
   val name = "map-manager-actor"
 
-  private[manager] def doAddNode[F[_]: {S, D}](msg: AddNode, state: St)(using d: Def, ctx: Ctx): F[St] =
+  private[manager] def doAddNode[F[_]: S](msg: AddNode, state: St)(using d: Def, ctx: Ctx): F[St] =
     ctx.executionContext
     for
       definition <- msg.data.toDefinition(state.nextId, StaticActors())
-      nodeRef <- Node.spawn(definition, (bh, n) => ctx.spawn(bh, n))
+      nodeRef = Node.spawn(definition, (bh, n) => ctx.spawn(bh, n))
       _ <- logInfo(s"Added node $definition")
       _ <- msg.replay(Adaptor.NodeAdded(definition.id, msg.data.name))
     yield state.withNewNode(definition.id, nodeRef)
 
-  override protected def receive[F[_]: {S, D}](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
+  override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
     case msg: AddNode    => doAddNode(msg, state)
     case msg: UpsertEdge => ??? // doUpsertEdge(msg, state, ctx)
 
-  override protected def error[F[_]: {S, D}](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    msg match
-      case msg: UpsertEdge => ??? // doUpsertEdge(msg, state, ctx)
-      case msg => ignoreError(msg, state, err)
+  override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] = msg match
+    case msg: UpsertEdge => ??? // doUpsertEdge(msg, state, ctx)
+    case msg             => ignoreError(msg, state, err)
 
-  def spawn[F[_]: {Sync, Dispatcher}](definition: Def, make: (Behavior[Msg], String) => Ref): F[Ref] =
-    delay(make(apply(definition, State.init), name))
+  def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

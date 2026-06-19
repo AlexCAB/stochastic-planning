@@ -28,7 +28,7 @@ final case class DagNode[F[_]: MonadThrow](
     time: Option[IoTime],
 
     // Corresponding DcgNode. One DcgNode can be linked to multiple DagNodes.
-    dcgNode: DcgNode[F]
+    dcgNode: DcgNode[F],
 ):
   import IoTime.*
 

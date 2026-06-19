@@ -20,7 +20,7 @@ import planning.engine.common.values.text.Name
 
 final case class MapResetResponse(
     prevDbName: Option[DbName],
-    prevMapName: Option[Name]
+    prevMapName: Option[Name],
 )
 
 object MapResetResponse:

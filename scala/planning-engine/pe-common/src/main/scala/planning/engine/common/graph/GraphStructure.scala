@@ -28,7 +28,7 @@ import scala.reflect.ClassTag
 final case class GraphStructure[F[_]: MonadThrow](
     keys: Set[MeKey],
     srcMap: Map[MnId, Set[End]],
-    trgMap: Map[MnId, Set[End]]
+    trgMap: Map[MnId, Set[End]],
 ) extends GraphTracing[F]:
   lazy val mnIds: Set[MnId] = srcMap.keySet ++ trgMap.keySet
   lazy val conMnId: Set[MnId.Con] = mnIds.filterCon
@@ -68,5 +68,5 @@ object GraphStructure:
   def apply[F[_]: MonadThrow](keys: Set[MeKey]): GraphStructure[F] = GraphStructure(
     keys = keys,
     srcMap = keys.groupBy(_.src).view.mapValues(_.map(_.trgEnd).toSet).toMap,
-    trgMap = keys.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap
+    trgMap = keys.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap,
   )

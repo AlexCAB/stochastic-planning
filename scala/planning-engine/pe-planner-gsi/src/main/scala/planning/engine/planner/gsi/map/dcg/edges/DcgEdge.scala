@@ -23,7 +23,7 @@ import planning.engine.common.graph.edges.{MeKey, IndexMap}
 
 final case class DcgEdge[F[_]: MonadThrow](
     key: MeKey,
-    samples: DcgSamples[F]
+    samples: DcgSamples[F],
 ):
   lazy val mnIds: Set[MnId] = Set(key.src, key.trg)
 

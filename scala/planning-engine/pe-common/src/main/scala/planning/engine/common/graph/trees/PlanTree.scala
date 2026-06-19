@@ -26,7 +26,7 @@ final case class PlanTree(root: Vertex):
         List(
           trace(firstNext, initStr + "+" + arrow),
           midNext.dropRight(1).flatMap(next => trace(next, arrow)).map(str => prefix + "|" + str),
-          trace(midNext.last, prefix + "\\" + arrow)
+          trace(midNext.last, prefix + "\\" + arrow),
         ).flatten
 
       case Nil => List(prevStr + renderNode(current.pnId))

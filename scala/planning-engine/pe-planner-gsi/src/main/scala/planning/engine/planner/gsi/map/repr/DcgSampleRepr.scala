@@ -42,5 +42,5 @@ trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       List("    Loop:"),
       renderPathRepr(loops).tab6,
       List("    Noose:"),
-      renderPathRepr(nooses).tab6
+      renderPathRepr(nooses).tab6,
     ).flatten.mkString("\n")

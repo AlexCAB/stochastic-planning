@@ -64,7 +64,7 @@ class SimpleSyncPlanner[F[_]: Async](
 object SimpleSyncPlanner:
   def apply[F[_]: {Async, LoggerFactory}](
       config: SimpleSyncPlannerConfig,
-      mapGraph: MapGraphLake[F]
+      mapGraph: MapGraphLake[F],
   ): F[SimpleSyncPlanner[F]] = ???
 
 //    for

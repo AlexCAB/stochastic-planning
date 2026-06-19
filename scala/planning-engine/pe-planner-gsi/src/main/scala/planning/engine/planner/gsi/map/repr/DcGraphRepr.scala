@@ -50,7 +50,7 @@ class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
     yield List(
       List("ABSTRACT LAYERS:"),
       if renderLayer.isEmpty then List("  ---") else renderLayer,
-      if terminalLayer.isEmpty then List() else "  Terminal layer:" +: terminalLayer
+      if terminalLayer.isEmpty then List() else "  Terminal layer:" +: terminalLayer,
     ).flatten
 
   lazy val reprPlanningPath: F[List[String]] =
@@ -63,7 +63,7 @@ class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       List("  Loop:"),
       renderPathRepr(loops).tab4,
       List("  Noose:"),
-      renderPathRepr(nooses).tab4
+      renderPathRepr(nooses).tab4,
     ).flatten
 
   lazy val reprNotConnectedNodes: List[String] = s"NOT CONNECTED NODES:" +: renderNotConnectedNodes.tab2

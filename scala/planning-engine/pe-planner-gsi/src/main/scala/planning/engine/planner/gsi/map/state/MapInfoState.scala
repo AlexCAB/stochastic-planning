@@ -22,7 +22,7 @@ import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 final case class MapInfoState[F[_]: MonadThrow](
     metadata: MapMetadata,
     inNodes: Map[IoName, InputNode[F]],
-    outNodes: Map[IoName, OutputNode[F]]
+    outNodes: Map[IoName, OutputNode[F]],
 ):
   lazy val allIoNodes: Map[IoName, IoNode[F]] = inNodes ++ outNodes
   lazy val isEmpty: Boolean = inNodes.isEmpty && outNodes.isEmpty
@@ -40,7 +40,7 @@ object MapInfoState:
   def apply[F[_]: MonadThrow](
       metadata: MapMetadata,
       inNodes: Iterable[InputNode[F]],
-      outNodes: Iterable[OutputNode[F]]
+      outNodes: Iterable[OutputNode[F]],
   ): F[MapInfoState[F]] =
     for
       _ <- (inNodes ++ outNodes).map(_.name).assertDistinct("All IO node names must be distinct")

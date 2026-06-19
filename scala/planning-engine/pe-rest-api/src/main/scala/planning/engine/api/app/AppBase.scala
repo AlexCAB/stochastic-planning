@@ -38,7 +38,7 @@ abstract class AppBase extends IOApp:
 
   protected def buildServer(
       config: ServerConf,
-      routes: WebSocketBuilder[IO] => HttpRoutes[IO]
+      routes: WebSocketBuilder[IO] => HttpRoutes[IO],
   ): Resource[IO, Server] = EmberServerBuilder
     .default[IO]
     .withHost(config.host)

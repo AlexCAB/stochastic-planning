@@ -19,7 +19,7 @@ import planning.engine.common.values.node.HnName
 final case class NewSampleEdge(
     sourceHnName: HnName,
     targetHnName: HnName,
-    edgeType: EdgeType
+    edgeType: EdgeType,
 )
 
 object NewSampleEdge:

@@ -19,7 +19,7 @@ import planning.engine.map.hidden.node.ConcreteNode
 final case class ConcreteWithParentIds[F[_]: MonadThrow](
     node: ConcreteNode[F],
     linkParentIds: Set[HnId],
-    thenParentIds: Set[HnId]
+    thenParentIds: Set[HnId],
 ):
   override lazy val toString: String =
     s"ConcreteWithParentIds(nodeId=${node.id}, linkParentIds=$linkParentIds, thenParentIds=$thenParentIds)"

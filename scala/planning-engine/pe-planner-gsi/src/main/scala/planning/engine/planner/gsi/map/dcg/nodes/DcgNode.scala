@@ -38,7 +38,7 @@ object DcgNode:
       name: Option[HnName],
       description: Option[Description],
       ioNode: IoNode[F],
-      valueIndex: IoIndex
+      valueIndex: IoIndex,
   ) extends DcgNode[F]:
     lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
     lazy val asConcrete: Option[DcgNode.Concrete[F]] = Some(this)
@@ -50,13 +50,13 @@ object DcgNode:
       name = node.name,
       description = node.description,
       ioNode = node.ioNode,
-      valueIndex = node.valueIndex
+      valueIndex = node.valueIndex,
     ).pure
 
     def apply[F[_]: MonadThrow](
         hnId: MnId.Con,
         node: ConcreteNode.New,
-        getIoNode: IoName => F[IoNode[F]]
+        getIoNode: IoName => F[IoNode[F]],
     ): F[Concrete[F]] =
       for
           ioNode <- getIoNode(node.ioNodeName)
@@ -65,13 +65,13 @@ object DcgNode:
         name = node.name,
         description = node.description,
         ioNode = ioNode,
-        valueIndex = node.valueIndex
+        valueIndex = node.valueIndex,
       )
 
   final case class Abstract[F[_]: MonadThrow](
       id: MnId.Abs,
       name: Option[HnName],
-      description: Option[Description]
+      description: Option[Description],
   ) extends DcgNode[F]:
     lazy val asConcrete: Option[DcgNode.Concrete[F]] = None
     override lazy val toString: String = s"(A, $idRepr)"
@@ -80,11 +80,11 @@ object DcgNode:
     def apply[F[_]: MonadThrow](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](
       id = node.id.asAbs,
       name = node.name,
-      description = node.description
+      description = node.description,
     ).pure
 
     def apply[F[_]: MonadThrow](hnId: MnId.Abs, node: AbstractNode.New): F[Abstract[F]] = new Abstract[F](
       id = hnId,
       name = node.name,
-      description = node.description
+      description = node.description,
     ).pure

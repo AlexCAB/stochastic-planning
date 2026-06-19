@@ -17,7 +17,7 @@ import com.typesafe.config.Config
 import pureconfig.{ConfigReader, ConfigSource}
 
 final case class VisualizationServiceConf(
-    mapEnabled: Boolean
+    mapEnabled: Boolean,
 )
 
 object VisualizationServiceConf:

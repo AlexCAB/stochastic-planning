@@ -19,7 +19,7 @@ import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId.Con
 
 final case class IoValueMap[F[_]: MonadThrow](
-    valueMap: Map[IoValue, Set[Con]]
+    valueMap: Map[IoValue, Set[Con]],
 ):
   lazy val isEmpty: Boolean = valueMap.isEmpty
   lazy val values: Iterable[Set[Con]] = valueMap.values

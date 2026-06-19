@@ -12,7 +12,6 @@
 
 package planning.engine.planner.mpi.actors.manager
 
-import cats.effect.IO
 import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.node.MnId
@@ -27,9 +26,8 @@ class ManagerSpec extends UnitSpecWithTestKit:
     val adaptorProbe: TestProbe[Adaptor.Msg] = testKit.createTestProbe[Adaptor.Msg]()
     
     lazy val mapManagerActor: Manager.Ref = Manager
-      .spawn[IO](Manager.Definition(visualizerProbe.ref), (bh, n) => testKit.spawn(bh, n))
-      .unsafeRunSync()
-
+      .spawn(Manager.Definition(visualizerProbe.ref), (bh, n) => testKit.spawn(bh, n))
+  
   "MapManagerActor" should:
     "add new node" in newCase[CaseData]: (log, data) =>
       data.mapManagerActor ! Manager.AddNode(data.conNodeData, data.adaptorProbe.ref)

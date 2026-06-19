@@ -27,12 +27,13 @@ object Manager extends ActorBase with Definitions with States with Messages:
 
   val name = "map-manager-actor"
 
+  override protected def setup(s: St)(using d: Def, ctx: Ctx): Unit = ctx.setLoggerName(name)
+
   private[manager] def doAddNode[F[_]: S](msg: AddNode, state: St)(using d: Def, ctx: Ctx): F[St] =
-    ctx.executionContext
     for
       definition <- msg.data.toDefinition(state.nextId, StaticActors())
       nodeRef = Node.spawn(definition, (bh, n) => ctx.spawn(bh, n))
-      _ <- logInfo(s"Added node $definition")
+      _ <- logInfo(s"Added node $definition, path: ${nodeRef.path}")
       _ <- msg.replay(Adaptor.NodeAdded(definition.id, msg.data.name))
     yield state.withNewNode(definition.id, nodeRef)
 

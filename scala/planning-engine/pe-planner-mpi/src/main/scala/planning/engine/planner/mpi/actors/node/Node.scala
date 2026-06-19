@@ -22,7 +22,7 @@ object Node extends ActorBase with Definitions with States with Messages:
 
   override protected type St = State
 
-  val name = "map-node-actor"
+  override protected def setup(s: St)(using d: Def, ctx: Ctx): Unit = ctx.setLoggerName(s"map-node-actor-${d.id}")
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = ???
 

@@ -21,8 +21,6 @@ import scala.concurrent.ExecutionContext
 // but not for parallelism, which is handled by actors themselves.
 // WARNING: This IORuntime should not be passes to another actor or used outside the actor.
 trait ActorExecCtx:
-  protected def name: String
-
   private val context: ExecutionContext = new ExecutionContext:
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = cause.printStackTrace()

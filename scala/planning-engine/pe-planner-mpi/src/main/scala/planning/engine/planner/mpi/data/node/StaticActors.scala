@@ -12,13 +12,11 @@
 
 package planning.engine.planner.mpi.data.node
 
-import org.apache.pekko.actor.typed.ActorRef
-import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
-final case class StaticActors(manager: ActorRef[Manager.Message], visualizer: ActorRef[Visualizer.Message])
+final case class StaticActors(manager: Manager.Ref, visualizer: Visualizer.Ref)
 
 object StaticActors:
-  def apply()(using dfn: Manager.Definition, ctx: ActorContext[Manager.Message]): StaticActors =
+  def apply()(using dfn: Manager.Definition, ctx: Manager.Ctx): StaticActors =
     new StaticActors(ctx.self, dfn.visualizer)

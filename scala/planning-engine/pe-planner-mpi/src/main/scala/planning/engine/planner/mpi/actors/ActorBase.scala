@@ -32,13 +32,13 @@ trait ActorBase extends ActorExecCtx:
   protected type St
   protected type S[F[_]] = Sync[F]
 
-  // Actor name for logging purposes, to be defined by concrete actors
-  protected def name: String
-
   // Cats-effect helpers
   protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
-  // Abstract methods for handling messages
+  // Actor setup (called once when the actor is created)
+  protected def setup(state: St)(using Def, Ctx): Unit = ()
+
+  // Abstract method for handling messages
   protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St]
 
   // Abstract method for handling errors during message processing (i.e., exceptions thrown in the receive method)
@@ -54,20 +54,19 @@ trait ActorBase extends ActorExecCtx:
 
   // Actor main behavior definition
   protected def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>
-    ctx.setLoggerName(name)
+    given Ctx = ctx
+    setup(state)
 
-    Behaviors.receive: (c, m) =>
-      given Ctx = c
-
-      def process: IO[St] = receive[IO](m, state).handleErrorWith: err =>
-        c.log.error(s"Error on message: $m, calling error() handler", err)
-        error(m, state, err)
+    Behaviors.receiveMessage: msg =>
+      def process: IO[St] = receive[IO](msg, state).handleErrorWith: err =>
+        ctx.log.error(s"Error on message: $msg, calling error() handler", err)
+        error(msg, state, err)
 
       Try(process.unsafeRunSync()) match
         case Success(nextState) => behavior(nextState)
 
         case Failure(err) =>
-          c.log.error(s"Fatal error on message: $m", err)
+          ctx.log.error(s"Fatal error on message: $msg", err)
           Behaviors.stopped
 
   // Factory `method for creating the actor's behavior

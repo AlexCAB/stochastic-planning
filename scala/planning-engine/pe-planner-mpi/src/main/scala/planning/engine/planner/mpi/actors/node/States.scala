@@ -20,10 +20,10 @@ import planning.engine.planner.mpi.data.node.MnRef
 private[node] trait States:
   private[node] final case class State(
       // Map of outgoing edges: target node ID -> (target node actor reference, edge data)
-      outgoing: Map[MnId, (ActorRef[Node.Message], EdgeData)],
+      outgoing: Map[MnId, (ActorRef[NodeActor.Message], EdgeData)],
 
       // Map of incoming edges: source node ID -> source node actor reference
-      incoming: Map[MnId, ActorRef[Node.Message]],
+      incoming: Map[MnId, ActorRef[NodeActor.Message]],
 
       // Set of outgoing edges which is in process of being established
       // (i.e., connection messages sent but not yet acknowledged)

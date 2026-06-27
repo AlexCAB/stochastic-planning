@@ -16,28 +16,34 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.adaptor.Adaptor
+import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
+import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
+import planning.engine.planner.mpi.data.node.NodeData
 import planning.engine.planner.mpi.model.data.MapNodeTestData
 
 class ManagerSpec extends UnitSpecWithTestKit:
   private class CaseData extends Case with MapNodeTestData:
-    val visualizerProbe: TestProbe[Visualizer.Msg] = testKit.createTestProbe[Visualizer.Msg]()
-    val adaptorProbe: TestProbe[Adaptor.Msg] = testKit.createTestProbe[Adaptor.Msg]()
-    
-    lazy val mapManagerActor: Manager.Ref = Manager
-      .spawn(Manager.Definition(visualizerProbe.ref), (bh, n) => testKit.spawn(bh, n))
-  
+    val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
+    val adaptorProbe: TestProbe[ManagerAdaptor.Msg] = testKit.createTestProbe[ManagerAdaptor.Msg]()
+
+    lazy val mapManagerActor: ManagerActor.Ref = ManagerActor
+      .spawn(ManagerActor.Definition(visualizerProbe.ref), (bh, n) => testKit.spawn(bh, n))
+
   "MapManagerActor" should:
     "add new node" in newCase[CaseData]: (log, data) =>
-      data.mapManagerActor ! Manager.AddNode(data.conNodeData, data.adaptorProbe.ref)
+      data.mapManagerActor ! ManagerActor.AddNodes(NodeData(data.conNodeData), data.adaptorProbe.ref)
 
-      val conRes = log.msg(data.adaptorProbe.expectMessageType[Adaptor.NodeAdded])
-      conRes.id mustBe MnId.Con(1L)
-      conRes.name mustBe data.conNodeData.name
+      val conRes = log.msg(data.adaptorProbe.expectMessageType[ManagerAdaptor.NodesAdded])
+      conRes.ids mustBe Map(MnId.Con(1L) -> data.conNodeData.name)
 
-      data.mapManagerActor ! Manager.AddNode(data.absNodeData, data.adaptorProbe.ref)
+      data.mapManagerActor ! ManagerActor.AddNodes(NodeData(data.absNodeData), data.adaptorProbe.ref)
 
-      val absRes = log.msg(data.adaptorProbe.expectMessageType[Adaptor.NodeAdded])
-      absRes.id mustBe MnId.Abs(2L)
-      absRes.name mustBe data.absNodeData.name
+      val absRes = log.msg(data.adaptorProbe.expectMessageType[ManagerAdaptor.NodesAdded])
+      absRes.ids mustBe Map(MnId.Abs(2L) -> data.absNodeData.name)
+
+      data.mapManagerActor ! ManagerActor.AddNodes(NodeData(data.conNodeData, data.absNodeData), data.adaptorProbe.ref)
+
+      val multiRes = log.msg(data.adaptorProbe.expectMessageType[ManagerAdaptor.NodesAdded])
+      multiRes.ids mustBe Map(MnId.Con(3L) -> data.conNodeData.name, MnId.Abs(4L) -> data.absNodeData.name)
+
+

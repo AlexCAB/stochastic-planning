@@ -12,10 +12,10 @@
 
 package planning.engine.planner.mpi.actors.manager
 
-import planning.engine.planner.mpi.actors.visualizer.Visualizer
+import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 
 private[manager] trait Definitions:
 
   final case class Definition(
-      visualizer: Visualizer.Ref,
+      visualizer: VisualizerActor.Ref,
   )

@@ -13,6 +13,6 @@
 package planning.engine.planner.mpi.data.node
 
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.NodeActor
 
-final case class MnRef(id: MnId, ref: Node.Ref)
+final case class MnRef(id: MnId, ref: NodeActor.Ref)

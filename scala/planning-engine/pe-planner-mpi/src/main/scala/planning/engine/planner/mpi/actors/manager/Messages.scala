@@ -24,4 +24,13 @@ private[manager] trait Messages:
   // Add node command. Create new MnId and add node to the graph. Reply with NodeData.
   final case class AddNodes(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends Message
 
-  final case class UpsertEdge(key: MeKey, data: EdgeData, replyTo: ManagerAdaptor.Ref) extends Message
+  // Add node by name command: 
+  // - If the node with given name already exists, returns its MnId.
+  // - If node does not exist, creates and add new node.
+  // Will fail if:
+  // - In map found duplicate names.
+  // - NodeData.Kit contains NodeData with undefined name field.
+  // - Node type of found node does not match the type given in NodeData.
+  final case class UpsertNodesByName(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends Message
+
+  final case class UpsertEdges(key: MeKey, data: EdgeData, replyTo: ManagerAdaptor.Ref) extends Message

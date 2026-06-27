@@ -27,10 +27,10 @@ private[manager] trait States:
       // Next ID to assign to a new node (incremented for each new node)
       nextId: Long,
   ):
-    def withNewNodes[F[_]: MonadThrow](newNodes: Map[NodeActor.Ref, NodeActor.Def]): F[State] =
+    def withNewNodes[F[_]: MonadThrow](newNodes: Map[MnId, ActorRef[NodeActor.Message]]): F[State] =
       for
-          _ <- nodes.assertContainsNoneOf(newNodes.values.map(_.id), "Node IDs already exist in the current state.")
-      yield this.copy(nodes = nodes ++ newNodes.map((r, d) => d.id -> r), nextId = nextId + newNodes.size)
+          _ <- nodes.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state.")
+      yield this.copy(nodes = nodes ++ newNodes, nextId = nextId + newNodes.size)
 
   private[manager] object State:
     val init: State = State(Map.empty, 1L)

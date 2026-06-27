@@ -54,7 +54,7 @@ trait ActorBase extends ActorExecCtx:
   protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
 
   protected def logInfo[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =
-    logInfo(s"$msg:\n ${map.map((k, v) => s"    $k -> $v").mkString("\n")}")
+    logInfo(s"$msg:\n${map.map((k, v) => s"    $k -> $v").mkString("\n")}")
 
   // Actor main behavior definition
   protected def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>

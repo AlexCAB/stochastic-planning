@@ -1,0 +1,30 @@
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: 27.06.2026 |||||||||||*/
+
+package planning.engine.planner.mpi.actors.manager.logic
+
+import cats.syntax.all.*
+import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.data.node.{NodeData, StaticActors}
+
+trait NodesLogic:
+  self: ManagerActor.type =>
+
+  def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using d: Def, ctx: Ctx): F[(Map[MnId, Option[HnName]], St)] =
+    for
+      definitions <- data.toDefinitions(state.nextId, StaticActors())
+      nodeRefs = NodeActor.spawn(definitions, (bh, n) => ctx.spawn(bh, n))
+      _ <- logInfo("Added new nodes", nodeRefs)
+      newState <- state.withNewNodes(nodeRefs.map((r, d) => d.id -> r))
+    yield (nodeRefs.map((r, d) => d.id -> d.data.name), newState)

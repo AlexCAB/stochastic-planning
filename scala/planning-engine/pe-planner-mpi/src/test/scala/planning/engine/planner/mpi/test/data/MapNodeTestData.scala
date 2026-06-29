@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 09.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.model.data
+package planning.engine.planner.mpi.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime

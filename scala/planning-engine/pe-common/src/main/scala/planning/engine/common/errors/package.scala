@@ -42,6 +42,11 @@ extension [L](left: IterableOnce[L])
     val dup = left.iterator.toSeq.groupBy(identity).filter((_, v) => v.size > 1).keySet
     predicateAssert(dup.isEmpty, msg + s", seq: ${left.iterator.mkString(",")}, duplicates: ${dup.mkString(",")}")
 
+  inline def assertOneElement[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(
+    left.iterator.size == 1,
+    msg + s", expected exactly one element, seq: ${left.iterator.mkString(",")}",
+  )
+
   inline def assertUniform[F[_]: ApplicativeThrow](msg: String): F[Unit] = predicateAssert(
     left.iterator.isEmpty || (left.iterator.toSet.size == 1),
     msg + s", seq: ${left.iterator.mkString(",")}",

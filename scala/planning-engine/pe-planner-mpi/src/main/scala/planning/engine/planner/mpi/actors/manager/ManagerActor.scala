@@ -35,12 +35,16 @@ object ManagerActor extends ActorBase with Definitions with States with Messages
       _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
     yield newState
 
-  private[manager] def doAUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
-    ???
+  private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
+    for
+      (ids, newState) <- upsertNodesByName(msg.data, state)
+      _ <- logInfo("[UpsertNodesByName] added nodes", ids)
+      _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
+    yield newState
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
     case msg: AddNodes          => doAddNodes(msg, state)
-    case msg: UpsertNodesByName => doAUpsertNodesByName(msg, state)
+    case msg: UpsertNodesByName => doUpsertNodesByName(msg, state)
     case msg: UpsertEdges       => ??? // doUpsertEdge(msg, state, ctx)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] = msg match

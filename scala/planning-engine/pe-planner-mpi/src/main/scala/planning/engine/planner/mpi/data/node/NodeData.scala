@@ -58,4 +58,12 @@ object NodeData:
         refs <- nodes.zipWithIndex.traverse((node, i) => node.toDefinition(initRawId + i, actors))
       yield refs
 
+    def getUniqueNames[F[_]: MonadThrow]: F[Set[HnName]] =
+      for
+        names <- nodes.flatMap(_.name).pure
+        _ <- names.assertDistinct("Node names must be distinct")
+      yield names.toSet
+
+    def filterNotByNames(names: Set[HnName]): Kit = Kit(nodes.filterNot(_.name.exists(names.contains)))
+
   def apply(nodes: NodeData*): NodeData.Kit = NodeData.Kit(nodes.toList)

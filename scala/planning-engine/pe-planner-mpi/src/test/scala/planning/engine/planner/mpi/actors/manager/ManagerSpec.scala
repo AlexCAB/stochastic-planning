@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.data.node.NodeData
-import planning.engine.planner.mpi.model.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 class ManagerSpec extends UnitSpecWithTestKit:
   private class CaseData extends Case with MapNodeTestData:

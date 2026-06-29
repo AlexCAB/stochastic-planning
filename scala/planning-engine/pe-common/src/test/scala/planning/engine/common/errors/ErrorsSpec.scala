@@ -57,8 +57,26 @@ class ErrorsSpec extends UnitSpecIO:
 
     "raise an AssertionError if the sequence contains duplicates" in: _ =>
       List(1, 2, 2, 3, 4).assertDistinct[IO](
-        "Elements are not distinct"
+        "Elements are not distinct",
       ).assertThrowsWithMessage[AssertionError]("Elements are not distinct, seq: 1,2,2,3,4, duplicates: 2")
+
+  "assertOneElement" should:
+    "complete successfully when the sequence has exactly one element" in: _ =>
+      List(1).assertOneElement[IO]("Sequence must have one element").assertNoException
+
+    "raise an error when the sequence is empty" in: _ =>
+      List.empty[Int]
+        .assertOneElement[IO]("Sequence must have one element")
+        .assertThrowsWithMessage[AssertionError](
+          "Sequence must have one element, expected exactly one element, seq: ",
+        )
+
+    "raise an error when the sequence has more than one element" in: _ =>
+      List(1, 2)
+        .assertOneElement[IO]("Sequence must have one element")
+        .assertThrowsWithMessage[AssertionError](
+          "Sequence must have one element, expected exactly one element, seq: 1,2",
+        )
 
   "assertUniform" should:
     "return the sequence when all elements are the same" in: _ =>

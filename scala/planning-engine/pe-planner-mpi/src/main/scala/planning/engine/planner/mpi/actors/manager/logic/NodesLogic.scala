@@ -22,7 +22,10 @@ import planning.engine.common.errors.*
 trait NodesLogic:
   self: ManagerActor.type =>
 
-  def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using d: Def, ctx: Ctx): F[(Map[MnId, Option[HnName]], St)] =
+  protected def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using
+      d: Def,
+      ctx: Ctx,
+  ): F[(Map[MnId, Option[HnName]], St)] =
     for
       definitions <- data.toDefinitions(state.nextId, StaticActors())
       nodeRefs = NodeActor.spawn(definitions, (bh, n) => ctx.spawn(bh, n))
@@ -30,7 +33,7 @@ trait NodesLogic:
       newState <- state.withNewNodes(nodeRefs)
     yield (nodeRefs.map((r, d) => d.id -> d.data.name), newState)
 
-  def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
+  protected def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =

@@ -29,7 +29,7 @@ private[manager] trait States:
   ):
     def withNewNodes[F[_]: MonadThrow](newNodes: Map[NodeActor.Ref, NodeActor.Def]): F[State] =
       for
-          _ <- nodeRefs.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state.")
+          _ <- nodeRefs.values.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state")
       yield this.copy(
         nodeRefs = nodeRefs ++ newNodes.map((r, d) => d.id -> r),
         nextId = nextId + newNodes.size,

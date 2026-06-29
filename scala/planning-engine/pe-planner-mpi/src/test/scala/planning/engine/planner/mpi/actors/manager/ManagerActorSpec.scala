@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.data.node.NodeData
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
-class ManagerSpec extends UnitSpecWithTestKit:
+class ManagerActorSpec extends UnitSpecWithTestKit:
   private class CaseData extends Case with MapNodeTestData:
     val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
     val adaptorProbe: TestProbe[ManagerAdaptor.Msg] = testKit.createTestProbe[ManagerAdaptor.Msg]()
@@ -29,8 +29,8 @@ class ManagerSpec extends UnitSpecWithTestKit:
     lazy val mapManagerActor: ManagerActor.Ref = ManagerActor
       .spawn(ManagerActor.Definition(visualizerProbe.ref), (bh, n) => testKit.spawn(bh, n))
 
-  "MapManagerActor" should:
-    "add new node" in newCase[CaseData]: (log, data) =>
+  "ManagerNodesLogicSpec" should:
+    "add new nodes" in newCase[CaseData]: (log, data) =>
       data.mapManagerActor ! ManagerActor.AddNodes(NodeData(data.conNodeData), data.adaptorProbe.ref)
 
       val conRes = log.msg(data.adaptorProbe.expectMessageType[ManagerAdaptor.NodesAdded])

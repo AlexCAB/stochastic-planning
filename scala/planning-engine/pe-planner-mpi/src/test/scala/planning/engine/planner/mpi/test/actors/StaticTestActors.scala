@@ -22,6 +22,7 @@ trait StaticTestActors:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithStaticActors:
-    private val managerProbe: TestProbe[ManagerActor.Msg] = testKit.createTestProbe[ManagerActor.Msg]()
-    private val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
-    val staticActors: StaticActors = StaticActors(managerProbe.ref, visualizerProbe.ref)
+    lazy val managerProbe: TestProbe[ManagerActor.Msg] = testKit.createTestProbe[ManagerActor.Msg]()
+    lazy val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
+
+    lazy val staticActors: StaticActors = StaticActors(managerProbe.ref, visualizerProbe.ref)

@@ -51,12 +51,14 @@ final case class AbsData(
     AbsDef(MnId.Abs(rawId), this, actors).asInstanceOf[NodeActor.Def].pure
 
 object NodeData:
-  final case class Kit(nodes: List[NodeData]):
+  final case class Kit(
+      // List of nodes to be added to the map network
+      // Can containe duplicate nodes, for example severall NodeData with empty name and description,
+      // which infact mean "just create number of nodes with unique IDs".
+      nodes: List[NodeData],
+  ):
     def toDefinitions[B[_]: MonadThrow](initRawId: Long, actors: StaticActors): B[List[NodeActor.Def]] =
-      for
-        _ <- nodes.assertDistinct("Node data must be distinct")
-        refs <- nodes.zipWithIndex.traverse((node, i) => node.toDefinition(initRawId + i, actors))
-      yield refs
+      nodes.zipWithIndex.traverse((node, i) => node.toDefinition(initRawId + i, actors))
 
     def getUniqueNames[F[_]: MonadThrow]: F[Set[HnName]] =
       for

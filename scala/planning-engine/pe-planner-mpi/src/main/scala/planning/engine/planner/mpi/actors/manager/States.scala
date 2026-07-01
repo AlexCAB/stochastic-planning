@@ -27,15 +27,18 @@ private[manager] trait States:
       // Next ID to assign to a new node (incremented for each new node)
       nextId: Long,
   ):
+    private def extractNames(newNodes: Map[NodeActor.Ref, NodeActor.Def]): Map[HnName, Set[MnId]] = newNodes
+      .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
+      .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNames.getOrElse(name, Set.empty)))
+
     def withNewNodes[F[_]: MonadThrow](newNodes: Map[NodeActor.Ref, NodeActor.Def]): F[State] =
       for
-          _ <- nodeRefs.values.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state")
+        _ <- nodeRefs.values.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state")
+        _ <- newNodes.values.map(_.id).assertDistinct("Duplicate node IDs in new nodes")
       yield this.copy(
         nodeRefs = nodeRefs ++ newNodes.map((r, d) => d.id -> r),
         nextId = nextId + newNodes.size,
-        nodeNames = nodeNames ++ newNodes
-          .map((_, d) => (d.id, d.data.name))
-          .collect { case (id, Some(name)) => name -> (nodeNames.getOrElse(name, Set.empty) + id) },
+        nodeNames = nodeNames ++ extractNames(newNodes),
       )
 
     def findByName[F[_]: MonadThrow](names: Set[HnName]): F[Map[MnId, HnName]] =

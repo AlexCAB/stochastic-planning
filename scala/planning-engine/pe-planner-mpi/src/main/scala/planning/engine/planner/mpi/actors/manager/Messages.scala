@@ -21,8 +21,11 @@ import planning.engine.planner.mpi.data.node.NodeData
 private[manager] trait Messages:
   sealed trait Message extends ReplyTo[ManagerAdaptor.Msg]
 
+  sealed trait NodeMessage extends Message
+  sealed trait EdgeMessage extends Message
+  
   // Add node command. Create new MnId and add node to the graph. Reply with NodeData.
-  final case class AddNodes(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends Message
+  final case class AddNodes(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends NodeMessage
 
   // Add node by name command:
   // - If the node with given name already exists, returns its MnId.
@@ -31,6 +34,6 @@ private[manager] trait Messages:
   // - In map found duplicate names.
   // - NodeData.Kit contains NodeData with undefined name field.
   // - Node type of found node does not match the type given in NodeData.
-  final case class UpsertNodesByName(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends Message
+  final case class UpsertNodesByName(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends NodeMessage
 
-  final case class UpsertEdges(key: MeKey, data: EdgeData, replyTo: ManagerAdaptor.Ref) extends Message
+  final case class UpsertEdges(key: MeKey, data: EdgeData, replyTo: ManagerAdaptor.Ref) extends EdgeMessage

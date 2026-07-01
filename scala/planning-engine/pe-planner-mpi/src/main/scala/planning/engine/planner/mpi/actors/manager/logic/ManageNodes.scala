@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.data.node.{NodeData, StaticActors}
 import planning.engine.common.errors.*
 
-trait NodesLogic:
+trait ManageNodes:
   self: ManagerActor.type =>
 
   protected def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using

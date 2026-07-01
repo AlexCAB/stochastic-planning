@@ -16,9 +16,9 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
-import planning.engine.planner.mpi.actors.manager.logic.{NodesLogic, EdgesLogic}
+import planning.engine.planner.mpi.actors.manager.logic.{ManageNodes, EdgesLogic}
 
-object ManagerActor extends ActorBase with Definitions with States with Messages with NodesLogic with EdgesLogic:
+object ManagerActor extends ActorBase with Definitions with States with Messages with ManageNodes with EdgesLogic:
   override type Def = Definition
   override type Msg = Message
 
@@ -38,7 +38,7 @@ object ManagerActor extends ActorBase with Definitions with States with Messages
   private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
       (ids, newState) <- upsertNodesByName(msg.data, state)
-      _ <- logInfo("[UpsertNodesByName] added nodes", ids)
+      _ <- logInfo("[UpsertNodesByName] result nodes", ids)
       _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
     yield newState
 
@@ -48,8 +48,7 @@ object ManagerActor extends ActorBase with Definitions with States with Messages
     case msg: UpsertEdges       => ??? // doUpsertEdge(msg, state, ctx)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] = msg match
-    case msg: UpsertNodesByName => ??? // Create NodesError
-    case msg: UpsertEdges       => ??? // Create EdgeError
-    case msg                    => ignoreError(msg, state, err)
+    case msg: NodeMessage => msg.replay(ManagerAdaptor.NodesError(err, state.nodeRefs.keySet)).as(state)
+    case msg: EdgeMessage => ??? // Create EdgeError
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

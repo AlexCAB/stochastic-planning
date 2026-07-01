@@ -19,7 +19,7 @@ private[adaptor] trait Messages:
   sealed trait Message
 
   final case class NodesAdded(ids: Map[MnId, Option[HnName]]) extends Message
-  final case class NodesError(ids: Set[MnId], msg: String) extends Exception(msg) with Message
+  final case class NodesError(err: Throwable, ids: Set[MnId]) extends Exception(err) with Message
 
   final case class EdgeAdded(key: MeKey) extends Message
-  final case class EdgeError(key: MeKey, msg: String) extends Exception(msg) with Message
+  final case class EdgeError(err: Throwable, key: MeKey) extends Exception(err) with Message

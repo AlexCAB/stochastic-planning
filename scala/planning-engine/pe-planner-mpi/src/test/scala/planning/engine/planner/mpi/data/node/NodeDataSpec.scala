@@ -34,15 +34,12 @@ class NodeDataSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
 
   "NodeData.Kit.toDefinitions(...)" should:
     "return definitions with incremented raw ids for a kit with multiple nodes" in newCase[CaseData]: (_, data) =>
-      NodeData(data.conNodeData, data.absNodeData).toDefinitions[IO](1L, data.staticActors)
+      NodeData(data.conNodeData, data.conNodeData, data.absNodeData).toDefinitions[IO](1L, data.staticActors)
         .asserting(_ mustBe List(
           NodeActor.ConDef(MnId.Con(1L), data.conNodeData, data.staticActors),
-          NodeActor.AbsDef(MnId.Abs(2L), data.absNodeData, data.staticActors),
+          NodeActor.ConDef(MnId.Con(2L), data.conNodeData, data.staticActors),
+          NodeActor.AbsDef(MnId.Abs(3L), data.absNodeData, data.staticActors),
         ))
-
-    "raise an error for a kit with duplicate nodes" in newCase[CaseData]: (_, data) =>
-      NodeData(data.conNodeData, data.conNodeData).toDefinitions[IO](1L, data.staticActors)
-        .assertThrows[AssertionError]
 
   "NodeData.Kit.getUniqueNames(...)" should:
     "return a set of names for all named nodes" in newCase[CaseData]: (_, data) =>

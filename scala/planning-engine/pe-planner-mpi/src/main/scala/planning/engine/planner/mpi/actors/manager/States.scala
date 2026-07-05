@@ -48,5 +48,9 @@ private[manager] trait States:
         _ <- found.flatMap((_, ids) => ids.toList).assertDistinct("Found duplicate node IDs for names")
       yield found.map((n, ids) => ids.head -> n)
 
+    def getRef[F[_]: MonadThrow](mnId: MnId): F[NodeActor.Ref] = nodeRefs.get(mnId) match
+      case Some(ref) => ref.pure
+      case None      => s"Node ID $mnId not found in state".assertionError
+
   private[manager] object State:
     val init: State = State(Map.empty, Map.empty, 1L)

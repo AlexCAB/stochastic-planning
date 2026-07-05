@@ -14,14 +14,16 @@ package planning.engine.planner.mpi.actors.manager
 
 import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import org.apache.pekko.actor.typed.ActorRef
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.data.node.NodeData
 import planning.engine.planner.mpi.test.actors.ManagerTestActor
+import planning.engine.planner.mpi.test.data.MapEdgeTestData
 
-class ManagerActorSpec extends UnitSpecWithTestKit with ManagerTestActor:
-  private class CaseData extends Case with WithManagerActor:
+class ManageNodesSpec extends UnitSpecWithTestKit with ManagerTestActor:
+  private class CaseData extends Case with WithManagerActor with MapEdgeTestData:
     val adaptorProbe: TestProbe[ManagerAdaptor.Msg] = testKit.createTestProbe[ManagerAdaptor.Msg]()
 
   "ManagerActorSpec.AddNodes" should:
@@ -63,3 +65,17 @@ class ManagerActorSpec extends UnitSpecWithTestKit with ManagerTestActor:
       val errorRes = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.NodesError])
       errorRes.err.getMessage must include("Expected exactly one node ID for name")
       errorRes.ids mustBe Set(MnId.Con(1L), MnId.Con(2L))
+
+  "ManagerActorSpec.UpsertEdges" should:
+    "upsert edges" in newCase[CaseData]: (log, data) =>
+      import data.*
+
+      val manager = managerActorTwoNode.manager
+      val srcId = managerActorTwoNode.srcMnId
+      val trgId = managerActorTwoNode.trgMnId
+      val meKey = MeKey.Link(srcId, trgId)
+      
+      manager ! ManagerActor.UpsertEdges(meKey, edgeData1, adaptorProbe.ref)
+
+      val res = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.EdgeAdded])
+      res.key mustBe meKey

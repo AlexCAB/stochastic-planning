@@ -18,11 +18,12 @@ import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.data.node.{NodeData, StaticActors}
 import planning.engine.common.errors.*
+import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 
 trait ManageNodes:
   self: ManagerActor.type =>
 
-  protected def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using
+  private def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =
@@ -33,7 +34,7 @@ trait ManageNodes:
       newState <- state.withNewNodes(nodeRefs)
     yield (nodeRefs.map((r, d) => d.id -> d.data.name), newState)
 
-  protected def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
+  private def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =
@@ -46,3 +47,17 @@ trait ManageNodes:
       _ <- found.keySet.assertContainsNoneOf(ids.keySet, "Found duplicate node IDs for names")
       allIds = ids ++ found.map((i, n) => i -> Some(n))
     yield (allIds, newState)
+
+  private[manager] def doAddNodes[F[_]: S](msg: AddNodes, state: St)(using d: Def, ctx: Ctx): F[St] =
+    for
+      (ids, newState) <- addNodes(msg.data, state)
+      _ <- logInfo("[AddNodes] added nodes", ids.view.mapValues(_.repr).toMap)
+      _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
+    yield newState
+
+  private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
+    for
+      (ids, newState) <- upsertNodesByName(msg.data, state)
+      _ <- logInfo("[UpsertNodesByName] result nodes", ids)
+      _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
+    yield newState

@@ -12,10 +12,12 @@
 
 package planning.engine.planner.mpi.actors.node
 
+import cats.MonadThrow
+import cats.syntax.all.*
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.data.edge.EdgeData
-import planning.engine.planner.mpi.data.node.MnRef
+import planning.engine.planner.mpi.data.edge.{EdgeData, MeRef}
+import planning.engine.common.errors.*
 
 private[node] trait States:
   private[node] final case class State(
@@ -24,11 +26,20 @@ private[node] trait States:
 
       // Map of incoming edges: source node ID -> source node actor reference
       incoming: Map[MnId, ActorRef[NodeActor.Message]],
+  ):
+    private def joinedData[F[_]: MonadThrow](newRef: MeRef, newData: EdgeData): F[EdgeData] =
+      outgoing.get(newRef.key.trg) match
+        case Some((trgRef, data)) if trgRef == newRef.trg => data.join(newData)
+        case Some((trgRef, _)) => s"Edge target reference mismatch: expected $trgRef, got ${newRef.trg}".assertionError
+        case None              => newData.pure
 
-      // Set of outgoing edges which is in process of being established
-      // (i.e., connection messages sent but not yet acknowledged)
-      connecting: Set[MnRef],
-  )
+    def addEdgeSrc[F[_]: MonadThrow](newRef: MeRef, newData: EdgeData): F[State] =
+      joinedData(newRef, newData).map(data => copy(outgoing = outgoing + (newRef.key.trg -> (newRef.trg, data))))
+
+    def addEdgeTrg[F[_]: MonadThrow](newRef: MeRef): F[State] = incoming.get(newRef.key.src) match
+      case Some(ref) if ref == newRef.src => this.pure // Edge already exists, no change needed
+      case Some(ref) => s"Ref not match for ${newRef.key.src}: expected $ref, got ${newRef.src}".assertionError
+      case None      => copy(incoming = incoming + (newRef.key.src -> newRef.src)).pure
 
   private[node] object State:
-    val init = State(Map.empty, Map.empty, Set.empty)
+    val init = State(Map.empty, Map.empty)

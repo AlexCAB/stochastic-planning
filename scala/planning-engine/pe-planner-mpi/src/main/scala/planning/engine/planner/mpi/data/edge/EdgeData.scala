@@ -12,7 +12,17 @@
 
 package planning.engine.planner.mpi.data.edge
 
+import cats.MonadThrow
+import cats.syntax.all.*
 import planning.engine.common.graph.edges.Indexies
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.errors.*
 
-final case class EdgeData(indexies: Map[SampleId, Indexies])
+final case class EdgeData(indexies: Map[SampleId, Indexies]):
+  def join[F[_]: MonadThrow](other: EdgeData): F[EdgeData] = 
+    for
+      _ <- indexies.keySet.assertContainsNoneOf(other.indexies.keySet, "EdgeData.join: duplicate sample IDs found")
+    yield EdgeData(this.indexies ++ other.indexies)
+
+object EdgeData:
+  val empty: EdgeData = EdgeData(Map.empty)

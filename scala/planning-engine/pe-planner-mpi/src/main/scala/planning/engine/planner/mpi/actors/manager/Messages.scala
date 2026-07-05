@@ -22,7 +22,9 @@ private[manager] trait Messages:
   sealed trait Message extends ReplyTo[ManagerAdaptor.Msg]
 
   sealed trait NodeMessage extends Message
-  sealed trait EdgeMessage extends Message
+  
+  sealed trait EdgeMessage extends Message:
+    def key: MeKey
   
   // Add node command. Create new MnId and add node to the graph. Reply with NodeData.
   final case class AddNodes(data: NodeData.Kit, replyTo: ManagerAdaptor.Ref) extends NodeMessage

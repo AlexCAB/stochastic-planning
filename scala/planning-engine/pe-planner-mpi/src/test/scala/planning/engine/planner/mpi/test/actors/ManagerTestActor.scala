@@ -26,8 +26,11 @@ import java.util.concurrent.atomic.AtomicInteger
 trait ManagerTestActor:
   self: UnitSpecWithTestKit =>
 
-  final case class ManagerWithNodes(manager: ManagerActor.Ref, nodes: Map[MnId, Option[HnName]])
-
+  final case class ManagerWithNodes(manager: ManagerActor.Ref, nodes: Map[MnId, Option[HnName]]):
+    private lazy val ids = nodes.keys.toList
+    def srcMnId: MnId = ids.headOption.getOrElse(fail("No nodes available in ManagerWithNodes"))
+    def trgMnId: MnId = ids.drop(1).headOption.getOrElse(fail("Less than two nodes available in ManagerWithNodes"))
+  
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   trait WithManagerActor extends MapNodeTestData:
@@ -40,7 +43,7 @@ trait ManagerTestActor:
       )
 
     def addNodes(data: NodeData.Kit, manager: ManagerActor.Ref): ManagerWithNodes =
-      val adaptor = testKit.createTestProbe[ManagerAdaptor.Msg]("add-nodes-probe")
+      val adaptor = testKit.createTestProbe[ManagerAdaptor.Msg]("adaptor-probe")
       manager ! ManagerActor.AddNodes(data, adaptor.ref)
       val res = adaptor.expectMessageType[ManagerAdaptor.NodesAdded]
       adaptor.stop()

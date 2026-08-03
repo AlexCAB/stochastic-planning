@@ -16,7 +16,7 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
-import planning.engine.planner.mpi.data.node.StaticActors
+import planning.engine.planner.mpi.common.data.node.StaticActors
 
 trait StaticTestActors:
   self: UnitSpecWithIOAndTestKit =>

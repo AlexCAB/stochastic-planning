@@ -16,7 +16,7 @@ import cats.effect.unsafe.IORuntime
 import planning.engine.common.graph.edges.Indexies
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.data.edge.EdgeData
+import planning.engine.planner.mpi.common.data.edge.EdgeData
 
 trait MapEdgeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

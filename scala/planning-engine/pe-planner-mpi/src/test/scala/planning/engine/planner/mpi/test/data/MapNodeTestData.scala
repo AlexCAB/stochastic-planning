@@ -20,7 +20,7 @@ import planning.engine.common.values.text.Description
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.planner.mpi.actors.node.NodeActor.{AbsDef, ConDef}
-import planning.engine.planner.mpi.data.node.{AbsData, ConData, StaticActors}
+import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, StaticActors}
 
 trait MapNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global

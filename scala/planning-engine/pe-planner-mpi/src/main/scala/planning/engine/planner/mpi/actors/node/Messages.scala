@@ -12,12 +12,13 @@
 
 package planning.engine.planner.mpi.actors.node
 
-import planning.engine.planner.mpi.actors.ReplyTo
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
-import planning.engine.planner.mpi.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.common.message.ReplyTo
+import planning.engine.planner.mpi.common.repr.Representable
 
 private[node] trait Messages:
-  sealed trait Message
+  sealed trait Message extends Representable
 
   sealed trait AddEdge extends Message with ReplyTo[ManagerAdaptor.Msg]:
     def ref: MeRef

@@ -16,9 +16,10 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
 import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
-import planning.engine.planner.mpi.data.node.NodeData
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,11 +31,15 @@ trait ManagerTestActor:
     private lazy val ids = nodes.keys.toList
     def srcMnId: MnId = ids.headOption.getOrElse(fail("No nodes available in ManagerWithNodes"))
     def trgMnId: MnId = ids.drop(1).headOption.getOrElse(fail("Less than two nodes available in ManagerWithNodes"))
-  
+
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   trait WithManagerActor extends MapNodeTestData:
-    lazy val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
+    lazy val adaptorProbe: TestProbe[ManagerAdaptor.Msg] = testKit.createTestProbe[ManagerAdaptor.Msg]("adaptor-probe")
+    lazy val nodeProbe: TestProbe[NodeActor.Msg] = testKit.createTestProbe[NodeActor.Msg]("node-probe")
+
+    lazy val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit
+      .createTestProbe[VisualizerActor.Msg]("visualizer-probe")
 
     def makeManagerActor(name: String): ManagerActor.Ref = ManagerActor
       .spawn(

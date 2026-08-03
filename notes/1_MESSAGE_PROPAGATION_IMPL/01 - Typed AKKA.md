@@ -12,3 +12,35 @@
 
 
 
+
+## Sticky notes 
+
+---
+
+```
+def traverse_[G[_], B](f: A => G[B])(implicit G: Applicative[G]): G[Unit] =  traverseVoid[G, B](f)
+def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = typeClassInstance.traverse[G, A, B](self)(f)
+
+
+"During processing message:\n"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+

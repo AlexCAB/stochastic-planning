@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
 import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
-import planning.engine.planner.mpi.data.node.{AbsData, ConData, NodeData, StaticActors}
+import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData, StaticActors}
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 import java.util.concurrent.atomic.AtomicInteger

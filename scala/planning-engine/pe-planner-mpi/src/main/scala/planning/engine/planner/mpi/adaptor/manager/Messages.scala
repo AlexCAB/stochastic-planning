@@ -14,12 +14,12 @@ package planning.engine.planner.mpi.adaptor.manager
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.common.repr.Representable
 
 private[adaptor] trait Messages:
-  sealed trait Message
+  sealed trait Message extends Representable
 
   final case class NodesAdded(ids: Map[MnId, Option[HnName]]) extends Message
-  final case class NodesError(err: Throwable, ids: Set[MnId]) extends Exception(err) with Message
-
-  final case class EdgeAdded(key: MeKey) extends Message
-  final case class EdgeError(err: Throwable, key: MeKey) extends Exception(err) with Message
+  final case class NodesUpserted(ids: Map[MnId, Option[HnName]]) extends Message
+  
+  final case class EdgeUpserted(key: MeKey) extends Message

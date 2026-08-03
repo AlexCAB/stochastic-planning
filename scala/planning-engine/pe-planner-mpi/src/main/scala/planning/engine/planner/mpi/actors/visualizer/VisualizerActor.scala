@@ -14,6 +14,7 @@ package planning.engine.planner.mpi.actors.visualizer
 
 import cats.effect.Sync
 import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.visualizer.data.{Definitions, States}
 
 object VisualizerActor extends ActorBase with Definitions with States with Messages:
   override type Def = Definition

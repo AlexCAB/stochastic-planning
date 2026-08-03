@@ -13,7 +13,7 @@
 //  Versions
 
 val akkaVersion = "2.0.0-M3"
-val scalaLoggingVersion = "3.9.5"
+val scalaLoggingVersion = "3.9.6"
 
 // Subprojects settings
 

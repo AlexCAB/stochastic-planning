@@ -17,8 +17,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
-
-import scala.util.{Failure, Success, Try}
+import planning.engine.planner.mpi.common.error.FatalException
 
 trait ActorBase extends ActorExecCtx:
 
@@ -62,18 +61,29 @@ trait ActorBase extends ActorExecCtx:
     setup(state)
 
     Behaviors.receiveMessage: msg =>
-      def process: IO[St] = receive[IO](msg, state).handleErrorWith: err =>
-        ctx.log.error(s"Error on message: $msg, calling error() handler", err)
-        error(msg, state, err)
+      val msgName = msg.getClass.getSimpleName
+        
+      def recoverableErr(err: Throwable): IO[Behavior[Msg]] =
+        ctx.log.error(s"Error on message, calling error() handler, at msg = $msgName", err)
 
-      Try(process.unsafeRunSync()) match
-        case Success(nextState) => behavior(nextState)
+        error[IO](msg, state, err)
+          .map(ns => behavior(ns))
+          .handleErrorWith: err =>
+            ctx.log.error(s"Failed to recover after error, actor will terminated: at msg = $msgName", err)
+            IO.delay(Behaviors.stopped)
 
-        case Failure(err) =>
-          ctx.log.error(s"Fatal error on message: $msg", err)
-          Behaviors.stopped
+      def fatalErr(err: FatalException): IO[Behavior[Msg]] =
+        ctx.log.error(s"Received FatalException, actor will terminated: at msg = $msgName", err)
+        IO.delay(Behaviors.stopped)
 
-  // Factory `method for creating the actor's behavior
+      receive[IO](msg, state)
+        .map(ns => behavior(ns))
+        .handleErrorWith:
+          case err: FatalException => fatalErr(err)
+          case err: Throwable      => recoverableErr(err)
+        .unsafeRunSync()
+
+  // Factory method for creating the actor's behavior
   protected def apply(definition: Def, state: St): Behavior[Msg] =
     given Def = definition
     behavior(state)

@@ -29,13 +29,13 @@ private[node] trait States:
       // Map of incoming edges: source node ID -> source node actor reference
       incoming: Map[MnId, ActorRef[NodeActor.Message]],
   ) extends Representable:
-    private def joinedData[F[_]: MonadThrow](newRef: MeRef, newData: EdgeData): F[EdgeData] =
-      outgoing.get(newRef.key.trg) match
+
+    def addEdgeSrc[F[_]: MonadThrow](newRef: MeRef, newData: EdgeData): F[State] =
+      def joinedData(newRef: MeRef, newData: EdgeData): F[EdgeData] = outgoing.get(newRef.key.trg) match
         case Some((trgRef, data)) if trgRef == newRef.trg => data.join(newData)
         case Some((trgRef, _)) => s"Edge target reference mismatch: expected $trgRef, got ${newRef.trg}".assertionError
         case None              => newData.pure
 
-    def addEdgeSrc[F[_]: MonadThrow](newRef: MeRef, newData: EdgeData): F[State] =
       joinedData(newRef, newData).map(data => copy(outgoing = outgoing + (newRef.key.trg -> (newRef.trg, data))))
 
     def addEdgeTrg[F[_]: MonadThrow](newRef: MeRef): F[State] = incoming.get(newRef.key.src) match

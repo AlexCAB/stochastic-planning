@@ -48,7 +48,7 @@ trait ManagerTestActor:
       )
 
     def addNodes(data: NodeData.Kit, manager: ManagerActor.Ref): ManagerWithNodes =
-      val adaptor = testKit.createTestProbe[ManagerAdaptor.Msg]("adaptor-probe")
+      val adaptor = testKit.createTestProbe[ManagerAdaptor.Msg]("addNodes-adaptor-probe")
       manager ! ManagerActor.AddNodes(data, adaptor.ref)
       val res = adaptor.expectMessageType[ManagerAdaptor.NodesAdded]
       adaptor.stop()

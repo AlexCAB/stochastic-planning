@@ -38,7 +38,6 @@ def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = t
 
 
 
-
 ```
 
 

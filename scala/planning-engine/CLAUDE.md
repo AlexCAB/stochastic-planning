@@ -72,3 +72,18 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
     .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
     .groupBy(_._1).map((name, ids) => ...)
   ```
+- Don't nest a `for` expression inside another `for`/`traverse`/lambda — extract the inner one into a locally-defined named function and pass/call that instead, so every `for` block stays flat. Example (`doUpsertEdges` in `ManageEdges.scala`, inner `for` extracted into `sendAddEdgeSrc`):
+  ```scala
+  private[manager] def doUpsertEdges[F[_]: S](msg: UpsertEdges, state: St)(using d: Def, ctx: Ctx): F[St] =
+    def sendAddEdgeSrc(key: MeKey, data: EdgeData): F[Unit] =
+      for
+        srcRef <- state.getRef(key.src)
+        trgRef <- state.getRef(key.trg)
+        _ = srcRef ! NodeActor.AddEdgeSrc(MeRef(key, srcRef, trgRef), data)
+      yield ()
+
+    for
+      _ <- msg.data.edges.toList.traverse(sendAddEdgeSrc)
+      _ <- msg.replay(ManagerAdaptor.EdgesUpserted(msg.data.edges.keySet))
+    yield state
+  ```

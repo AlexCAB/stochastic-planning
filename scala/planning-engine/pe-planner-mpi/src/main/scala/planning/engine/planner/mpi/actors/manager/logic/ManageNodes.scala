@@ -59,5 +59,5 @@ trait ManageNodes:
     for
       (ids, newState) <- upsertNodesByName(msg.data, state)
       _ <- logInfo("[UpsertNodesByName] result nodes", ids)
-      _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
+      _ <- msg.replay(ManagerAdaptor.NodesUpserted(ids))
     yield newState

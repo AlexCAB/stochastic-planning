@@ -20,6 +20,8 @@ import org.apache.pekko.actor.typed.ActorRef
 // Initial implementation will be as simple as possible:
 // - Use a single actor for managing the graph (nodes and edges).
 // - Only add and update operations for nodes and edges will be supported.
+// - No error handling or recovery will be implemented in the initial version (any errors will terminate the system,
+//   and experiment have to be restarted manually).
 trait ManagerAdaptorLike
 
 class ManagerAdaptor extends ManagerAdaptorLike

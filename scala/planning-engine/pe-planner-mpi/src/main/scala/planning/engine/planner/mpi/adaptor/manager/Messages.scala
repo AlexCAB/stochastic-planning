@@ -22,4 +22,4 @@ private[adaptor] trait Messages:
   final case class NodesAdded(ids: Map[MnId, Option[HnName]]) extends Message
   final case class NodesUpserted(ids: Map[MnId, Option[HnName]]) extends Message
   
-  final case class EdgeUpserted(key: MeKey) extends Message
+  final case class EdgesUpserted(keys: Set[MeKey]) extends Message

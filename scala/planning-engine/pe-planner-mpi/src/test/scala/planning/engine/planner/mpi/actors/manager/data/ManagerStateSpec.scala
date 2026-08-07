@@ -17,61 +17,70 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.test.actors.StaticTestActors
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
   private class CaseData extends Case with MapNodeTestData with WithStaticActors:
-    val conNodeRef1: NodeActor.Ref = testKit.createTestProbe[NodeActor.Msg]("conNodeRef1").ref
-    val conNodeRef2: NodeActor.Ref = testKit.createTestProbe[NodeActor.Msg]("conNodeRef2").ref
-    val absNodeRef: NodeActor.Ref = testKit.createTestProbe[NodeActor.Msg]("absNodeRef").ref
+    def spawnRefs(definitions: List[NodeActor.Def]): Map[NodeActor.Ref, NodeActor.Def] =
+      definitions.map(d => testKit.createTestProbe[NodeActor.Msg]().ref -> d).toMap
 
-    lazy val conDef: NodeActor.ConDef = NodeActor.ConDef(MnId.Con(1L), conNodeData, staticActors)
-    lazy val absDef: NodeActor.AbsDef = NodeActor.AbsDef(MnId.Abs(2L), absNodeData, staticActors)
+    lazy val conMnId: MnId.Con = MnId.Con(1L)
+    lazy val absMnId: MnId.Abs = MnId.Abs(2L)
 
     lazy val stateWithConNode: ManagerActor.State = ManagerActor.State.init
-      .withNewNodes[IO](Map(conNodeRef1 -> conDef))
-      .unsafeRunSync()
+      .withNewNodes[IO](NodeData(conNodeData), staticActors, spawnRefs)
+      .unsafeRunSync()._2
 
     lazy val stateWithNodes: ManagerActor.State = ManagerActor.State.init
-      .withNewNodes[IO](Map(conNodeRef1 -> conDef, absNodeRef -> absDef))
-      .unsafeRunSync()
+      .withNewNodes[IO](NodeData(conNodeData, absNodeData), staticActors, spawnRefs)
+      .unsafeRunSync()._2
 
   "State.withNewNodes(...)" should:
-    "add a named node to nodeRefs and nodeNames, and increment nextId" in newCase[CaseData]: (_, data) =>
+    "add a named node to nodeRefMap and nodeNameMap, and increment nextId" in newCase[CaseData]: (_, data) =>
       import data.*
-      val newNodes = Map(conNodeRef1 -> conDef, absNodeRef -> absDef)
 
-      ManagerActor.State.init.withNewNodes[IO](newNodes).asserting: state =>
-        state.nodeRefs mustBe Map(MnId.Con(1L) -> conNodeRef1, MnId.Abs(2L) -> absNodeRef)
-        state.nextId mustBe 3L
+      ManagerActor.State.init.withNewNodes[IO](NodeData(conNodeData, absNodeData), staticActors, spawnRefs)
+        .asserting:
+          case (nodeRefs, state) =>
+            state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
+            state.nodeRefMap.values.toSet mustBe nodeRefs.keySet
+            state.nextId mustBe 3L
 
-        state.nodeNames mustBe Map(
-          conNodeData.name.get -> Set(MnId.Con(1L)),
-          absNodeData.name.get -> Set(MnId.Abs(2L)),
-        )
+            state.nodeNameMap mustBe Map(
+              conNodeData.name.get -> Set(conMnId),
+              absNodeData.name.get -> Set(absMnId),
+            )
 
     "add nodes with duplicate data" in newCase[CaseData]: (_, data) =>
       import data.*
       val id1 = MnId.Con(1L)
       val id2 = MnId.Con(2L)
-      val newNodes = Map(conNodeRef1 -> conDef.copy(id = id1), conNodeRef2 -> conDef.copy(id = id2))
 
-      ManagerActor.State.init.withNewNodes[IO](newNodes).asserting: state =>
-        state.nodeRefs mustBe Map(id1 -> conNodeRef1, id2 -> conNodeRef2)
-        state.nextId mustBe 3L
+      ManagerActor.State.init.withNewNodes[IO](NodeData(conNodeData, conNodeData), staticActors, spawnRefs)
+        .asserting:
+          case (_, state) =>
+            state.nodeRefMap.keySet mustBe Set(id1, id2)
+            state.nextId mustBe 3L
+            state.nodeNameMap mustBe Map(conNodeData.name.get -> Set(id1, id2))
 
-        state.nodeNames mustBe Map(conNodeData.name.get -> Set(id1, id2))
+    "not add to nodeNameMap for a node without a name" in newCase[CaseData]: (_, data) =>
+      import data.*
+      val unnamedData = absNodeData.copy(name = None)
 
-    "not add to nodeNames for a node without a name" in newCase[CaseData]: (_, data) =>
-      val unnamedDef = NodeActor.AbsDef(MnId.Abs(2L), data.absNodeData.copy(name = None), data.staticActors)
+      ManagerActor.State.init.withNewNodes[IO](NodeData(unnamedData), staticActors, spawnRefs)
+        .asserting { case (_, state) => state.nodeNameMap mustBe Map.empty }
 
-      ManagerActor.State.init.withNewNodes[IO](Map(data.absNodeRef -> unnamedDef)).asserting: state =>
-        state.nodeNames mustBe Map.empty
+    "raise an error when a node ID already exists in state" in newCase[CaseData]: (_, data) =>
+      import data.*
+      val conflictingState = ManagerActor.State(
+        nodeRefMap = Map(conMnId -> testKit.createTestProbe[NodeActor.Msg]().ref),
+        nodeNameMap = Map.empty,
+        nextId = 1L, // re-assigning from 1 collides with the existing conMnId entry
+      )
 
-    "raise an error when a node ref already exists in state" in newCase[CaseData]: (_, data) =>
-      data.stateWithConNode
-        .withNewNodes[IO](Map(data.conNodeRef1 -> data.conDef))
+      conflictingState.withNewNodes[IO](NodeData(conNodeData), staticActors, spawnRefs)
         .assertThrowsError[AssertionError](_.getMessage must include("Node IDs already exist in the current state"))
 
   "State.findByName(...)" should:
@@ -95,8 +104,8 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
 
     "raise an error when a name maps to more than one node ID" in newCase[CaseData]: (_, data) =>
       val incorrectState = ManagerActor.State(
-        nodeRefs = Map.empty,
-        nodeNames = Map(data.conNodeData.name.get -> Set(MnId.Con(1L), MnId.Con(2L))),
+        nodeRefMap = Map.empty,
+        nodeNameMap = Map(data.conNodeData.name.get -> Set(MnId.Con(1L), MnId.Con(2L))),
         nextId = 3L,
       )
 

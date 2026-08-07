@@ -57,9 +57,6 @@ object NodeData:
       // which infact mean "just create number of nodes with unique IDs".
       nodes: List[NodeData],
   ):
-    def toDefinitions[B[_]: MonadThrow](initRawId: Long, actors: StaticActors): B[List[NodeActor.Def]] =
-      nodes.zipWithIndex.traverse((node, i) => node.toDefinition(initRawId + i, actors))
-
     def getUniqueNames[F[_]: MonadThrow]: F[Set[HnName]] =
       for
         names <- nodes.flatMap(_.name).pure

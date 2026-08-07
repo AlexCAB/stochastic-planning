@@ -8,15 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 18.06.2026 |||||||||||*/
+| created: 05-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.common.message
+package planning.engine.planner.mpi.common.actor
 
-import cats.effect.Sync
+import cats.MonadThrow
+import cats.syntax.all.*
 import org.apache.pekko.actor.typed.ActorRef
-import planning.engine.planner.mpi.common.actor.ActorRefEx.send
 
-trait ReplyTo[M]:
-  protected def replyTo: ActorRef[M]
-
-  def replay[F[_]: Sync](msg: M): F[Unit] = replyTo.send(msg)
+object ActorRefEx:
+  extension [T](ref: ActorRef[T])
+    def send[F[_]: MonadThrow](msg: T): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void

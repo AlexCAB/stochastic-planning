@@ -17,40 +17,50 @@ import cats.syntax.all.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
 import planning.engine.planner.mpi.common.repr.Representable
 
 private[manager] trait States:
   private[manager] final case class State(
       // List of all node in map network
-      nodeRefs: Map[MnId, NodeActor.Ref],
-      nodeNames: Map[HnName, Set[MnId]],
+      nodeRefMap: Map[MnId, NodeActor.Ref],
+      nodeNameMap: Map[HnName, Set[MnId]],
 
       // Next ID to assign to a new node (incremented for each new node)
       nextId: Long,
   ) extends Representable:
-    
-    private def extractNames(newNodes: Map[NodeActor.Ref, NodeActor.Def]): Map[HnName, Set[MnId]] = newNodes
-      .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
-      .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNames.getOrElse(name, Set.empty)))
 
-    def withNewNodes[F[_]: MonadThrow](newNodes: Map[NodeActor.Ref, NodeActor.Def]): F[State] =
-      for
-        _ <- nodeRefs.values.assertContainsNoneOf(newNodes.keySet, "Node IDs already exist in the current state")
-        _ <- newNodes.values.map(_.id).assertDistinct("Duplicate node IDs in new nodes")
-      yield this.copy(
-        nodeRefs = nodeRefs ++ newNodes.map((r, d) => d.id -> r),
+    def withNewNodes[F[_]: MonadThrow](
+        data: NodeData.Kit,
+        actors: StaticActors,
+        spawn: List[NodeActor.Def] => Map[NodeActor.Ref, NodeActor.Def],
+    ): F[(Map[NodeActor.Ref, NodeActor.Def], State)] =
+      def extractNames(newNodes: Map[NodeActor.Ref, NodeActor.Def]): Map[HnName, Set[MnId]] = newNodes
+        .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
+        .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
+
+      def updateState(newNodes: Map[NodeActor.Ref, NodeActor.Def]): State = this.copy(
+        nodeRefMap = nodeRefMap ++ newNodes.map((r, d) => d.id -> r),
+        nodeNameMap = nodeNameMap ++ extractNames(newNodes),
         nextId = nextId + newNodes.size,
-        nodeNames = nodeNames ++ extractNames(newNodes),
       )
+
+      for
+        definitions <- data.nodes.zipWithIndex.traverse((node, i) => node.toDefinition(nextId + i, actors))
+        msIds = definitions.map(_.id)
+        _ <- msIds.assertDistinct("Duplicate node IDs in new nodes")
+        _ <- nodeRefMap.values.assertContainsNoneOf(msIds, "Node IDs already exist in the current state")
+        nodeRefs = spawn(definitions)
+      yield (nodeRefs, updateState(nodeRefs))
 
     def findByName[F[_]: MonadThrow](names: Set[HnName]): F[Map[MnId, HnName]] =
       for
-        found <- nodeNames.filter((name, ids) => names.contains(name)).pure
+        found <- nodeNameMap.filter((name, ids) => names.contains(name)).pure
         _ <- found.toList.traverse((n, ids) => ids.assertOneElement(s"Expected exactly one node ID for name '$n'"))
         _ <- found.flatMap((_, ids) => ids.toList).assertDistinct("Found duplicate node IDs for names")
       yield found.map((n, ids) => ids.head -> n)
 
-    def getRef[F[_]: MonadThrow](mnId: MnId): F[NodeActor.Ref] = nodeRefs.get(mnId) match
+    def getRef[F[_]: MonadThrow](mnId: MnId): F[NodeActor.Ref] = nodeRefMap.get(mnId) match
       case Some(ref) => ref.pure
       case None      => s"Node ID $mnId not found in state".assertionError
 

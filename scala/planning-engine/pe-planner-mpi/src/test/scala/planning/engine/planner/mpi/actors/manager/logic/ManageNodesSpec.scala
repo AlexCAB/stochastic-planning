@@ -15,7 +15,6 @@ package planning.engine.planner.mpi.actors.manager.logic
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.common.data.node.NodeData
@@ -28,8 +27,8 @@ class ManageNodesSpec extends UnitSpecWithTestKit with ManagerTestActor:
     "add new nodes" in newCase[CaseData]: (log, data) =>
       import data.*
 
-      def sendAddNodes(data: NodeData.Kit, manager: ManagerActor.Ref): ManagerAdaptor.NodesAdded =
-        manager ! ManagerActor.AddNodes(data, adaptorProbe.ref)
+      def sendAddNodes(data: NodeData.Kit, manager: Actor.Ref): ManagerAdaptor.NodesAdded =
+        manager ! Actor.AddNodes(data, adaptorProbe.ref)
 
         val nodesAdded = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.NodesAdded])
         val visMsg = log.msg(visualizerProbe.expectMessageType[VisualizerActor.Structure.Nodes.Added])
@@ -50,8 +49,8 @@ class ManageNodesSpec extends UnitSpecWithTestKit with ManagerTestActor:
     "upsert node by name" in newCase[CaseData]: (log, data) =>
       import data.*
 
-      def sendUpsertNodesByName(data: NodeData.Kit, manager: ManagerActor.Ref): ManagerAdaptor.NodesUpserted =
-        manager ! ManagerActor.UpsertNodesByName(data, adaptorProbe.ref)
+      def sendUpsertNodesByName(data: NodeData.Kit, manager: Actor.Ref): ManagerAdaptor.NodesUpserted =
+        manager ! Actor.UpsertNodesByName(data, adaptorProbe.ref)
 
         val nodesAdded = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.NodesUpserted])
         val visMsg = log.msg(visualizerProbe.expectMessageType[VisualizerActor.Structure.Nodes.Added])
@@ -70,7 +69,7 @@ class ManageNodesSpec extends UnitSpecWithTestKit with ManagerTestActor:
       import data.*
 
       addNodes(NodeData(conNodeData, conNodeData), managerActorEmpty.manager)
-      managerActorEmpty.manager ! ManagerActor.UpsertNodesByName(NodeData(conNodeData), adaptorProbe.ref)
+      managerActorEmpty.manager ! Actor.UpsertNodesByName(NodeData(conNodeData), adaptorProbe.ref)
 
       adaptorProbe.expectTerminated(managerActorEmpty.manager)
       succeed

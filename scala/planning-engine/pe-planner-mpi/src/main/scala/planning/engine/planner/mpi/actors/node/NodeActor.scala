@@ -16,7 +16,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.node.data.{Definitions, States}
 import planning.engine.planner.mpi.actors.node.logic.Structure
 import planning.engine.planner.mpi.common.actor.ActorRefEx.send
@@ -34,7 +34,7 @@ object NodeActor extends ActorBase with Definitions with States with Messages wi
     case msg: AddEdgeTrg => doAddEdgeTrg(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using d: Def, c: Ctx): F[St] =
-    d.actors.manager.send(ManagerActor.NodeActorError(c.self, Some(msg), err)).as(state)
+    d.actors.manager.send(Actor.NodeActorError(c.self, Some(msg), err)).as(state)
 
   def spawn(definitions: List[Def], make: (Behavior[Msg], String) => Ref): Map[Ref, Def] =
     definitions.map(d => make(apply(d, State.init), d.id.value.toString) -> d).toMap

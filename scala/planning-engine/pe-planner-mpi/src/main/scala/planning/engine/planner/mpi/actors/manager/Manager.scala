@@ -8,15 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 19.06.2026 |||||||||||*/
+| created: 07-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.common.data.node
+package planning.engine.planner.mpi.actors.manager
 
 import planning.engine.planner.mpi.actors.manager.logic.Actor
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 
-final case class StaticActors(manager: Actor.Ref, visualizer: VisualizerActor.Ref)
+trait ManagerLike:
+  ??? // TODO Here the manager API definition
 
-object StaticActors:
-  def apply()(using dfn: Actor.Definition, ctx: Actor.Ctx): StaticActors =
-    new StaticActors(ctx.self, dfn.visualizer)
+class Manager private[manager] (ref: Actor.Ref) extends ManagerLike:
+  ??? // TODO Here the manager API implementation
+
+object Manager:
+  ??? // TODO Here the manager constructor and factory methods

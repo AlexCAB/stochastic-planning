@@ -35,6 +35,9 @@ Write tests for  `planning.engine.planner.mpi.actors.visualizer.data.States.Stat
 
 Update `NodeDataSpec` regard changed implementation 
 
+
+
+
 ## Sticky notes 
 
 ---
@@ -55,20 +58,7 @@ def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = t
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 ```
-
-
 
 
 

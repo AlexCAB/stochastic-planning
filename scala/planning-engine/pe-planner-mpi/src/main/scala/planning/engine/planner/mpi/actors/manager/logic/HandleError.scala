@@ -15,12 +15,12 @@ package planning.engine.planner.mpi.actors.manager.logic
 import cats.syntax.all.*
 import cats.ApplicativeThrow
 import cats.effect.Sync
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.data.Message.NodeActorError
 import planning.engine.planner.mpi.common.error.FatalException
 import planning.engine.planner.mpi.common.repr.Representable
 
-trait HandleError:
-  self: ManagerActor.type =>
+private[manager] trait HandleError:
+  self: Actor.type =>
 
   private def renderOp[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj
     .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))

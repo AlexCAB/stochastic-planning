@@ -14,8 +14,6 @@ package planning.engine.planner.mpi.actors.manager.data
 
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 
-private[manager] trait Definitions:
-
-  final case class Definition(
-      visualizer: VisualizerActor.Ref,
-  )
+final case class Definition(
+    visualizer: VisualizerActor.Ref,
+)

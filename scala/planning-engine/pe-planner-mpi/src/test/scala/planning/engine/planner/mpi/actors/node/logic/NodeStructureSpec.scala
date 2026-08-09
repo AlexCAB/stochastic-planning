@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.node.logic
 import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.test.actors.NodeTestActor
@@ -44,7 +44,7 @@ class NodeStructureSpec extends UnitSpecWithTestKit with NodeTestActor:
       val badMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeProbe.ref, trgNodeProbe.ref)
       srcNode ! AddEdgeSrc(badMeRef, edgeData1)
 
-      val errorMsg = log.msg(managerProbe.expectMessageType[ManagerActor.NodeActorError])
+      val errorMsg = log.msg(managerProbe.expectMessageType[Actor.NodeActorError])
       errorMsg.nodeRef mustBe srcNode
       errorMsg.err.getMessage must include("AddEdgeSrc message source does not match this actor ID")
 
@@ -63,6 +63,6 @@ class NodeStructureSpec extends UnitSpecWithTestKit with NodeTestActor:
       val badMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeProbe.ref, trgNodeProbe.ref)
       trgNode ! AddEdgeTrg(badMeRef)
 
-      val errorMsg = log.msg(managerProbe.expectMessageType[ManagerActor.NodeActorError])
+      val errorMsg = log.msg(managerProbe.expectMessageType[Actor.NodeActorError])
       errorMsg.nodeRef mustBe trgNode
       errorMsg.err.getMessage must include("AddEdgeTrg message target does not match this actor ID")

@@ -14,7 +14,6 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.syntax.all.*
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
@@ -22,8 +21,8 @@ import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.common.actor.ActorRefEx.send
 import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
 
-trait ManageNodes:
-  self: ManagerActor.type =>
+private[manager] trait ManageNodes:
+  self: Actor.type =>
 
   private def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using
       d: Def,

@@ -16,7 +16,7 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.TestProbe
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData, StaticActors}
@@ -30,7 +30,7 @@ trait NodeTestActor:
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   trait WithNodeActor extends MapNodeTestData:
-    lazy val managerProbe: TestProbe[ManagerActor.Msg] = testKit.createTestProbe[ManagerActor.Msg]()
+    lazy val managerProbe: TestProbe[Actor.Msg] = testKit.createTestProbe[Actor.Msg]()
     lazy val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit.createTestProbe[VisualizerActor.Msg]()
 
     lazy val staticActors: StaticActors = StaticActors(managerProbe.ref, visualizerProbe.ref)

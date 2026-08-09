@@ -14,7 +14,6 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.common.data.edge.EdgeData
@@ -33,7 +32,7 @@ class ManageEdgesSpec extends UnitSpecWithTestKit with ManagerTestActor:
 
       visualizerProbe.expectMessageType[VisualizerActor.Structure.Nodes.Added] // from managerActorTwoNode setup
 
-      manager ! ManagerActor.UpsertEdges(EdgeData.Kit(Map(meKey -> edgeData1)), adaptorProbe.ref)
+      manager ! Actor.UpsertEdges(EdgeData.Kit(Map(meKey -> edgeData1)), adaptorProbe.ref)
 
       val res = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.EdgesUpserted])
       res.keys mustBe Set(meKey)
@@ -53,7 +52,7 @@ class ManageEdgesSpec extends UnitSpecWithTestKit with ManagerTestActor:
 
       visualizerProbe.expectMessageType[VisualizerActor.Structure.Nodes.Added] // from managerActorTwoNode setup
 
-      manager ! ManagerActor.UpsertEdges(edgeData, adaptorProbe.ref)
+      manager ! Actor.UpsertEdges(edgeData, adaptorProbe.ref)
 
       val res = log.msg(adaptorProbe.expectMessageType[ManagerAdaptor.EdgesUpserted])
       res.keys mustBe Set(linkKey, thenKey)

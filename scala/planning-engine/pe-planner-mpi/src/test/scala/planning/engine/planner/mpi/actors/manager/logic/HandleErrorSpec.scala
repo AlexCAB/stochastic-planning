@@ -13,8 +13,7 @@
 package planning.engine.planner.mpi.actors.manager.logic
 
 import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
-import planning.engine.planner.mpi.actors.manager.ManagerActor.AddNodes
+import Actor.AddNodes
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.test.actors.ManagerTestActor
 
@@ -28,7 +27,7 @@ class HandleErrorSpec extends UnitSpecWithTestKit with ManagerTestActor:
       val manager = managerActorEmpty.manager
       val err = new RuntimeException("Node actor boom")
       
-      val nodeErrorMsg = ManagerActor.NodeActorError(
+      val nodeErrorMsg = Actor.NodeActorError(
         nodeProbe.ref, 
         Some(AddNodes(NodeData(conNodeData), adaptorProbe.ref)), 
         err
@@ -46,7 +45,7 @@ class HandleErrorSpec extends UnitSpecWithTestKit with ManagerTestActor:
       val manager = managerActorEmpty.manager
       addNodes(NodeData(conNodeData, conNodeData), manager)
 
-      log.msg(manager ! ManagerActor.UpsertNodesByName(NodeData(conNodeData), adaptorProbe.ref))
+      log.msg(manager ! Actor.UpsertNodesByName(NodeData(conNodeData), adaptorProbe.ref))
 
       adaptorProbe.expectTerminated(manager)
       succeed

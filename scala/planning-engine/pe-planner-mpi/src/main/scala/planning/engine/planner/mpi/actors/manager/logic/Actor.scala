@@ -10,11 +10,11 @@
 | website: github.com/alexcab |||||
 | created: 18.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager
+package planning.engine.planner.mpi.actors.manager.logic
 
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.actors.manager.data.{Definitions, States}
 import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.manager.data.*
 import planning.engine.planner.mpi.actors.manager.logic.{HandleError, ManageEdges, ManageNodes}
 
 // Top-level stateful actor for the map network. I.e. parent actor for all NodeActor instances.
@@ -25,12 +25,11 @@ import planning.engine.planner.mpi.actors.manager.logic.{HandleError, ManageEdge
 // - Response to the ManagerAdaptor `ask` queries with success or error.
 // - Handling any error that happens in child actors by receiving `NodeActorError` (in simple implementation
 //   just kill all system in case any error).
-object ManagerActor extends ActorBase
-    with Definitions with States with Messages with ManageNodes with ManageEdges with HandleError:
-
+private[manager] object Actor extends ActorBase with ManageNodes with ManageEdges with HandleError:
+  import Message.*
+  
   override type Def = Definition
   override type Msg = Message
-
   override protected type St = State
 
   val name = "map-manager-actor"

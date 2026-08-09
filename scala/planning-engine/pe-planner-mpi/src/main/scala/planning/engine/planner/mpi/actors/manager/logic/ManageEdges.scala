@@ -14,15 +14,15 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.syntax.all.*
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.data.Message.UpsertEdges
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
 import planning.engine.planner.mpi.common.actor.ActorRefEx.send
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
-trait ManageEdges:
-  self: ManagerActor.type =>
+private[manager] trait ManageEdges:
+  self: Actor.type =>
 
   private[manager] def doUpsertEdges[F[_]: S](msg: UpsertEdges, state: St)(using d: Def, ctx: Ctx): F[St] =
     def sendAddEdgeSrc(key: MeKey, data: EdgeData): F[Unit] =

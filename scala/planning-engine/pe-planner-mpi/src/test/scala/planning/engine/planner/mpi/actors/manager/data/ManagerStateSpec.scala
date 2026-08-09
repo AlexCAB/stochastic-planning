@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager.data
 import cats.effect.IO
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.manager.ManagerActor
+import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.test.actors.StaticTestActors
@@ -29,11 +29,11 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
     lazy val conMnId: MnId.Con = MnId.Con(1L)
     lazy val absMnId: MnId.Abs = MnId.Abs(2L)
 
-    lazy val stateWithConNode: ManagerActor.State = ManagerActor.State.init
+    lazy val stateWithConNode: Actor.State = Actor.State.init
       .withNewNodes[IO](NodeData(conNodeData), staticActors, spawnRefs)
       .unsafeRunSync()._2
 
-    lazy val stateWithNodes: ManagerActor.State = ManagerActor.State.init
+    lazy val stateWithNodes: Actor.State = Actor.State.init
       .withNewNodes[IO](NodeData(conNodeData, absNodeData), staticActors, spawnRefs)
       .unsafeRunSync()._2
 
@@ -41,7 +41,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
     "add a named node to nodeRefMap and nodeNameMap, and increment nextId" in newCase[CaseData]: (_, data) =>
       import data.*
 
-      ManagerActor.State.init.withNewNodes[IO](NodeData(conNodeData, absNodeData), staticActors, spawnRefs)
+      Actor.State.init.withNewNodes[IO](NodeData(conNodeData, absNodeData), staticActors, spawnRefs)
         .asserting:
           case (nodeRefs, state) =>
             state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
@@ -58,7 +58,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
       val id1 = MnId.Con(1L)
       val id2 = MnId.Con(2L)
 
-      ManagerActor.State.init.withNewNodes[IO](NodeData(conNodeData, conNodeData), staticActors, spawnRefs)
+      Actor.State.init.withNewNodes[IO](NodeData(conNodeData, conNodeData), staticActors, spawnRefs)
         .asserting:
           case (_, state) =>
             state.nodeRefMap.keySet mustBe Set(id1, id2)
@@ -69,12 +69,12 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
       import data.*
       val unnamedData = absNodeData.copy(name = None)
 
-      ManagerActor.State.init.withNewNodes[IO](NodeData(unnamedData), staticActors, spawnRefs)
+      Actor.State.init.withNewNodes[IO](NodeData(unnamedData), staticActors, spawnRefs)
         .asserting { case (_, state) => state.nodeNameMap mustBe Map.empty }
 
     "raise an error when a node ID already exists in state" in newCase[CaseData]: (_, data) =>
       import data.*
-      val conflictingState = ManagerActor.State(
+      val conflictingState = Actor.State(
         nodeRefMap = Map(conMnId -> testKit.createTestProbe[NodeActor.Msg]().ref),
         nodeNameMap = Map.empty,
         nextId = 1L, // re-assigning from 1 collides with the existing conMnId entry
@@ -103,7 +103,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit with StaticTestActors:
         .asserting(_ mustBe Map.empty)
 
     "raise an error when a name maps to more than one node ID" in newCase[CaseData]: (_, data) =>
-      val incorrectState = ManagerActor.State(
+      val incorrectState = Actor.State(
         nodeRefMap = Map.empty,
         nodeNameMap = Map(data.conNodeData.name.get -> Set(MnId.Con(1L), MnId.Con(2L))),
         nextId = 3L,

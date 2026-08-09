@@ -8,14 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 05-Aug-26 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.common.actor
+package planning.engine.planner.mpi.actors
 
 import cats.MonadThrow
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.ActorRef
 
-object ActorRefEx:
-  extension [T](ref: ActorRef[T])
-    def send[F[_]: MonadThrow](msg: T): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
+trait WrapperBase[F[_]: MonadThrow, M]:
+  protected extension (ref: ActorRef[M])
+    def tellF(msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
+
+    // TODO Implement askF method using Pekko's ask pattern and MonadThrow for error handling.
+    def askF[R](msg: M): F[R] = ???

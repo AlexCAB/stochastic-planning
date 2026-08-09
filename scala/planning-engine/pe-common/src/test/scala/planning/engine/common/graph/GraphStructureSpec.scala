@@ -48,7 +48,7 @@ class GraphStructureSpec extends UnitSpecWithData:
         val inMap: Map[MnId, Set[MeKey.End]] = Map(
           c1 -> Set(Link.End(c1), Then.End(c1)),
           c2 -> Set(Link.End(c2)),
-          c3 -> Set(Then.End(c3))
+          c3 -> Set(Then.End(c3)),
         )
 
         simpleGraph.filterByEndType[Link.End](inMap) mustBe Map(c1 -> Set(Link.End(c1)), c2 -> Set(Link.End(c2)))
@@ -60,7 +60,7 @@ class GraphStructureSpec extends UnitSpecWithData:
 
       simpleGraph.srcLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
         c1 -> Set(Link.End(a4), Link.End(a6)),
-        a4 -> Set(Link.End(a5))
+        a4 -> Set(Link.End(a5)),
       ))
 
   "GraphStructure.srcThenMap" should:
@@ -75,7 +75,7 @@ class GraphStructureSpec extends UnitSpecWithData:
       simpleGraph.trgLinkMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
         a4 -> Set(Link.End(c1)),
         a5 -> Set(Link.End(a4)),
-        a6 -> Set(Link.End(c1))
+        a6 -> Set(Link.End(c1)),
       ))
 
   "GraphStructure.trgThenMap" should:
@@ -84,7 +84,7 @@ class GraphStructureSpec extends UnitSpecWithData:
 
       simpleGraph.trgThenMap.pure[IO].logValue(tn).asserting(_ mustBe Map(
         c2 -> Set(Then.End(c1)),
-        c3 -> Set(Then.End(c1))
+        c3 -> Set(Then.End(c1)),
       ))
 
   "GraphStructure.neighbours" should:
@@ -97,7 +97,7 @@ class GraphStructureSpec extends UnitSpecWithData:
         c3 -> Set(c1),
         a4 -> Set(c1, a5),
         a5 -> Set(a4),
-        a6 -> Set(c1)
+        a6 -> Set(c1),
       ))
 
   "GraphStructure.findConnected" should:
@@ -159,7 +159,7 @@ class GraphStructureSpec extends UnitSpecWithData:
 
         graph.srcMap mustBe Map(
           c1 -> Set(Then.End(c2), Then.End(c3), Link.End(a4), Link.End(a6)),
-          a4 -> Set(Link.End(a5))
+          a4 -> Set(Link.End(a5)),
         )
 
         graph.trgMap mustBe Map(
@@ -167,5 +167,5 @@ class GraphStructureSpec extends UnitSpecWithData:
           c3 -> Set(Then.End(c1)),
           a4 -> Set(Link.End(c1)),
           a5 -> Set(Link.End(a4)),
-          a6 -> Set(Link.End(c1))
+          a6 -> Set(Link.End(c1)),
         )

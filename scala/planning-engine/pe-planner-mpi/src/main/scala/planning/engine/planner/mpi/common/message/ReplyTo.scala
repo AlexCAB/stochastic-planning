@@ -14,9 +14,9 @@ package planning.engine.planner.mpi.common.message
 
 import cats.effect.Sync
 import org.apache.pekko.actor.typed.ActorRef
-import planning.engine.planner.mpi.common.actor.ActorRefEx.send
+import planning.engine.planner.mpi.actors.ApiBase.tellF
 
 trait ReplyTo[M]:
   protected def replyTo: ActorRef[M]
 
-  def replay[F[_]: Sync](msg: M): F[Unit] = replyTo.send(msg)
+  def replay[F[_]: Sync](msg: M): F[Unit] = replyTo.tellF(msg)

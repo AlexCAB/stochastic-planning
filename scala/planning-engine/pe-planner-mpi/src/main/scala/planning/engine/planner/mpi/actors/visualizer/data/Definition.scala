@@ -8,9 +8,8 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 19.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.visualizer.data
 
-private[visualizer] trait Definitions:
-  final case class Definition()
+final case class Definition()

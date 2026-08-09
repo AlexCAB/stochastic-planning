@@ -29,7 +29,7 @@ class SampleDataSpec extends UnitSpecWithData:
       utility = 0.75,
       name = Name.some("Sample Node"),
       description = Description.some("This is a sample node for testing."),
-      edges = Set.empty
+      edges = Set.empty,
     )
 
     val sampleData = SampleData(
@@ -37,7 +37,7 @@ class SampleDataSpec extends UnitSpecWithData:
       probabilityCount = sampleNewData.probabilityCount,
       utility = sampleNewData.utility,
       name = sampleNewData.name,
-      description = sampleNewData.description
+      description = sampleNewData.description,
     )
 
     lazy val nodeValues = Map(
@@ -45,7 +45,7 @@ class SampleDataSpec extends UnitSpecWithData:
       PROP.PROBABILITY_COUNT -> Value.Integer(sampleData.probabilityCount),
       PROP.UTILITY -> Value.Decimal(sampleData.utility),
       PROP.NAME -> Value.Str(sampleData.name.get.value),
-      PROP.DESCRIPTION -> Value.Str(sampleData.description.get.value)
+      PROP.DESCRIPTION -> Value.Str(sampleData.description.get.value),
     )
 
     lazy val rawNode = Node("1", Set(SAMPLE_LABEL), nodeValues)

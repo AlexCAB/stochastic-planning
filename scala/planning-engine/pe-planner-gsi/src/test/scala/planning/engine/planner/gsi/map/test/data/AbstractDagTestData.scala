@@ -61,7 +61,7 @@ trait AbstractDagTestData extends DcGraphTestData:
     e_1c1_2c1,
     e_1c2_2c2,
     e_1c3_2c2,
-    e_1c4_2c3
+    e_1c4_2c3,
   )
 
   lazy val e_2c1_3c1 = Link(src = a_2c1_211.id, trg = a_3c1_311.id)
@@ -73,7 +73,7 @@ trait AbstractDagTestData extends DcGraphTestData:
     e_2c1_3c1,
     e_2c2_3c1,
     e_2c2_3c2,
-    e_2c3_3c2
+    e_2c3_3c2,
   )
 
   lazy val e_1p1_1c1 = Then(src = c_1p1_101.id, trg = c_1c1_111.id)
@@ -85,7 +85,7 @@ trait AbstractDagTestData extends DcGraphTestData:
     e_1p1_1c1,
     e_1p1_1c3,
     e_1p2_1c2,
-    e_1p2_1c4
+    e_1p2_1c4,
   )
 
   lazy val e_1c1_1c2 = Then(src = c_1c1_111.id, trg = c_1c2_112.id)
@@ -95,7 +95,7 @@ trait AbstractDagTestData extends DcGraphTestData:
   lazy val thenE1 = List(
     e_1c1_1c2,
     e_1c2_1c3,
-    e_1c3_1c4
+    e_1c3_1c4,
   )
 
   lazy val e_1c1_1n1 = Then(src = c_1c1_111.id, trg = c_1n1_121.id)
@@ -103,7 +103,7 @@ trait AbstractDagTestData extends DcGraphTestData:
 
   lazy val then_next1 = List(
     e_1c1_1n1,
-    e_1c4_1n2
+    e_1c4_1n2,
   )
 
   lazy val e_2p1_2c1 = Then(src = a_2p1_201.id, trg = a_2c1_211.id)
@@ -111,7 +111,7 @@ trait AbstractDagTestData extends DcGraphTestData:
 
   lazy val then_prev2 = List(
     e_2p1_2c1,
-    e_2p2_2c3
+    e_2p2_2c3,
   )
 
   lazy val e_2c1_2c2 = Then(src = a_2c1_211.id, trg = a_2c2_212.id)
@@ -119,13 +119,13 @@ trait AbstractDagTestData extends DcGraphTestData:
 
   lazy val thenE2 = List(
     e_2c1_2c2,
-    e_2c2_2c3
+    e_2c2_2c3,
   )
 
   lazy val e_2c2_2n1 = Then(src = a_2c2_212.id, trg = a_2n1_221.id)
 
   lazy val then_next2 = List(
-    e_2c2_2n1
+    e_2c2_2n1,
   )
 
   lazy val e_3p1_3c1 = Then(src = a_3p1_301.id, trg = a_3c1_311.id)
@@ -133,13 +133,13 @@ trait AbstractDagTestData extends DcGraphTestData:
 
   lazy val then_prev3 = List(
     e_3p1_3c1,
-    e_3p1_3c2
+    e_3p1_3c2,
   )
 
   lazy val e_3c1_3c2 = Then(src = a_3c1_311.id, trg = a_3c2_312.id)
 
   lazy val thenE3 = List(
-    e_3c1_3c2
+    e_3c1_3c2,
   )
 
   lazy val e_3c1_3n1 = Then(src = a_3c1_311.id, trg = a_3n1_321.id)
@@ -147,7 +147,7 @@ trait AbstractDagTestData extends DcGraphTestData:
 
   lazy val then_next3 = List(
     e_3c1_3n1,
-    e_3c2_3n1
+    e_3c2_3n1,
   )
 
   lazy val allDcg234Edges: List[MeKey] = List(
@@ -161,7 +161,7 @@ trait AbstractDagTestData extends DcGraphTestData:
     then_next2,
     then_prev3,
     thenE3,
-    then_next3
+    then_next3,
   ).flatten
 
   // Main structure:
@@ -212,5 +212,5 @@ trait AbstractDagTestData extends DcGraphTestData:
     e_3p1_3c1,
     // Next edges:
     e_1c1_1n1,
-    e_3c1_3n1
+    e_3c1_3n1,
   )

@@ -23,13 +23,13 @@ trait DcgStatesTestData extends DcGraphTestData with DcgSampleTestData:
 
   lazy val initDcgState: MapGraphState[IO] = new MapGraphState(
     ioValues = new IoValueMap[IO](conNodes.groupBy(_.ioValue).map((io, ns) => io -> ns.map(_.id).toSet)),
-    graph = graphWithEdges
+    graph = graphWithEdges,
   )
 
   lazy val initMapInfoState = MapInfoState[IO](
     metadata = testMetadata,
     inNodes = testInNodes.map(n => n.name -> n).toMap,
-    outNodes = testOutNodes.map(n => n.name -> n).toMap
+    outNodes = testOutNodes.map(n => n.name -> n).toMap,
   )
 
   def makeIoValueMap(values: (IoValue, Set[MnId.Con])*): IoValueMap[IO] = new IoValueMap[IO](values.toMap)

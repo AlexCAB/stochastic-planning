@@ -54,7 +54,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         val newConcreteNodes = ConcreteNode.ListNew(List(
           ConcreteNode.New(HnName.some("test-con-1"), Description.some("test-con-1"), intInNode.name, IoIndex(101L)),
           ConcreteNode.New(HnName.some("test-con-2"), None, boolOutNode.name, IoIndex(102L)),
-          ConcreteNode.New(None, None, intOutNode.name, IoIndex(103L))
+          ConcreteNode.New(None, None, intOutNode.name, IoIndex(103L)),
         ))
 
         val createdNodeIds: List[HnId] = res.graph.newConcreteNodes(newConcreteNodes).await.keys.toList
@@ -77,7 +77,7 @@ class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[Tes
         val newAbstractNodes = AbstractNode.ListNew(List(
           AbstractNode.New(HnName.some("test-abstract-1"), Description.some("test-abs-1")),
           AbstractNode.New(HnName.some("test-abstract-2"), None),
-          AbstractNode.New(None, None)
+          AbstractNode.New(None, None),
         ))
 
         val createdNodeIds: List[HnId] = res.graph.newAbstractNodes(newAbstractNodes).await.keys.toList

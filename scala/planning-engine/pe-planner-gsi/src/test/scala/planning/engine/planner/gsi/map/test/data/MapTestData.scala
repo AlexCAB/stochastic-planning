@@ -54,12 +54,12 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcGraphTes
   lazy val initSamples: List[Sample] = List(
     makeSample(sampleId1, hnId1, hnId2),
     makeSample(sampleId2, hnId2, hnId1),
-    makeSample(sampleId3, hnId2, hnId1)
+    makeSample(sampleId3, hnId2, hnId1),
   )
 
   lazy val newSamples = List(
     makeSample(sampleId4, hnId2, hnId1),
-    makeSample(sampleId5, hnId3, hnId4)
+    makeSample(sampleId5, hnId3, hnId4),
   )
 
   lazy val initialDcgState = MapGraphState.empty[IO]
@@ -76,7 +76,7 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcGraphTes
     abstractNodes = List(),
     edges = makeHiddenEdges(initSamples),
     skippedSamples = List(),
-    loadedSamples = initSamples.map(_.data)
+    loadedSamples = initSamples.map(_.data),
   )
 
   lazy val ioValues: List[IoValue] = mapSubGraph.concreteNodes.map(_.ioValue)
@@ -87,12 +87,12 @@ trait MapTestData extends MapNodeTestData with MapSampleTestData with DcGraphTes
 
   lazy val dcgStateFromSubGraph = MapGraphState[IO](
     ioValues = IoValueMap[IO](conDcgNodesMap.map((k, ns) => k -> ns.map(_.id))).unsafeRunSync(),
-    graph = DcGraph[IO](allDcgNodes, mapDcgEdges, mapSubGraph.loadedSamples).unsafeRunSync()
+    graph = DcGraph[IO](allDcgNodes, mapDcgEdges, mapSubGraph.loadedSamples).unsafeRunSync(),
   ).unsafeRunSync()
 
   lazy val sampleListNew = Sample.ListNew(List(
     makeNewSampleData(hnId1, hnId2, name = Name.some("New Sample 01"), edgeType = EdgeType.THEN),
-    makeNewSampleData(hnId2, hnId3, name = Name.some("New Sample 02"), edgeType = EdgeType.LINK)
+    makeNewSampleData(hnId2, hnId3, name = Name.some("New Sample 02"), edgeType = EdgeType.LINK),
   ))
 
   lazy val concreteNodesNew = ConcreteNode

@@ -37,13 +37,13 @@ class AbstractNodeSpec extends UnitSpecWithData with ValidationCheck:
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.get.toDbParam,
       PROP.DESCRIPTION -> description.get.toDbParam,
-      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam,
     )
 
     lazy val nodeValues = Map(
       PROP.HN_ID -> Value.Integer(id.value),
       PROP.NAME -> Value.Str(name.get.value),
-      PROP.DESCRIPTION -> Value.Str(description.get.value)
+      PROP.DESCRIPTION -> Value.Str(description.get.value),
     )
 
     lazy val rawNode = Node("1", Set(HN_LABEL, ABSTRACT_LABEL), nodeValues)

@@ -38,7 +38,7 @@ trait DcgEdgeTestData:
     DcgSamples[IO]
       .apply(sampleIds.map((sId, indMap) => sId -> indMap.get[IO](srcId, trgId).unsafeRunSync()).toMap)
       .unsafeRunSync()
-  
+
   def makeDcgEdgeLink(srcId: MnId, trgId: MnId, samples: Iterable[(SampleId, IndexMap)]): DcgEdge[IO] =
     makeDcgEdgeLink(srcId, trgId, makeDcgSamples(srcId, trgId, samples))
 
@@ -59,14 +59,13 @@ trait DcgEdgeTestData:
 
   lazy val dcgEdgeLink = makeDcgEdgeLink(srcCon, trgAbs, samplesLink)
   lazy val dcgEdgeThen = makeDcgEdgeThen(srcCon, trgAbs, samplesThen)
-  
+
   extension (edgeMap: Map[MeKey, DcgEdge[IO]])
     def getAllSampleIds: Set[SampleId] = edgeMap.values.flatMap(_.samples.sampleIds).toSet
 
   extension (samples: DcgSamples[IO])
     def getIndexies(sampleId: SampleId): Indexies = samples.indexies
       .getOrElse(sampleId, throw AssertionError(s"Sample ID ${sampleId.value} not found in DcgSamples"))
-    
+
     def getSrcIndex(sampleId: SampleId): HnIndex = getIndexies(sampleId).src
     def getTrgIndex(sampleId: SampleId): HnIndex = getIndexies(sampleId).trg
-

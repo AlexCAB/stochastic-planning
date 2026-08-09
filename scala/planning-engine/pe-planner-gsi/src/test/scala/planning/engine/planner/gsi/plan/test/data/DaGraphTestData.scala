@@ -34,7 +34,7 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
     time = time,
     dcgNode = id.mnId match
       case mnId: MnId.Con => makeConDcgNode(id = mnId.value, name = name)
-      case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name)
+      case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name),
   )
 
   lazy val pnId1 = makeConPnId(mnId1, count = 1)
@@ -60,13 +60,13 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
   lazy val dagEdgesLink = List(
     makeDagEdgeLink(pnId1, pnId3),
     makeDagEdgeLink(pnId3, pnId6),
-    makeDagEdgeLink(pnId2, pnId4)
+    makeDagEdgeLink(pnId2, pnId4),
   )
 
   lazy val dagEdgesThen = List(
     makeDagEdgeThen(pnId1, pnId2),
     makeDagEdgeThen(pnId3, pnId4),
-    makeDagEdgeThen(pnId4, pnId5)
+    makeDagEdgeThen(pnId4, pnId5),
   )
 
   def makeDaGraph(nodes: Iterable[DagNode[IO]], edges: Iterable[DagEdge[IO]]): DaGraph[IO] =
@@ -74,7 +74,7 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
 
   lazy val allDagNodes = allConDagNodes ++ allAbsDagNodes
   lazy val allDagEdges = dagEdgesLink ++ dagEdgesThen
-  
+
   // The structure of simpleDaGraph is:
   //
   //  [pnId1] ───then───▶ [pnId2]

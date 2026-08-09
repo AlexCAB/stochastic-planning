@@ -27,7 +27,7 @@ class SimpleSyncPlannerConfigSpec extends UnitSpecWithData:
       """.stripMargin
 
     val parsedConfig: SimpleSyncPlannerConfig = SimpleSyncPlannerConfig(
-      maxContextPathLength = 100
+      maxContextPathLength = 100,
     )
 
   "SimpleSyncPlannerConfig.formConfig(...)" should:

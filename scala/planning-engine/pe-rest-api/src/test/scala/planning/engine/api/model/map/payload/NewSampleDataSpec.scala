@@ -33,7 +33,7 @@ class NewSampleDataSpec extends UnitSpecWithData with ValidationCheck:
       utility = 0.5,
       name = Name.some("sample1"),
       description = Description.some("Sample 1 description"),
-      edges = List(NewSampleEdge(testConNodeDef.name, testAbsNodeDef.name, EdgeType.THEN))
+      edges = List(NewSampleEdge(testConNodeDef.name, testAbsNodeDef.name, EdgeType.THEN)),
     )
 
   "NewSampleData.validationErrors(...)" should:

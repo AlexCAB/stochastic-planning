@@ -36,14 +36,14 @@ class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
       PROP.NAME -> Value.Str("inputNode"),
       `variable.varType` -> Value.Str(INT_TYPE),
       `variable.min` -> Value.Integer(22),
-      `variable.max` -> Value.Integer(33)
+      `variable.max` -> Value.Integer(33),
     )
 
     lazy val outputNodeProperties = Map(
       PROP.NAME -> Value.Str("outputNode"),
       `variable.varType` -> Value.Str(INT_TYPE),
       `variable.min` -> Value.Integer(0),
-      `variable.max` -> Value.Integer(10)
+      `variable.max` -> Value.Integer(10),
     )
 
     lazy val inputNodeQueryParams = inputNodeProperties.map((k, v) => k -> v.toParam)
@@ -52,7 +52,7 @@ class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val missingTypeProperties = Map(
       PROP.NAME -> Value.Str("missingTypeNode"),
       `variable.varType` -> Value.Str(BOOL_TYPE),
-      `variable.domain` -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      `variable.domain` -> Value.ListValue(List(Value.Bool(true), Value.Bool(false))),
     )
 
     lazy val inputDbNode = Node("1", Set(IO_LABEL, IN_LABEL), inputNodeProperties)

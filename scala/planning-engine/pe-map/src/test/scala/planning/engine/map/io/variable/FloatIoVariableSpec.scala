@@ -28,13 +28,13 @@ class FloatIoVariableSpec extends UnitSpecWithData:
     val invalidProperties = Map(
       PROP.VAR_TYPE -> Value.Str(FLOAT_TYPE),
       PROP.MIN -> Value.Decimal(0.0),
-      PROP.MAX -> Value.Str("invalid")
+      PROP.MAX -> Value.Str("invalid"),
     )
 
     val validProperties = Map(
       PROP.VAR_TYPE -> Value.Str(FLOAT_TYPE),
       PROP.MIN -> Value.Decimal(0.0),
-      PROP.MAX -> Value.Decimal(10.0)
+      PROP.MAX -> Value.Decimal(10.0),
     )
 
     val validParameters = validProperties.map:

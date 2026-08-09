@@ -24,24 +24,24 @@ trait DcgNodeTestData extends MapNodeTestData:
   def makeConDcgNode(
       id: Long,
       valueIndex: Long = 102,
-      name: Option[String] = None
+      name: Option[String] = None,
   ): DcgNode.Concrete[IO] = DcgNode.Concrete[IO](
     id = MnId.Con(id),
     name = name.map(HnName.apply).orElse(HnName.some(s"Con DCG Node $id")),
     description = Description.some(s"A concrete DCG node for testing, $id"),
     ioNode = testBoolInNode,
-    valueIndex = IoIndex(valueIndex)
+    valueIndex = IoIndex(valueIndex),
   )
 
   def makeConDcgNode(id: MnId.Con): DcgNode.Concrete[IO] = makeConDcgNode(id = id.value)
 
   def makeAbsDcgNode(
       id: Long,
-      name: Option[String] = None
+      name: Option[String] = None,
   ): DcgNode.Abstract[IO] = DcgNode.Abstract[IO](
     id = MnId.Abs(id),
     name = name.map(HnName.apply).orElse(HnName.some(s"Abs DCG Node $id")),
-    description = Description.some(s"An abstract DCG node for testing, $id")
+    description = Description.some(s"An abstract DCG node for testing, $id"),
   )
 
   def makeAbsDcgNode(id: MnId.Abs): DcgNode.Abstract[IO] = makeAbsDcgNode(id = id.value)

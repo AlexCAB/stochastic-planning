@@ -25,7 +25,7 @@ class MapInfoStateSpec extends UnitSpecWithData:
     lazy val mapInfoState = new MapInfoState[IO](
       metadata = testMetadata,
       inNodes = Map(testBoolInNode.name -> testBoolInNode, testIntInNode.name -> testIntInNode),
-      outNodes = Map(boolOutNode.name -> boolOutNode)
+      outNodes = Map(boolOutNode.name -> boolOutNode),
     )
 
   "MapInfoState.empty" should:

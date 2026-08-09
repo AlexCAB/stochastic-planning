@@ -30,7 +30,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
 
   private class CaseData extends Case with MapTestData:
     lazy val visualizationStub = stub[MapVisualizationLike[IO]]
-    lazy val testConfig =  PlannerMapConfig(reprEnabled = true)
+    lazy val testConfig = PlannerMapConfig(reprEnabled = true)
 
     lazy val emptyMapInMem: MapGsiInMemGsi[IO] =
       visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
@@ -265,7 +265,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
         infoState mustBe MapInfoState.empty[IO]
         dcgState mustBe MapGraphState.empty[IO]
         idsCountState mustBe MapIdsCountState.init
-  
+
   "MapInMem.empty(...)" should:
     "create empty MapInMem instance" in newCase[CaseData]: (tn, data) =>
       import data.{testConfig, visualizationStub}

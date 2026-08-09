@@ -32,12 +32,12 @@ class BooleanIoVariableSpec extends UnitSpecWithData:
 
     val invalidProperties = Map(
       PROP.VAR_TYPE -> Value.Str(BOOL_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Str("invalid")))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Str("invalid"))),
     )
 
     val validProperties = Map(
       PROP.VAR_TYPE -> Value.Str(BOOL_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false))),
     )
 
   "BooleanIoVariable.valueForIndex(...)" should:

@@ -45,14 +45,14 @@ trait TestApiData:
     initNextHnId = 100L,
     initNextSampleId = 200L,
     initSampleCount = 300L,
-    initNextHnIndex = 400L
+    initNextHnIndex = 400L,
   )
 
   lazy val testDbName = DbName("testMapDb")
 
   lazy val testMapResetResponse = MapResetResponse(
     prevDbName = Some(testDbName),
-    prevMapName = Name.some("testMapName")
+    prevMapName = Name.some("testMapName"),
   )
 
   lazy val booleanIoNodeDef = BooleanIoNodeDef(IoName("boolDef"), Set(true, false))
@@ -65,7 +65,7 @@ trait TestApiData:
     name = Name.some("testMapName"),
     description = Description.some("testMapDescription"),
     inputNodes = List(booleanIoNodeDef, floatIoNodeDef),
-    outputNodes = List(intIoNodeDef, listStrIoNodeDef)
+    outputNodes = List(intIoNodeDef, listStrIoNodeDef),
   )
 
   lazy val testMapLoadRequest = MapLoadRequest(dbName = testDbName)
@@ -75,7 +75,7 @@ trait TestApiData:
     testMapInitRequest.name,
     testMapInitRequest.inputNodes.size,
     testMapInitRequest.outputNodes.size,
-    numHiddenNodes = 3L
+    numHiddenNodes = 3L,
   )
 
   lazy val testConNodeVal1 = true
@@ -95,21 +95,21 @@ trait TestApiData:
     booleanIoNode.name -> booleanIoNode,
     floatIoNode.name -> floatIoNode,
     intIoNode.name -> intIoNode,
-    listStrIoNode.name -> listStrIoNode
+    listStrIoNode.name -> listStrIoNode,
   )
 
   lazy val testConNodeDef1 = ConcreteNodeDef(
     HnName("conHn1"),
     Description.some("testConNodeDef1"),
     booleanIoNode.name,
-    Json.fromBoolean(testConNodeVal1)
+    Json.fromBoolean(testConNodeVal1),
   )
 
   lazy val testConNodeDef2 = ConcreteNodeDef(
     HnName("conHn2"),
     Description.some("testConNodeDef2"),
     listStrIoNode.name,
-    Json.fromString(testConNodeVal2)
+    Json.fromString(testConNodeVal2),
   )
 
   lazy val testAbsNodeDef1 = AbstractNodeDef(HnName("absHn3"), Description.some("testAbsNodeDef1"))
@@ -119,14 +119,14 @@ trait TestApiData:
     Some(testConNodeDef1.name),
     testConNodeDef1.description,
     testConNodeDef1.ioNodeName,
-    booleanIoVar.indexForValue(testConNodeVal1).unsafeRunSync()
+    booleanIoVar.indexForValue(testConNodeVal1).unsafeRunSync(),
   )
 
   lazy val testConNodeNew2 = ConcreteNode.New(
     Some(testConNodeDef2.name),
     testConNodeDef2.description,
     testConNodeDef2.ioNodeName,
-    listStrIoVar.indexForValue(testConNodeVal2).unsafeRunSync()
+    listStrIoVar.indexForValue(testConNodeVal2).unsafeRunSync(),
   )
 
   lazy val testNewSampleData: NewSampleData = NewSampleData(
@@ -134,7 +134,7 @@ trait TestApiData:
     utility = 0.5,
     name = Name.some("sample1"),
     description = Description.some("Sample 1 description"),
-    edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN))
+    edges = List(NewSampleEdge(testConNodeDef1.name, testAbsNodeDef1.name, EdgeType.THEN)),
   )
 
   lazy val testMapAddSamplesRequest = MapAddSamplesRequest(
@@ -145,15 +145,15 @@ trait TestApiData:
         utility = 0.8,
         name = Name.some("sample2"),
         description = Description.some("Sample 2 description"),
-        edges = List(NewSampleEdge(testConNodeDef2.name, testAbsNodeDef2.name, EdgeType.LINK))
-      )
+        edges = List(NewSampleEdge(testConNodeDef2.name, testAbsNodeDef2.name, EdgeType.LINK)),
+      ),
     ),
-    hiddenNodes = List(testConNodeDef1, testAbsNodeDef1, testConNodeDef2, testAbsNodeDef2)
+    hiddenNodes = List(testConNodeDef1, testAbsNodeDef1, testConNodeDef2, testAbsNodeDef2),
   )
 
   lazy val testMapAddSamplesResponse = MapAddSamplesResponse(
     addedSamples = testMapAddSamplesRequest.samples.zipWithIndex
-      .map((data, i) => ShortSampleData(SampleId(i), data.name))
+      .map((data, i) => ShortSampleData(SampleId(i), data.name)),
   )
 
   lazy val testSampleData: SampleData = SampleData(
@@ -161,7 +161,7 @@ trait TestApiData:
     probabilityCount = testNewSampleData.probabilityCount,
     utility = testNewSampleData.utility,
     name = testNewSampleData.name,
-    description = testNewSampleData.description
+    description = testNewSampleData.description,
   )
 
   lazy val testSample = Sample(data = testSampleData, edges = Set())
@@ -171,12 +171,12 @@ trait TestApiData:
     testConNodeDef1.name -> MnId.Con(101L),
     testConNodeDef2.name -> MnId.Con(102L),
     testAbsNodeDef1.name -> MnId.Abs(103L),
-    testAbsNodeDef2.name -> MnId.Abs(104L)
+    testAbsNodeDef2.name -> MnId.Abs(104L),
   )
 
   lazy val findHnIdsByNamesRes: Map[HnName, List[MnId]] = Map(
     testConNodeDef1.name -> List(testMnIdMap(testConNodeDef1.name)),
-    testAbsNodeDef1.name -> List(testMnIdMap(testAbsNodeDef1.name))
+    testAbsNodeDef1.name -> List(testMnIdMap(testAbsNodeDef1.name)),
   )
 
   lazy val newConcreteNodesRes: Map[MnId, Some[HnName]] =
@@ -196,14 +196,14 @@ trait TestApiData:
           SampleEdge.New(
             source = testMnIdMap(edge.sourceHnName).asHnId,
             target = testMnIdMap(edge.targetHnName).asHnId,
-            edgeType = edge.edgeType
-          )
-        )
-      )
+            edgeType = edge.edgeType,
+          ),
+        ),
+      ),
   )
 
   lazy val testResponse = MapAddSamplesResponse(
-    testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name))
+    testMapAddSamplesRequest.samples.zipWithIndex.map((data, i) => ShortSampleData(SampleId(i + 1), data.name)),
   )
 
   lazy val tesConcreteDcgNode = DcgNode.Concrete[IO](
@@ -211,18 +211,18 @@ trait TestApiData:
     name = Some(HnName("boolOutputNode")),
     description = Description.some("Concrete Dcg Node for bool output"),
     ioNode = booleanIoNode,
-    valueIndex = IoIndex(2000001)
+    valueIndex = IoIndex(2000001),
   )
 
   lazy val testAbstractDcgNode = DcgNode.Abstract[IO](
     id = MnId.Abs(3000007),
     name = Some(HnName("abstractNode1")),
-    description = Description.some("Abstract Dcg Node 1")
+    description = Description.some("Abstract Dcg Node 1"),
   )
 
   lazy val testDcgEdge = DcgEdge[IO](
     key = MeKey.Link(tesConcreteDcgNode.id, testAbstractDcgNode.id),
-    samples = DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync()
+    samples = DcgSamples[IO](Map(testSampleData.id -> Indexies(HnIndex(2000001), HnIndex(3000001)))).unsafeRunSync(),
   )
 
   lazy val testDcgState = new MapGraphState[IO](
@@ -231,14 +231,14 @@ trait TestApiData:
       nodes = Map(tesConcreteDcgNode.id -> tesConcreteDcgNode, testAbstractDcgNode.id -> testAbstractDcgNode),
       edges = Map(testDcgEdge.key -> testDcgEdge),
       samples = Map(testSampleData.id -> testSampleData),
-      structure = GraphStructure(Set(testDcgEdge.key))
-    )
+      structure = GraphStructure(Set(testDcgEdge.key)),
+    ),
   )
 
   lazy val testMapInfoState = MapInfoState[IO](
     metadata = MapMetadata(Name.some("Test Map"), Description.some("A map used for testing MapInfoState")),
     inNodes = Map(booleanIoNode.name -> booleanIoNode),
-    outNodes = Map(intIoNode.name -> intIoNode)
+    outNodes = Map(intIoNode.name -> intIoNode),
   )
 
   lazy val testMapVisualizationMsg = MapVisualizationMsg(
@@ -247,5 +247,5 @@ trait TestApiData:
     ioValues = testDcgState.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),
     concreteNodes = testDcgState.graph.nodes.keySet.filter(_.isCon).map(_.asHnId),
     abstractNodes = testDcgState.graph.nodes.keySet.filter(_.isAbs).map(_.asHnId),
-    edgesMapping = testDcgState.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId)))
+    edgesMapping = testDcgState.graph.structure.srcMap.toSet.map((s, ts) => (s.asHnId, ts.map(_.id.asHnId))),
   )

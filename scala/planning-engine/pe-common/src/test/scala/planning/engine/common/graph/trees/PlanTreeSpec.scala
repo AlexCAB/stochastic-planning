@@ -29,8 +29,8 @@ class PlanTreeSpec extends UnitSpecIO:
       0,
       makeVertex(1, makeLeaf(11)),
       makeVertex(2, makeVertex(21, makeVertex(211, makeLeaf(2111))), makeVertex(22, makeLeaf(221), makeLeaf(222))),
-      makeVertex(3, makeVertex(31, makeLeaf(311)), makeVertex(32, makeLeaf(321)))
-    )
+      makeVertex(3, makeVertex(31, makeLeaf(311)), makeVertex(32, makeLeaf(321))),
+    ),
   )
 
   "PlanTree.buildRepr" should:

@@ -35,7 +35,7 @@ class MapConfigSpec extends UnitSpecWithData:
       initNextHnId = 100,
       initNextSampleId = 1000,
       initSampleCount = 5000,
-      initNextHnIndex = 100
+      initNextHnIndex = 100,
     )
 
   "MapConfig.formConfig(...)" should:
@@ -47,7 +47,7 @@ class MapConfigSpec extends UnitSpecWithData:
   "MapConfig.toRootParams" should:
     "make root parameters" in newCase[CaseData]: (_, data) =>
       data.parsedConfig.toRootParams[IO].asserting(_ mustEqual Map(
-        PROP.NEXT_HN_ID -> data.parsedConfig.initNextHnId.toDbParam
+        PROP.NEXT_HN_ID -> data.parsedConfig.initNextHnId.toDbParam,
       ))
 
   "MapConfig.toSamplesParams" should:
@@ -55,5 +55,5 @@ class MapConfigSpec extends UnitSpecWithData:
       data.parsedConfig.toSamplesParams[IO].asserting(_ mustEqual Map(
         PROP.NEXT_SAMPLES_ID -> data.parsedConfig.initNextSampleId.toDbParam,
         PROP.SAMPLES_COUNT -> data.parsedConfig.initSampleCount.toDbParam,
-        PROP.NAME -> SAMPLES_LABEL.toDbParam
+        PROP.NAME -> SAMPLES_LABEL.toDbParam,
       ))

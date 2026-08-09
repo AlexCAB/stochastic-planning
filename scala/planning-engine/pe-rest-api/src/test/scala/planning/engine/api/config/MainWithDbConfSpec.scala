@@ -42,7 +42,7 @@ class MainWithDbConfSpec extends UnitSpecWithData:
         |  init-sample-count = 3
         |  init-next-hn-index = 4
         |}
-        |""".stripMargin
+        |""".stripMargin,
     )
 
   "MainConfSpec.formConfig(...)" should:
@@ -56,6 +56,6 @@ class MainWithDbConfSpec extends UnitSpecWithData:
             initNextHnId = 1L,
             initNextSampleId = 2L,
             initSampleCount = 3L,
-            initNextHnIndex = 4L
-          )
+            initNextHnIndex = 4L,
+          ),
         ))

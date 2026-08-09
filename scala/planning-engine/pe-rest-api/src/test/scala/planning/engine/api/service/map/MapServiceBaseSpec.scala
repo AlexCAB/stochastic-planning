@@ -48,7 +48,7 @@ class MapServiceBaseSpec extends UnitSpecWithData:
           data.hnName1 -> data.hnId1,
           data.hnName2 -> data.hnId2,
           data.hnName3 -> data.hnId3,
-          data.hnName4 -> data.hnId4
+          data.hnName4 -> data.hnId4,
         )
 
     "fail if more then one HnId found" in newCase[CaseData]: (tn, data) =>

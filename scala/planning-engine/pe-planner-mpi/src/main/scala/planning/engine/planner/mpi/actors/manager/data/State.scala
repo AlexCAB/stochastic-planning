@@ -16,13 +16,14 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.Definition as NodeDef
 import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
 import planning.engine.planner.mpi.common.repr.Representable
 
 private[manager] final case class State(
     // List of all node in map network
-    nodeRefMap: Map[MnId, NodeActor.Ref],
+    nodeRefMap: Map[MnId, Node],
     nodeNameMap: Map[HnName, Set[MnId]],
 
     // Next ID to assign to a new node (incremented for each new node)
@@ -32,13 +33,13 @@ private[manager] final case class State(
   def withNewNodes[F[_]: MonadThrow](
       data: NodeData.Kit,
       actors: StaticActors,
-      spawn: List[NodeActor.Def] => Map[NodeActor.Ref, NodeActor.Def],
-  ): F[(Map[NodeActor.Ref, NodeActor.Def], State)] =
-    def extractNames(newNodes: Map[NodeActor.Ref, NodeActor.Def]): Map[HnName, Set[MnId]] = newNodes
+      spawn: List[NodeDef] => Map[Node, NodeDef],
+  ): F[(Map[Node, NodeDef], State)] =
+    def extractNames(newNodes: Map[Node, NodeDef]): Map[HnName, Set[MnId]] = newNodes
       .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
       .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
 
-    def updateState(newNodes: Map[NodeActor.Ref, NodeActor.Def]): State = this.copy(
+    def updateState(newNodes: Map[Node, NodeDef]): State = this.copy(
       nodeRefMap = nodeRefMap ++ newNodes.map((r, d) => d.id -> r),
       nodeNameMap = nodeNameMap ++ extractNames(newNodes),
       nextId = nextId + newNodes.size,
@@ -59,7 +60,7 @@ private[manager] final case class State(
       _ <- found.flatMap((_, ids) => ids.toList).assertDistinct("Found duplicate node IDs for names")
     yield found.map((n, ids) => ids.head -> n)
 
-  def getRef[F[_]: MonadThrow](mnId: MnId): F[NodeActor.Ref] = nodeRefMap.get(mnId) match
+  def getRef[F[_]: MonadThrow](mnId: MnId): F[Node] = nodeRefMap.get(mnId) match
     case Some(ref) => ref.pure
     case None      => s"Node ID $mnId not found in state".assertionError
 

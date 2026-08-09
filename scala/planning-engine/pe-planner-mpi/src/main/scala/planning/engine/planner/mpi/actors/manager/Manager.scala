@@ -16,16 +16,17 @@ import cats.effect.Sync
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.WrapperBase
-import planning.engine.planner.mpi.actors.manager.data.Definition
-import planning.engine.planner.mpi.actors.manager.logic.Actor
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
-import planning.engine.planner.mpi.common.data.node.NodeData
 
-trait ManagerLike[F[_]]:
+import planning.engine.planner.mpi.actors.manager.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
+import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.common.repr.Representable
+
+trait Manager:
 
   // Add nodes command. Create new MnId and add node to the graph for each node in the kit. Reply with NodeData.
-  def addNode(data: NodeData.Kit): F[Map[MnId, Option[HnName]]]
+  def addNode[F[_]](data: NodeData.Kit): F[Map[MnId, Option[HnName]]]
 
   // Upsert nodes by name command:
   // - If the node with given name already exists, returns its MnId.
@@ -34,7 +35,7 @@ trait ManagerLike[F[_]]:
   // - In map found duplicate names.
   // - NodeData.Kit contains NodeData with undefined name field.
   // - Node type of found node does not match the type given in NodeData.
-  def upsertNodesByName(data: NodeData.Kit): F[Map[MnId, Option[HnName]]]
+  def upsertNodesByName[F[_]](data: NodeData.Kit): F[Map[MnId, Option[HnName]]]
 
   // Upsert edges command:
   // - If the edge exists, join indexies to already existing (only `AddEdgeSrc` used).
@@ -43,21 +44,18 @@ trait ManagerLike[F[_]]:
   // Will fail if:
   // - In indexies map found duplicate SampleId (SampleId is unique per edge).
   // (!) Note: This command not have rollback mechanism, so in case of failure, some edges may be added, some not.
-  def upsertEdges(data: NodeData.Kit): F[Set[MeKey]]
+  def upsertEdges[F[_]](data: NodeData.Kit): F[Set[MeKey]]
 
-private[manager] class Manager[F[_]: Sync](actorRef: Actor.Ref) extends ManagerLike[F] with WrapperBase[F, Actor.Msg]:
-  def addNode(data: NodeData.Kit): F[Map[MnId, Option[HnName]]] = ???
-
-  def upsertNodesByName(data: NodeData.Kit): F[Map[MnId, Option[HnName]]] = ???
-
-  def upsertEdges(data: NodeData.Kit): F[Set[MeKey]] = ???
+  // Report an error that occurred in a NodeActor.
+  def reportError[F[_]](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
 
 object Manager:
+  def wrap(ref: Actor.Ref): Manager = new ApiImpl(ref)
 
   // TODO To rewrite, this method should not allow Actor.Ref leakage.
   def spawn[F[_]: Sync](
-      visualizer: VisualizerActor.Ref,
+      visualizer: Visualizer,
       make: (Behavior[Actor.Msg], String) => Actor.Ref,
-  ): ManagerLike[F] = ???
+  ): Manager = ???
 
   // Actor.spawn(Definition(visualizer), make)

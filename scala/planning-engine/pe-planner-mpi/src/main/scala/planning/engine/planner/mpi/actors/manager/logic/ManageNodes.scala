@@ -14,11 +14,12 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.syntax.all.*
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.actors.manager.Manager
+import planning.engine.planner.mpi.actors.manager.data.Message.{AddNodes, UpsertNodesByName}
+import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.Definition as NodeDef
 import planning.engine.common.errors.*
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
-import planning.engine.planner.mpi.common.actor.ActorRefEx.send
 import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
 
 private[manager] trait ManageNodes:
@@ -28,11 +29,11 @@ private[manager] trait ManageNodes:
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =
-    def spawn(definitions: List[NodeActor.Def]): Map[NodeActor.Ref, NodeActor.Def] =
-      NodeActor.spawn(definitions, (bh, n) => ctx.spawn(bh, n))
+    def spawn(definitions: List[NodeDef]): Map[Node, NodeDef] =
+      definitions.zip(Node.spawn(definitions, (bh, n) => ctx.spawn(bh, n))).map((d, node) => node -> d).toMap
 
     for
-      (nodeRefs, newState) <- state.withNewNodes(data, StaticActors(), spawn)
+      (nodeRefs, newState) <- state.withNewNodes(data, StaticActors(Manager.wrap(ctx.self), d.visualizer), spawn)
       ids = nodeRefs.map((r, d) => d.id -> d.data.name)
     yield (ids, newState)
 
@@ -48,7 +49,7 @@ private[manager] trait ManageNodes:
       (ids, newState) <- addNodes(toAdd, state)
       _ <- found.keySet.assertContainsNoneOf(ids.keySet, "Found duplicate node IDs for names")
       allIds = ids ++ found.map((i, n) => i -> Some(n))
-      _ <- d.visualizer.send(VisualizerActor.Structure.Nodes.Added(allIds))
+      _ <- d.visualizer.nodesAdded[F](allIds)
     yield (allIds, newState)
 
   private[manager] def doAddNodes[F[_]: S](msg: AddNodes, state: St)(using d: Def, ctx: Ctx): F[St] =
@@ -56,7 +57,7 @@ private[manager] trait ManageNodes:
       (ids, newState) <- addNodes(msg.data, state)
       _ <- logInfo("[AddNodes] added nodes", ids.view.mapValues(_.repr).toMap)
       _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
-      _ <- d.visualizer.send(VisualizerActor.Structure.Nodes.Added(ids))
+      _ <- d.visualizer.nodesAdded[F](ids)
     yield newState
 
   private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =

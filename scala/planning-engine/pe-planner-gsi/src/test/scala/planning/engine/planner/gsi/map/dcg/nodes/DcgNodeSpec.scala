@@ -30,7 +30,7 @@ class DcgNodeSpec extends UnitSpecWithData:
       name = concreteNode.name,
       description = concreteNode.description,
       ioNodeName = concreteNode.ioNode.name,
-      valueIndex = concreteNode.valueIndex
+      valueIndex = concreteNode.valueIndex,
     )
 
     def getIoNode(name: IoName): IO[IoNode[IO]] =
@@ -40,7 +40,7 @@ class DcgNodeSpec extends UnitSpecWithData:
     lazy val abstractNode: AbstractNode[IO] = makeAbstractNode()
     lazy val absNodeNew = AbstractNode.New(
       name = abstractNode.name,
-      description = abstractNode.description
+      description = abstractNode.description,
     )
 
     lazy val conDcgNode = DcgNode.Concrete[IO](concreteNode.id.asCon, conNodeNew, getIoNode).unsafeRunSync()

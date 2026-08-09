@@ -16,9 +16,11 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.ActorRef
 
-trait WrapperBase[F[_]: MonadThrow, M]:
-  protected extension (ref: ActorRef[M])
-    def tellF(msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
+trait ApiBase[M]
+
+object ApiBase:
+  extension [M](ref: ActorRef[M])
+    def tellF[F[_]: MonadThrow](msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
 
     // TODO Implement askF method using Pekko's ask pattern and MonadThrow for error handling.
-    def askF[R](msg: M): F[R] = ???
+    def askF[F[_]: MonadThrow, R](msg: M): F[R] = ???

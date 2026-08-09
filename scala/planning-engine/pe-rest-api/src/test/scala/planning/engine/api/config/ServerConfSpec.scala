@@ -25,7 +25,7 @@ class ServerConfSpec extends UnitSpecWithData:
         |host = "127.0.0.1"
         |port = 8080
         |api-prefix = "/api"
-        |""".stripMargin
+        |""".stripMargin,
     )
 
   "ServerConf.formConfig(...)" should:

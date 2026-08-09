@@ -19,18 +19,18 @@ import planning.engine.planner.mpi.test.actors.ManagerTestActor
 
 class HandleErrorSpec extends UnitSpecWithTestKit with ManagerTestActor:
   private class CaseData extends Case with WithManagerActor
-  
+
   "ManagerActor.doHandleNodeError" should:
     "terminate the manager actor after a NodeActorError is received" in newCase[CaseData]: (log, data) =>
       import data.*
 
       val manager = managerActorEmpty.manager
       val err = new RuntimeException("Node actor boom")
-      
+
       val nodeErrorMsg = Actor.NodeActorError(
-        nodeProbe.ref, 
-        Some(AddNodes(NodeData(conNodeData), adaptorProbe.ref)), 
-        err
+        nodeProbe.ref,
+        Some(AddNodes(NodeData(conNodeData), adaptorProbe.ref)),
+        err,
       )
 
       log.msg(manager ! nodeErrorMsg)

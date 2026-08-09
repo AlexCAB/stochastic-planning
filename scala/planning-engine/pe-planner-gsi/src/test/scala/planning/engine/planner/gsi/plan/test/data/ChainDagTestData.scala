@@ -39,7 +39,7 @@ trait ChainDagTestData extends DaGraphTestData:
     c_1_1 -> ("c_1_1", Some(IoTime(1L))),
     c_1_2 -> ("c_1_2", Some(IoTime(2L))),
     c_2_2 -> ("c_2_2", Some(IoTime(2L))),
-    c_1_3 -> ("c_1_3", None)
+    c_1_3 -> ("c_1_3", None),
   )
 
   lazy val absPnIds: Map[PnId.Abs, (String, Option[IoTime])] = Map(
@@ -51,7 +51,7 @@ trait ChainDagTestData extends DaGraphTestData:
     a2_1_1 -> ("a2_1_1", Some(IoTime(1L))),
     a2_1_2 -> ("a2_1_2", Some(IoTime(2L))),
     a2_2_2 -> ("a2_2_2", Some(IoTime(2L))),
-    a2_1_3 -> ("a2_1_3", None)
+    a2_1_3 -> ("a2_1_3", None),
   )
 
   lazy val dagNodes: Set[DagNode[IO]] = (conPnIds ++ absPnIds)

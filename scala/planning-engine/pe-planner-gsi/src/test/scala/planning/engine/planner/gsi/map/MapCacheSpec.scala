@@ -36,7 +36,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
     def setLoadSubgraphForIoValue(
         expectedValues: List[IoValue],
         expectedLoadedSamples: List[SampleId],
-        result: MapSubGraph[IO]
+        result: MapSubGraph[IO],
     ): Unit = mapGraphStub.loadSubgraphForIoValue.when(*, *)
       .onCall: (values, loadedSamples) =>
         for
@@ -47,7 +47,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
 
     def setAddNewSamples(
         expectedSamples: Sample.ListNew,
-        result: List[Sample]
+        result: List[Sample],
     ): Unit = mapGraphStub.addNewSamples.when(*)
       .onCall: params =>
         for
@@ -80,7 +80,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
       data.setLoadSubgraphForIoValue(
         data.ioValues,
         List(data.sampleId1),
-        data.mapSubGraph.copy(concreteNodes = invConNodes)
+        data.mapSubGraph.copy(concreteNodes = invConNodes),
       )
 
       data.mapCache
@@ -93,7 +93,7 @@ class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
       data.setLoadSubgraphForIoValue(
         data.ioValues,
         List(data.sampleId1),
-        data.mapSubGraph.copy(abstractNodes = invNode)
+        data.mapSubGraph.copy(abstractNodes = invNode),
       )
 
       data.mapCache

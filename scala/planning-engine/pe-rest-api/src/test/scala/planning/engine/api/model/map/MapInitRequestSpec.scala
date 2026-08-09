@@ -24,7 +24,7 @@ class MapInitRequestSpec extends UnitSpecWithData with TestApiData:
   private class CaseData extends Case:
     lazy val expectedMetadata = MapMetadata(
       name = testMapInitRequest.name,
-      description = testMapInitRequest.description
+      description = testMapInitRequest.description,
     )
 
     lazy val expectedInputNodes = testMapInitRequest.inputNodes.map:

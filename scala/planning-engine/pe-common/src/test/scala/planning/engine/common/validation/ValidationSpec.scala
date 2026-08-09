@@ -44,7 +44,7 @@ class ValidationSpec extends UnitSpecWithData:
       val obj = new Validation:
         def validations = validate("testObj")(
           List(1, 2, 3).isDistinct("Elements are distinct"),
-          List(1, 2, 2).isDistinct("Elements are not distinct")
+          List(1, 2, 2).isDistinct("Elements are not distinct"),
         )
       obj.pure[IO].asserting(_
         .validations._2.map(_.getMessage) mustBe List("Elements are not distinct, duplicates: 2"))
@@ -54,7 +54,7 @@ class ValidationSpec extends UnitSpecWithData:
       val obj = new Validation:
         def validations = validate("testObj")(
           List(1, 2, 3).containsAllOf(List(2, 3), "All elements are contained"),
-          List(1, 2, 3).containsAllOf(List(2, 4), "Not all elements are contained")
+          List(1, 2, 3).containsAllOf(List(2, 4), "Not all elements are contained"),
         )
       obj.pure[IO].asserting(_
         .validations._2.map(_.getMessage) mustBe List("Not all elements are contained, missing elements: 4"))
@@ -64,7 +64,7 @@ class ValidationSpec extends UnitSpecWithData:
       val obj = new Validation:
         def validations = validate("testObj")(
           List(1, 2, 3).haveSameElems(List(3, 2, 1), "Collections have the same elements"),
-          List(1, 2, 3).haveSameElems(List(2, 4), "Collections do not have the same elements")
+          List(1, 2, 3).haveSameElems(List(2, 4), "Collections do not have the same elements"),
         )
       obj.pure[IO].asserting(_.validations._2
         .map(_.getMessage) mustBe List("Collections do not have the same elements, have not same elements: 1, 3, 4"))
@@ -74,7 +74,7 @@ class ValidationSpec extends UnitSpecWithData:
       val obj = new Validation:
         def validations = validate("testObj")(
           List(1, 2, 3).containsNoneOf(List(4, 5), "Collections have different elements"),
-          List(1, 2, 3).containsNoneOf(List(3, 4), "Collections do not have different elements")
+          List(1, 2, 3).containsNoneOf(List(3, 4), "Collections do not have different elements"),
         )
       obj.pure[IO].asserting(_.validations._2
         .map(_.getMessage) mustBe List("Collections do not have different elements, have same elements: 3"))
@@ -84,7 +84,7 @@ class ValidationSpec extends UnitSpecWithData:
       val obj = new Validation:
         def validations = validate("testObj")(
           List((1, 1), (2, 2), (3, 3)).allEquals("All pairs are equal"),
-          List((1, 1), (2, 3), (3, 3)).allEquals("Not all pairs are equal")
+          List((1, 1), (2, 3), (3, 3)).allEquals("Not all pairs are equal"),
         )
       obj.pure[IO].asserting(_.validations._2
         .map(_.getMessage) mustBe List("Not all pairs are equal, have equal elements: (2,3)"))

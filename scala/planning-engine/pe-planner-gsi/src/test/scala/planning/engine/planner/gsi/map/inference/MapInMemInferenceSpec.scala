@@ -69,7 +69,7 @@ class MapInMemInferenceSpec extends UnitSpecWithData:
           a_2p1_201.id,
           a_2c1_211.id,
           a_3p1_301.id,
-          a_3c1_311.id
+          a_3c1_311.id,
         )
 
         dagLike.graph.conMnId mustBe Set(c_1c1_111.id, c_1c2_112.id)

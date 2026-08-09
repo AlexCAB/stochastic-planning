@@ -25,7 +25,7 @@ class MapMetadataSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val metadataProps = Map(
       PROP.NAME -> Value.Str("TestName"),
-      PROP.DESCRIPTION -> Value.Str("TestDescription")
+      PROP.DESCRIPTION -> Value.Str("TestDescription"),
     )
 
     lazy val metadataParams = metadataProps.map((k, v) => k -> v.toParam)

@@ -8,18 +8,18 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 19.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.adaptor.manager
+
+
+package planning.engine.planner.mpi.actors.visualizer.logic
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.actors.ApiBase
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
-private[adaptor] trait Messages:
-  sealed trait Message extends Representable
+private[visualizer] class ApiImpl(actorRef: Actor.Ref) extends Visualizer with ApiBase[Actor.Msg]:
+  def nodesAdded[F[_]](ids: Map[MnId, Option[HnName]]): F[Unit] = ???
 
-  final case class NodesAdded(ids: Map[MnId, Option[HnName]]) extends Message
-  final case class NodesUpserted(ids: Map[MnId, Option[HnName]]) extends Message
-
-  final case class EdgesUpserted(keys: Set[MeKey]) extends Message
+  def edgesAdded[F[_]](keys: Set[MeKey]): F[Unit] = ???

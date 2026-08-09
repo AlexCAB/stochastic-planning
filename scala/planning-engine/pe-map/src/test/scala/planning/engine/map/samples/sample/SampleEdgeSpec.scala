@@ -30,26 +30,26 @@ class SampleEdgeSpec extends UnitSpecWithData:
     lazy val newEdge = SampleEdge.New(
       source = HnId(1),
       target = HnId(2),
-      edgeType = EdgeType.THEN
+      edgeType = EdgeType.THEN,
     )
 
     lazy val expectedEdge1 = SampleEdge(
       source = SampleEdge.End(newEdge.source, HnIndex(10)),
       target = SampleEdge.End(newEdge.target, HnIndex(20)),
       edgeType = newEdge.edgeType,
-      sampleId = sampleId1
+      sampleId = sampleId1,
     )
 
     lazy val expectedEdge2 = SampleEdge(
       source = SampleEdge.End(newEdge.source, HnIndex(30)),
       target = SampleEdge.End(newEdge.target, HnIndex(40)),
       edgeType = newEdge.edgeType,
-      sampleId = sampleId2
+      sampleId = sampleId2,
     )
 
     lazy val indexiesMap1 = Map(
       newEdge.source -> expectedEdge1.source.value,
-      newEdge.target -> expectedEdge1.target.value
+      newEdge.target -> expectedEdge1.target.value,
     )
 
     lazy val rawEdge1 = Relationship(
@@ -60,13 +60,13 @@ class SampleEdgeSpec extends UnitSpecWithData:
       properties = Map(
         sampleId1.toPropName -> Value.ListValue(List(
           Value.Integer(expectedEdge1.source.value.value),
-          Value.Integer(expectedEdge1.target.value.value)
+          Value.Integer(expectedEdge1.target.value.value),
         )),
         sampleId2.toPropName -> Value.ListValue(List(
           Value.Integer(expectedEdge2.source.value.value),
-          Value.Integer(expectedEdge2.target.value.value)
-        ))
-      )
+          Value.Integer(expectedEdge2.target.value.value),
+        )),
+      ),
     )
 
     lazy val rawEdge2 = Relationship(
@@ -77,9 +77,9 @@ class SampleEdgeSpec extends UnitSpecWithData:
       properties = Map(
         sampleId2.toPropName -> Value.ListValue(List(
           Value.Integer(456),
-          Value.Integer(654)
-        ))
-      )
+          Value.Integer(654),
+        )),
+      ),
     )
 
   "SampleEdge.toQueryParams(...)" should:
@@ -98,9 +98,9 @@ class SampleEdgeSpec extends UnitSpecWithData:
         .fromEdgesBySampleId[IO](
           List(
             (data.newEdge.source, data.rawEdge1, data.newEdge.target),
-            (data.newEdge.source, data.rawEdge2, data.newEdge.target)
+            (data.newEdge.source, data.rawEdge2, data.newEdge.target),
           ),
-          data.sampleId1
+          data.sampleId1,
         )
         .asserting(_ mustEqual List(data.expectedEdge1))
 
@@ -109,8 +109,8 @@ class SampleEdgeSpec extends UnitSpecWithData:
         Map(data.sampleId1.toPropName -> Value.ListValue(List(
           Value.Integer(10L),
           Value.Integer(20L),
-          Value.Integer(30L)
-        )))
+          Value.Integer(30L),
+        ))),
       )
 
       SampleEdge

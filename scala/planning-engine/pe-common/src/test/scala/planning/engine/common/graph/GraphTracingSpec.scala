@@ -32,12 +32,12 @@ class GraphTracingSpec extends UnitSpecWithData:
       async[IO]:
         simpleGraph.traceAbsDagLayers(Set(c1), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c1, a6)),
-          Set(Link(a4, a5))
+          Set(Link(a4, a5)),
         )
 
         complexGraph.traceAbsDagLayers(Set(c1, c2, c3), allLinksFilter).await mustBe List(
           Set(Link(c1, a4), Link(c2, a4), Link(c3, a5)),
-          Set(Link(a4, a6), Link(a5, a6))
+          Set(Link(a4, a6), Link(a5, a6)),
         )
 
     "trace abstract nodes and filter links" in newCase[CaseData]: (tn, data) =>
@@ -64,12 +64,12 @@ class GraphTracingSpec extends UnitSpecWithData:
       async[IO]:
         simpleGraph.traceThenPaths(Set(c1)).await mustBe (
           Set(MapPath.Direct(pathWalk(Then(c1, c2))), MapPath.Direct(pathWalk(Then(c1, c3)))),
-          Set(c1, c2, c3)
+          Set(c1, c2, c3),
         )
 
         complexGraph.traceThenPaths(Set(c1)).await mustBe (
           Set(MapPath.Direct(pathWalk(Then(c1, c2), Then(c2, c3)))),
-          Set(c1, c2, c3)
+          Set(c1, c2, c3),
         )
 
     "trace loop path" in newCase[CaseData]: (tn, data) =>
@@ -77,7 +77,7 @@ class GraphTracingSpec extends UnitSpecWithData:
       async[IO]:
         cycleGraph.traceThenPaths(Set(c1)).await mustBe (
           Set(MapPath.Loop(pathWalk(Then(c1, c2), Then(c2, c1)))),
-          Set(c1, c2)
+          Set(c1, c2),
         )
 
     "trace noose path" in newCase[CaseData]: (tn, data) =>
@@ -86,9 +86,9 @@ class GraphTracingSpec extends UnitSpecWithData:
         nooseGraph.traceThenPaths(Set(c1)).await mustBe (
           Set(
             MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c3))),
-            MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2)))
+            MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2))),
           ),
-          Set(c1, c2, c3)
+          Set(c1, c2, c3),
         )
 
   "GraphStructure.traceThenCyclesPaths" should:
@@ -97,7 +97,7 @@ class GraphTracingSpec extends UnitSpecWithData:
       async[IO]:
         nooseGraph.traceThenCyclesPaths(visited = Set(c1), acc = Set()).await mustBe Set(
           MapPath.Loop(pathWalk(Then(c2, c3), Then(c3, c2))),
-          MapPath.Noose(pathWalk(Then(c2, c3), Then(c3, c3)))
+          MapPath.Noose(pathWalk(Then(c2, c3), Then(c3, c3))),
         )
 
   "GraphStructure.allThenPaths" should:
@@ -113,5 +113,5 @@ class GraphTracingSpec extends UnitSpecWithData:
           MapPath.Noose(pathWalk(Then(c1, c2), Then(c2, c3), Then(c3, c2))),
           MapPath.Loop(pathWalk(Then(a5, a5))),
           MapPath.Loop(pathWalk(Then(a6, a7), Then(a7, a8), Then(a8, a6))),
-          MapPath.Loop(pathWalk(Then(a6, a7), Then(a7, a9), Then(a9, a8), Then(a8, a6)))
+          MapPath.Loop(pathWalk(Then(a6, a7), Then(a7, a9), Then(a9, a8), Then(a8, a6))),
         )

@@ -26,7 +26,7 @@ abstract class UnitSpecWithData extends FixtureAsyncWordSpecLike with AsyncIOSpe
   type FixtureParam = OneArgAsyncTest
 
   def newCase[C <: Case](test: (String, C) => IO[Assertion])(implicit
-      m: ClassTag[C]
+      m: ClassTag[C],
   ): FixtureParam => Future[Assertion] = param =>
     m.runtimeClass.getDeclaredConstructors.toList match
       case c :: Nil if c.getParameterCount == 0 => test(param.name, c.newInstance().asInstanceOf[C])

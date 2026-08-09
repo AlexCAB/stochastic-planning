@@ -41,7 +41,7 @@ trait ValidationCheck:
 
     def checkOneOfValidationErrors(
         msgInclude: String,
-        tn: String = "checkOneOfValidationErrors"
+        tn: String = "checkOneOfValidationErrors",
     ): IO[Assertion] = obj.pure[IO].map(_.validations._2)
       .logValue(tn, s"msgInclude = $msgInclude")
       .asserting: errs =>

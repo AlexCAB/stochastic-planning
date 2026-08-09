@@ -29,12 +29,12 @@ class ListStrIoVariableSpec extends UnitSpecWithData:
 
     val invalidProperties = Map(
       PROP.VAR_TYPE -> Value.Str(PROP_VALUE.LIST_STR_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Integer(1)))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Integer(1))),
     )
 
     val validProperties = Map(
       PROP.VAR_TYPE -> Value.Str(PROP_VALUE.LIST_STR_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c"))),
     )
 
   "ListStrIoVariable.valueForIndex(...)" should:

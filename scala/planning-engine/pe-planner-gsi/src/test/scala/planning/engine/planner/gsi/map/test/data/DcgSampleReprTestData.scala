@@ -78,5 +78,5 @@ trait DcgSampleReprTestData extends DcgSampleTestData:
     // THEN path/loop 4
     Then(a41, a41),
     // THEN path/loop 4
-    Then(a42, a42)
+    Then(a42, a42),
   )

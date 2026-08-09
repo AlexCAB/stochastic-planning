@@ -41,7 +41,7 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
         testMapConfig,
         testMetadata,
         List(boolInNode, intInNode),
-        List(boolOutNode, intOutNode)
+        List(boolOutNode, intOutNode),
       ).logValue("createRootNodesInDb"))
     yield neo4jdb
 
@@ -54,7 +54,7 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
   def createTestHiddenNodesInDb(
       neo4jdb: Neo4jDatabase[IO],
       concreteNames: List[(Option[HnName], IoName, IoIndex)],
-      abstractNames: List[Option[HnName]]
+      abstractNames: List[Option[HnName]],
   ): IO[TestHiddenNodes] =
     def makeConcreteNodes(newNode: ConcreteNode.New): IO[(HnId, ConcreteNode.New)] = neo4jdb
       .createConcreteNodes(testMapConfig.initNextHnIndex, List(newNode))
@@ -77,7 +77,7 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
       concreteNodes = concreteNodes,
       abstractNodes = abstractNodes,
       allNodeIds = (concreteNodes.keys ++ abstractNodes.keys).toList,
-      ioNodeMap = Map(intInNode.name -> intInNode)
+      ioNodeMap = Map(intInNode.name -> intInNode),
     )
 
   def loadTestMapGraph(neo4jdb: Neo4jDatabase[IO]): Resource[IO, MapGraph[IO]] =
@@ -89,9 +89,9 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
   def initHiddenNodesInDb(
       neo4jdb: Neo4jDatabase[IO],
       concreteNames: List[(Option[HnName], IoName, IoIndex)],
-      abstractNames: List[Option[HnName]]
+      abstractNames: List[Option[HnName]],
   ): Resource[IO, TestHiddenNodes] = Resource.eval(
-    createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames)
+    createTestHiddenNodesInDb(neo4jdb, concreteNames, abstractNames),
   )
 
   def initSampleInDb(neo4jdb: Neo4jDatabase[IO], params: Sample.ListNew): Resource[IO, TestSamples] = Resource.eval:
@@ -104,7 +104,7 @@ trait MapGraphIntegrationTestData extends MapGraphTestData:
     yield TestSamples(
       allHnIds = params.list.flatMap(_.edges).toSet.flatMap(e => Set(e.source, e.target)),
       allSampleIds = samples.keySet,
-      samples = samples
+      samples = samples,
     )
 
 object MapGraphIntegrationTestData extends Matchers:
@@ -112,7 +112,7 @@ object MapGraphIntegrationTestData extends Matchers:
       concreteNodes: Map[HnId, ConcreteNode.New],
       abstractNodes: Map[HnId, AbstractNode.New],
       allNodeIds: List[HnId],
-      ioNodeMap: Map[IoName, IoNode[IO]]
+      ioNodeMap: Map[IoName, IoNode[IO]],
   ):
     def findHnIdsForName(name: HnName): Set[HnId] = concreteNodes
       .map((i, n) => (i, n.name))
@@ -127,7 +127,7 @@ object MapGraphIntegrationTestData extends Matchers:
   final case class TestSamples(
       allHnIds: Set[HnId],
       allSampleIds: Set[SampleId],
-      samples: Map[SampleId, Sample]
+      samples: Map[SampleId, Sample],
   )
 
   object TestSamples:
@@ -138,5 +138,5 @@ object MapGraphIntegrationTestData extends Matchers:
       neo4jdb: Neo4jDatabase[IO],
       nodes: TestHiddenNodes,
       samples: TestSamples,
-      graph: MapGraph[IO]
+      graph: MapGraph[IO],
   )

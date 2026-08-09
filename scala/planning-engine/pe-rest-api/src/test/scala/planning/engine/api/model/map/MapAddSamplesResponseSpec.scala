@@ -23,14 +23,14 @@ class MapAddSamplesResponseSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val sampleNames = Map(
       SampleId(1) -> Name.some("Sample 1"),
-      SampleId(2) -> None
+      SampleId(2) -> None,
     )
 
     lazy val expectedResponse = MapAddSamplesResponse(
       addedSamples = List(
         ShortSampleData(SampleId(1), Name.some("Sample 1")),
-        ShortSampleData(SampleId(2), None)
-      )
+        ShortSampleData(SampleId(2), None),
+      ),
     )
 
   "MapAddSamplesResponse.fromSampleNames(...)" should:

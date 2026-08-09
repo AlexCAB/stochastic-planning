@@ -186,7 +186,7 @@ class DcGraphSpec extends UnitSpecWithData:
           edge.key mustBe newKey
           edge.samples.sampleIds mustBe Set(sampleId3)
           indexies must contain(edge.samples.getSrcIndex(sampleId3))
-          indexies must contain(edge.samples.getTrgIndex(sampleId3))
+          indexies must contain(edge.samples.getTrgIndex(sampleId3)),
         )
 
     "update existing edge if exist" in newCase[CaseData]: (tn, data) =>
@@ -200,7 +200,7 @@ class DcGraphSpec extends UnitSpecWithData:
           edge.key mustBe existingKey
           edge.samples.sampleIds mustBe Set(sampleId1, sampleId2, sampleId3)
           indexies must contain(edge.samples.getSrcIndex(sampleId3))
-          indexies must contain(edge.samples.getTrgIndex(sampleId3))
+          indexies must contain(edge.samples.getTrgIndex(sampleId3)),
         )
 
   "DcGraph.addSamples(...)" should:

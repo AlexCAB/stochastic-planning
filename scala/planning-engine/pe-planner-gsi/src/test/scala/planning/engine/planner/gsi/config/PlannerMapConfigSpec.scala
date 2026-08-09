@@ -29,7 +29,7 @@ class PlannerMapConfigSpec extends UnitSpecWithData:
       """.stripMargin
 
     val parsedConfig: PlannerMapConfig = PlannerMapConfig(
-      reprEnabled = true
+      reprEnabled = true,
     )
 
   "PlannerMapConfig.formConfig(...)" should:

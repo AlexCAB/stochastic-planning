@@ -12,11 +12,7 @@
 
 package planning.engine.planner.mpi.common.data.node
 
-import planning.engine.planner.mpi.actors.manager.logic.Actor
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
+import planning.engine.planner.mpi.actors.manager.Manager
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
-final case class StaticActors(manager: Actor.Ref, visualizer: VisualizerActor.Ref)
-
-object StaticActors:
-  def apply()(using dfn: Actor.Definition, ctx: Actor.Ctx): StaticActors =
-    new StaticActors(ctx.self, dfn.visualizer)
+final case class StaticActors(manager: Manager, visualizer: Visualizer)

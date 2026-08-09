@@ -43,14 +43,14 @@ class ConcreteNodeSpec extends UnitSpecWithData with ValidationCheck:
       PROP.NAME -> name.get.toDbParam,
       PROP.DESCRIPTION -> description.get.toDbParam,
       PROP.IO_INDEX -> valueIndex.toDbParam,
-      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam
+      PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam,
     )
 
     lazy val nodeValues = Map(
       PROP.HN_ID -> Value.Integer(id.value),
       PROP.NAME -> Value.Str(name.get.value),
       PROP.DESCRIPTION -> Value.Str(description.get.value),
-      PROP.IO_INDEX -> Value.Integer(valueIndex.value)
+      PROP.IO_INDEX -> Value.Integer(valueIndex.value),
     )
 
     lazy val rawNode = Node("1", Set(HN_LABEL, CONCRETE_LABEL), nodeValues)

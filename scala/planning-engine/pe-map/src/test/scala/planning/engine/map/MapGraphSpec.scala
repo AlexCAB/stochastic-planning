@@ -55,7 +55,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
       async[IO]:
         val newNodes = List(
           ConcreteNode.New(HnName.some("inputNode"), None, boolInNode.name, IoIndex(0L)),
-          ConcreteNode.New(HnName.some("outputNode"), None, boolOutNode.name, IoIndex(1L))
+          ConcreteNode.New(HnName.some("outputNode"), None, boolOutNode.name, IoIndex(1L)),
         )
 
         data.mockedDb.createConcreteNodes
@@ -79,7 +79,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
       async[IO]:
         val newNodes = List(
           AbstractNode.New(HnName.some("AbstractNode1"), None),
-          AbstractNode.New(HnName.some("AbstractNode2"), None)
+          AbstractNode.New(HnName.some("AbstractNode2"), None),
         )
 
         data.mockedDb.createAbstractNodes
@@ -104,7 +104,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
         val newNodes = List(
           AbstractNode.New(HnName.some("Node1"), None),
           AbstractNode.New(HnName.some("Node2"), None),
-          AbstractNode.New(HnName.some("Node3"), None)
+          AbstractNode.New(HnName.some("Node3"), None),
         )
 
         val expectedNames = newNodes.map(_.name.getOrElse(fail("Node name should not be empty")))
@@ -166,7 +166,7 @@ class MapGraphSpec extends UnitSpecWithData with AsyncMockFactory with MapGraphT
 
         val expectedSamples = List(
           testSample.copy(data = testSampleData.copy(id = SampleId(1))),
-          testSample.copy(data = testSampleData.copy(id = SampleId(2)))
+          testSample.copy(data = testSampleData.copy(id = SampleId(2))),
         )
 
         data.mockedDb.createSamples

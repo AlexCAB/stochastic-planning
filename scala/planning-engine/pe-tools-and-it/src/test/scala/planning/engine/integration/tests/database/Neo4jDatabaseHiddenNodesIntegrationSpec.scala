@@ -55,7 +55,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
 
         val newNodes = List(
           ConcreteNode.New(HnName.some("inputNode"), Description.some("IN node"), boolInNode.name, IoIndex(10L)),
-          ConcreteNode.New(HnName.some("outputNode"), Description.some("OUT node"), boolOutNode.name, IoIndex(20L))
+          ConcreteNode.New(HnName.some("outputNode"), Description.some("OUT node"), boolOutNode.name, IoIndex(20L)),
         )
 
         val concreteNodeIds: List[HnId] = neo4jdb
@@ -101,7 +101,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
 
         val newNodes = List(
           AbstractNode.New(HnName.some("AbstractNode1"), Description.some("Abs node 1")),
-          AbstractNode.New(HnName.some("AbstractNode2"), Description.some("Abs node 2"))
+          AbstractNode.New(HnName.some("AbstractNode2"), Description.some("Abs node 2")),
         )
 
         val abstractNodeIds: List[HnId] = neo4jdb
@@ -142,7 +142,7 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
               for
                 _ <- logInfo("find hidden nodes", s"getIoNode: getIoNode.name = $name")
                 _ <- IO.delay(name mustEqual intInNode.name)
-              yield intInNode
+              yield intInNode,
           ).await
 
         foundNodes.toList
@@ -192,12 +192,12 @@ class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResourc
           (Some(HnName("find_con_1")), intInNode.name, IoIndex(1L)),
           (Some(HnName("find_con_2")), intInNode.name, IoIndex(1L)),
           (Some(HnName("find_con_3")), intOutNode.name, IoIndex(2L)),
-          (Some(HnName("find_con_4")), intOutNode.name, IoIndex(3L))
+          (Some(HnName("find_con_4")), intOutNode.name, IoIndex(3L)),
         )
 
         val findParams = List(
           (intInNode, IoIndex(1L)),
-          (intOutNode, IoIndex(2L))
+          (intOutNode, IoIndex(2L)),
         )
 
         val nodes: TestHiddenNodes = createTestHiddenNodesInDb(neo4jdb, concreteParams, List()).await

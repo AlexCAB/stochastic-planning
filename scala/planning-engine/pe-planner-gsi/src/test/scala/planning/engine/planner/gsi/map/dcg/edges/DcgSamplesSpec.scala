@@ -39,7 +39,7 @@ class DcgSamplesSpec extends UnitSpecWithData:
     lazy val sampleIndexies1: SampleIndexies = SampleIndexies(samplesId1, indexies1.src, indexies1.trg)
 
     lazy val indexMap1: Map[SampleId, IndexMap] = Map(
-      samplesId1 -> IndexMap(Map(conN1 -> indexies1.src, absN2 -> indexies1.trg))
+      samplesId1 -> IndexMap(Map(conN1 -> indexies1.src, absN2 -> indexies1.trg)),
     )
 
   "DcgSamples.size" should:

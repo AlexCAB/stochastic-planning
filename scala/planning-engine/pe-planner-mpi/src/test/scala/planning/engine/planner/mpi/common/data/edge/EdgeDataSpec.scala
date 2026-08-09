@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 04.07.2026 |||||||||||*/
 
-
-
 package planning.engine.planner.mpi.common.data.edge
 
 import cats.effect.IO
@@ -29,4 +27,3 @@ class EdgeDataSpec extends UnitSpecWithIOAndTestKit:
     "fail when joining EdgeData instances with duplicate sample IDs" in newCase[CaseData]: (_, data) =>
       import data.*
       edgeData1.join[IO](edgeData1).assertThrows[AssertionError]
-

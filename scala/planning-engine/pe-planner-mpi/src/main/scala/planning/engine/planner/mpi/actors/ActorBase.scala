@@ -62,7 +62,7 @@ trait ActorBase extends ActorExecCtx:
 
     Behaviors.receiveMessage: msg =>
       val msgName = msg.getClass.getSimpleName
-        
+
       def recoverableErr(err: Throwable): IO[Behavior[Msg]] =
         ctx.log.error(s"Error on message, calling error() handler, at msg = $msgName", err)
 

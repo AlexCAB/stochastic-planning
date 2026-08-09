@@ -23,32 +23,32 @@ class IoVariableSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     val boolProperties = Map(
       PROP.VAR_TYPE -> Value.Str(BOOL_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false)))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Bool(true), Value.Bool(false))),
     )
 
     val intProperties = Map(
       PROP.VAR_TYPE -> Value.Str(INT_TYPE),
       PROP.MIN -> Value.Integer(0),
-      PROP.MAX -> Value.Integer(10)
+      PROP.MAX -> Value.Integer(10),
     )
 
     val floatProperties = Map(
       PROP.VAR_TYPE -> Value.Str(FLOAT_TYPE),
       PROP.MIN -> Value.Decimal(0.0),
-      PROP.MAX -> Value.Decimal(10.0)
+      PROP.MAX -> Value.Decimal(10.0),
     )
 
     val listStrProperties = Map(
       PROP.VAR_TYPE -> Value.Str(LIST_STR_TYPE),
-      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c"))),
     )
 
     val invalidTypeProperties = Map(
-      PROP.VAR_TYPE -> Value.Str("unknown")
+      PROP.VAR_TYPE -> Value.Str("unknown"),
     )
 
     val missingTypeProperties = Map(
-      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c")))
+      PROP.DOMAIN -> Value.ListValue(List(Value.Str("a"), Value.Str("b"), Value.Str("c"))),
     )
 
   "IoVariable.fromProperties(...)" should:

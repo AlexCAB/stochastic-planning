@@ -33,7 +33,7 @@ class NextSampleEdgeSpec extends UnitSpecWithData with MapGraphTestData:
       source = SampleEdge.End(currentHnId, HnIndex(10)),
       target = SampleEdge.End(nextHnId, HnIndex(20)),
       edgeType = EdgeType.THEN,
-      sampleId = testSampleData.id
+      sampleId = testSampleData.id,
     )
 
   "NextSampleEdge.fromSampleEdge(...)" should:

@@ -8,16 +8,16 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 18.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer
+package planning.engine.planner.mpi.actors.visualizer.logic
 
-import cats.effect.Sync
 import planning.engine.planner.mpi.actors.ActorBase
-import planning.engine.planner.mpi.actors.visualizer.data.{Definitions, States}
-import planning.engine.planner.mpi.actors.visualizer.logic.Structure
+import planning.engine.planner.mpi.actors.visualizer.data.*
 
-object VisualizerActor extends ActorBase with Definitions with States with Messages with Structure:
+private[visualizer] object Actor extends ActorBase with Structure:
+  import Message.*
+
   override type Def = Definition
   override type Msg = Message
 

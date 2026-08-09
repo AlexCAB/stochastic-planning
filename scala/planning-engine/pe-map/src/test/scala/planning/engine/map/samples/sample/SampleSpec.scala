@@ -35,20 +35,20 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
       utility = 0.5,
       name = Name.some("SampleName"),
       description = Description.some("SampleDescription"),
-      edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+      edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK)),
     )
 
     lazy val hnIndexMap = Map(
       HnId(1) -> HnIndex(10),
       HnId(2) -> HnIndex(20),
-      HnId(3) -> HnIndex(30)
+      HnId(3) -> HnIndex(30),
     )
 
     def mkSampleEdge(e: SampleEdge.New): SampleEdge = SampleEdge(
       sampleId = sampleId,
       source = End(e.source, hnIndexMap(e.source)),
       target = End(e.target, hnIndexMap(e.target)),
-      edgeType = e.edgeType
+      edgeType = e.edgeType,
     )
 
     lazy val sample = Sample(
@@ -57,9 +57,9 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         probabilityCount = newSample.probabilityCount,
         utility = newSample.utility,
         name = newSample.name,
-        description = newSample.description
+        description = newSample.description,
       ),
-      edges = newSample.edges.map(e => mkSampleEdge(e)).toSet
+      edges = newSample.edges.map(e => mkSampleEdge(e)).toSet,
     )
 
     lazy val sampleDataMap = Map(sampleId -> sample.data)
@@ -85,7 +85,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         sampleId = data.sampleId,
         source = End(HnId(1), HnIndex(10)), // Conflicting index for HnId(1)
         target = End(HnId(1), HnIndex(20)),
-        edgeType = EdgeType.LINK
+        edgeType = EdgeType.LINK,
       )
 
       data.sample.copy(edges = data.sample.edges + invalidEdge)
@@ -102,7 +102,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         sampleId = data.sampleId,
         source = End(HnId(4), HnIndex(40)),
         target = End(HnId(5), HnIndex(50)),
-        edgeType = EdgeType.LINK
+        edgeType = EdgeType.LINK,
       )
 
       data.sample.copy(edges = data.sample.edges + isolatedEdge)
@@ -151,7 +151,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         probabilityCount = 0, // Invalid count
         name = Name.some(""), // Empty name
         description = Description.some(""), // Empty description
-        edges = Set() // No edges
+        edges = Set(), // No edges
       )
 
       invalidSample.validations._2.pure[IO].logValue(tn, "validationErrors").asserting(_.size mustEqual 4)
@@ -163,7 +163,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
           HnId(1) -> List(HnIndex(10), HnIndex(11)),
           HnId(2) -> List(HnIndex(20), HnIndex(21)),
           HnId(3) -> List(HnIndex(30)),
-          HnId(4) -> List(HnIndex(40)) // Not used in this sample
+          HnId(4) -> List(HnIndex(40)), // Not used in this sample
         )
 
         val (newIndicesMap, indices): (Map[HnId, List[HnIndex]], Map[HnId, HnIndex]) = data
@@ -173,13 +173,13 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
           HnId(1) -> List(HnIndex(11)),
           HnId(2) -> List(HnIndex(21)),
           HnId(3) -> List(),
-          HnId(4) -> List(HnIndex(40))
+          HnId(4) -> List(HnIndex(40)),
         )
 
         indices mustEqual Map(
           HnId(1) -> HnIndex(10),
           HnId(2) -> HnIndex(20),
-          HnId(3) -> HnIndex(30)
+          HnId(3) -> HnIndex(30),
         )
 
     "fail if in indices not found for HnId" in newCase[CaseData]: (tn, data) =>
@@ -198,7 +198,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
           probabilityCount = data.newSample.probabilityCount,
           utility = data.newSample.utility,
           name = data.newSample.name,
-          description = data.newSample.description
+          description = data.newSample.description,
         ))
 
   "New.toQueryParams" should:
@@ -209,7 +209,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
           PROP.PROBABILITY_COUNT -> data.newSample.probabilityCount.toDbParam,
           PROP.UTILITY -> data.newSample.utility.toDbParam,
           PROP.NAME -> data.newSample.name.get.toDbParam,
-          PROP.DESCRIPTION -> data.newSample.description.get.toDbParam
+          PROP.DESCRIPTION -> data.newSample.description.get.toDbParam,
         ))
 
   "New.toQueryParams" should:
@@ -221,7 +221,7 @@ class SampleSpec extends UnitSpecWithData with ValidationCheck:
         newSamples.allEdges mustEqual List(
           SampleEdge.New(HnId(1), HnId(2), EdgeType.LINK),
           SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK),
-          SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK)
+          SampleEdge.New(HnId(3), HnId(4), EdgeType.LINK),
         )
 
         newSamples.allHnIds mustEqual List(HnId(1), HnId(2), HnId(3), HnId(4))

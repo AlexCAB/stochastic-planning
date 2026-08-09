@@ -39,7 +39,7 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
       noNameSamples = makeTwoNoNameNewSamples(samplesHnIds.head, samplesHnIds(1))
       samples <- initSampleInDb(neo4jdb, namedSamples.appendAll(noNameSamples))
       graph <- loadTestMapGraph(neo4jdb)
-    yield TestMapGraph(itDb, neo4jdb, nodes, samples, graph)
+    yield TestMapGraph(itDb, neo4jdb, nodes, samples, graph),
   )
 
   "MapGraph.createSamples(...)" should:
@@ -63,9 +63,9 @@ class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMap
             Set(
               SampleEdge.New(hnId1, hnId2, thenEdge),
               SampleEdge.New(hnId2, hnId3, linkEdge),
-              SampleEdge.New(hnId3, hnId1, thenEdge)
-            )
-          )
+              SampleEdge.New(hnId3, hnId1, thenEdge),
+            ),
+          ),
         )
 
         val sampleIds: List[SampleId] = data.graph

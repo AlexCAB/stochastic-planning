@@ -35,13 +35,13 @@ class DcgEdgeSpec extends UnitSpecWithData:
       edgeType = et,
       sourceId = n1,
       targetId = n2,
-      samples = List(SampleIndexies(SampleId(sId), sourceIndex = HnIndex(sId + 200), targetIndex = HnIndex(sId + 201)))
+      samples = List(SampleIndexies(SampleId(sId), sourceIndex = HnIndex(sId + 200), targetIndex = HnIndex(sId + 201))),
     )
 
     lazy val heLink: HiddenEdge = makeHiddenEdge(LINK, sId = 11)
     lazy val heThen1: HiddenEdge = makeHiddenEdge(THEN, sId = 21)
     lazy val heThen2: HiddenEdge = makeHiddenEdge(THEN, sId = 22)
-    
+
     def makeKey(et: EdgeType, src: MnId, trg: MnId): MeKey = et match
       case LINK => MeKey.Link(src, trg)
       case THEN => MeKey.Then(src, trg)
@@ -49,8 +49,8 @@ class DcgEdgeSpec extends UnitSpecWithData:
     def makeDcgEdge(edge: HiddenEdge): DcgEdge[IO] = DcgEdge[IO](
       key = makeKey(edge.edgeType, edge.sourceId.asCon, edge.targetId.asAbs),
       samples = DcgSamples[IO](
-        edge.samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
-      ).unsafeRunSync()
+        edge.samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap,
+      ).unsafeRunSync(),
     )
 
 //    def expectedReprTarget(arrow: String): String = s"| -[$arrow]-> ${trgAbs.reprNode}"
@@ -75,7 +75,7 @@ class DcgEdgeSpec extends UnitSpecWithData:
 
     "return correct EdgeType for then edge" in newCase[CaseData]: (tn, data) =>
       data.thenEdge1.pure[IO].logValue(tn).asserting(_.edgeType mustBe EdgeType.THEN)
-  
+
   "DcgEdgeData.join(...)" should:
     "join two DcgEdges correctly" in newCase[CaseData]: (tn, data) =>
       import data.{thenEdge1, thenEdge2}

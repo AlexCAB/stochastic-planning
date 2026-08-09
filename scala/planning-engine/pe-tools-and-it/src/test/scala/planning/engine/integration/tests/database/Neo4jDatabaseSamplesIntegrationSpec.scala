@@ -74,7 +74,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
       nextHnIndex3
 
   private def checkIndexesRise(init: Init, sampleId: Int, hnIndex1: Int, hnIndex2: Int, hnIndex3: Int)(implicit
-      db: WithItDb.ItDb
+      db: WithItDb.ItDb,
   ): IO[Assertion] =
     for
       nextSampleId <- getNextSampleId.logValue("checkIndexesRise", "nextSampleId")
@@ -104,7 +104,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
       targetHn: HnId,
       edgeType: EdgeType,
       sourceValue: HnIndex,
-      targetValue: HnIndex
+      targetValue: HnIndex,
   )(implicit db: WithItDb.ItDb): IO[Assertion] =
     for
       sampleRawEdge <- getEdge(sourceHn, targetHn, edgeType, edgeId)
@@ -138,7 +138,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(
-          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge)))
+          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge))),
         )
 
         init.initIndexies
@@ -163,7 +163,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId1,
           edgeType = init.thenEdge,
           sourceValue = init.nextHnIndex1,
-          targetValue = init.nextHnIndex1
+          targetValue = init.nextHnIndex1,
         ).await
 
     "create one edge sample" in: (itDb, neo4jdb, nodes) =>
@@ -173,7 +173,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
       async[IO]:
         val params = Sample.ListNew.of(
-          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge)))
+          newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge))),
         )
 
         init.initIndexies
@@ -198,7 +198,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId2,
           edgeType = init.thenEdge,
           sourceValue = init.nextHnIndex1,
-          targetValue = init.nextHnIndex2
+          targetValue = init.nextHnIndex2,
         ).await
 
     "create two edge sample" in: (itDb, neo4jdb, nodes) =>
@@ -210,8 +210,8 @@ class Neo4jDatabaseSamplesIntegrationSpec
         val params = Sample.ListNew.of(newSample.copy(edges =
           Set(
             SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge),
-            SampleEdge.New(init.hnId2, init.hnId3, init.linkEdge)
-          )
+            SampleEdge.New(init.hnId2, init.hnId3, init.linkEdge),
+          ),
         ))
 
         init.initIndexies
@@ -236,7 +236,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId2,
           edgeType = init.thenEdge,
           sourceValue = init.nextHnIndex1,
-          targetValue = init.nextHnIndex2
+          targetValue = init.nextHnIndex2,
         ).await
 
         checkSampleEdge(
@@ -246,7 +246,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId3,
           edgeType = init.linkEdge,
           sourceValue = init.nextHnIndex2,
-          targetValue = init.nextHnIndex3
+          targetValue = init.nextHnIndex3,
         ).await
 
     "create three edge sample" in: (itDb, neo4jdb, nodes) =>
@@ -259,8 +259,8 @@ class Neo4jDatabaseSamplesIntegrationSpec
           Set(
             SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge),
             SampleEdge.New(init.hnId2, init.hnId3, init.linkEdge),
-            SampleEdge.New(init.hnId3, init.hnId1, init.thenEdge)
-          )
+            SampleEdge.New(init.hnId3, init.hnId1, init.thenEdge),
+          ),
         ))
 
         init.initIndexies
@@ -285,7 +285,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId2,
           edgeType = init.thenEdge,
           sourceValue = init.nextHnIndex1,
-          targetValue = init.nextHnIndex2
+          targetValue = init.nextHnIndex2,
         ).await
 
         checkSampleEdge(
@@ -295,7 +295,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId3,
           edgeType = init.linkEdge,
           sourceValue = init.nextHnIndex2,
-          targetValue = init.nextHnIndex3
+          targetValue = init.nextHnIndex3,
         ).await
 
         checkSampleEdge(
@@ -305,7 +305,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           targetHn = init.hnId1,
           edgeType = init.thenEdge,
           sourceValue = init.nextHnIndex3,
-          targetValue = init.nextHnIndex1
+          targetValue = init.nextHnIndex1,
         ).await
 
     "create multiple samples" in: (itDb, neo4jdb, nodes) =>
@@ -349,7 +349,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
             sampleIds: List[SampleId],
             resForHnId: Map[SampleId, NextSampleEdge[IO]],
             currentHnId: HnId,
-            nextHnIds: Set[HnId]
+            nextHnIds: Set[HnId],
         ): Unit =
           val newSampleData = getNewSampleData(resForHnId)
 
@@ -372,7 +372,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
 
         def checkValues(
             source: Map[SampleId, NextSampleEdge[IO]],
-            target: Map[SampleId, NextSampleEdge[IO]]
+            target: Map[SampleId, NextSampleEdge[IO]],
         ): Assertion =
           val ids = source.keySet & target.keySet
           ids.foreach: id =>

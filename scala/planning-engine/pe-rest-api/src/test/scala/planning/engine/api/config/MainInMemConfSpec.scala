@@ -43,7 +43,7 @@ class MainInMemConfSpec extends UnitSpecWithData:
         |    repr-enabled = true
         |  }
         |}
-        |""".stripMargin
+        |""".stripMargin,
     )
 
   "MainInMemCon.formConfig(...)" should:
@@ -54,5 +54,5 @@ class MainInMemConfSpec extends UnitSpecWithData:
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           visRoute = VisualizationRouteConf(pingTimeout = 1.minute),
           visService = VisualizationServiceConf(mapEnabled = false),
-          plannerMap = PlannerMapConfig(reprEnabled = true)
+          plannerMap = PlannerMapConfig(reprEnabled = true),
         ))

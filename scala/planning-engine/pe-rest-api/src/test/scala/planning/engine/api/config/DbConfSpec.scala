@@ -27,7 +27,7 @@ class DbConfSpec extends UnitSpecWithData:
         |  user = "neo4j"
         |  password = "password"
         |}
-        |""".stripMargin
+        |""".stripMargin,
     )
 
   "DbConf.formConfig(...)" should:

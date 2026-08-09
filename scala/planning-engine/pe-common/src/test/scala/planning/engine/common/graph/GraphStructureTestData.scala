@@ -47,7 +47,7 @@ trait GraphStructureTestData:
     Link(a4, a5),
     Link(c1, a6),
     Then(c1, c2),
-    Then(c1, c3)
+    Then(c1, c3),
   )
 
   lazy val simpleGraph = GraphStructure[IO](simpleEnds)
@@ -61,14 +61,14 @@ trait GraphStructureTestData:
     Then(c1, c2),
     Then(c2, c3),
     Then(a4, a5),
-    Then(a6, a6)
+    Then(a6, a6),
   )
 
   lazy val invalidLinkGraph = graphStructure(
     Link(c1, a4),
     Link(a4, a5),
     Link(a5, a6),
-    Link(a6, a4)
+    Link(a6, a4),
   )
 
   lazy val nooseGraph = graphStructure(
@@ -77,7 +77,7 @@ trait GraphStructureTestData:
     Then(c1, c2),
     Then(c2, c3),
     Then(c3, c3),
-    Then(c3, c2)
+    Then(c3, c2),
   )
 
   lazy val thenPathExamplesGraph = graphStructure(
@@ -96,7 +96,7 @@ trait GraphStructureTestData:
     Then(a7, a8),
     Then(a8, a6),
     Then(a7, a9), // Loop([(6)-->(7)-->(9)-->(8)-->(6))
-    Then(a9, a8)
+    Then(a9, a8),
   )
 
   def pathWalk(edges: MeKey*): NonEmptyChain[(MnId, End)] = NonEmptyChain

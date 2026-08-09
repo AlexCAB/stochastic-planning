@@ -28,13 +28,13 @@ class IntIoVariableSpec extends UnitSpecWithData:
     val invalidProperties = Map(
       PROP.VAR_TYPE -> Value.Str(PROP_VALUE.INT_TYPE),
       PROP.MIN -> Value.Integer(0),
-      PROP.MAX -> Value.Str("invalid")
+      PROP.MAX -> Value.Str("invalid"),
     )
 
     val validProperties = Map(
       PROP.VAR_TYPE -> Value.Str(PROP_VALUE.INT_TYPE),
       PROP.MIN -> Value.Integer(0),
-      PROP.MAX -> Value.Integer(10)
+      PROP.MAX -> Value.Integer(10),
     )
 
     val validParameters = validProperties.map:

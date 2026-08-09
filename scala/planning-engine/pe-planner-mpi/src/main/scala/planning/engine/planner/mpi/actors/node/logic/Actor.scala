@@ -8,20 +8,19 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 18.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node
+package planning.engine.planner.mpi.actors.node.logic
 
-import cats.effect.Sync
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
-import planning.engine.planner.mpi.actors.manager.logic.Actor
-import planning.engine.planner.mpi.actors.node.data.{Definitions, States}
-import planning.engine.planner.mpi.actors.node.logic.Structure
-import planning.engine.planner.mpi.common.actor.ActorRefEx.send
+import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.*
 
-object NodeActor extends ActorBase with Definitions with States with Messages with Structure:
+private[node] object Actor extends ActorBase with Structure:
+  import Message.*
+
   override type Def = Definition
   override type Msg = Message
 
@@ -34,7 +33,7 @@ object NodeActor extends ActorBase with Definitions with States with Messages wi
     case msg: AddEdgeTrg => doAddEdgeTrg(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using d: Def, c: Ctx): F[St] =
-    d.actors.manager.send(Actor.NodeActorError(c.self, Some(msg), err)).as(state)
+    d.actors.manager.reportError[F](Node.wrap(c.self), Some(msg), err).as(state)
 
   def spawn(definitions: List[Def], make: (Behavior[Msg], String) => Ref): Map[Ref, Def] =
     definitions.map(d => make(apply(d, State.init), d.id.value.toString) -> d).toMap

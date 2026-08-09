@@ -13,7 +13,7 @@
 package planning.engine.planner.mpi.common.data.edge
 
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.planner.mpi.actors.node.NodeActor
+import planning.engine.planner.mpi.actors.node.Node
 
-final case class MeRef(key: MeKey, src: NodeActor.Ref, trg: NodeActor.Ref):
-  override lazy val toString: String = s"MeRef(${key.toString} | ${src.path.name} --> ${trg.path.name})"
+final case class MeRef(key: MeKey, src: Node, trg: Node):
+  override lazy val toString: String = s"MeRef(${key.toString} | ${src.name} --> ${trg.name})"

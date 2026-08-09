@@ -32,7 +32,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
     lazy val testEdge = NewSampleEdge(
       sourceHnName = HnName("hn1"),
       targetHnName = HnName("hn2"),
-      edgeType = EdgeType.THEN
+      edgeType = EdgeType.THEN,
     )
 
     lazy val testValue = 1234L
@@ -44,7 +44,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
       testEdge.sourceHnName,
       Description.some("testConcreteNodeDef"),
       ioNode.name,
-      Json.fromLong(testValue)
+      Json.fromLong(testValue),
     )
 
     lazy val testAbstractNodeDef = AbstractNodeDef(testEdge.targetHnName, Description.some("testAbstractNodeDef"))
@@ -54,17 +54,17 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
       utility = 0.5,
       name = Name.some("sample1"),
       description = Description.some("Sample 1 description"),
-      edges = List(testEdge)
+      edges = List(testEdge),
     )
 
     lazy val hnIdMap: Map[HnName, HnId] = Map(
       testEdge.sourceHnName -> HnId(1),
-      testEdge.targetHnName -> HnId(2)
+      testEdge.targetHnName -> HnId(2),
     )
 
     lazy val testRequest: MapAddSamplesRequest = MapAddSamplesRequest(
       samples = List(testNewSampleData),
-      hiddenNodes = List(testConcreteNodeDef, testAbstractNodeDef)
+      hiddenNodes = List(testConcreteNodeDef, testAbstractNodeDef),
     )
 
   "MapAddSamplesRequest.hnNames" should:
@@ -96,7 +96,7 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
           name = Some(data.testConcreteNodeDef.name),
           description = data.testConcreteNodeDef.description,
           ioNodeName = data.testConcreteNodeDef.ioNodeName,
-          valueIndex = testIoIndex
+          valueIndex = testIoIndex,
         )
 
         abstractList.list.size mustEqual 1

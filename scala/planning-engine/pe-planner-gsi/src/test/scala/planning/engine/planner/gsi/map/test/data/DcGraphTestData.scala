@@ -55,7 +55,7 @@ trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampl
   lazy val graphWithEdges: DcGraph[IO] = graphWithNodes.copy(
     edges = dcgEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
-    structure = GraphStructure[IO](dcgEdges.map(_.key).toSet)
+    structure = GraphStructure[IO](dcgEdges.map(_.key).toSet),
   )
 
   extension (graph: DcGraph[IO])
@@ -66,7 +66,7 @@ trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampl
       .addNodes(
         mnIds.map:
           case id: MnId.Con => makeConDcgNode(id)
-          case id: MnId.Abs => makeAbsDcgNode(id)
+          case id: MnId.Abs => makeAbsDcgNode(id),
       ).unsafeRunSync()
 
     def addTestDcgSample(sample: DcgSample[IO]): DcGraph[IO] = graph
@@ -77,10 +77,10 @@ trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampl
       graph.nodes.values
         .map(_.asConcrete)
         .collect { case Some(node) => node.ioValue -> node.id }
-        .groupBy(_._1).map((k, vs) => k -> vs.map(_._2).toSet)
+        .groupBy(_._1).map((k, vs) => k -> vs.map(_._2).toSet),
     ).unsafeRunSync()
 
     def asMapGraphState: MapGraphState[IO] = MapGraphState(
       ioValues = graph.asIoValueMap,
-      graph = graph
+      graph = graph,
     ).unsafeRunSync()

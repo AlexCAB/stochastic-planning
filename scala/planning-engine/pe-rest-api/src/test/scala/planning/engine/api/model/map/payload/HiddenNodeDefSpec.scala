@@ -33,7 +33,7 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
       HnName("concreteNode"),
       Description.some("testConcreteNodeDef"),
       IoName("ioNode"),
-      Json.fromLong(testValue)
+      Json.fromLong(testValue),
     )
 
     lazy val testAbstractNodeDef = AbstractNodeDef(HnName("abstractNode"), Description.some("testAbstractNodeDef"))
@@ -74,7 +74,7 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
           name = Some(data.testConcreteNodeDef.name),
           description = data.testConcreteNodeDef.description,
           ioNodeName = data.testConcreteNodeDef.ioNodeName,
-          valueIndex = testIoIndex
+          valueIndex = testIoIndex,
         )
 
   "AbstractNodeDef.toNew" should:
@@ -82,5 +82,5 @@ class HiddenNodeDefSpec extends UnitSpecWithData with AsyncMockFactory:
       async[IO]:
         data.testAbstractNodeDef.toNew mustEqual AbstractNode.New(
           name = Some(data.testAbstractNodeDef.name),
-          description = data.testAbstractNodeDef.description
+          description = data.testAbstractNodeDef.description,
         )

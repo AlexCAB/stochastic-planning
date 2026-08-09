@@ -42,5 +42,5 @@ class MapInfoResponseSpec extends UnitSpecWithData with AsyncMockFactory with Ma
           data.validMetadata.name,
           data.validInputNodes.size,
           data.validOutputNodes.size,
-          data.testNumOfHiddenNodes
+          data.testNumOfHiddenNodes,
         ))

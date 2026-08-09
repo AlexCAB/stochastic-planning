@@ -35,6 +35,18 @@ Write tests for  `planning.engine.planner.mpi.actors.visualizer.data.States.Stat
 
 Update `NodeDataSpec` regard changed implementation 
 
+Analise previous git commit and refactor `planning/engine/planner/mpi/actors/node` and `planning/engine/planner/mpi/actors/visualizer` actor so they will have same structure as `planning/engine/planner/mpi/actors/manager`. Do not fix compilation errors. 
+
+Fix compilation errors in implementation (but not in tests). Ask about each error before fix.
+
+Replace `ActorRefEx.send` with the call of actor API method form `planning/engine/planner/mpi/actors/manager/Manager.scala` or `planning/engine/planner/mpi/actors/node/Node.scala` or `planning/engine/planner/mpi/actors/visualizer/Visualizer.scala`
+
+Remove `StaticActors. apply()`, instead create `StaticActors` where it was called
+
+In the `object Node` add `type Msg = Actor.Msg` to make `Actor.Msg` publicly available. Implement `Node.spawn` so it will construct `Actor.Def` inside. 
+
+
+
 ## Sticky notes 
 
 ---

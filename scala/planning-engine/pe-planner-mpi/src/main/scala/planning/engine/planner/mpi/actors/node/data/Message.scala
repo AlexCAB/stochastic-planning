@@ -8,16 +8,16 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 18.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node
+package planning.engine.planner.mpi.actors.node.data
 
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 import planning.engine.planner.mpi.common.repr.Representable
 
-private[node] trait Messages:
-  sealed trait Message extends Representable
+private[node] sealed trait Message extends Representable
 
+private[node] object Message:
   sealed trait AddEdge extends Message:
     def ref: MeRef
 

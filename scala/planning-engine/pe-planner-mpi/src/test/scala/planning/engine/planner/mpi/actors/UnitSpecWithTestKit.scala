@@ -37,8 +37,7 @@ class UnitSpecWithTestKit extends FixtureAnyWordSpecLike with Matchers with Befo
 
   val testKit = ActorTestKit()
 
-  override def afterAll(): Unit =
-    testKit.shutdownTestKit()
+  override def afterAll(): Unit = testKit.shutdownTestKit()
 
   extension (logger: Logger)
     def msg[M](m: M, comment: String = ""): M =

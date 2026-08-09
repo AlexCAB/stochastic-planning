@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2026-03-08 |||||||||||*/
 
-
-
 package planning.engine.planner.gsi.map.test.data
 
 import cats.effect.IO
@@ -31,13 +29,13 @@ trait ActiveAbsDagTestData extends DcGraphTestData:
     nodes = graphWithNodes.nodes ++ List(mn11, mn12).map(n => n.id -> n).toMap,
     edges = linkEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
-    structure = GraphStructure[IO](linkEdges.map(_.key).toSet)
+    structure = GraphStructure[IO](linkEdges.map(_.key).toSet),
   )
 
   lazy val backwordKeys = MeKeySet[Then](
     Then(mn11.id, mnId1),
     Then(mn12.id, mnId5),
-    Then(mnId5, mnId5) // Loop edge also is valid
+    Then(mnId5, mnId5), // Loop edge also is valid
   )
 
   lazy val activeAbsDag = new ActiveAbsDag[IO](backwordKeys, dcGraph)

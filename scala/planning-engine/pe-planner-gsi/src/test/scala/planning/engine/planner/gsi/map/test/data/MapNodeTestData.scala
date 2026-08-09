@@ -37,7 +37,7 @@ trait MapNodeTestData:
   def makeAbstractNode(id: HnId = HnId(3000003)): AbstractNode[IO] = AbstractNode[IO](
     id = id,
     name = HnName.some(s"Abs Node $id"),
-    description = Description.some(s"Test Abstract Node, ID $id")
+    description = Description.some(s"Test Abstract Node, ID $id"),
   )
 
   def makeConcreteNode(id: HnId = HnId(3000004)): ConcreteNode[IO] = ConcreteNode[IO](
@@ -45,10 +45,10 @@ trait MapNodeTestData:
     name = HnName.some(s"Con Node $id"),
     description = Description.some(s"Test Concrete Node, ID $id"),
     ioNode = testBoolInNode,
-    valueIndex = IoIndex(id.value + 1000)
+    valueIndex = IoIndex(id.value + 1000),
   )
 
   lazy val testMetadata = MapMetadata(
     name = Name.some("Test Map"),
-    description = Description.some("A map used for testing MapInfoState")
+    description = Description.some("A map used for testing MapInfoState"),
   )

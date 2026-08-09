@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.manager.data
 
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
 final case class Definition(
-    visualizer: VisualizerActor.Ref,
+    visualizer: Visualizer,
 )

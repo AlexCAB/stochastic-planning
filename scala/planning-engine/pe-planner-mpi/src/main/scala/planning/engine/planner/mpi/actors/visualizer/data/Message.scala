@@ -8,17 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 18.06.2026 |||||||||||*/
+| created: 09-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer
+package planning.engine.planner.mpi.actors.visualizer.data
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.common.repr.Representable
 
-private[visualizer] trait Messages:
-  sealed trait Message extends Representable
+private[visualizer] sealed trait Message extends Representable
 
+private[visualizer] object Message:
   object Structure:
     object Nodes:
       // Sent from ManagerActor after new nodes were added to the map network.

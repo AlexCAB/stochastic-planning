@@ -46,13 +46,13 @@ class DaGraphSpec extends UnitSpecWithData:
         simpleDaGraph.makeSrcMap[Link](dagEdgesLink) mustBe Map(
           pnId1 -> Set(Link(pnId1, pnId3)),
           pnId2 -> Set(Link(pnId2, pnId4)),
-          pnId3 -> Set(Link(pnId3, pnId6))
+          pnId3 -> Set(Link(pnId3, pnId6)),
         )
 
         simpleDaGraph.makeSrcMap[Then](dagEdgesThen) mustBe Map(
           pnId1 -> Set(Then(pnId1, pnId2)),
           pnId3 -> Set(Then(pnId3, pnId4)),
-          pnId4 -> Set(Then(pnId4, pnId5))
+          pnId4 -> Set(Then(pnId4, pnId5)),
         )
 
   "DaGraph.makeTrgLinkMap(...)" should:
@@ -63,7 +63,7 @@ class DaGraphSpec extends UnitSpecWithData:
         .asserting(_ mustBe Map(
           pnId3 -> Set(Link(pnId1, pnId3)),
           pnId4 -> Set(Link(pnId2, pnId4)),
-          pnId6 -> Set(Link(pnId3, pnId6))
+          pnId6 -> Set(Link(pnId3, pnId6)),
         ))
 
   "DaGraph.makeTrgThenMap(...)" should:
@@ -87,7 +87,7 @@ class DaGraphSpec extends UnitSpecWithData:
         .asserting(_ mustBe Map(
           pnId1 -> Set(Link(pnId1, pnId3)),
           pnId2 -> Set(Link(pnId2, pnId4)),
-          pnId3 -> Set(Link(pnId3, pnId6))
+          pnId3 -> Set(Link(pnId3, pnId6)),
         ))
 
   "DaGraph.trgLinkMap" should:
@@ -97,7 +97,7 @@ class DaGraphSpec extends UnitSpecWithData:
         .asserting(_ mustBe Map(
           pnId3 -> Set(Link(pnId1, pnId3)),
           pnId4 -> Set(Link(pnId2, pnId4)),
-          pnId6 -> Set(Link(pnId3, pnId6))
+          pnId6 -> Set(Link(pnId3, pnId6)),
         ))
 
   "DaGraph.srcThenMap" should:
@@ -107,7 +107,7 @@ class DaGraphSpec extends UnitSpecWithData:
         .asserting(_ mustBe Map(
           pnId1 -> Set(Then(pnId1, pnId2)),
           pnId3 -> Set(Then(pnId3, pnId4)),
-          pnId4 -> Set(Then(pnId4, pnId5))
+          pnId4 -> Set(Then(pnId4, pnId5)),
         ))
 
   "DaGraph.trgThenMap" should:
@@ -117,7 +117,7 @@ class DaGraphSpec extends UnitSpecWithData:
         .asserting(_ mustBe Map(
           pnId5 -> Then(pnId4, pnId5),
           pnId4 -> Then(pnId3, pnId4),
-          pnId2 -> Then(pnId1, pnId2)
+          pnId2 -> Then(pnId1, pnId2),
         ))
 
   "DaGraph.thenRoots" should:
@@ -131,12 +131,12 @@ class DaGraphSpec extends UnitSpecWithData:
       async[IO]:
         simpleDaGraph.traceAbsDagLayers(Set(pnId1)).await mustBe List(
           Set(Link(pnId1, pnId3)),
-          Set(Link(pnId3, pnId6))
+          Set(Link(pnId3, pnId6)),
         )
 
         simpleDaGraph.traceAbsDagLayers(Set(pnId1, pnId2)).await mustBe List(
           Set(Link(pnId1, pnId3), Link(pnId2, pnId4)),
-          Set(Link(pnId3, pnId6))
+          Set(Link(pnId3, pnId6)),
         )
 
     "fail if cycle detected" in newCase[CaseData]: (tn, data) =>
@@ -144,7 +144,7 @@ class DaGraphSpec extends UnitSpecWithData:
       val invalidLinkEdges = List(
         makeDagEdgeLink(pnId1, pnId3),
         makeDagEdgeLink(pnId3, pnId6),
-        makeDagEdgeLink(pnId6, pnId3)
+        makeDagEdgeLink(pnId6, pnId3),
       )
 
       val invalidDaGraph = makeDaGraph(allConDagNodes ++ allAbsDagNodes, invalidLinkEdges ++ dagEdgesThen)

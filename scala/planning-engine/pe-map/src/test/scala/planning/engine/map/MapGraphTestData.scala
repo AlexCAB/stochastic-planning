@@ -40,7 +40,7 @@ trait MapGraphTestData:
     initNextHnId = 1L,
     initNextSampleId = 1L,
     initSampleCount = 0L,
-    initNextHnIndex = 1L
+    initNextHnIndex = 1L,
   )
 
   lazy val testMetadata = MapMetadata(Name.some("TestMap"), Description.some("Test description"))
@@ -61,7 +61,7 @@ trait MapGraphTestData:
   def makeAbstractNode(id: Long): AbstractNode[IO] = AbstractNode[IO](
     id = HnId(id),
     name = HnName.some("Abs Test Node"),
-    description = Description.some("Abs Test Node Description")
+    description = Description.some("Abs Test Node Description"),
   )
 
   def makeConcreteNode(id: Long, index: Long, ioNode: IoNode[IO]): ConcreteNode[IO] = ConcreteNode[IO](
@@ -69,7 +69,7 @@ trait MapGraphTestData:
     name = HnName.some("Con Test Node"),
     description = Description.some("Con Test Node Description"),
     ioNode = ioNode,
-    valueIndex = IoIndex(index)
+    valueIndex = IoIndex(index),
   )
 
   lazy val hiddenNodes: List[AbstractNode[IO]] = (1 to 10).map(i => makeAbstractNode(i)).toList
@@ -79,7 +79,7 @@ trait MapGraphTestData:
     utility = 0.5,
     name = Name.some("sample-1"),
     description = Description.some("This is a test sample"),
-    edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK))
+    edges = Set(SampleEdge.New(HnId(1), HnId(2), EdgeType.THEN), SampleEdge.New(HnId(2), HnId(3), EdgeType.LINK)),
   )
 
   lazy val testSampleData: SampleData = SampleData(
@@ -87,14 +87,14 @@ trait MapGraphTestData:
     probabilityCount = newSample.probabilityCount,
     utility = newSample.utility,
     name = newSample.name,
-    description = newSample.description
+    description = newSample.description,
   )
 
   lazy val testSampleEdges: Set[SampleEdge] = Set(SampleEdge(
     source = SampleEdge.End(HnId(1), HnIndex(10)),
     target = SampleEdge.End(HnId(2), HnIndex(20)),
     edgeType = EdgeType.LINK,
-    sampleId = testSampleData.id
+    sampleId = testSampleData.id,
   ))
 
   lazy val testSample: Sample = Sample(data = testSampleData, edges = testSampleEdges)
@@ -107,7 +107,7 @@ trait MapGraphTestData:
     currentValue = testHnIndex,
     edgeType = EdgeType.LINK,
     nextValue = testHnIndex,
-    nextHn = testAbstractNode
+    nextHn = testAbstractNode,
   )
 
   def makeFourNewSamples(hnId1: HnId, hnId2: HnId, hnId3: HnId): Sample.ListNew = Sample.ListNew.of(
@@ -117,38 +117,38 @@ trait MapGraphTestData:
       name = Name.some("two-edge-sample-1"),
       edges = Set(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
-        SampleEdge.New(hnId2, hnId3, EdgeType.LINK)
-      )
+        SampleEdge.New(hnId2, hnId3, EdgeType.LINK),
+      ),
     ),
     newSample.copy(
       name = Name.some("three-edge-sample-1"),
       edges = Set(
         SampleEdge.New(hnId1, hnId2, EdgeType.THEN),
         SampleEdge.New(hnId2, hnId3, EdgeType.LINK),
-        SampleEdge.New(hnId3, hnId1, EdgeType.THEN)
-      )
-    )
+        SampleEdge.New(hnId3, hnId1, EdgeType.THEN),
+      ),
+    ),
   )
 
   def makeTwoNoNameNewSamples(hnId1: HnId, hnId2: HnId): Sample.ListNew = Sample.ListNew.of(
     newSample.copy(name = None, edges = Set(SampleEdge.New(hnId1, hnId2, EdgeType.THEN))),
-    newSample.copy(name = None, edges = Set(SampleEdge.New(hnId2, hnId1, EdgeType.THEN)))
+    newSample.copy(name = None, edges = Set(SampleEdge.New(hnId2, hnId1, EdgeType.THEN))),
   )
 
   lazy val testSampleIndexies: SampleIndexies = SampleIndexies(
     sampleId = SampleId(101),
     sourceIndex = HnIndex(201),
-    targetIndex = HnIndex(202)
+    targetIndex = HnIndex(202),
   )
 
   def makeHiddenEdge(
       sourceId: HnId,
       targetId: HnId,
       sampleIds: List[SampleId],
-      edgeType: EdgeType = EdgeType.LINK
+      edgeType: EdgeType = EdgeType.LINK,
   ): HiddenEdge = HiddenEdge(
     edgeType = edgeType,
     sourceId = sourceId,
     targetId = targetId,
-    samples = sampleIds.map(sid => testSampleIndexies.copy(sampleId = sid))
+    samples = sampleIds.map(sid => testSampleIndexies.copy(sampleId = sid)),
   )

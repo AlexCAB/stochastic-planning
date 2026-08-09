@@ -13,19 +13,18 @@
 package planning.engine.planner.mpi.actors.node.logic
 
 import cats.syntax.all.*
-import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.common.errors.*
-import planning.engine.planner.mpi.common.actor.ActorRefEx.send
+import planning.engine.planner.mpi.actors.node.data.Message.{AddEdgeSrc, AddEdgeTrg}
 
-trait Structure:
-  self: NodeActor.type =>
+private[node] trait Structure:
+  self: Actor.type =>
 
   private[node] def doAddEdgeSrc[F[_]: S](msg: AddEdgeSrc, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
       _ <- ctx.self.assertEqual(msg.ref.src, "AddEdgeSrc message source does not match this actor ID")
       newState <- state.addEdgeSrc(msg.ref, msg.data)
       _ <- logInfo(s"[AddEdgeSrc] Added outgoing edge to ref = ${msg.ref}")
-      _ <- msg.ref.trg.send(NodeActor.AddEdgeTrg(msg.ref))
+      _ <- msg.ref.trg.addEdgeTrg[F](msg.ref)
     yield newState
 
   private[node] def doAddEdgeTrg[F[_]: S](msg: AddEdgeTrg, state: St)(using d: Def, ctx: Ctx): F[St] =

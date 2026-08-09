@@ -30,12 +30,12 @@ class PropertiesSpec extends UnitSpecWithData:
       "floatKey1" -> Value.Decimal(3.14),
       "boolKey1" -> Value.Bool(true),
       "nested.key1" -> Value.Str("nestedValue1"),
-      "nested.key2" -> Value.Str("nestedValue2")
+      "nested.key2" -> Value.Str("nestedValue2"),
     )
 
     val params = Map(
       "key1" -> "value1".toDbParam,
-      "nested.key" -> "value2".toDbParam
+      "nested.key" -> "value2".toDbParam,
     )
 
     def paramsWithPrefix(prefix: String): Map[String, Param] = params.map((k, v) => (s"$prefix.$k", v))
@@ -61,13 +61,13 @@ class PropertiesSpec extends UnitSpecWithData:
         "key2" -> Some("value2".toDbParam),
         "keyNone" -> None,
         "key3" -> IO.pure("value3".toDbParam),
-        "key4" -> IO.pure(Map("nestedKey" -> "nestedValue".toDbParam))
+        "key4" -> IO.pure(Map("nestedKey" -> "nestedValue".toDbParam)),
       ).logValue(ts.name)
         .asserting(_ mustEqual Map(
           "key1" -> "value1".toDbParam,
           "key2" -> "value2".toDbParam,
           "key3" -> "value3".toDbParam,
-          "key4.nestedKey" -> "nestedValue".toDbParam
+          "key4.nestedKey" -> "nestedValue".toDbParam,
         ))
 
   "Map[String, Value].addKeyPrefix" should:

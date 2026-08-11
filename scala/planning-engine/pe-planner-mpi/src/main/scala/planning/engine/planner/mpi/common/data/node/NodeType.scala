@@ -12,5 +12,11 @@
 
 package planning.engine.planner.mpi.common.data.node
 
+import planning.engine.common.values.node.MnId
+
 enum NodeType:
   case Concrete, Abstract
+  
+  def toMnId(rawId: Long): MnId = this match
+    case NodeType.Concrete => MnId.Con(rawId)
+    case NodeType.Abstract => MnId.Abs(rawId)

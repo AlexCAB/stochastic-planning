@@ -15,17 +15,14 @@ package planning.engine.planner.mpi.common.data.node
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
-import planning.engine.planner.mpi.actors.node.data.{AbsDef, ConDef, Definition as NodeDef}
 import planning.engine.common.errors.*
 
 sealed trait NodeData:
   def name: Option[HnName]
   def description: Option[Description]
-  def tp: NodeType
-
-  private[mpi] def toDefinition[B[_]: MonadThrow](rawId: Long, actors: StaticActors): B[NodeDef]
+  def nodeType: NodeType
 
 final case class ConData(
     name: Option[HnName],
@@ -33,21 +30,15 @@ final case class ConData(
     ioName: IoName,
     valueIndex: IoIndex,
 ) extends NodeData:
-  val tp: NodeType = NodeType.Concrete
+  val nodeType: NodeType = NodeType.Concrete
   override lazy val toString: String = s"[${name.repr}, ${ioName.value}]"
-
-  private[mpi] def toDefinition[B[_]: MonadThrow](rawId: Long, actors: StaticActors): B[NodeDef] =
-    ConDef(MnId.Con(rawId), this, actors).asInstanceOf[NodeDef].pure
 
 final case class AbsData(
     name: Option[HnName],
     description: Option[Description],
 ) extends NodeData:
-  val tp: NodeType = NodeType.Abstract
+  val nodeType: NodeType = NodeType.Abstract
   override lazy val toString: String = s"(${name.repr})"
-
-  private[mpi] def toDefinition[B[_]: MonadThrow](rawId: Long, actors: StaticActors): B[NodeDef] =
-    AbsDef(MnId.Abs(rawId), this, actors).asInstanceOf[NodeDef].pure
 
 object NodeData:
   final case class Kit(

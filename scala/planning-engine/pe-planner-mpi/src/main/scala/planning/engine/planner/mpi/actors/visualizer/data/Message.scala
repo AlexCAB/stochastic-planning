@@ -19,11 +19,10 @@ import planning.engine.planner.mpi.common.repr.Representable
 private[visualizer] sealed trait Message extends Representable
 
 private[visualizer] object Message:
-  object Structure:
-    object Nodes:
-      // Sent from ManagerActor after new nodes were added to the map network.
-      final case class Added(ids: Map[MnId, Option[HnName]]) extends Message
 
-    object Edges:
-      // Sent from ManagerActor after edges were upserted in the map network.
-      final case class Added(keys: Set[MeKey]) extends Message
+  // Sent from ManagerActor after new nodes were added to the map network.
+  final case class ShowNodesAdded(ids: Map[MnId, Option[HnName]]) extends Message
+
+  // Sent from ManagerActor after edges were upserted in the map network.
+  final case class ShowEdgesAdded(keys: Set[MeKey]) extends Message
+ 

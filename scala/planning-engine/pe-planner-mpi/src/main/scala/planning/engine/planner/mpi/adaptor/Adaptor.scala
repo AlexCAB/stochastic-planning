@@ -10,24 +10,21 @@
 | website: github.com/alexcab |||||
 | created: 10.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.adaptor.manager
+package planning.engine.planner.mpi.adaptor
 
-import org.apache.pekko.actor.typed.ActorRef
 
-// Map actor manager adaptor for connecting Cats Effect-based code with Pekko actors.
-// Use Ask pattern to send messages to actors and receive responses in an effectful way.
+// Map actor adaptor, main purpose:
+// - Spawn and host actors network 
+// - Adapting actors network to REST API exposed to the Python tools
 //
 // Initial implementation will be as simple as possible:
 // - Use a single actor for managing the graph (nodes and edges).
 // - Only add and update operations for nodes and edges will be supported.
 // - No error handling or recovery will be implemented in the initial version (any errors will terminate the system,
 //   and experiment have to be restarted manually).
-trait ManagerAdaptorLike
+trait Adaptor
 
-class ManagerAdaptor extends ManagerAdaptorLike
 
-object ManagerAdaptor extends Messages:
-  type Msg = Message
-  type Ref = ActorRef[Msg]
+object Adaptor:
 
-  def apply(): ManagerAdaptor = new ManagerAdaptor()
+  def apply(): Adaptor = ???

@@ -17,8 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.Definition as NodeDef
-import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.repr.Representable
 
 private[manager] final case class State(
@@ -31,27 +30,25 @@ private[manager] final case class State(
 ) extends Representable:
 
   def withNewNodes[F[_]: MonadThrow](
-      data: NodeData.Kit,
-      actors: StaticActors,
-      spawn: List[NodeDef] => Map[Node, NodeDef],
-  ): F[(Map[Node, NodeDef], State)] =
-    def extractNames(newNodes: Map[Node, NodeDef]): Map[HnName, Set[MnId]] = newNodes
-      .values.collect { case d if d.data.name.isDefined => d.data.name.get -> d.id }
+      dataKit: NodeData.Kit,
+      spawn: (Long, NodeData) => F[Node],
+  ): F[(List[Node], State)] =
+    def extractNames(nodes: List[Node]): Map[HnName, Set[MnId]] = nodes
+      .collect { case n if n.name.isDefined => n.name.get -> n.mnId }
       .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
 
-    def updateState(newNodes: Map[Node, NodeDef]): State = this.copy(
-      nodeRefMap = nodeRefMap ++ newNodes.map((r, d) => d.id -> r),
-      nodeNameMap = nodeNameMap ++ extractNames(newNodes),
-      nextId = nextId + newNodes.size,
+    def updateState(nodes: List[Node]): State = this.copy(
+      nodeRefMap = nodeRefMap ++ nodes.map(n => n.mnId -> n),
+      nodeNameMap = nodeNameMap ++ extractNames(nodes),
+      nextId = nextId + nodes.size,
     )
 
     for
-      definitions <- data.nodes.zipWithIndex.traverse((node, i) => node.toDefinition(nextId + i, actors))
-      msIds = definitions.map(_.id)
-      _ <- msIds.assertDistinct("Duplicate node IDs in new nodes")
-      _ <- nodeRefMap.values.assertContainsNoneOf(msIds, "Node IDs already exist in the current state")
-      nodeRefs = spawn(definitions)
-    yield (nodeRefs, updateState(nodeRefs))
+      nodes <- dataKit.nodes.zipWithIndex.traverse((nd, i) => spawn(nextId + i, nd))
+      mnIds = nodes.map(_.mnId)
+      _ <- mnIds.assertDistinct("Duplicate node IDs in new nodes")
+      _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
+    yield (nodes, updateState(nodes))
 
   def findByName[F[_]: MonadThrow](names: Set[HnName]): F[Map[MnId, HnName]] =
     for

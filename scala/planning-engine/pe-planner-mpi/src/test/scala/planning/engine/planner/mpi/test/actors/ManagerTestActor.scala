@@ -18,7 +18,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithTestKit
 import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.node.NodeActor
 import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
-import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
+import planning.engine.planner.mpi.adaptor.Adaptor
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
@@ -35,7 +35,7 @@ trait ManagerTestActor:
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   trait WithManagerActor extends MapNodeTestData:
-    lazy val adaptorProbe: TestProbe[ManagerAdaptor.Msg] = testKit.createTestProbe[ManagerAdaptor.Msg]("adaptor-probe")
+    lazy val adaptorProbe: TestProbe[Adaptor.Msg] = testKit.createTestProbe[Adaptor.Msg]("adaptor-probe")
     lazy val nodeProbe: TestProbe[NodeActor.Msg] = testKit.createTestProbe[NodeActor.Msg]("node-probe")
 
     lazy val visualizerProbe: TestProbe[VisualizerActor.Msg] = testKit
@@ -48,9 +48,9 @@ trait ManagerTestActor:
       )
 
     def addNodes(data: NodeData.Kit, manager: Actor.Ref): ManagerWithNodes =
-      val adaptor = testKit.createTestProbe[ManagerAdaptor.Msg]("addNodes-adaptor-probe")
+      val adaptor = testKit.createTestProbe[Adaptor.Msg]("addNodes-adaptor-probe")
       manager ! Actor.AddNodes(data, adaptor.ref)
-      val res = adaptor.expectMessageType[ManagerAdaptor.NodesAdded]
+      val res = adaptor.expectMessageType[Adaptor.NodesAdded]
       adaptor.stop()
       ManagerWithNodes(manager, res.ids)
 

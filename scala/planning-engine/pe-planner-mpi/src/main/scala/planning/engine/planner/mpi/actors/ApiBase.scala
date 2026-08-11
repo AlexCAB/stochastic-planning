@@ -13,14 +13,18 @@
 package planning.engine.planner.mpi.actors
 
 import cats.MonadThrow
+import cats.effect.Async
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.typed.scaladsl.AskPattern.*
+import org.apache.pekko.util.Timeout
+import scala.concurrent.duration.*
 
-trait ApiBase[M]
+trait ApiBase[M]:
+  given ASK_TIMEOUT: Timeout = Timeout(5.seconds)
 
-object ApiBase:
-  extension [M](ref: ActorRef[M])
-    def tellF[F[_]: MonadThrow](msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
+  extension (ref: ActorRef[M])
+    protected def tellF[F[_]: MonadThrow](msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
 
-    // TODO Implement askF method using Pekko's ask pattern and MonadThrow for error handling.
-    def askF[F[_]: MonadThrow, R](msg: M): F[R] = ???
+    protected def askF[F[_]: Async, R](makeMsg: ActorRef[R] => M)(using ActorSystem[?]): F[R] =
+      Async[F].fromFuture(Async[F].delay(ref.ask(makeMsg)))

@@ -14,27 +14,25 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.syntax.all.*
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.manager.Manager
-import planning.engine.planner.mpi.actors.manager.data.Message.{AddNodes, UpsertNodesByName}
+import planning.engine.planner.mpi.actors.manager.data.Message
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.Definition as NodeDef
 import planning.engine.common.errors.*
-import planning.engine.planner.mpi.adaptor.manager.ManagerAdaptor
-import planning.engine.planner.mpi.common.data.node.{NodeData, StaticActors}
+import planning.engine.planner.mpi.common.data.node.NodeData
 
 private[manager] trait ManageNodes:
   self: Actor.type =>
+  import Message.*
 
-  private def addNodes[F[_]: S](data: NodeData.Kit, state: St)(using
+  private def addNodes[F[_]: S](dataKit: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =
-    def spawn(definitions: List[NodeDef]): Map[Node, NodeDef] =
-      definitions.zip(Node.spawn(definitions, (bh, n) => ctx.spawn(bh, n))).map((d, node) => node -> d).toMap
+    def spawn(rawId: Long, data: NodeData): F[Node] = Node
+      .spawn(data.nodeType.toMnId(rawId), data, d.self, d.visualizer, (bh, n) => ctx.spawn(bh, n))
 
     for
-      (nodeRefs, newState) <- state.withNewNodes(data, StaticActors(Manager.wrap(ctx.self), d.visualizer), spawn)
-      ids = nodeRefs.map((r, d) => d.id -> d.data.name)
+      (nodes, newState) <- state.withNewNodes(dataKit, spawn)
+      ids = nodes.map(n => n.mnId -> n.name).toMap
     yield (ids, newState)
 
   private def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
@@ -56,7 +54,7 @@ private[manager] trait ManageNodes:
     for
       (ids, newState) <- addNodes(msg.data, state)
       _ <- logInfo("[AddNodes] added nodes", ids.view.mapValues(_.repr).toMap)
-      _ <- msg.replay(ManagerAdaptor.NodesAdded(ids))
+      _ <- msg.sender.reply(NodesAdded(ids))
       _ <- d.visualizer.nodesAdded[F](ids)
     yield newState
 
@@ -64,5 +62,5 @@ private[manager] trait ManageNodes:
     for
       (ids, newState) <- upsertNodesByName(msg.data, state)
       _ <- logInfo("[UpsertNodesByName] result nodes", ids)
-      _ <- msg.replay(ManagerAdaptor.NodesUpserted(ids))
+      _ <- msg.sender.reply(NodesUpserted(ids))
     yield newState

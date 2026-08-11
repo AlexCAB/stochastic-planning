@@ -12,4 +12,4 @@
 
 package planning.engine.planner.mpi.actors.visualizer.data
 
-final case class Definition()
+private[visualizer] final case class Definition()

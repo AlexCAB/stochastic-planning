@@ -34,6 +34,9 @@ trait ActorBase extends ActorExecCtx:
   // Cats-effect helpers
   protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
+  extension [M](ref: ActorRef[M])
+    protected def reply[F[_]: S](msg: M): F[Unit] = Sync[F].delay(ref ! msg).void
+
   // Actor setup (called once when the actor is created)
   protected def setup(state: St)(using Def, Ctx): Unit = ()
 

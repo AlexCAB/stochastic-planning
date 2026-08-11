@@ -47,6 +47,10 @@
 
 ❯ Implement method `protected def askF[F[_]: MonadThrow, R](msg: M): F[R]`
 
+❯ Refactor and fix unit tests regard refactored implementation
+
+❯ Similar to `planning.engine.planner.mpi.actors.manager.FakeManager` also add `FakeNode` and `FakeVisualizer`
+
 
 ## Sticky notes 
 

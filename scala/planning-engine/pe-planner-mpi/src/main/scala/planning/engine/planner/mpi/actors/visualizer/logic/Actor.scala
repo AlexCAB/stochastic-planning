@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.visualizer.logic
 
@@ -33,4 +33,4 @@ private[visualizer] object Actor extends ActorBase with Structure:
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
     ignoreError(msg, state, err)
 
-  def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)  
+  def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

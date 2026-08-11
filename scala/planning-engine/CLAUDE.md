@@ -87,3 +87,18 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
       _ <- msg.replay(ManagerAdaptor.EdgesUpserted(msg.data.edges.keySet))
     yield state
   ```
+- As file header use:
+```
+/*|||||||||||||||||||||||||||||||||
+|| 0 * * * * * * * * * ▲ * * * * ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * ||  * * * * * ||       || 0 ||
+|| * ||||||||||| * ||||||||||| * ||
+|| * * ▲ * * 0|| * ||   (< * * * ||
+|| * ||||||||||| * ||  ||||||||||||
+|| * * * * * * * * *   ||||||||||||
+| author: CAB |||||||||||||||||||||
+| website: github.com/alexcab |||||
+| created: DD.MM.YYYY |||||||||||*/
+```
+Replace `DD.MM.YYYY` with the actual creation date.

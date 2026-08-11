@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.visualizer.logic
 
@@ -25,3 +25,5 @@ private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends Visualize
   def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit] = actor.tellF(ShowNodesAdded(ids))
 
   def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit] = actor.tellF(ShowEdgesAdded(keys))
+
+  override lazy val toString: String = s"Visualizer(path = ${actor.path})"  

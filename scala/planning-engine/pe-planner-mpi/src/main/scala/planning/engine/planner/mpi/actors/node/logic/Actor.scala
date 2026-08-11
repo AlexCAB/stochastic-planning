@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.node.logic
 
@@ -35,4 +35,4 @@ private[node] object Actor extends ActorBase with Structure:
     d.actors.manager.reportError[F](d.self, Some(msg), err).as(state)
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref =
-    make(apply(definition, State.init), definition.id.value.toString) 
+    make(apply(definition, State.init), definition.id.value.toString)

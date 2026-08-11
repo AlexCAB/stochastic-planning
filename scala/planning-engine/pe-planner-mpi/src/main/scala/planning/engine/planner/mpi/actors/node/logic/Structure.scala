@@ -21,7 +21,7 @@ private[node] trait Structure:
 
   private[node] def doAddEdgeSrc[F[_]: S](msg: AddEdgeSrc, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
-      _ <- ctx.self.assertEqual(msg.ref.src, "AddEdgeSrc message source does not match this actor ID")
+      _ <- d.self.assertEqual(msg.ref.src, "AddEdgeSrc message source does not match this actor ID")
       newState <- state.addEdgeSrc(msg.ref, msg.data)
       _ <- logInfo(s"[AddEdgeSrc] Added outgoing edge to ref = ${msg.ref}")
       _ <- msg.ref.trg.addEdgeTrg[F](msg.ref)
@@ -29,7 +29,7 @@ private[node] trait Structure:
 
   private[node] def doAddEdgeTrg[F[_]: S](msg: AddEdgeTrg, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
-      _ <- ctx.self.assertEqual(msg.ref.trg, "AddEdgeTrg message target does not match this actor ID")
+      _ <- d.self.assertEqual(msg.ref.trg, "AddEdgeTrg message target does not match this actor ID")
       newState <- state.addEdgeTrg(msg.ref)
       _ <- logInfo(s"[AddEdgeTrg] Added incoming edge from ref = ${msg.ref}")
     yield newState

@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.node.data
 
@@ -49,4 +49,4 @@ object Definition:
   def apply[F[_]: MonadThrow](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
     case (id: MnId.Con, data: ConData) => ConDef(id, data, actors).pure[F]
     case (id: MnId.Abs, data: AbsData) => AbsDef(id, data, actors).pure[F]
-    case _ => "Invalid combination of id and data".assertionError
+    case _                             => "Invalid combination of id and data".assertionError

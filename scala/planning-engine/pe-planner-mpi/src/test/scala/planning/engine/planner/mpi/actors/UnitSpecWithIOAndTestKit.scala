@@ -17,5 +17,5 @@ import planning.engine.common.UnitSpecWithData
 import org.scalatest.BeforeAndAfterAll
 
 class UnitSpecWithIOAndTestKit extends UnitSpecWithData with BeforeAndAfterAll:
-  val testKit = ActorTestKit()
+  given testKit: ActorTestKit = ActorTestKit()
   override def afterAll(): Unit = testKit.shutdownTestKit()

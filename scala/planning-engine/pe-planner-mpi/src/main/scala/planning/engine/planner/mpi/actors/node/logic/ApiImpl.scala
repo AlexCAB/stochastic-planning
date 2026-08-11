@@ -8,9 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
-
-
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.node.logic
 
@@ -21,10 +19,12 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Message
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
-private[node] final case class ApiImpl(mnId: MnId, name: Option[HnName], actor: Actor.Ref) 
-  extends Node with ApiBase[Actor.Msg]:
+private[node] final case class ApiImpl(mnId: MnId, name: Option[HnName], actor: Actor.Ref)
+    extends Node with ApiBase[Actor.Msg]:
   import Message.*
 
   def addEdgeSrc[F[_]: MonadThrow](ref: MeRef, data: EdgeData): F[Unit] = actor.tellF(AddEdgeSrc(ref, data))
 
   def addEdgeTrg[F[_]: MonadThrow](ref: MeRef): F[Unit] = actor.tellF(AddEdgeTrg(ref))
+
+  override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"

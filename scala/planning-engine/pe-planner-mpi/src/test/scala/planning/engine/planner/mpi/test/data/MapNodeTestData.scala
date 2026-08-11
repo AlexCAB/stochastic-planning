@@ -15,12 +15,11 @@ package planning.engine.planner.mpi.test.data
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
-import planning.engine.planner.mpi.actors.node.NodeActor.{AbsDef, ConDef}
-import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, StaticActors}
+import planning.engine.planner.mpi.common.data.node.{AbsData, ConData}
 
 trait MapNodeTestData:
   private implicit lazy val ioRuntime: IORuntime = IORuntime.global
@@ -39,16 +38,4 @@ trait MapNodeTestData:
   lazy val absNodeData: AbsData = AbsData(
     name = Some(HnName("Test Abstract Node")),
     description = Some(Description("A test abstract node for unit testing.")),
-  )
-
-  def conDefData(actors: StaticActors): ConDef = ConDef(
-    id = MnId.Con(1L),
-    data = conNodeData,
-    actors = actors,
-  )
-
-  def absDefData(actors: StaticActors): AbsDef = AbsDef(
-    id = MnId.Abs(2L),
-    data = absNodeData,
-    actors = actors,
   )

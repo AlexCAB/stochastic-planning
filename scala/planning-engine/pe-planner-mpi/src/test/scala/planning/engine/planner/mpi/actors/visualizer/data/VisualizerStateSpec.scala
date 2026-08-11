@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 05-Aug-26 |||||||||||*/
+| created: 05.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.visualizer.data
 
@@ -16,7 +16,6 @@ import cats.effect.IO
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.visualizer.VisualizerActor
 
 class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
   private class CaseData extends Case:
@@ -30,16 +29,16 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
     val linkKey: Link = Link(conId1, absId1)
     val thenKey: Then = Then(absId1, conId1)
 
-    lazy val stateWithNodes: VisualizerActor.State = VisualizerActor.State.init
+    lazy val stateWithNodes: State = State.init
       .withNodesAdded(Map(conId1 -> conName, absId1 -> absName))
 
-    lazy val stateWithEdges: VisualizerActor.State = VisualizerActor.State.init
+    lazy val stateWithEdges: State = State.init
       .withEdgesAdded(Set(linkKey, thenKey))
 
   "State.withNodesAdded(...)" should:
     "split added node IDs into conNodes and absNodes" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = VisualizerActor.State.init.withNodesAdded(Map(conId1 -> conName, absId1 -> absName))
+      val state = State.init.withNodesAdded(Map(conId1 -> conName, absId1 -> absName))
 
       IO:
         state.conNodes mustBe Map(conId1 -> conName)
@@ -70,7 +69,7 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
   "State.withEdgesAdded(...)" should:
     "add Link edge ends to srcLinkMap and trgLinkMap" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = VisualizerActor.State.init.withEdgesAdded(Set(linkKey))
+      val state = State.init.withEdgesAdded(Set(linkKey))
 
       IO:
         state.srcLinkMap mustBe Map(conId1 -> Set(linkKey.trgEnd))
@@ -80,7 +79,7 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
 
     "add Then edge ends to srcThenMap and trgThenMap" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = VisualizerActor.State.init.withEdgesAdded(Set(thenKey))
+      val state = State.init.withEdgesAdded(Set(thenKey))
 
       IO:
         state.srcThenMap mustBe Map(absId1 -> Set(thenKey.trgEnd))

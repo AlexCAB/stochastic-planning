@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 11.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.manager.logic
 
@@ -40,3 +40,5 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with
 
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))
+
+  override lazy val toString: String = s"Manager(path = ${actor.path})"  

@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.visualizer
 
@@ -32,4 +32,3 @@ object Visualizer:
 
   def spawn[F[_]: MonadThrow](make: (Behavior[Msg], String) => ActorRef[Msg]): F[Visualizer] =
     MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(), make)))
- 

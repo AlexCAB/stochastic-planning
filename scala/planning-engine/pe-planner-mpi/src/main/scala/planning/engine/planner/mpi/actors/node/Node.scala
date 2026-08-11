@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09-Aug-26 |||||||||||*/
+| created: 09.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.node
 
@@ -35,14 +35,14 @@ trait Node:
 
 object Node:
   type Msg = Actor.Msg
-  
+
   def spawn[F[_]: MonadThrow](
-     id: MnId,
-     data: NodeData,
-     manager: Manager, 
-     visualizer: Visualizer,
-     make: (Behavior[Msg], String) => ActorRef[Msg],
+      id: MnId,
+      data: NodeData,
+      manager: Manager,
+      visualizer: Visualizer,
+      make: (Behavior[Msg], String) => ActorRef[Msg],
   ): F[Node] =
-    for 
-      definition <- Definition(id, data, Definition.Actors(manager, visualizer))
+    for
+        definition <- Definition(id, data, Definition.Actors(manager, visualizer))
     yield ApiImpl(id, data.name, Actor.spawn(definition, make))

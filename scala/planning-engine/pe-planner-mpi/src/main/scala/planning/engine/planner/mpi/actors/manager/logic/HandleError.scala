@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 02-Aug-26 |||||||||||*/
+| created: 02.08.2026 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.manager.logic
 

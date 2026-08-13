@@ -21,14 +21,14 @@ import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
   private class CaseData extends Case with MapNodeTestData:
-    def spawnNode(rawId: Long, data: NodeData): IO[Node] = 
+    def spawnNode(rawId: Long, data: NodeData): IO[Node] =
       IO.delay(FakeNode(data.nodeType.toMnId(rawId), data.name).api)
 
     lazy val conMnId: MnId.Con = MnId.Con(1L)
     lazy val absMnId: MnId.Abs = MnId.Abs(2L)
 
     lazy val stateEmpty: State = State.init
-    
+
     lazy val stateWithConNode: State = stateEmpty
       .withNewNodes[IO](NodeData(conNodeData), spawnNode)
       .unsafeRunSync()._2
@@ -72,8 +72,9 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
 
     "raise an error when a node ID already exists in state" in newCase[CaseData]: (_, data) =>
       import data.*
-      val conflictingState = stateWithNodes.copy(nextId = 1L) // re-assigning from 1 collides with the existing conMnId entry
-        
+      val conflictingState =
+        stateWithNodes.copy(nextId = 1L) // re-assigning from 1 collides with the existing conMnId entry
+
       conflictingState.withNewNodes[IO](NodeData(conNodeData), spawnNode)
         .assertThrowsError[AssertionError](_.getMessage must include("Node IDs already exist in the current state"))
 

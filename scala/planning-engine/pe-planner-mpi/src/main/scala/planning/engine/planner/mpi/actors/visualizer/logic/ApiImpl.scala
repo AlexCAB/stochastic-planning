@@ -26,4 +26,4 @@ private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends Visualize
 
   def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit] = actor.tellF(ShowEdgesAdded(keys))
 
-  override lazy val toString: String = s"Visualizer(path = ${actor.path})"  
+  override lazy val toString: String = s"Visualizer(path = ${actor.path})"

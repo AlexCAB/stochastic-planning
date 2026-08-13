@@ -34,22 +34,25 @@ private[manager] trait HandleError:
   private def buildLogMsg(prefix: String, msgStr: Option[String], stateStr: Option[String]): String =
     List(Some(prefix), msgStr, stateStr).flatten.mkString("\n")
 
-  // Called when any error occurs in some NodeActor.
-  private[manager] def doHandleNodeError[F[_]: S](msg: NodeActorError, state: St)(using d: Def, ctx: Ctx): F[St] =
+  private def logAndRaiseFatal[F[_]: S](
+      logPrefix: String,
+      atMsg: Option[Representable],
+      state: St,
+      err: Throwable,
+      fatalMsg: String,
+  )(using Ctx): F[St] =
     for
-      msgStr <- renderAtMsg(msg.msg)
+      msgStr <- renderAtMsg(atMsg)
       stateStr <- renderAtSt(state)
-      logMst = buildLogMsg(s"NodeActorError received from NodeActor: ${msg.nodeRef}", msgStr, stateStr)
-      _ <- logError(logMst, msg.err)
-      _ <- ApplicativeThrow[F].raiseError(FatalException("Node actor error", Some(msg.err)))
+      logMst = buildLogMsg(logPrefix, msgStr, stateStr)
+      _ <- logError(logMst, err)
+      _ <- ApplicativeThrow[F].raiseError(FatalException(fatalMsg, Some(err)))
     yield state
+
+  // Called when any error occurs in some NodeActor.
+  private[manager] def doHandleNodeError[F[_]: S](msg: NodeActorError, state: St)(using Def, Ctx): F[St] =
+    logAndRaiseFatal(s"NodeActorError received: ${msg.nodeRef}", msg.msg, state, msg.err, "Node actor error")
 
   // Called when any error occurs in the ManagerActor itself.
   private[manager] def doHandleManagerError[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    for
-      msgStr <- renderAtMsg(Some(msg))
-      stateStr <- renderAtSt(state)
-      logMst = buildLogMsg(s"ManagerActor error", msgStr, stateStr)
-      _ <- logError(logMst, err)
-      _ <- ApplicativeThrow[F].raiseError(FatalException("Manager actor error", Some(err)))
-    yield state
+    logAndRaiseFatal("ManagerActor error", Some(msg), state, err, "Manager actor error")

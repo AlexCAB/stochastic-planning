@@ -41,4 +41,4 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))
 
-  override lazy val toString: String = s"Manager(path = ${actor.path})"  
+  override lazy val toString: String = s"Manager(path = ${actor.path})"

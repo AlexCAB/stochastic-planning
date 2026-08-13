@@ -13,6 +13,7 @@
 package planning.engine.planner.mpi.actors.visualizer.data
 
 import cats.effect.IO
+import cats.effect.cps.*
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
@@ -40,7 +41,7 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
       import data.*
       val state = State.init.withNodesAdded(Map(conId1 -> conName, absId1 -> absName))
 
-      IO:
+      async[IO]:
         state.conNodes mustBe Map(conId1 -> conName)
         state.absNodes mustBe Map(absId1 -> absName)
 
@@ -48,30 +49,32 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
       import data.*
       val state = stateWithNodes.withNodesAdded(Map(conId2 -> None))
 
-      IO:
+      async[IO]:
         state.conNodes mustBe Map(conId1 -> conName, conId2 -> None)
         state.absNodes mustBe Map(absId1 -> absName)
 
     "replace a Con node's name when the ID already exists" in newCase[CaseData]: (_, data) =>
       import data.*
-      val newName = Some(HnName("Updated Con Node"))
-      val state = stateWithNodes.withNodesAdded(Map(conId1 -> newName))
+      async[IO]:
+        val newName = Some(HnName("Updated Con Node"))
+        val state = stateWithNodes.withNodesAdded(Map(conId1 -> newName))
 
-      IO(state.conNodes mustBe Map(conId1 -> newName))
+        state.conNodes mustBe Map(conId1 -> newName)
 
     "replace an Abs node's name when the ID already exists" in newCase[CaseData]: (_, data) =>
       import data.*
-      val newName = Some(HnName("Updated Abs Node"))
-      val state = stateWithNodes.withNodesAdded(Map(absId1 -> newName))
+      async[IO]:
+        val newName = Some(HnName("Updated Abs Node"))
+        val state = stateWithNodes.withNodesAdded(Map(absId1 -> newName))
 
-      IO(state.absNodes mustBe Map(absId1 -> newName))
+        state.absNodes mustBe Map(absId1 -> newName)
 
   "State.withEdgesAdded(...)" should:
     "add Link edge ends to srcLinkMap and trgLinkMap" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = State.init.withEdgesAdded(Set(linkKey))
+      async[IO]:
+        val state = State.init.withEdgesAdded(Set(linkKey))
 
-      IO:
         state.srcLinkMap mustBe Map(conId1 -> Set(linkKey.trgEnd))
         state.trgLinkMap mustBe Map(absId1 -> Set(linkKey.srcEnd))
         state.srcThenMap mustBe Map.empty
@@ -79,9 +82,9 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
 
     "add Then edge ends to srcThenMap and trgThenMap" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = State.init.withEdgesAdded(Set(thenKey))
+      async[IO]:
+        val state = State.init.withEdgesAdded(Set(thenKey))
 
-      IO:
         state.srcThenMap mustBe Map(absId1 -> Set(thenKey.trgEnd))
         state.trgThenMap mustBe Map(conId1 -> Set(thenKey.srcEnd))
         state.srcLinkMap mustBe Map.empty
@@ -89,17 +92,17 @@ class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
 
     "add to existing edges without removing them" in newCase[CaseData]: (_, data) =>
       import data.*
-      val otherLink = Link(absId1, conId2)
-      val state = stateWithEdges.withEdgesAdded(Set(otherLink))
+      async[IO]:
+        val otherLink = Link(absId1, conId2)
+        val state = stateWithEdges.withEdgesAdded(Set(otherLink))
 
-      IO:
         state.srcLinkMap mustBe Map(conId1 -> Set(linkKey.trgEnd), absId1 -> Set(otherLink.trgEnd))
         state.trgLinkMap mustBe Map(absId1 -> Set(linkKey.srcEnd), conId2 -> Set(otherLink.srcEnd))
 
     "not duplicate an edge end when the same edge key is added again" in newCase[CaseData]: (_, data) =>
       import data.*
-      val state = stateWithEdges.withEdgesAdded(Set(linkKey))
+      async[IO]:
+        val state = stateWithEdges.withEdgesAdded(Set(linkKey))
 
-      IO:
         state.srcLinkMap mustBe Map(conId1 -> Set(linkKey.trgEnd))
         state.trgLinkMap mustBe Map(absId1 -> Set(linkKey.srcEnd))

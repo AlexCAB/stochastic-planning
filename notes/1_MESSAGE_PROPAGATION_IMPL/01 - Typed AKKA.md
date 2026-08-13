@@ -51,6 +51,28 @@
 
 ❯ Similar to `planning.engine.planner.mpi.actors.manager.FakeManager` also add `FakeNode` and `FakeVisualizer`
 
+❯  Refactor test `ManagerActor.doHandleManagerError` in `HandleErrorSpec` similar to `ManagerActor.doHandleNodeError`
+
+❯  Refactor tests in `ManageEdgesSpec` similar to `HandleErrorSpec`
+
+❯  Refactor tests in `ManageNodesSpec` similar to `ManageEdgesSpec`
+
+❯  In `ManageNodesSpec` and `ManageEdgesSpec` for each `fakeVisualizer.probe.expectMessageType[Visualizer.Msg]` add result verification 
+
+❯  Replace rest `verifyVisualizerNotified` with patter like `fakeVisualizer.expectShowNodesAdded mustBe conRes`
+
+❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
+
+❯ Similar to  `FakeVisualizer` move all `*.probe.expectMessage*` to `FakeNode`
+
+❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
+
+
+TODO: Add tests for `visualizer.logic`
+TODO: Improve tests by verifying actor state
+TODO: Implement graph representation (using colored text)
+
+
 
 ## Sticky notes 
 

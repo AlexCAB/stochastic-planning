@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.manager.data.Message.NodeActorError
 import planning.engine.planner.mpi.common.error.FatalException
 import planning.engine.planner.mpi.common.repr.Representable
 
-private[manager] trait HandleError:
+private[manager] trait Errors:
   self: Actor.type =>
 
   private def renderOp[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj

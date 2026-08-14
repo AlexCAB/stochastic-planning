@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.manager.{Manager, TestManager}
 import planning.engine.planner.mpi.actors.node.FakeNode
 import planning.engine.planner.mpi.common.data.node.NodeData
 
-class HandleErrorSpec extends UnitSpecWithIOAndTestKit with TestManager:
+class ManagerErrorsSpec extends UnitSpecWithIOAndTestKit with TestManager:
   private class CaseData extends Case with WithManager
 
   "ManagerActor.doHandleNodeError" should:

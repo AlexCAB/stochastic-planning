@@ -67,7 +67,8 @@
 
 ❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
 
-
+❯ Implement `VisualizerStructureSpec` test for `Visualizer`, similar to how it done for Node in `NodeStructureSpec` tests
+`
 TODO: Add tests for `visualizer.logic`
 TODO: Improve tests by verifying actor state
 TODO: Implement graph representation (using colored text)

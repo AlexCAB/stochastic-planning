@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.common.errors.*
 import planning.engine.planner.mpi.common.data.node.NodeData
 
-private[manager] trait ManageNodes:
+private[manager] trait Nodes:
   self: Actor.type =>
   import Message.*
 

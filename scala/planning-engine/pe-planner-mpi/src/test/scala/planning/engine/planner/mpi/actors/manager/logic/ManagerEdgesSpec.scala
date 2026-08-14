@@ -20,7 +20,7 @@ import planning.engine.planner.mpi.actors.manager.TestManager
 import planning.engine.planner.mpi.common.data.edge.EdgeData
 import planning.engine.planner.mpi.test.data.MapEdgeTestData
 
-class ManageEdgesSpec extends UnitSpecWithIOAndTestKit with TestManager:
+class ManagerEdgesSpec extends UnitSpecWithIOAndTestKit with TestManager:
   private class CaseData extends Case with WithManager with MapEdgeTestData
 
   "ManagerActor.UpsertEdges" should:

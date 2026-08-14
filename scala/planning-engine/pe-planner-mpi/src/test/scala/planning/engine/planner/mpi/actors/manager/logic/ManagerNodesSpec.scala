@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.TestManager
 import planning.engine.planner.mpi.common.data.node.NodeData
 
-class ManageNodesSpec extends UnitSpecWithIOAndTestKit with TestManager:
+class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with TestManager:
   private class CaseData extends Case with WithManager
 
   "ManagerActorSpec.AddNodes" should:

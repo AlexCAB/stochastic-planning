@@ -17,7 +17,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.actors.manager.data.Message
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
-private[manager] trait ManageEdges:
+private[manager] trait Edges:
   self: Actor.type =>
   import Message.*
 

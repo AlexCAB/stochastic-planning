@@ -8,45 +8,50 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 05.07.2026 |||||||||||*/
+| created: 15-Aug-26 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.node
 
 import cats.effect.IO
+import cats.effect.unsafe.IORuntime
+import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
+import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
+import planning.engine.planner.mpi.common.data.edge.EdgeData
 import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 import java.util.concurrent.atomic.AtomicInteger
 
-trait TestNode:
-  self: UnitSpecWithIOAndTestKit =>
+final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisualizer):
+  import TestNode.*
+  
+  def ref: ActorRef[Node.Msg] = api.ref
+  def state(using testKit: ActorTestKit): NodeState = api.state
+
+object TestNode extends TestActorBase:
+  type NodeState = (Map[MnId, (Node, EdgeData)], Map[MnId, Node])
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  trait WithNodeActor extends MapNodeTestData:
-    lazy val fakeManager: FakeManager = FakeManager()
-    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
+  private def spawn(bh: Behavior[Node.Msg], name: String)(using testKit: ActorTestKit): ActorRef[Node.Msg] =
+    testKit.spawn(bh, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
 
-    def makeNodeActor(id: MnId, data: NodeData): Node = Node
-      .spawn[IO](
-        id,
-        data,
-        fakeManager.api,
-        fakeVisualizer.api,
-        (bh, name) => testKit.spawn(bh, s"test-node-$name-${nameIdCounter.getAndIncrement()}"),
-      )
-      .unsafeRunSync()
+  def apply(id: MnId, data: NodeData, manager: FakeManager, visualizer: FakeVisualizer)(using
+      ActorTestKit,
+      IORuntime,
+  ): TestNode = new TestNode(
+    api = Node.spawn[IO](id, data, manager.api, visualizer.api, spawn).unsafeRunSync(),
+    manager = manager,
+    visualizer = visualizer,
+  )
+  
+  extension (api: Node)
+    def ref: ActorRef[Node.Msg] = api match
+      case ApiImpl(_, _, ref) => ref
 
-    lazy val srcNodeMnId: MnId.Con = MnId.Con(1L)
-    lazy val trgNodeMnId: MnId.Abs = MnId.Abs(2L)
-
-    lazy val srcNode: Node = makeNodeActor(srcNodeMnId, conNodeData)
-    lazy val trgNode: Node = makeNodeActor(trgNodeMnId, absNodeData)
-
-    lazy val trgNodeFake: FakeNode = FakeNode(trgNodeMnId, absNodeData.name)
-    lazy val srcNodeFake: FakeNode = FakeNode(srcNodeMnId, conNodeData.name)
+    def state(using ActorTestKit): NodeState = Tuple.fromProductTyped(getActorState[State](ref))

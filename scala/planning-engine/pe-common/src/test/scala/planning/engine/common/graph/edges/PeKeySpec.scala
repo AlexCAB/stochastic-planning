@@ -31,5 +31,5 @@ class PeKeySpec extends UnitSpecIO:
 
   "PeKey.toString" should:
     "have correct string representation" in: _ =>
-      linkKey.toString mustBe "[1_i=0]==>(2_i=0)"
-      thenKey.toString mustBe "(2_i=0)-->[1_i=0]"
+      linkKey.toString mustBe "[1,i=0]==>(2,i=0)"
+      thenKey.toString mustBe "(2,i=0)-->[1,i=0]"

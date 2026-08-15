@@ -14,51 +14,60 @@ package planning.engine.planner.mpi.actors.node.logic
 
 import cats.effect.IO
 import cats.effect.cps.*
+import org.scalatest.Assertion
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.node.TestNode
-import planning.engine.planner.mpi.common.data.edge.MeRef
+import planning.engine.planner.mpi.actors.node.{Node, TestNode, WithTestNode}
+import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 import planning.engine.planner.mpi.test.data.MapEdgeTestData
 
-class NodeStructureSpec extends UnitSpecWithIOAndTestKit with TestNode:
-  private class CaseData extends Case with WithNodeActor with MapEdgeTestData:
-    lazy val srcMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNode, trgNodeFake.api)
-    lazy val trgMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeFake.api, trgNode)
+class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
+  private class CaseData extends Case with WithNode with MapEdgeTestData:
+    lazy val srcMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNode.api, trgNodeFake.api)
+    lazy val trgMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeFake.api, trgNode.api)
+
+    def checkNodeState(node: TestNode, expOut: Map[MnId, (Node, EdgeData)], expIn: Map[MnId, Node]): Assertion =
+      val (outgoing, incoming) = node.state
+      outgoing mustBe expOut
+      incoming mustBe expIn
 
   "Node.addEdgeSrc" should:
     "add source end of the edge" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        srcNode.addEdgeSrc[IO](srcMeRef, edgeData1).logValue(tn).await
+        srcNode.api.addEdgeSrc[IO](srcMeRef, edgeData1).logValue(tn).await
         trgNodeFake.expectAddEdgeTrg mustBe srcMeRef
+
+        checkNodeState(srcNode, Map(trgNodeMnId -> (trgNodeFake.api, edgeData1)), Map.empty)
 
     "report an error to the manager when message source does not match this actor ID" in newCase[CaseData]:
       (tn, data) =>
         import data.*
         async[IO]:
           val badMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeFake.api, trgNodeFake.api)
-          srcNode.addEdgeSrc[IO](badMeRef, edgeData1).logValue(tn).await
+          srcNode.api.addEdgeSrc[IO](badMeRef, edgeData1).logValue(tn).await
 
           val (source, err) = fakeManager.expectReportedError
-          source mustBe srcNode
+          source mustBe srcNode.api
           err.getMessage must include("AddEdgeSrc message source does not match this actor ID")
 
   "Node.addEdgeTrg" should:
-    "add target end of the edge without reporting an error" in newCase[CaseData]: (tn, data) =>
+    "add target end of the edge" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        trgNode.addEdgeTrg[IO](trgMeRef).logValue(tn).await
+        trgNode.api.addEdgeTrg[IO](trgMeRef).logValue(tn).await
 
         fakeManager.probe.expectNoMessage()
-        succeed
+        checkNodeState(trgNode, Map.empty, Map(srcNodeMnId -> srcNodeFake.api))
 
     "report an error to the manager when message target does not match this actor ID" in newCase[CaseData]:
       (tn, data) =>
         import data.*
         async[IO]:
           val badMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeFake.api, trgNodeFake.api)
-          trgNode.addEdgeTrg[IO](badMeRef).logValue(tn).await
+          trgNode.api.addEdgeTrg[IO](badMeRef).logValue(tn).await
 
           val (source, err) = fakeManager.expectReportedError
-          source mustBe trgNode
+          source mustBe trgNode.api
           err.getMessage must include("AddEdgeTrg message target does not match this actor ID")

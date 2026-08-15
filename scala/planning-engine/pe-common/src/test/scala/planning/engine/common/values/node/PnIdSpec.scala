@@ -21,8 +21,8 @@ class PnIdSpec extends UnitSpecIO:
 
   "PnId.repr" should:
     "return correct string representation" in: _ =>
-      conPnId.repr mustBe "[123_t432]"
-      absPnId.repr mustBe "(321_t234)"
+      conPnId.repr mustBe "[123,i=432]"
+      absPnId.repr mustBe "(321,i=234)"
 
   "PnId.filterCon" should:
     "filter only Con PnIds" in: _ =>

@@ -14,29 +14,41 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.effect.IO
 import cats.effect.cps.*
-import planning.engine.common.values.node.MnId
+import org.scalatest.Assertion
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.manager.TestManager
+import planning.engine.planner.mpi.actors.manager.{TestManager, WithTestManager}
 import planning.engine.planner.mpi.common.data.node.NodeData
 
-class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with TestManager:
-  private class CaseData extends Case with WithManager
+class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
+  private class CaseData extends Case with WithManager:
+    def checkManagerState(manager: TestManager, expNodes: Map[MnId, Option[HnName]], expNextId: Long): Assertion =
+      val (nodeRefMap, nodeNameMap, nextId) = manager.state
+
+      nodeRefMap.keySet mustBe expNodes.keySet
+      expNodes.foreach((id, name) => nodeRefMap(id).name mustBe name)
+      nodeNameMap mustBe expNodes.collect { case (id, Some(name)) => name -> Set(id) }
+      nextId mustBe expNextId
 
   "ManagerActorSpec.AddNodes" should:
     "add new nodes" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val manager = managerEmpty.manager
-
-        val conRes = manager.addNodes[IO](NodeData(conNodeData)).logValue(tn).await
+        val conRes = managerEmpty.api.addNodes[IO](NodeData(conNodeData)).logValue(tn).await
         fakeVisualizer.expectShowNodesAdded mustBe conRes
         conRes mustBe Map(MnId.Con(1L) -> conNodeData.name)
 
-        val absRes = manager.addNodes[IO](NodeData(absNodeData)).logValue(tn).await
+        checkManagerState(
+          managerEmpty,
+          expNodes = Map(MnId.Con(1L) -> conNodeData.name),
+          expNextId = 2L,
+        )
+
+        val absRes = managerEmpty.api.addNodes[IO](NodeData(absNodeData)).logValue(tn).await
         fakeVisualizer.expectShowNodesAdded mustBe absRes
         absRes mustBe Map(MnId.Abs(2L) -> absNodeData.name)
 
-        val multiRes = manager.addNodes[IO](NodeData(conNodeData, absNodeData)).logValue(tn).await
+        val multiRes = managerEmpty.api.addNodes[IO](NodeData(conNodeData, absNodeData)).logValue(tn).await
         fakeVisualizer.expectShowNodesAdded mustBe multiRes
         multiRes mustBe Map(MnId.Con(3L) -> conNodeData.name, MnId.Abs(4L) -> absNodeData.name)
 
@@ -44,7 +56,9 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with TestManager:
     "upsert node by name" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val gotRes = managerOneConNode.manager.upsertNodesByName[IO](NodeData(conNodeData, absNodeData)).logValue(tn).await
+        val gotRes = managerOneConNode.api
+          .upsertNodesByName[IO](NodeData(conNodeData, absNodeData)).logValue(tn).await
+
         fakeVisualizer.expectShowNodesAdded mustBe gotRes
 
         val expectedAddedId = MnId.Abs(2L) -> absNodeData.name
@@ -52,13 +66,13 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with TestManager:
 
         gotRes mustBe expectedRes
 
+        checkManagerState(managerOneConNode, expNodes = expectedRes, expNextId = 3L)
+
     "terminate when UpsertNodesByName finds multiple IDs for the same name" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val manager = managerEmpty.manager
-        manager.withNodes(NodeData(conNodeData, conNodeData))
+        managerEmpty.withNodes(NodeData(conNodeData, conNodeData))
 
-        manager.upsertNodesByName[IO](NodeData(conNodeData)).logValue(tn).attempt.await
-
-        fakeVisualizer.probe.expectTerminated(manager.ref)
+        managerEmpty.api.upsertNodesByName[IO](NodeData(conNodeData)).logValue(tn).attempt.await
+        fakeVisualizer.probe.expectTerminated(managerEmpty.ref)
         succeed

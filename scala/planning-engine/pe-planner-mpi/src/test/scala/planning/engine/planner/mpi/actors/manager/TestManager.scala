@@ -8,53 +8,57 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 13-Aug-26 |||||||||||*/
+| created: 15-Aug-26 |||||||||||*/
 
 package planning.engine.planner.mpi.actors.manager
 
 import cats.effect.IO
-import org.apache.pekko.actor.typed.ActorRef
+import cats.effect.unsafe.IORuntime
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
 import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
+import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
+import org.scalatest.matchers.must.Matchers.fail
+import planning.engine.planner.mpi.actors.TestActorBase
+import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
+import planning.engine.planner.mpi.actors.manager.data.State
+import planning.engine.planner.mpi.actors.node.Node
 
 import java.util.concurrent.atomic.AtomicInteger
 
-trait TestManager:
-  self: UnitSpecWithIOAndTestKit =>
+final case class TestManager(api: Manager, nodes: Map[MnId, Option[HnName]], visualizer: FakeVisualizer):
+  import TestManager.*
 
-  final case class ManagerWithNodes(manager: Manager, nodes: Map[MnId, Option[HnName]]):
-    private lazy val ids = nodes.keys.toList
-    def srcMnId: MnId = ids.headOption.getOrElse(fail("No nodes available in ManagerWithNodes"))
-    def trgMnId: MnId = ids.drop(1).headOption.getOrElse(fail("Less than two nodes available in ManagerWithNodes"))
+  def ref: ActorRef[Manager.Msg] = api.ref
+  def state(using testKit: ActorTestKit): ManagerState = api.state
+
+  private lazy val ids = nodes.keys.toList
+  lazy val srcMnId: MnId = ids.headOption.getOrElse(fail("No nodes available in TestManager"))
+  lazy val trgMnId: MnId = ids.drop(1).headOption.getOrElse(fail("Less than two nodes available in TestManager"))
+
+  def withNodes(data: NodeData.Kit)(using ActorSystem[?], IORuntime): TestManager =
+    val nodeIds = api.addNodes[IO](data).unsafeRunSync()
+    visualizer.probe.expectMessageType[Visualizer.Msg] // Remove ShowAddNodes from visualizer mailbox
+    TestManager(api, nodes ++ nodeIds, visualizer)
+
+object TestManager extends TestActorBase:
+  type ManagerState = (Map[MnId, Node], Map[HnName, Set[MnId]], Long)
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
-  
-  trait WithManager extends MapNodeTestData:
-    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
 
-    def makeManagerActor(name: String): Manager = Manager
-      .spawn[IO](fakeVisualizer.api, (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"))
-      .unsafeRunSync()
+  def spawn(name: String, visualizer: FakeVisualizer)(using testKit: ActorTestKit, rt: IORuntime): Manager = Manager
+    .spawn[IO](visualizer.api, (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"))
+    .unsafeRunSync()
 
-    lazy val managerEmpty: ManagerWithNodes = ManagerWithNodes(makeManagerActor("managerEmpty"), Map.empty)
+  def apply(name: String, visualizer: FakeVisualizer)(using ActorTestKit, IORuntime): TestManager = new TestManager(
+    api = spawn(name, visualizer),
+    nodes = Map.empty,
+    visualizer = visualizer,
+  )
 
-    lazy val managerOneConNode: ManagerWithNodes = makeManagerActor("managerOneConNode")
-      .withNodes(NodeData(conNodeData))
+  extension (api: Manager)
+    def ref: ActorRef[Manager.Msg] = api match
+      case ApiImpl(ref) => ref
 
-    lazy val managerTwoNode: ManagerWithNodes = makeManagerActor("managerActorTwoNode")
-      .withNodes(NodeData(conNodeData, absNodeData))
-
-    extension (manager: Manager)
-      def ref: ActorRef[Manager.Msg] = manager match
-        case ApiImpl(ref) => ref
-    
-      def withNodes(data: NodeData.Kit): ManagerWithNodes = 
-        val nodeIds = manager.addNodes[IO](data).unsafeRunSync()
-        fakeVisualizer.probe.expectMessageType[Visualizer.Msg] // Remove ShowAddNodes from visualizer mailbox
-        ManagerWithNodes(manager, nodeIds)
-      
-    
+    def state(using testKit: ActorTestKit): ManagerState = Tuple.fromProductTyped(getActorState[State](ref))

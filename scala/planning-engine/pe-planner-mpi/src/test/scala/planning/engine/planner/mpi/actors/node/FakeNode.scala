@@ -14,15 +14,11 @@ package planning.engine.planner.mpi.actors.node
 
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.FakeActorBase
 import planning.engine.planner.mpi.actors.node.data.Message.{AddEdgeSrc, AddEdgeTrg}
-import planning.engine.planner.mpi.actors.node.data.State
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
-final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]) extends FakeActorBase:
-  def getState(using testKit: ActorTestKit): FakeNode.NodeState = Tuple.fromProductTyped(getActorState[State])
-
+final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
   def expectAddEdgeSrc: (MeRef, EdgeData) =
     val msg = probe.expectMessageType[AddEdgeSrc]
     (msg.ref, msg.data)
@@ -30,8 +26,6 @@ final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]) extends FakeAct
   def expectAddEdgeTrg: MeRef = probe.expectMessageType[AddEdgeTrg].ref
 
 object FakeNode:
-  type NodeState = (Map[MnId, (Node, EdgeData)], Map[MnId, Node])
-
   def apply(mnId: MnId, name: String = "")(using testKit: ActorTestKit): FakeNode =
     val nodeName = if name.isEmpty then None else Some(HnName(name))
     apply(mnId, nodeName)

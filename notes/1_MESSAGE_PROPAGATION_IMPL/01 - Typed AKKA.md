@@ -51,21 +51,21 @@
 
 ❯ Similar to `planning.engine.planner.mpi.actors.manager.FakeManager` also add `FakeNode` and `FakeVisualizer`
 
-❯  Refactor test `ManagerActor.doHandleManagerError` in `HandleErrorSpec` similar to `ManagerActor.doHandleNodeError`
+❯ Refactor test `ManagerActor.doHandleManagerError` in `HandleErrorSpec` similar to `ManagerActor.doHandleNodeError`
 
-❯  Refactor tests in `ManageEdgesSpec` similar to `HandleErrorSpec`
+❯ Refactor tests in `ManageEdgesSpec` similar to `HandleErrorSpec`
 
-❯  Refactor tests in `ManageNodesSpec` similar to `ManageEdgesSpec`
+❯ Refactor tests in `ManageNodesSpec` similar to `ManageEdgesSpec`
 
-❯  In `ManageNodesSpec` and `ManageEdgesSpec` for each `fakeVisualizer.probe.expectMessageType[Visualizer.Msg]` add result verification 
+❯ In `ManageNodesSpec` and `ManageEdgesSpec` for each `fakeVisualizer.probe.expectMessageType[Visualizer.Msg]` add result verification 
 
-❯  Replace rest `verifyVisualizerNotified` with patter like `fakeVisualizer.expectShowNodesAdded mustBe conRes`
+❯ Replace rest `verifyVisualizerNotified` with patter like `fakeVisualizer.expectShowNodesAdded mustBe conRes`
 
-❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
+❯ Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
 
 ❯ Similar to  `FakeVisualizer` move all `*.probe.expectMessage*` to `FakeNode`
 
-❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
+❯ Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
 
 ❯ Implement `VisualizerStructureSpec` test for `Visualizer`, similar to how it done for Node in `NodeStructureSpec` tests
 
@@ -73,9 +73,22 @@
 
 ❯ Add `getState` method to `FakeNode` and `FakeVisualizer` as it done in `FakeManager`
 
+❯ In test `"ManagerActorSpec.AddNodes"` after `val state = managerEmpty.manager.getState` add state validation
 
-TODO: Add tests for `visualizer.logic`
-TODO: Improve tests by verifying actor state
+❯ Also in tests `ManagerNodesSpec`add state validation at the end of "upsert node by name" test
+
+❯ Now  in tests `ManagerNodesSpec` move state validation in helpers function, so only expected values and manager will be passed to it.
+
+❯ In `"ManagerActor.UpsertEdges"` add  state validation, similar to `ManagerNodesSpec` tests
+
+❯ In `NodeStructureSpec` in `"add source end of the edge` and `"add target end of the edge"` tests add  state validation, similar to `ManagerNodesSpec` tests. 
+
+❯ In `VisualizerStructureSpec` tests add  state validation, similar to `ManagerNodesSpec` tests. 
+
+
+
+
+
 TODO: Implement graph representation (using colored text)
 
 

@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager.logic
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
 import planning.engine.planner.mpi.actors.manager.data.*
-import planning.engine.planner.mpi.actors.manager.logic.{Errors, Edges, Nodes}
+import planning.engine.planner.mpi.actors.manager.logic.{Edges, Errors, Nodes}
 
 // Top-level stateful actor for the map network. I.e. parent actor for all NodeActor instances.
 // It responsible for:
@@ -26,10 +26,10 @@ import planning.engine.planner.mpi.actors.manager.logic.{Errors, Edges, Nodes}
 // - Handling any error that happens in child actors by receiving `NodeActorError` (in simple implementation
 //   just kill all system in case any error).
 private[manager] object Actor extends ActorBase with Nodes with Edges with Errors:
-  import Message.*
+  import Message.*, ActorBase.GetState
 
   override type Def = Definition
-  override type Msg = Message
+  override type Msg = Message | GetState[St]
   override protected type St = State
 
   val name = "map-manager-actor"
@@ -41,6 +41,7 @@ private[manager] object Actor extends ActorBase with Nodes with Edges with Error
     case msg: UpsertNodesByName => doUpsertNodesByName(msg, state)
     case msg: UpsertEdges       => doUpsertEdges(msg, state)
     case msg: NodeActorError    => doHandleNodeError(msg, state)
+    case msg: GetState[St]      => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
     doHandleManagerError(msg, state, err)

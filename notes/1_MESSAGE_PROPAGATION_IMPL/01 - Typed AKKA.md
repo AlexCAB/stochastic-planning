@@ -68,7 +68,12 @@
 ❯  Refactor tests in `NodeStructureSpec` similar to `ManageEdgesSpec`
 
 ❯ Implement `VisualizerStructureSpec` test for `Visualizer`, similar to how it done for Node in `NodeStructureSpec` tests
-`
+
+❯ Analise compilation error, suggest how to fix
+
+❯ Add `getState` method to `FakeNode` and `FakeVisualizer` as it done in `FakeManager`
+
+
 TODO: Add tests for `visualizer.logic`
 TODO: Improve tests by verifying actor state
 TODO: Implement graph representation (using colored text)

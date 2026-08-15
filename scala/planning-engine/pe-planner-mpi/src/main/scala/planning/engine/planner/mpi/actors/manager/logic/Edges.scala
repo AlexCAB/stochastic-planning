@@ -34,5 +34,5 @@ private[manager] trait Edges:
       _ <- msg.data.edges.toList.traverse(sendAddEdgeSrc)
       _ <- logInfo(s"[UpsertEdges] Upserted ${msg.data.edges.size} edges.")
       _ <- d.visualizer.edgesAdded[F](msg.data.edges.keySet)
-      _ <- msg.sender.reply(EdgesUpserted(msg.data.edges.keySet))
+      _ <- msg.reply(EdgesUpserted(msg.data.edges.keySet))
     yield state

@@ -23,7 +23,7 @@ import planning.engine.planner.mpi.actors.visualizer.TestVisualizer
 class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with TestVisualizer:
   private class CaseData extends Case with WithVisualizerActor:
     val conId: MnId.Con = MnId.Con(1L)
-    val absId: MnId.Abs = MnId.Abs(2L)
+    val absId: MnId.Abs = MnId.Abs(2L) 
 
     val conName: Option[HnName] = Some(HnName("Test Con Node"))
     val absName: Option[HnName] = None

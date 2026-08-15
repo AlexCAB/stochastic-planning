@@ -54,7 +54,7 @@ private[manager] trait Nodes:
     for
       (ids, newState) <- addNodes(msg.data, state)
       _ <- logInfo("[AddNodes] added nodes", ids.view.mapValues(_.repr).toMap)
-      _ <- msg.sender.reply(NodesAdded(ids))
+      _ <- msg.reply(NodesAdded(ids))
       _ <- d.visualizer.nodesAdded[F](ids)
     yield newState
 
@@ -62,5 +62,5 @@ private[manager] trait Nodes:
     for
       (ids, newState) <- upsertNodesByName(msg.data, state)
       _ <- logInfo("[UpsertNodesByName] result nodes", ids)
-      _ <- msg.sender.reply(NodesUpserted(ids))
+      _ <- msg.reply(NodesUpserted(ids))
     yield newState

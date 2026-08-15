@@ -18,8 +18,10 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
 import planning.engine.planner.mpi.common.error.FatalException
+import planning.engine.planner.mpi.common.repr.Representable
 
-trait ActorBase extends ActorExecCtx:
+private[actors] trait ActorBase extends ActorExecCtx:
+  import ActorBase.GetState
 
   // Shortcut for actor definition, message type and context type
   type Def
@@ -34,9 +36,6 @@ trait ActorBase extends ActorExecCtx:
   // Cats-effect helpers
   protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
-  extension [M](ref: ActorRef[M])
-    protected def reply[F[_]: S](msg: M): F[Unit] = Sync[F].delay(ref ! msg).void
-
   // Actor setup (called once when the actor is created)
   protected def setup(state: St)(using Def, Ctx): Unit = ()
 
@@ -47,8 +46,14 @@ trait ActorBase extends ActorExecCtx:
   protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St]
 
   // Message processing helpers
-  protected def ignoreError[F[_]: S](msg: Msg, state: St, err: Throwable)(using ctx: Ctx): F[St] =
+  protected def doIgnoreError[F[_]: S](msg: Msg, state: St, err: Throwable)(using ctx: Ctx): F[St] =
     logError(s"Error processing message $msg in state $state: ${err.getMessage}", err).as(state)
+
+  protected def doGetState[F[_]: S](msg: GetState[St], state: St)(using ctx: Ctx): F[St] =
+    for
+      _ <- logInfo(s"GetState message received, returning current state: $state")
+      _ <- msg.reply(ActorBase.CurrentState(state))
+    yield state
 
   // Helper method for logging messages
   protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
@@ -90,3 +95,19 @@ trait ActorBase extends ActorExecCtx:
   protected def apply(definition: Def, state: St): Behavior[Msg] =
     given Def = definition
     behavior(state)
+
+private[actors] object ActorBase:
+
+  // Base trait for command messages that require a reply to the sender.
+  trait WithSender[R]:
+    def sender: ActorRef[R]
+
+    def reply[F[_]: Sync](msg: R): F[Unit] = Sync[F].delay(sender.tell(msg)).void
+
+  // Base trait for messages that used for testing of actors.
+  sealed trait TestCommand[R] extends WithSender[R] with Representable
+  sealed trait TestResult extends Representable
+
+  // Used for testing purposes to get the current state of the Actor.
+  final case class GetState[S](sender: ActorRef[CurrentState[S]]) extends TestCommand[CurrentState[S]]
+  final case class CurrentState[S](state: S)

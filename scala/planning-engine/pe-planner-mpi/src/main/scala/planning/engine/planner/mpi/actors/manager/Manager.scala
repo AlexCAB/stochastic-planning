@@ -17,8 +17,11 @@ import cats.effect.Async
 import org.apache.pekko.actor.typed.{ActorRef, ActorSystem, Behavior}
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.manager.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.actors.manager.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.edge.EdgeData
@@ -45,8 +48,19 @@ trait Manager:
   //   and edge target to target node (`AddEdgeSrc` and `AddEdgeTrg` used).
   // Will fail if:
   // - In indexies map found duplicate SampleId (SampleId is unique per edge).
+  // - SampleId is not found (i.e. sample not exist in map).
   // (!) Note: This command not have rollback mechanism, so in case of failure, some edges may be added, some not.
   def upsertEdges[F[_]: Async](dataKit: EdgeData.Kit)(using ActorSystem[?]): F[Set[MeKey]]
+  
+  // Add manually defined samples command:
+  // - Lookup nodes by name, create new if not found (same as `upsertNodesByName`).
+  // - For each node in sample create set of next HnIndex.
+  // - Create new SampleId for each sample.
+  // - Add update map edges for each sample (same as `upsertEdges`).
+  // - Store full sample data in the manager state. And Values in each node state (for speedup props calculation).
+  // - Notify all nodes with new total number of samples (for props calculation).
+  // - Notify visualizer with new map structure (for visualization).
+  def addManSamples[F[_]: Async](samples: Set[Sample.Man])(using ActorSystem[?]): F[Map[SampleId, Name]]
 
   // Report an error that occurred in a NodeActor.
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit]

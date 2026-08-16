@@ -88,8 +88,11 @@
 
 
 
+##### TODO: 
+1. Integration with REST API (test with loading script)
+2. Implement graph representation (using colored text)
 
-TODO: Implement graph representation (using colored text)
+
 
 
 

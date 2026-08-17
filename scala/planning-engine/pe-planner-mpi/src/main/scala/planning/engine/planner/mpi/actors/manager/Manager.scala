@@ -51,18 +51,20 @@ trait Manager:
   // - SampleId is not found (i.e. sample not exist in map).
   // (!) Note: This command not have rollback mechanism, so in case of failure, some edges may be added, some not.
   def upsertEdges[F[_]: Async](dataKit: EdgeData.Kit)(using ActorSystem[?]): F[Set[MeKey]]
-  
+
   // Add manually defined samples command:
   // - Lookup nodes by name, create new if not found (same as `upsertNodesByName`).
   // - For each node in sample create set of next HnIndex.
   // - Create new SampleId for each sample.
   // - Add update map edges for each sample (same as `upsertEdges`).
-  // - Store full sample data in the manager state. And Values in each node state (for speedup props calculation).
-  // - Notify all nodes with new total number of samples (for props calculation).
+  // - Store full sample data in the manager state. And Values in each node state (for speedup probs calculation).
+  // - Notify all nodes with new total number of samples (for probs calculation).
   // - Notify visualizer with new map structure (for visualization).
   def addManSamples[F[_]: Async](samples: Set[Sample.Man])(using ActorSystem[?]): F[Map[SampleId, Name]]
 
   // Report an error that occurred in a NodeActor.
+  // In simple implementation it will terminate the manager actor and all its children nodes actors,
+  // but in future it may be extended to support more complex error handling.
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
 
 object Manager:

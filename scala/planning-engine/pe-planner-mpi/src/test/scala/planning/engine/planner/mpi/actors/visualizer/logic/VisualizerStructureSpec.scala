@@ -41,14 +41,14 @@ class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisu
         expTrgLinkMap: Map[MnId, Set[Link.End]] = Map.empty,
         expTrgThenMap: Map[MnId, Set[Then.End]] = Map.empty,
     ): Assertion =
-      val (conNodes, absNodes, srcLinkMap, srcThenMap, trgLinkMap, trgThenMap) = visualizer.state
+      val state = visualizer.state
 
-      conNodes mustBe expConNodes
-      absNodes mustBe expAbsNodes
-      srcLinkMap mustBe expSrcLinkMap
-      srcThenMap mustBe expSrcThenMap
-      trgLinkMap mustBe expTrgLinkMap
-      trgThenMap mustBe expTrgThenMap
+      state.conNodes mustBe expConNodes
+      state.absNodes mustBe expAbsNodes
+      state.srcLinkMap mustBe expSrcLinkMap
+      state.srcThenMap mustBe expSrcThenMap
+      state.trgLinkMap mustBe expTrgLinkMap
+      state.trgThenMap mustBe expTrgThenMap
 
   "Visualizer.nodesAdded" should:
     "log the added Concrete node with its ID and name" in newCase[CaseData]: (tn, data) =>

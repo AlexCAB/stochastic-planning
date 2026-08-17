@@ -23,12 +23,12 @@ import planning.engine.planner.mpi.common.data.node.NodeData
 class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
   private class CaseData extends Case with WithManager:
     def checkManagerState(manager: TestManager, expNodes: Map[MnId, Option[HnName]], expNextId: Long): Assertion =
-      val (nodeRefMap, nodeNameMap, nextId) = manager.state
+      val state = manager.state
 
-      nodeRefMap.keySet mustBe expNodes.keySet
-      expNodes.foreach((id, name) => nodeRefMap(id).name mustBe name)
-      nodeNameMap mustBe expNodes.collect { case (id, Some(name)) => name -> Set(id) }
-      nextId mustBe expNextId
+      state.nodeRefMap.keySet mustBe expNodes.keySet
+      expNodes.foreach((id, name) => state.nodeRefMap(id).name mustBe name)
+      state.nodeNameMap mustBe expNodes.collect { case (id, Some(name)) => name -> Set(id) }
+      state.nextMnId mustBe expNextId
 
   "ManagerActorSpec.AddNodes" should:
     "add new nodes" in newCase[CaseData]: (tn, data) =>

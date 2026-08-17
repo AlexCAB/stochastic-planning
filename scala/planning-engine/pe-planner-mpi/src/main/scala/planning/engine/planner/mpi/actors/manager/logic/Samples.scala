@@ -8,12 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 04.07.2026 |||||||||||*/
+| created: 17-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.common.data.edge
 
-import planning.engine.common.graph.edges.MeKey
-import planning.engine.planner.mpi.actors.node.Node
 
-final case class MeRef(key: MeKey, srcNode: Node, trgNode: Node):
-  override lazy val toString: String = s"MeRef(${key.toString} | ${srcNode.name} --> ${trgNode.name})"
+package planning.engine.planner.mpi.actors.manager.logic
+
+import planning.engine.planner.mpi.actors.manager.data.Message
+
+private[manager] trait Samples extends Nodes with Edges:
+  self: Actor.type =>
+  import Message.*
+  
+  def doAddManSamples[F[_]: S](msg: AddManSamples, state: St)(using d: Def, ctx: Ctx): F[St] = ???
+     

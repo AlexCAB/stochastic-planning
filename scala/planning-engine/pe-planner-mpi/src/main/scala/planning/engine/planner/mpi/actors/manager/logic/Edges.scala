@@ -26,7 +26,7 @@ private[manager] trait Edges:
       for
         srcRef <- state.getRef(key.src)
         trgRef <- state.getRef(key.trg)
-        _  = ??? // TODO: Add check if SampleId indexies in samples collection.
+        _ = ??? // TODO: Add check if SampleId indexies in samples collection.
         _ <- logInfo(s"[UpsertEdges] found refs for $key: srcRef = $srcRef, trgRef = $trgRef")
         _ <- srcRef.addEdgeSrc[F](MeRef(key, srcRef, trgRef), data)
       yield ()

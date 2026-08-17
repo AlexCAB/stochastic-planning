@@ -28,7 +28,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
     lazy val trgMeRef = MeRef(MeKey.Link(srcNodeMnId, trgNodeMnId), srcNodeFake.api, trgNode.api)
 
     def checkNodeState(node: TestNode, expOut: Map[MnId, (Node, EdgeData)], expIn: Map[MnId, Node]): Assertion =
-      val (outgoing, incoming) = node.state
+      val (outgoing, incoming) = node.stateTyped
       outgoing mustBe expOut
       incoming mustBe expIn
 

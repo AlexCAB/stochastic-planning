@@ -29,9 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisualizer):
   import TestNode.*
-  
+
   def ref: ActorRef[Node.Msg] = api.ref
-  def state(using testKit: ActorTestKit): NodeState = api.state
+  def state(using testKit: ActorTestKit): State = api.state
+  def stateTyped(using ActorTestKit): NodeState = api.stateTyped
 
 object TestNode extends TestActorBase:
   type NodeState = (Map[MnId, (Node, EdgeData)], Map[MnId, Node])
@@ -49,9 +50,12 @@ object TestNode extends TestActorBase:
     manager = manager,
     visualizer = visualizer,
   )
-  
+
   extension (api: Node)
     def ref: ActorRef[Node.Msg] = api match
       case ApiImpl(_, _, ref) => ref
 
-    def state(using ActorTestKit): NodeState = Tuple.fromProductTyped(getActorState[State](ref))
+    def state(using ActorTestKit): State = getActorState[State](ref)
+
+    // Allow access to the state from outside `mpi.actors.node` package.
+    def stateTyped(using ActorTestKit): NodeState = Tuple.fromProductTyped(state)

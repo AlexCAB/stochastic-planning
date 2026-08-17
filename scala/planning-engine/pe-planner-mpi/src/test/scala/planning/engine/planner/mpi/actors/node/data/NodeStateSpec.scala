@@ -40,13 +40,13 @@ class NodeStateSpec extends UnitSpecWithIOAndTestKit:
       import data.*
 
       emptyState.addEdgeSrc[IO](meRef, edgeData1)
-        .asserting(_.outgoing mustBe Map(trcMnId -> (trgRef, edgeData1)))
+        .asserting(_.outgoingMap mustBe Map(trcMnId -> (trgRef, edgeData1)))
 
     "join edge data when edge to same target already exists" in newCase[CaseData]: (_, data) =>
       import data.*
 
       filledState.addEdgeSrc[IO](meRef, edgeData2)
-        .asserting(_.outgoing mustBe Map(trcMnId -> (trgRef, EdgeData(edgeData1.indexies ++ edgeData2.indexies))))
+        .asserting(_.outgoingMap mustBe Map(trcMnId -> (trgRef, EdgeData(edgeData1.indexies ++ edgeData2.indexies))))
 
     "fail when target ref does not match existing outgoing entry" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -56,7 +56,7 @@ class NodeStateSpec extends UnitSpecWithIOAndTestKit:
   "State.addEdgeTrg(...)" should:
     "add edge to incoming list" in newCase[CaseData]: (_, data) =>
       import data.*
-      emptyState.addEdgeTrg[IO](meRef).asserting(_.incoming mustBe Map(srcMnId -> srcRef))
+      emptyState.addEdgeTrg[IO](meRef).asserting(_.incomingMap mustBe Map(srcMnId -> srcRef))
 
     "return unchanged state when same edge already exists" in newCase[CaseData]: (_, data) =>
       import data.*

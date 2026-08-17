@@ -25,7 +25,7 @@ import planning.engine.planner.mpi.actors.manager.logic.{Edges, Errors, Nodes}
 // - Response to the ManagerAdaptor `ask` queries with success or error.
 // - Handling any error that happens in child actors by receiving `NodeActorError` (in simple implementation
 //   just kill all system in case any error).
-private[manager] object Actor extends ActorBase with Nodes with Edges with Errors:
+private[manager] object Actor extends ActorBase with Nodes with Edges with Samples with Errors:
   import Message.*, ActorBase.GetState
 
   override type Def = Definition
@@ -40,6 +40,7 @@ private[manager] object Actor extends ActorBase with Nodes with Edges with Error
     case msg: AddNodes          => doAddNodes(msg, state)
     case msg: UpsertNodesByName => doUpsertNodesByName(msg, state)
     case msg: UpsertEdges       => doUpsertEdges(msg, state)
+    case msg: AddManSamples     => doAddManSamples(msg, state)
     case msg: NodeActorError    => doHandleNodeError(msg, state)
     case msg: GetState[St]      => doGetState(msg, state)
 

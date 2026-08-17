@@ -45,7 +45,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
         .asserting: (nodes, state) =>
           state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
           state.nodeRefMap.values.toSet mustBe nodes.toSet
-          state.nextId mustBe 3L
+          state.nextMnId mustBe 3L
 
           state.nodeNameMap mustBe Map(
             conNodeData.name.get -> Set(conMnId),
@@ -60,7 +60,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
       stateEmpty.withNewNodes[IO](NodeData(conNodeData, conNodeData), spawnNode)
         .asserting: (_, state) =>
           state.nodeRefMap.keySet mustBe Set(id1, id2)
-          state.nextId mustBe 3L
+          state.nextMnId mustBe 3L
           state.nodeNameMap mustBe Map(conNodeData.name.get -> Set(id1, id2))
 
     "not add to nodeNameMap for a node without a name" in newCase[CaseData]: (_, data) =>
@@ -73,7 +73,7 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
     "raise an error when a node ID already exists in state" in newCase[CaseData]: (_, data) =>
       import data.*
       val conflictingState =
-        stateWithNodes.copy(nextId = 1L) // re-assigning from 1 collides with the existing conMnId entry
+        stateWithNodes.copy(nextMnId = 1L) // re-assigning from 1 collides with the existing conMnId entry
 
       conflictingState.withNewNodes[IO](NodeData(conNodeData), spawnNode)
         .assertThrowsError[AssertionError](_.getMessage must include("Node IDs already exist in the current state"))
@@ -98,10 +98,9 @@ class ManagerStateSpec extends UnitSpecWithIOAndTestKit:
         .asserting(_ mustBe Map.empty)
 
     "raise an error when a name maps to more than one node ID" in newCase[CaseData]: (_, data) =>
-      val duplicateNameState = State(
-        nodeRefMap = Map.empty,
+      val duplicateNameState = State.init.copy(
         nodeNameMap = Map(data.conNodeData.name.get -> Set(MnId.Con(1L), MnId.Con(2L))),
-        nextId = 3L,
+        nextMnId = 3L,
       )
 
       duplicateNameState.findByName[IO](Set(data.conNodeData.name.get))

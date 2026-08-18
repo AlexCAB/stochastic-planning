@@ -14,16 +14,16 @@ package planning.engine.planner.mpi.actors.node
 
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.node.data.Message.{AddEdgeSrc, AddEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
 final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
   def expectAddEdgeSrc: (MeRef, EdgeData) =
-    val msg = probe.expectMessageType[AddEdgeSrc]
+    val msg = probe.expectMessageType[UpsertEdgeSrc]
     (msg.ref, msg.data)
 
-  def expectAddEdgeTrg: MeRef = probe.expectMessageType[AddEdgeTrg].ref
+  def expectAddEdgeTrg: MeRef = probe.expectMessageType[UpsertEdgeTrg].ref
 
 object FakeNode:
   def apply(mnId: MnId, name: String = "")(using testKit: ActorTestKit): FakeNode =

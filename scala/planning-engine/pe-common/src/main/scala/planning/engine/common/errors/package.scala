@@ -34,7 +34,7 @@ extension (value: Long)
     predicateAssert(value > 0, msg + s", expected number to be assert positive, but got: $value")
 
 extension [L](left: L)
-  inline def assertEqual[F[_]: ApplicativeThrow, R](right: R, msg: String): F[Unit] =
+  inline def assertEquals[F[_]: ApplicativeThrow, R](right: R, msg: String): F[Unit] =
     predicateAssert(left == right, msg + s", left value: $left not equal to right value: $right")
 
 extension [L](left: IterableOnce[L])

@@ -33,7 +33,7 @@ final case class DcgEdge[F[_]: MonadThrow](
 
   def join(other: DcgEdge[F]): F[DcgEdge[F]] =
     for
-      _ <- key.assertEqual(other.key, "Can't join DcgEdges with different keys")
+      _ <- key.assertEquals(other.key, "Can't join DcgEdges with different keys")
       newSamples <- samples.join(other.samples)
     yield this.copy(samples = newSamples)
 

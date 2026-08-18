@@ -10,10 +10,10 @@
 | website: github.com/alexcab |||||
 | created: 16-Aug-26 |||||||||||*/
 
-package planning.engine.common.graph.edges
+package planning.engine.planner.mpi.common.data.edge
 
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.HnName
+import planning.engine.planner.mpi.common.data.node.NodeData
 
 // Represent manually defined sample edge between two nodes addressed by their HnName.
-final case class ManEdge(source: HnName, target: HnName, edgeType: EdgeType)
+final case class ManEdge(source: NodeData, target: NodeData, edgeType: EdgeType)

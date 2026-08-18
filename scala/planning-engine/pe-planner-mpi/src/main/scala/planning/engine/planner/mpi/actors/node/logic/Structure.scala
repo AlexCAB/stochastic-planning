@@ -14,22 +14,20 @@ package planning.engine.planner.mpi.actors.node.logic
 
 import cats.syntax.all.*
 import planning.engine.common.errors.*
-import planning.engine.planner.mpi.actors.node.data.Message.{AddEdgeSrc, AddEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
 
 private[node] trait Structure:
   self: Actor.type =>
 
-  private[node] def doAddEdgeSrc[F[_]: S](msg: AddEdgeSrc, state: St)(using d: Def, ctx: Ctx): F[St] =
+  private[node] def doUpsertEdgeSrc[F[_]: S](msg: UpsertEdgeSrc, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
-      _ <- d.self.assertEqual(msg.ref.src, "AddEdgeSrc message source does not match this actor ID")
-      newState <- state.addEdgeSrc(msg.ref, msg.data)
-      _ <- logInfo(s"[AddEdgeSrc] Added outgoing edge to ref = ${msg.ref}")
-      _ <- msg.ref.trg.addEdgeTrg[F](msg.ref)
+      newState <- state.upsertEdgeSrc(msg.ref, msg.props)
+      _ <- logInfo(s"[AddEdgeSrc] Added outgoing edge of ref = ${msg.ref}")
+      _ <- msg.ref.trgNode.upsertEdgeTrg[F](msg.ref, msg.props)
     yield newState
 
-  private[node] def doAddEdgeTrg[F[_]: S](msg: AddEdgeTrg, state: St)(using d: Def, ctx: Ctx): F[St] =
+  private[node] def doUpsertEdgeTrg[F[_]: S](msg: UpsertEdgeTrg, state: St)(using d: Def, ctx: Ctx): F[St] =
     for
-      _ <- d.self.assertEqual(msg.ref.trg, "AddEdgeTrg message target does not match this actor ID")
-      newState <- state.addEdgeTrg(msg.ref)
+      newState <- state.upsertEdgeTrg(msg.ref, msg.props)
       _ <- logInfo(s"[AddEdgeTrg] Added incoming edge from ref = ${msg.ref}")
     yield newState

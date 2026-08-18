@@ -18,7 +18,8 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.actors.node.logic.Actor
+import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
 
@@ -27,10 +28,10 @@ private[node] final case class State(
     nextHnIndex: Long,
 
     // Map of incoming edges: previous source node -> this node
-    incomingMap: Map[MnId, EdgeData],
+    incomingMap: Map[MnId, State.EdgeData],
 
     // Map of outgoing edges: this node -> next target node
-    outgoingMap: Map[MnId, EdgeData],
+    outgoingMap: Map[MnId, State.EdgeData],
 
     // Samples that include this node, along with their HnIndex and properties.
     // In more advanced implementation, sample data have to be sored in separate
@@ -41,6 +42,7 @@ private[node] final case class State(
     // In future also should come from separate sample data storage, but for now it is in Manager state.
     totalSamplesCount: Long,
 ) extends Representable:
+  import State.*
 
   // TODO: Approximate inference algorithm:
   // TODO:   1. For each outgoingMap:
@@ -48,35 +50,61 @@ private[node] final case class State(
   // TODO:     1.2. (probability, utility) = calculate based on reCalcSamples.map(_.values) and totalSamplesCount
   // TODO:   2. outgoingMap.filter(probability * utility > threshold).foreach(send InferenceMsg to next Node)
 
+  private def upsertEdgeMap[F[_]: MonadThrow](
+      edgeMap: Map[MnId, EdgeData],
+      key: MnId,
+      node: Node,
+      sampleIds: Set[SampleId],
+  ): F[Map[MnId, EdgeData]] = edgeMap.get(key) match
+    case Some(EdgeData(n, sIs)) if n == node => (edgeMap + (key -> EdgeData(n, sIs ++ sampleIds))).pure
+    case Some(EdgeData(n, _)) => s"Edge target reference mismatch: expected ${n.mnId}, got ${node.mnId}".assertionError
+    case None                 => (edgeMap + (key -> EdgeData(node, sampleIds))).pure
+
+  private def upsertSampleMap[F[_]: MonadThrow](
+      props: Map[SampleId, Sample.Props],
+  ): F[(Map[SampleId, SampleData], Long)] = props.toList.foldLeftM((sampleMap, nextHnIndex)):
+    case ((samples, nextId), (sId, p)) if samples.contains(sId) && samples(sId).props == p =>
+      (samples, nextId).pure // This sample added before, no need to update
+    case ((samples, nextId), (sId, p)) if samples.contains(sId) =>
+      s"Sample $sId already exists with different properties: ${samples(sId).props} vs $p".assertionError
+    case ((samples, nextId), (sId, p)) =>
+      (samples + (sId -> SampleData(HnIndex(nextId), p)), nextId + 1).pure // Add new sample with next HnIndex
+
   // Edge source (meRef.key.src) is this node, target is next neighbor node.
   // Update outgoingMap with new edge data.
-  def upsertEdgeSrc[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[State] = ???
-  // TODO: Validate meRef.key.src == this node's MnId, meRef.srcNode == this node
-  // TODO: If outgoingMap have meRef.key.trg, then update sampleIds. Else add new entry.
-  // TODO: For each sampleId in props:
-  // TODO:   If sampleId exists in sampleMap, then validate it have same props values.
-  // TODO:   If not exists, then create new HnIndex and add to sampleMap with props.
-
-  //
-//    def joinedData(newRef: MeRef, newData: EdgeData): F[EdgeData] = outgoingMap.get(newRef.key.trg) match
-//      case Some((trgRef, data)) if trgRef == newRef.trg => data.join(newData)
-//      case Some((trgRef, _)) => s"Edge target reference mismatch: expected $trgRef, got ${newRef.trg}".assertionError
-//      case None              => newData.pure
-//
-//    joinedData(newRef, newData).map(data => copy(outgoingMap = outgoingMap + (newRef.key.trg -> (newRef.trg, data))))
+  def upsertEdgeSrc[F[_]: MonadThrow](
+      meRef: MeRef,
+      props: Map[SampleId, Sample.Props],
+  )(using d: Actor.Def, c: Actor.Ctx): F[State] =
+    for
+      _ <- meRef.key.src.assertEquals(d.id, "Edge source does not match this node's ID")
+      _ <- meRef.srcNode.assertEquals(d.self, "Edge source node does not match this node")
+      newOutgoing <- upsertEdgeMap(outgoingMap, meRef.key.trg, meRef.trgNode, props.keySet)
+      (newSampleMap, newNextHnIndex) <- upsertSampleMap(props)
+    yield this.copy(
+      nextHnIndex = newNextHnIndex,
+      outgoingMap = newOutgoing,
+      sampleMap = newSampleMap,
+    )
 
   // Edge target (meRef.key.trg) is this node, source is previous neighbor node.
   // Update incomingMap with new edge data.
-  def upsertEdgeTrg[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[State] = ???
-  // TODO: Same as upsertEdgeSrc, but for incomingMap.
-  // TODO: Validate meRef.key.trg == this node's MnId, meRef.trgNode == this node.
+  def upsertEdgeTrg[F[_]: MonadThrow](
+      meRef: MeRef,
+      props: Map[SampleId, Sample.Props],
+  )(using d: Actor.Def, c: Actor.Ctx): F[State] =
+    for
+      _ <- meRef.key.trg.assertEquals(d.id, "Edge target does not match this node's ID")
+      _ <- meRef.trgNode.assertEquals(d.self, "Edge target node does not match this node")
+      newIncoming <- upsertEdgeMap(incomingMap, meRef.key.src, meRef.srcNode, props.keySet)
+      (newSampleMap, newNextHnIndex) <- upsertSampleMap(props)
+    yield this.copy(
+      nextHnIndex = newNextHnIndex,
+      incomingMap = newIncoming,
+      sampleMap = newSampleMap,
+    )
 
-//    incomingMap.get(newRef.key.src) match
-//    case Some(ref) if ref == newRef.src => this.pure // Edge already exists, no change needed
-//    case Some(ref) => s"Ref not match for ${newRef.key.src}: expected $ref, got ${newRef.src}".assertionError
-//    case None      => copy(incomingMap = incomingMap + (newRef.key.src -> newRef.src)).pure
-
-  def withTotalSamplesCount[F[_]: MonadThrow](count: Long): F[State] = ???
+  def withTotalSamplesCount[F[_]: MonadThrow](count: Long): F[State] = this.copy(totalSamplesCount = count).pure
 
 private[node] object State:
   final case class EdgeData(neighbor: Node, sampleIds: Set[SampleId])

@@ -23,7 +23,7 @@ private[manager] trait Nodes:
   self: Actor.type =>
   import Message.*
 
-  private def addNodes[F[_]: S](dataKit: NodeData.Kit, state: St)(using
+  protected def addNodes[F[_]: S](dataKit: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =
@@ -35,7 +35,7 @@ private[manager] trait Nodes:
       ids = nodes.map(n => n.mnId -> n.name).toMap
     yield (ids, newState)
 
-  private def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
+  protected def upsertNodesByName[F[_]: S](data: NodeData.Kit, state: St)(using
       d: Def,
       ctx: Ctx,
   ): F[(Map[MnId, Option[HnName]], St)] =

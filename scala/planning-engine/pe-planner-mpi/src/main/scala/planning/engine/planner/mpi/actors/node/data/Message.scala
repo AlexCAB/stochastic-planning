@@ -12,9 +12,11 @@
 
 package planning.engine.planner.mpi.actors.node.data
 
+import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 import planning.engine.planner.mpi.common.repr.Representable
 import planning.engine.planner.mpi.actors.ActorBase.WithSender
+import planning.engine.planner.mpi.common.data.samples.Sample
 
 private[node] sealed trait Message extends Representable
 
@@ -27,6 +29,6 @@ private[node] object Message:
   sealed trait AddEdge extends Message:
     def ref: MeRef
 
-  final case class AddEdgeSrc(ref: MeRef, data: EdgeData) extends AddEdge
+  final case class UpsertEdgeSrc(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
 
-  final case class AddEdgeTrg(ref: MeRef) extends AddEdge
+  final case class UpsertEdgeTrg(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge

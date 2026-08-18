@@ -15,20 +15,19 @@ package planning.engine.planner.mpi.actors.manager.logic
 import cats.syntax.all.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.actors.manager.data.Message
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
 
 private[manager] trait Edges:
   self: Actor.type =>
   import Message.*
 
   private[manager] def doUpsertEdges[F[_]: S](msg: UpsertEdges, state: St)(using d: Def, ctx: Ctx): F[St] =
-    def sendAddEdgeSrc(key: MeKey, data: EdgeData): F[Unit] =
+    def sendAddEdgeSrc(key: MeKey): F[Unit] =
       for
         srcRef <- state.getRef(key.src)
         trgRef <- state.getRef(key.trg)
         _ = ??? // TODO: Add check if SampleId indexies in samples collection.
         _ <- logInfo(s"[UpsertEdges] found refs for $key: srcRef = $srcRef, trgRef = $trgRef")
-        _ <- srcRef.addEdgeSrc[F](MeRef(key, srcRef, trgRef), data)
+//        _ <- srcRef.addEdgeSrc[F](MeRef(key, srcRef, trgRef), data)
       yield ()
 
     for

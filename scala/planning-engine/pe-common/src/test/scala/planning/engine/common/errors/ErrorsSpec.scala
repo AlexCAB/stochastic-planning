@@ -45,10 +45,10 @@ class ErrorsSpec extends UnitSpecIO:
 
   "assertEqual" should:
     "complete successfully when both values are equal" in: _ =>
-      42.assertEqual[IO, Int](42, "Values must be equal").assertNoException
+      42.assertEquals[IO, Int](42, "Values must be equal").assertNoException
 
     "raise an error when values are not equal" in: _ =>
-      42.assertEqual[IO, Int](43, "Values must be equal").assertThrows[AssertionError]
+      42.assertEquals[IO, Int](43, "Values must be equal").assertThrows[AssertionError]
 
   "assertDistinct" should:
     "return the same sequence if all elements are distinct" in: _ =>

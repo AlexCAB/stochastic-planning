@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager.data
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.*
-import planning.engine.common.values.node.{HnIndex, HnName, MnId}
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.node.NodeData

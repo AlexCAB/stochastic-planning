@@ -14,7 +14,7 @@ package planning.engine.planner.gsi.plan.dag.nodes
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.errors.assertEqual
+import planning.engine.common.errors.assertEquals
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
@@ -41,5 +41,5 @@ final case class DagNode[F[_]: MonadThrow](
 object DagNode:
   def apply[F[_]: MonadThrow](id: PnId, time: Option[IoTime], dcgNode: DcgNode[F]): F[DagNode[F]] =
     for
-        _ <- id.mnId.assertEqual(dcgNode.id, "MnIds must match between PnId and DcgNode")
+        _ <- id.mnId.assertEquals(dcgNode.id, "MnIds must match between PnId and DcgNode")
     yield new DagNode(id, time, dcgNode)

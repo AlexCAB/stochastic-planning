@@ -17,9 +17,9 @@ import cats.effect.Async
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.ActorSystem
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.Node
@@ -32,17 +32,23 @@ import planning.engine.planner.mpi.common.repr.Representable
 private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with ApiBase[Actor.Msg]:
   import Message.*
 
-  def addNodes[F[_]: Async](dataKit: NodeData.Kit)(using ActorSystem[?]): F[Map[MnId, Option[HnName]]] =
-    actor.askF[F, NodesAdded](ref => AddNodes(dataKit, ref)).map(_.ids)
+  def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
+    actor.askF[F, NodeAdded](ref => AddNode(data, ref)).map(_.id)
 
-  def upsertNodesByName[F[_]: Async](dataKit: NodeData.Kit)(using ActorSystem[?]): F[Map[MnId, Option[HnName]]] =
-    actor.askF[F, NodesUpserted](ref => UpsertNodesByName(dataKit, ref)).map(_.ids)
+  def addEdge[F[_]: Async](key: MeKey, data: EdgeData)(using ActorSystem[?]): F[MeKey] =
+    actor.askF[F, EdgeAdded](ref => AddEdge(key, data, ref)).map(_.key)
 
-  def upsertEdges[F[_]: Async](dataKit: EdgeData.Kit)(using ActorSystem[?]): F[Set[MeKey]] =
-    actor.askF[F, EdgesUpserted](ref => UpsertEdges(dataKit, ref)).map(_.keys)
+  def addManSamples[F[_]: Async](
+      samples: Set[Sample.Man],
+      nodes: Map[MnId.Nim, NodeData],
+  )(using ActorSystem[?]): F[Map[SampleId, Sample.Man]] =
+    actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, nodes, ref)).map(_.samples)
 
-  def addManSamples[F[_]: Async](samples: Set[Sample.Man])(using ActorSystem[?]): F[Map[SampleId, Name]] =
-    actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, ref)).map(_.ids)
+  def addGenSamples[F[_]: Async](
+      samples: Set[Sample.Gen],
+      newNodes: Map[MnId.Nim, Option[IoValue]],
+  )(using ActorSystem[?]): F[Map[SampleId, Sample.Gen]] =
+    actor.askF[F, GenSamplesAdded](ref => AddGenSamples(samples, newNodes, ref)).map(_.samples)
 
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))

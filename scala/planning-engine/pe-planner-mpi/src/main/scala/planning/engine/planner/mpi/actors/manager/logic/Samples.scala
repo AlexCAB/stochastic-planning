@@ -21,4 +21,6 @@ private[manager] trait Samples extends Nodes with Edges:
   import Message.*
   
   def doAddManSamples[F[_]: S](msg: AddManSamples, state: St)(using d: Def, ctx: Ctx): F[St] = ???
+
+  def doAddGenSamples[F[_]: S](msg: AddGenSamples, state: St)(using d: Def, ctx: Ctx): F[St] = ???
      

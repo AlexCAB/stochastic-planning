@@ -13,56 +13,126 @@
 package planning.engine.planner.mpi.actors.node.data
 
 import cats.effect.IO
+import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.mpi.actors.{TestActorBase, UnitSpecWithIOAndTestKit}
+import planning.engine.planner.mpi.actors.manager.FakeManager
+import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.node.{FakeNode, Node}
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
-import planning.engine.planner.mpi.test.data.MapEdgeTestData
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
+import planning.engine.planner.mpi.common.data.edge.MeRef
+import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.common.data.samples.Sample
+import planning.engine.planner.mpi.test.data.MapNodeTestData
 
-class NodeStateSpec extends UnitSpecWithIOAndTestKit:
-  private class CaseData extends Case with MapEdgeTestData:
-    val srcMnId = MnId.Con(1)
-    val trcMnId = MnId.Abs(2)
+import java.util.concurrent.atomic.AtomicInteger
 
-    val srcRef: Node = FakeNode(srcMnId, "srcRef").api
-    val trgRef: Node = FakeNode(trcMnId, "trgRef").api
+// State.upsertEdgeSrc/upsertEdgeTrg require a live Actor.Def/Actor.Ctx (to resolve `self`), so they can only
+// be exercised through a real, spawned Node actor rather than by calling State methods directly.
+class NodeStateSpec extends UnitSpecWithIOAndTestKit with TestActorBase:
 
-    val meRef = MeRef(MeKey.Link(srcMnId, trcMnId), srcRef, trgRef)
-    val outgoing: Map[MnId, (Node, EdgeData)] = Map(trcMnId -> (trgRef, edgeData1))
-    val incoming: Map[MnId, Node] = Map(srcMnId -> srcRef)
+  TODO: Refacore
 
-    lazy val emptyState: State = State.init
-    lazy val filledState: State = State(outgoing, incoming)
 
-  "State.addEdgeSrc(...)" should:
-    "add edges to outgoing list if this empty" in newCase[CaseData]: (_, data) =>
+  private val nameCounter = new AtomicInteger(1)
+
+  private class CaseData extends Case with MapNodeTestData:
+    val srcMnId: MnId.Con = MnId.Con(1)
+    val trgMnId: MnId.Abs = MnId.Abs(2)
+    val linkKey: MeKey = MeKey.Link(srcMnId, trgMnId)
+
+    val fakeManager: FakeManager = FakeManager()
+    val fakeVisualizer: FakeVisualizer = FakeVisualizer()
+
+    private def spawnNode(id: MnId, data: NodeData): Node = Node
+      .spawn[IO](id, data, fakeManager.api, fakeVisualizer.api,
+        (bh, n) => testKit.spawn(bh, s"$n-${nameCounter.getAndIncrement()}"))
+      .unsafeRunSync()
+
+    val srcNode: Node = spawnNode(srcMnId, conNodeData)
+    val trgNode: Node = spawnNode(trgMnId, absNodeData)
+
+    val srcFake: FakeNode = FakeNode(srcMnId, conNodeData.name)
+    val trgFake: FakeNode = FakeNode(trgMnId, absNodeData.name)
+
+    val meRefSrc: MeRef = MeRef(linkKey, srcNode, trgFake.api) // Real srcNode, fake target, for upsertEdgeSrc
+    val meRefTrg: MeRef = MeRef(linkKey, srcFake.api, trgNode) // Fake source, real trgNode, for upsertEdgeTrg
+
+    val props1: Map[SampleId, Sample.Props] = Map(
+      SampleId(1) -> Sample.Props(1L, 1.0),
+      SampleId(2) -> Sample.Props(1L, 1.0),
+      SampleId(3) -> Sample.Props(1L, 1.0),
+    )
+
+    val props2: Map[SampleId, Sample.Props] = Map(
+      SampleId(4) -> Sample.Props(1L, 1.0),
+      SampleId(5) -> Sample.Props(1L, 1.0),
+    )
+
+    private def actorRef(node: Node): ActorRef[Actor.Msg] = node match
+      case ApiImpl(_, _, ref) => ref
+
+    def srcState: State = getActorState[State](actorRef(srcNode))
+    def trgState: State = getActorState[State](actorRef(trgNode))
+
+  "State.upsertEdgeSrc(...)" should:
+    "add edge to outgoing map and sample map when empty" in newCase[CaseData]: (_, data) =>
       import data.*
+      srcNode.upsertEdgeSrc[IO](meRefSrc, props1)
+        .asserting: _ =>
+          trgFake.expectUpsertEdgeTrg mustBe (meRefSrc, props1)
+          srcState.outgoingMap mustBe Map(trgMnId -> State.EdgeData(trgFake.api, props1.keySet))
+          srcState.sampleMap.keySet mustBe props1.keySet
+          srcState.nextHnIndex mustBe 4L
 
-      emptyState.addEdgeSrc[IO](meRef, edgeData1)
-        .asserting(_.outgoingMap mustBe Map(trcMnId -> (trgRef, edgeData1)))
-
-    "join edge data when edge to same target already exists" in newCase[CaseData]: (_, data) =>
+    "join sample IDs when edge to same target already exists" in newCase[CaseData]: (_, data) =>
       import data.*
+      (for
+        _ <- srcNode.upsertEdgeSrc[IO](meRefSrc, props1)
+        _ = trgFake.expectUpsertEdgeTrg
+        _ <- srcNode.upsertEdgeSrc[IO](meRefSrc, props2)
+      yield ())
+        .asserting: _ =>
+          trgFake.expectUpsertEdgeTrg mustBe (meRefSrc, props2)
+          val allSampleIds = props1.keySet ++ props2.keySet
+          srcState.outgoingMap mustBe Map(trgMnId -> State.EdgeData(trgFake.api, allSampleIds))
+          srcState.sampleMap.keySet mustBe allSampleIds
+          srcState.nextHnIndex mustBe 6L
 
-      filledState.addEdgeSrc[IO](meRef, edgeData2)
-        .asserting(_.outgoingMap mustBe Map(trcMnId -> (trgRef, EdgeData(edgeData1.indexies ++ edgeData2.indexies))))
-
-    "fail when target ref does not match existing outgoing entry" in newCase[CaseData]: (_, data) =>
+    "report an error to the manager when edge source does not match this actor" in newCase[CaseData]: (_, data) =>
       import data.*
-      val meRef = MeRef(MeKey.Link(srcMnId, trcMnId), srcRef, srcRef) // srcRef != trgRef stored in state
-      filledState.addEdgeSrc[IO](meRef, edgeData2).assertThrows[AssertionError]
+      val badMeRef = MeRef(linkKey, trgFake.api, trgFake.api) // srcNode field should be srcNode, not trgFake
+      srcNode.upsertEdgeSrc[IO](badMeRef, props1)
+        .asserting: _ =>
+          val (source, err) = fakeManager.expectReportedError
+          source mustBe srcNode
+          err.getMessage must include("Edge source node does not match this node")
 
-  "State.addEdgeTrg(...)" should:
-    "add edge to incoming list" in newCase[CaseData]: (_, data) =>
+  "State.upsertEdgeTrg(...)" should:
+    "add edge to incoming map and sample map when empty" in newCase[CaseData]: (_, data) =>
       import data.*
-      emptyState.addEdgeTrg[IO](meRef).asserting(_.incomingMap mustBe Map(srcMnId -> srcRef))
+      trgNode.upsertEdgeTrg[IO](meRefTrg, props1)
+        .asserting: _ =>
+          trgState.incomingMap mustBe Map(srcMnId -> State.EdgeData(srcFake.api, props1.keySet))
+          trgState.sampleMap.keySet mustBe props1.keySet
+          trgState.nextHnIndex mustBe 4L
 
-    "return unchanged state when same edge already exists" in newCase[CaseData]: (_, data) =>
+    "leave state unchanged when the same edge and samples are upserted again" in newCase[CaseData]: (_, data) =>
       import data.*
-      filledState.addEdgeTrg[IO](meRef).asserting(_ mustBe filledState)
+      for
+        _ <- trgNode.upsertEdgeTrg[IO](meRefTrg, props1)
+        filled <- IO.delay(trgState)
+        _ <- trgNode.upsertEdgeTrg[IO](meRefTrg, props1)
+        result <- IO.delay(trgState)
+      yield result mustBe filled
 
-    "fail when incoming ref does not match" in newCase[CaseData]: (_, data) =>
+    "report an error to the manager when edge target does not match this actor" in newCase[CaseData]: (_, data) =>
       import data.*
-      val meRef = MeRef(MeKey.Link(srcMnId, trcMnId), trgRef, trgRef)
-      filledState.addEdgeTrg[IO](meRef).assertThrows[AssertionError]
+      val badMeRef = MeRef(linkKey, srcFake.api, srcFake.api) // trgNode field should be trgNode, not srcFake
+      trgNode.upsertEdgeTrg[IO](badMeRef, props1)
+        .asserting: _ =>
+          val (source, err) = fakeManager.expectReportedError
+          source mustBe trgNode
+          err.getMessage must include("Edge target node does not match this node")

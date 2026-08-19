@@ -18,7 +18,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Message
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.samples.Sample
 
 private[node] final case class ApiImpl(mnId: MnId, name: Option[HnName], actor: Actor.Ref)

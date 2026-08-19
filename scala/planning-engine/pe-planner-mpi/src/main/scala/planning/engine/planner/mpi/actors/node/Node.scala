@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 

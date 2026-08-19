@@ -14,9 +14,9 @@ package planning.engine.planner.mpi.actors.manager.data
 
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.ActorBase.WithSender
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.edge.EdgeData
@@ -32,21 +32,27 @@ private[manager] object Message:
   sealed trait Command[R] extends Message with WithSender[R]
   sealed trait Result
 
-  final case class AddNodes(data: NodeData.Kit, sender: ActorRef[NodesAdded]) extends Command[NodesAdded]
-  final case class NodesAdded(ids: Map[MnId, Option[HnName]]) extends Result
+  final case class AddNode(data: NodeData, sender: ActorRef[NodeAdded]) extends Command[NodeAdded]
+  final case class NodeAdded(id: MnId) extends Result
 
-  final case class UpsertNodesByName(data: NodeData.Kit, sender: ActorRef[NodesUpserted]) extends Command[NodesUpserted]
-  final case class NodesUpserted(ids: Map[MnId, Option[HnName]]) extends Result
-
-  final case class UpsertEdges(data: EdgeData.Kit, sender: ActorRef[EdgesUpserted]) extends Command[EdgesUpserted]
-  final case class EdgesUpserted(keys: Set[MeKey]) extends Result
+  final case class AddEdge(key: MeKey, data: EdgeData, sender: ActorRef[EdgeAdded]) extends Command[EdgeAdded]
+  final case class EdgeAdded(key: MeKey) extends Result
 
   final case class AddManSamples(
       samples: Set[Sample.Man],
+      nodes: Map[MnId.Nim, NodeData],
       sender: ActorRef[ManSamplesAdded],
   ) extends Command[ManSamplesAdded]
 
-  final case class ManSamplesAdded(ids: Map[SampleId, Name]) extends Result
+  final case class ManSamplesAdded(samples: Map[SampleId, Sample.Man]) extends Result
+
+  final case class AddGenSamples(
+      samples: Set[Sample.Gen],
+      newNodes: Map[MnId.Nim, Option[IoValue]],
+      sender: ActorRef[GenSamplesAdded],
+  ) extends Command[GenSamplesAdded]
+
+  final case class GenSamplesAdded(samples: Map[SampleId, Sample.Gen]) extends Result
 
   // Sent from NodeActor to ManagerActor in case of any error.
   final case class NodeActorError(nodeRef: Node, msg: Option[Representable], err: Throwable) extends Message

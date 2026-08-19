@@ -85,12 +85,20 @@
 
 ❯ In `VisualizerStructureSpec` tests add  state validation, similar to `ManagerNodesSpec` tests. 
 
+❯ Consider new API definition  in `planning.engine.planner.mpi.actors.manager.Manager` trait. Update `planning.engine.planner.mpi.actors.manager.logic.ApiImpl` and  `planning.engine.planner.mpi.actors.manager.data.Message` regard new  new API definition. Do not compile.
 
+❯ Consider new messages in `planning.engine.planner.mpi.actors.manager.data.Message`. In `planning.engine.planner.mpi.actors.manager.logic` add new handlers of this messages without implementation (use ??? operator) . Do not remove old handlers and do not compile.
 
+❯ Consider new messages in `planning.engine.planner.mpi.actors.manager.data.Message`. In `planning.engine.planner.mpi.actors.manager.logic.Actor` update  `receive` function. Do not compile.
+
+❯ Refactor `FakeNode` and `NodeStateSpec` regard updated `planning.engine.planner.mpi.actors.node.data.State`
+
+❯ Refactor `NodeStateSpec` regard updated `planning.engine.planner.mpi.actors.node.data.State`
 
 ##### TODO: 
-1. Integration with REST API (test with loading script)
-2. Implement graph representation (using colored text)
+1. Split state of nodes on Struct and Plan
+2. Integration with REST API (test with loading script)
+3. Implement graph representation (using colored text)
 
 
 

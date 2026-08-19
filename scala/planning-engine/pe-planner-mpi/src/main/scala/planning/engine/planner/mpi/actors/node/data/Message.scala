@@ -13,7 +13,7 @@
 package planning.engine.planner.mpi.actors.node.data
 
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.common.data.edge.{EdgeData, MeRef}
+import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.repr.Representable
 import planning.engine.planner.mpi.actors.ActorBase.WithSender
 import planning.engine.planner.mpi.common.data.samples.Sample

@@ -66,7 +66,9 @@ trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampl
       .addNodes(
         mnIds.map:
           case id: MnId.Con => makeConDcgNode(id)
-          case id: MnId.Abs => makeAbsDcgNode(id),
+          case id: MnId.Abs => makeAbsDcgNode(id)
+          case id => throw new IllegalArgumentException(s"Unsupported MnId type: $id"),
+        
       ).unsafeRunSync()
 
     def addTestDcgSample(sample: DcgSample[IO]): DcGraph[IO] = graph

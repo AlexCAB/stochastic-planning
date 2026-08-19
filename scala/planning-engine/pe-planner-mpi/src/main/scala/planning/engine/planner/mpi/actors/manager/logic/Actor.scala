@@ -37,12 +37,12 @@ private[manager] object Actor extends ActorBase with Nodes with Edges with Sampl
   override protected def setup(s: St)(using d: Def, ctx: Ctx): Unit = ctx.setLoggerName(name)
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
-    case msg: AddNodes          => doAddNodes(msg, state)
-    case msg: UpsertNodesByName => doUpsertNodesByName(msg, state)
-    case msg: UpsertEdges       => doUpsertEdges(msg, state)
-    case msg: AddManSamples     => doAddManSamples(msg, state)
-    case msg: NodeActorError    => doHandleNodeError(msg, state)
-    case msg: GetState[St]      => doGetState(msg, state)
+    case msg: AddNode        => doAddNode(msg, state)
+    case msg: AddEdge        => doAddEdge(msg, state)
+    case msg: AddManSamples  => doAddManSamples(msg, state)
+    case msg: AddGenSamples  => doAddGenSamples(msg, state)
+    case msg: NodeActorError => doHandleNodeError(msg, state)
+    case msg: GetState[St]   => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
     doHandleManagerError(msg, state, err)

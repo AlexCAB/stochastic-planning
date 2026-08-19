@@ -34,7 +34,8 @@ trait DaGraphTestData extends DcgNodeTestData with DcgEdgeTestData:
     time = time,
     dcgNode = id.mnId match
       case mnId: MnId.Con => makeConDcgNode(id = mnId.value, name = name)
-      case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name),
+      case mnId: MnId.Abs => makeAbsDcgNode(id = mnId.value, name = name)
+      case mnId => throw new IllegalArgumentException(s"Cannot create DagNode for: $mnId"),
   )
 
   lazy val pnId1 = makeConPnId(mnId1, count = 1)

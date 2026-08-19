@@ -13,7 +13,6 @@
 package planning.engine.planner.mpi.actors.node.logic
 
 import cats.syntax.all.*
-import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
 
 private[node] trait Structure:

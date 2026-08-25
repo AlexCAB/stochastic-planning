@@ -101,9 +101,15 @@
 
 ❯ Write tests in `NodeStateSpec` for new implementation of `planning.engine.planner.mpi.actors.node.data.State`, without live actor.
 
-❯ Implement `doAddManSamples` method, it should:
+❯ To implement `doAddManSamples` method, it should:
 1. Validate if all `MnId` used in `msg.samples` are in `msg.nodes` also.
-2. With `upsertNodesByName` to create of find nodes from `msg.samples` and get it 
+2. With `upsertNodesByName` to create of find nodes from `msg.samples` and get they `MnId`'s.
+3. With `manager.data.State.withNewSamples` to add samples from `msg.samples` to manager state and get they `SampleId`'s.
+4. For each `MeKey` in each `Sample.Man.edges` for each sample in `msg.samples` to replace `Nim` with the corresponding `MnId` got from `upsertNodesByName`.
+5. Take all `MeKey` from each `Sample.Man.edges` in `msg.samples` an group them by `MeKey`, so result collection will nave type `Map[MeKey, Set[SampleId]]`.
+6. For each element from collection above to add edge using `upsertEdge` method. 
+7. Report to the sender with `ManSamplesAdded` message. 
+
 
 
 

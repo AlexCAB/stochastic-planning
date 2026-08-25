@@ -45,7 +45,7 @@ trait Manager:
   def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId])(using ActorSystem[?]): F[MeKey]
 
   // Add manually defined samples command:
-  // - Lookup nodes from `nodes` field by name, create new if not found 
+  // - Lookup nodes from `nodes` field by name, create new if not found
   //   or name undefined (replacing MnId.Nim ID with Abs or Con).
   // - Create new SampleId for each sample.
   // - Add or update map edges for each sample (using Node.upsertEdgeSrc, where HnIndex created in each node).

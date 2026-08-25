@@ -14,19 +14,19 @@ package planning.engine.common.graph.edges
 
 import cats.MonadThrow
 import cats.syntax.all.*
-
+import planning.engine.common.errors.*
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnId, MnId}
 import planning.engine.common.values.node.MnId.{Con, Abs}
 
 sealed trait MeKey:
+  import MnId.Nim
+  
   def src: MnId
   def trg: MnId
 
   def srcEnd: MeKey.End
   def trgEnd: MeKey.End
-
-  def asKey: MeKey = this
 
   lazy val mnIds: Set[MnId] = Set(src, trg)
 
@@ -42,9 +42,27 @@ sealed trait MeKey:
     case _: MeKey.Then => "-then->"
 
   lazy val repr: String = s"${src.reprNode}$reprArrow${trg.reprNode}"
+  
   override def toString: String = repr
+  def asKey: MeKey = this
+  
+  def resolve[F[_]: MonadThrow](idsMap: Map[Nim, MnId]): F[MeKey]
+  
+  protected def resolveId[F[_]: MonadThrow](id: MnId, idsMap: Map[Nim, MnId]): F[MnId] = id match
+    case nim: Nim => idsMap.get(nim) match
+      case Some(mnId) => mnId.pure
+      case None       => s"MnId for $nim not found in $idsMap".assertionError
+    case other => other.pure
+
+  protected def resolveKey[F[_]: MonadThrow, K](idsMap: Map[Nim, MnId], make: (MnId, MnId) => K): F[K] =
+    for
+      resSrc <- resolveId(src, idsMap)
+      resTrg <- resolveId(trg, idsMap)
+    yield make(resSrc, resTrg)
 
 object MeKey:
+  import MnId.Nim
+  
   sealed trait End:
     def id: MnId
     def asSrcKey(src: MnId): MeKey
@@ -58,6 +76,8 @@ object MeKey:
     lazy val srcEnd: Link.End = Link.End(src)
     lazy val trgEnd: Link.End = Link.End(trg)
 
+    override def resolve[F[_]: MonadThrow](idsMap: Map[Nim, MnId]): F[MeKey] = resolveKey(idsMap, Link.apply)
+
   object Link:
     final case class End(id: MnId) extends MeKey.End:
       def asSrcKey(src: MnId): Link = Link(src, id)
@@ -66,6 +86,8 @@ object MeKey:
   final case class Then(src: MnId, trg: MnId) extends MeKey:
     lazy val srcEnd: Then.End = Then.End(src)
     lazy val trgEnd: Then.End = Then.End(trg)
+
+    override def resolve[F[_]: MonadThrow](idsMap: Map[Nim, MnId]): F[MeKey] = resolveKey(idsMap, Then.apply)
 
   object Then:
     final case class End(id: MnId) extends MeKey.End:

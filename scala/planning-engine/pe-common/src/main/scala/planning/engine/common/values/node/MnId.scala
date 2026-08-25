@@ -39,7 +39,7 @@ object MnId:
   final case class Con(value: Long) extends AnyVal with MnId
   final case class Abs(value: Long) extends AnyVal with MnId
   final case class Nim(value: Long) extends AnyVal with MnId
-  
+
   object Nim:
     val zero: Nim = Nim(0L) // Used as placeholder.
 

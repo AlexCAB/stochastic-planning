@@ -66,28 +66,29 @@ private[manager] final case class State(
       _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
     yield (nodes.toMap, updateState(nodes.map(_._2)))
 
-  def withNewSamples[F[_]: MonadThrow](
-      data: List[SampleData],
-  ): F[(List[SampleId], State)] =
+  def withNewManSamples[F[_]: MonadThrow](
+    samples: Set[Sample.Man],
+  ): F[(Map[SampleId, Sample.Man], State)] =
     def updateState(samples: Map[SampleId, SampleData]): State = this.copy(
       sampleDataMap = sampleDataMap ++ samples,
       nextSampleId = nextSampleId + samples.size,
     )
 
     for
-      samples <- data.zipWithIndex.map((d, i) => SampleId(nextSampleId + i) -> d).toMap.pure
-      _ <- sampleDataMap.keySet.assertContainsNoneOf(samples.keySet, "Sample IDs already exist in the current state")
-    yield (samples.keys.toList, updateState(samples))
+      withIds <- samples.zipWithIndex.map((d, i) => SampleId(nextSampleId + i) -> d).toMap.pure
+      _ <- sampleDataMap.keySet.assertContainsNoneOf(withIds.keySet, "Sample IDs already exist in the current state")
+      withData = withIds.map((id, sample) => id -> SampleData(sample.props, Some(sample.info)))
+    yield (withIds, updateState(withData))
 
   def getNode[F[_]: MonadThrow](id: MnId): F[Node] = nodeRefMap.get(id) match
     case Some(node) => node.pure
     case None       => s"Node ID $id not found in state".assertionError
 
   def getSamples[F[_]: MonadThrow](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
-    for 
-      _ <- sampleDataMap.keySet.assertContainsAllOf(ids, "Some sample IDs not found in state")
+    for
+        _ <- sampleDataMap.keySet.assertContainsAllOf(ids, "Some sample IDs not found in state")
     yield sampleDataMap.view.filterKeys(ids.contains).toMap
-  
+
   def findByName[F[_]: MonadThrow](name: HnName): F[Option[Node]] = nodeNameMap.get(name) match
     case Some(ids) if ids.size == 1 => getNode(ids.head).map(Some(_))
     case Some(ids) => s"Expected exactly one node ID for name '$name', got: ${ids.mkString(", ")}".assertionError

@@ -94,7 +94,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
       async[IO]:
         val badMeRef =
           MeRef(linkKey, srcNodeFake.api, srcNodeFake.api) // trgNode field should be trgNode, not srcNodeFake
-          
+
         trgNode.api.upsertEdgeTrg[IO](badMeRef, props1).await
 
         val (source, err) = fakeManager.expectReportedError

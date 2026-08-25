@@ -24,7 +24,6 @@ import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.manager.data.Message
-import planning.engine.planner.mpi.common.data.edge.EdgeData
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
@@ -35,8 +34,8 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with
   def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
     actor.askF[F, NodeAdded](ref => AddNode(data, ref)).map(_.id)
 
-  def addEdge[F[_]: Async](key: MeKey, data: EdgeData)(using ActorSystem[?]): F[MeKey] =
-    actor.askF[F, EdgeAdded](ref => AddEdge(key, data, ref)).map(_.key)
+  def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId])(using ActorSystem[?]): F[MeKey] =
+    actor.askF[F, EdgeAdded](ref => AddEdge(key, sampleIds, ref)).map(_.key)
 
   def addManSamples[F[_]: Async](
       samples: Set[Sample.Man],

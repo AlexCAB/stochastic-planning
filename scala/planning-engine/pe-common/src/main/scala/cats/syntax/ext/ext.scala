@@ -1,3 +1,5 @@
+package cats.syntax
+
 /*|||||||||||||||||||||||||||||||||
 || 0 * * * * * * * * * ▲ * * * * ||
 || * ||||||||||| * ||||||||||| * ||
@@ -8,14 +10,16 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 14.08.2026 |||||||||||*/
+| created: 24-Aug-26 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer
 
-import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import cats.Monad
+import cats.syntax.all.*
 
-trait WithTestVisualizer:
-  self: UnitSpecWithIOAndTestKit =>
+package object ext:
 
-  trait WithVisualizer:
-    lazy val visualizer: TestVisualizer = TestVisualizer("test-visualizer")
+  extension [E](it: Iterable[E])
+    inline def foldU[F[_]: Monad, R](r: R)(f: (R, E) => F[R]): F[R] =
+      it.foldLeft(r.pure[F])((acc, e) => acc.flatMap(f(_, e)))
+
+  

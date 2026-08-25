@@ -15,10 +15,11 @@ package planning.engine.planner.mpi.actors.manager.data
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.errors.*
+import planning.engine.common.values.node.MnId.Nim
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-//import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
 
@@ -39,38 +40,58 @@ private[manager] final case class State(
     // In simple implementation it is in Manager state, but in future there should be some separate storage for it.
     sampleDataMap: Map[SampleId, State.SampleData],
 ) extends Representable:
+  import State.*
 
-//  def withNewNodes[F[_]: MonadThrow](
-//      dataKit: NodeData.Kit,
-//      spawn: (Long, NodeData) => F[Node],
-//  ): F[(List[Node], State)] =
-//    def extractNames(nodes: List[Node]): Map[HnName, Set[MnId]] = nodes
-//      .collect { case n if n.name.isDefined => n.name.get -> n.mnId }
-//      .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
-//
-//    def updateState(nodes: List[Node]): State = this.copy(
-//      nodeRefMap = nodeRefMap ++ nodes.map(n => n.mnId -> n),
-//      nodeNameMap = nodeNameMap ++ extractNames(nodes),
-//      nextMnId = nextMnId + nodes.size,
-//    )
-//
-//    for
-//      nodes <- dataKit.nodes.zipWithIndex.traverse((nd, i) => spawn(nextMnId + i, nd))
-//      mnIds = nodes.map(_.mnId)
-//      _ <- mnIds.assertDistinct("Duplicate node IDs in new nodes")
-//      _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
-//    yield (nodes, updateState(nodes))
-//
-//  def findByName[F[_]: MonadThrow](names: Set[HnName]): F[Map[MnId, HnName]] =
-//    for
-//      found <- nodeNameMap.filter((name, ids) => names.contains(name)).pure
-//      _ <- found.toList.traverse((n, ids) => ids.assertOneElement(s"Expected exactly one node ID for name '$n'"))
-//      _ <- found.flatMap((_, ids) => ids.toList).assertDistinct("Found duplicate node IDs for names")
-//    yield found.map((n, ids) => ids.head -> n)
+  def withNewNodes[F[_]: MonadThrow](
+      data: Map[Nim, NodeData],
+      spawn: (Long, NodeData) => F[Node],
+  ): F[(Map[Nim, Node], State)] =
+    def spawnAllNode: F[List[(Nim, Node)]] =
+      data.zipWithIndex.toList.traverse((e, i) => spawn(nextMnId + i, e._2).map(n => e._1 -> n))
 
-  def getRef[F[_]: MonadThrow](mnId: MnId): F[Node] = nodeRefMap.get(mnId) match
-    case Some(ref) => ref.pure
-    case None      => s"Node ID $mnId not found in state".assertionError
+    def extractNames(nodes: List[Node]): Map[HnName, Set[MnId]] = nodes
+      .collect { case n if n.name.isDefined => n.name.get -> n.mnId }
+      .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
+
+    def updateState(nodes: List[Node]): State = this.copy(
+      nodeRefMap = nodeRefMap ++ nodes.map(n => n.mnId -> n),
+      nodeNameMap = nodeNameMap ++ extractNames(nodes),
+      nextMnId = nextMnId + nodes.size,
+    )
+
+    for
+      nodes <- spawnAllNode
+      mnIds = nodes.map(_._2.mnId)
+      _ <- mnIds.assertDistinct("Duplicate node IDs in new nodes")
+      _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
+    yield (nodes.toMap, updateState(nodes.map(_._2)))
+
+  def withNewSamples[F[_]: MonadThrow](
+      data: List[SampleData],
+  ): F[(List[SampleId], State)] =
+    def updateState(samples: Map[SampleId, SampleData]): State = this.copy(
+      sampleDataMap = sampleDataMap ++ samples,
+      nextSampleId = nextSampleId + samples.size,
+    )
+
+    for
+      samples <- data.zipWithIndex.map((d, i) => SampleId(nextSampleId + i) -> d).toMap.pure
+      _ <- sampleDataMap.keySet.assertContainsNoneOf(samples.keySet, "Sample IDs already exist in the current state")
+    yield (samples.keys.toList, updateState(samples))
+
+  def getNode[F[_]: MonadThrow](id: MnId): F[Node] = nodeRefMap.get(id) match
+    case Some(node) => node.pure
+    case None       => s"Node ID $id not found in state".assertionError
+
+  def getSamples[F[_]: MonadThrow](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
+    for 
+      _ <- sampleDataMap.keySet.assertContainsAllOf(ids, "Some sample IDs not found in state")
+    yield sampleDataMap.view.filterKeys(ids.contains).toMap
+  
+  def findByName[F[_]: MonadThrow](name: HnName): F[Option[Node]] = nodeNameMap.get(name) match
+    case Some(ids) if ids.size == 1 => getNode(ids.head).map(Some(_))
+    case Some(ids) => s"Expected exactly one node ID for name '$name', got: ${ids.mkString(", ")}".assertionError
+    case None      => None.pure
 
 private[manager] object State:
   final case class SampleData(props: Sample.Props, info: Option[Sample.Info])

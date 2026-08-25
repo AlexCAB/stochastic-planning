@@ -72,6 +72,6 @@
 //      case ApiImpl(ref) => ref
 //
 //    def state(using testKit: ActorTestKit): State = getActorState[State](ref)
-//    
+//
 //    // Allow access to the state from outside `mpi.actors.manager` package.
 //    def stateTyped(using testKit: ActorTestKit): ManagerState = Tuple.fromProductTyped(state)

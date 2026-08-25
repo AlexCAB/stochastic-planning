@@ -53,7 +53,7 @@
 //      async[IO]:
 //        val srcId = managerTwoNode.srcMnId
 //        val trgId = managerTwoNode.trgMnId
-//        
+//
 //        val linkKey = MeKey.Link(srcId, trgId)
 //        val thenKey = MeKey.Then(srcId, trgId)
 //        val edgeData = EdgeData.Kit(Map(linkKey -> edgeData1, thenKey -> edgeData2))

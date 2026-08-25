@@ -12,29 +12,32 @@
 
 package planning.engine.planner.mpi.actors.manager.logic
 
-//import cats.syntax.all.*
-//import planning.engine.common.graph.edges.MeKey
+import cats.syntax.all.*
+import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.data.Message
+import planning.engine.planner.mpi.common.data.edge.MeRef
 
 private[manager] trait Edges:
   self: Actor.type =>
   import Message.*
 
-//  private[manager] def doUpsertEdges[F[_]: S](msg: UpsertEdges, state: St)(using d: Def, ctx: Ctx): F[St] =
-//    def sendAddEdgeSrc(key: MeKey): F[Unit] =
-//      for
-//        srcRef <- state.getRef(key.src)
-//        trgRef <- state.getRef(key.trg)
-//        _ = ??? // TODO: Add check if SampleId indexies in samples collection.
-//        _ <- logInfo(s"[UpsertEdges] found refs for $key: srcRef = $srcRef, trgRef = $trgRef")
-////        _ <- srcRef.addEdgeSrc[F](MeRef(key, srcRef, trgRef), data)
-//      yield ()
-//
-//    for
-//      _ <- msg.data.edges.toList.traverse(sendAddEdgeSrc)
-//      _ <- logInfo(s"[UpsertEdges] Upserted ${msg.data.edges.size} edges.")
-//      _ <- d.visualizer.edgesAdded[F](msg.data.edges.keySet)
-//      _ <- msg.reply(EdgesUpserted(msg.data.edges.keySet))
-//    yield state
+  protected def upsertEdge[F[_]: S](
+      key: MeKey,
+      sampleIds: Set[SampleId],
+      state: St,
+  )(using d: Def, ctx: Ctx): F[MeKey] =
+    for
+      srcNode <- state.getNode(key.src)
+      trgNode <- state.getNode(key.trg)
+      samples <- state.getSamples(sampleIds)
+      _ <- srcNode.upsertEdgeSrc(MeRef(key, srcNode, trgNode), samples.view.mapValues(_.props).toMap)
+    yield key
 
-  private[manager] def doAddEdge[F[_]: S](msg: AddEdge, state: St)(using d: Def, ctx: Ctx): F[St] = ???
+  private[manager] def doAddEdge[F[_]: S](msg: AddEdge, state: St)(using d: Def, ctx: Ctx): F[St] =
+    for
+      _ <- upsertEdge(msg.key, msg.sampleIds, state)
+      _ <- logInfo(s"[AddEdge] Added edge ${msg.key}")
+      _ <- d.visualizer.edgesAdded[F](Set(msg.key))
+      _ <- msg.reply(EdgeAdded(msg.key))
+    yield state

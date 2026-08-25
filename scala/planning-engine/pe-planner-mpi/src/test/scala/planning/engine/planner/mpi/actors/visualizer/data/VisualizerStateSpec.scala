@@ -14,11 +14,11 @@ package planning.engine.planner.mpi.actors.visualizer.data
 
 import cats.effect.IO
 import cats.effect.cps.*
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 
-class VisualizerStateSpec extends UnitSpecWithIOAndTestKit:
+class VisualizerStateSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     val conId1: MnId.Con = MnId.Con(1L)
     val conId2: MnId.Con = MnId.Con(3L)

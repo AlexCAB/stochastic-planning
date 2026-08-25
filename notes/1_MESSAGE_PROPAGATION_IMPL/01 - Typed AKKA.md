@@ -95,6 +95,19 @@
 
 ❯ Refactor `NodeStateSpec` regard updated `planning.engine.planner.mpi.actors.node.data.State`
 
+❯ Refactor rest tests in `NodeStateSpec` so they will be similar to `"add edge to outgoing map and sample map when empty"` test
+
+❯ Refactor tests in `NodeStateSpec` so they will be similar to `"add edge to outgoing map and sample map when empty"` test
+
+❯ Write tests in `NodeStateSpec` for new implementation of `planning.engine.planner.mpi.actors.node.data.State`, without live actor.
+
+❯ Implement `doAddManSamples` method, it should:
+1. Validate if all `MnId` used in `msg.samples` are in `msg.nodes` also.
+2. With `upsertNodesByName` to create of find nodes from `msg.samples` and get it 
+
+
+
+
 ##### TODO: 
 1. Split state of nodes on Struct and Plan
 2. Integration with REST API (test with loading script)
@@ -117,6 +130,7 @@ def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = t
 
 
 
+unorderedTraverse
 
 
 
@@ -156,6 +170,11 @@ def withNewNodes[F[_]: MonadThrow](
 
 
 ```
+
+
+
+
+
 
 
 

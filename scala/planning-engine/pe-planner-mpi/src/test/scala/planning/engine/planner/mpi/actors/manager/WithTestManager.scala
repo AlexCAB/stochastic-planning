@@ -19,10 +19,10 @@
 //
 //trait WithTestManager:
 //  self: UnitSpecWithIOAndTestKit =>
-//  
+//
 //  trait WithManager extends MapNodeTestData:
 //    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
-//    
+//
 //    lazy val managerEmpty: TestManager = TestManager("managerEmpty", fakeVisualizer)
 //
 //    lazy val managerOneConNode: TestManager = TestManager("managerOneConNode", fakeVisualizer)

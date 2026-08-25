@@ -1,8 +1,9 @@
 {
-  "textFontFamily": "JetBrains Mono",
-  "baseFontSize": 14,
+  "textFontFamily": "Consolas",
+  "baseFontSize": 16,
   "enabledCssSnippets": [
     "obsidian "
   ],
-  "interfaceFontFamily": ""
+  "interfaceFontFamily": "",
+  "monospaceFontFamily": "Cascadia Mono"
 }

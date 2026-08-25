@@ -19,7 +19,6 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ActorBase.WithSender
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.edge.EdgeData
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
@@ -35,7 +34,7 @@ private[manager] object Message:
   final case class AddNode(data: NodeData, sender: ActorRef[NodeAdded]) extends Command[NodeAdded]
   final case class NodeAdded(id: MnId) extends Result
 
-  final case class AddEdge(key: MeKey, data: EdgeData, sender: ActorRef[EdgeAdded]) extends Command[EdgeAdded]
+  final case class AddEdge(key: MeKey, sampleIds: Set[SampleId], sender: ActorRef[EdgeAdded]) extends Command[EdgeAdded]
   final case class EdgeAdded(key: MeKey) extends Result
 
   final case class AddManSamples(

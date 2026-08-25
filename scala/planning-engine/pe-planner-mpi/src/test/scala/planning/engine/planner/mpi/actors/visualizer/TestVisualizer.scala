@@ -26,7 +26,7 @@ import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
 
 final case class TestVisualizer(api: Visualizer):
   import TestVisualizer.*
-  
+
   def ref: ActorRef[Visualizer.Msg] = api.ref
   def state(using testKit: ActorTestKit): State = api.state
   def stateTyped(using ActorTestKit): VisualizerState = api.stateTyped

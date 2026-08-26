@@ -47,3 +47,8 @@ object MnId:
     def filterCon: Set[MnId.Con] = mnIds.collect { case con: MnId.Con => con }
     def filterAbs: Set[MnId.Abs] = mnIds.collect { case abs: MnId.Abs => abs }
     def filterNim: Set[MnId.Nim] = mnIds.collect { case nim: MnId.Nim => nim }
+
+    def splitNim: (Set[Nim], Set[MnId]) = mnIds
+      .foldLeft(Set[Nim](), Set[MnId]()):
+        case ((nimAcc, mnAcc), id: Nim) => (nimAcc + id, mnAcc)
+        case ((nimAcc, mnAcc), id)      => (nimAcc, mnAcc + id)

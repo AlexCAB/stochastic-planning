@@ -22,8 +22,8 @@ import planning.engine.planner.mpi.actors.visualizer.Visualizer
 private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends Visualizer with ApiBase[Actor.Msg]:
   import Message.*
 
-  def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit] = actor.tellF(ShowNodesAdded(ids))
+  override def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit] = actor.tellF(ShowNodesAdded(ids))
 
-  def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit] = actor.tellF(ShowEdgesAdded(keys))
+  override def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit] = actor.tellF(ShowEdgesAdded(keys))
 
   override lazy val toString: String = s"Visualizer(path = ${actor.path})"

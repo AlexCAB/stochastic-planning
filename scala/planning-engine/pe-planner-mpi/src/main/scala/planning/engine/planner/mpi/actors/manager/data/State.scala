@@ -66,9 +66,10 @@ private[manager] final case class State(
       _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
     yield (nodes.toMap, updateState(nodes.map(_._2)))
 
-  def withNewManSamples[F[_]: MonadThrow](
-    samples: Set[Sample.Man],
-  ): F[(Map[SampleId, Sample.Man], State)] =
+  private def withNewSamples[F[_]: MonadThrow, S](
+      samples: Set[S],
+      makeData: S => SampleData,
+  ): F[(Map[SampleId, S], State)] =
     def updateState(samples: Map[SampleId, SampleData]): State = this.copy(
       sampleDataMap = sampleDataMap ++ samples,
       nextSampleId = nextSampleId + samples.size,
@@ -77,8 +78,14 @@ private[manager] final case class State(
     for
       withIds <- samples.zipWithIndex.map((d, i) => SampleId(nextSampleId + i) -> d).toMap.pure
       _ <- sampleDataMap.keySet.assertContainsNoneOf(withIds.keySet, "Sample IDs already exist in the current state")
-      withData = withIds.map((id, sample) => id -> SampleData(sample.props, Some(sample.info)))
+      withData = withIds.map((id, sample) => id -> makeData(sample))
     yield (withIds, updateState(withData))
+
+  def withNewManSamples[F[_]: MonadThrow](samples: Set[Sample.Man]): F[(Map[SampleId, Sample.Man], State)] =
+    withNewSamples(samples, sample => SampleData(sample.props, Some(sample.info)))
+
+  def withNewGenSamples[F[_]: MonadThrow](samples: Set[Sample.Gen]): F[(Map[SampleId, Sample.Gen], State)] =
+    withNewSamples(samples, sample => SampleData(sample.props, None))
 
   def getNode[F[_]: MonadThrow](id: MnId): F[Node] = nodeRefMap.get(id) match
     case Some(node) => node.pure

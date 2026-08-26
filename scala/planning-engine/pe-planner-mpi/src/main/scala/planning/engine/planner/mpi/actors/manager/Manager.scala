@@ -35,6 +35,13 @@ trait Manager:
   // Used mainly for testing and debugging.
   def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId]
 
+  // Upsert nodes by name command:
+  // - Lookup node by name, if found, just return it MnId.
+  // - If not found, create new MnId and spawn new NodeActor with given NodeData and MnId.
+  // - Return MnId of found or created node.
+  // Used mainly for testing and debugging.
+  def upsertNodesByName[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId]
+
   // Add edge command:
   // - Lookup source and target node actors by MnId.
   // - Add edge source to source node, and edge target to target node.
@@ -52,9 +59,11 @@ trait Manager:
   // - Store full sample data in the manager state. And Values in each node state (for speedup probs calculation).
   // - Notify all nodes with new total number of samples (for probs calculation).
   // - Notify visualizer with new map structure (for visualization).
-  // All nodes in the `samples` must be in the `nodes` map and have ID of `MnId.Nim` type (it is ok to send
-  // all node data in this case, even if they already in the map network, since nodes in manually defined sample
-  // anyway have all of them).
+  // Notes:
+  // - All nodes in the `samples` must be in the `nodes` map and have ID of `MnId.Nim` type (it is ok to send
+  //   all node data in this case, even if they already in the map network, since nodes in manually defined sample
+  //   anyway have all of them).
+  // - A `samples` collection can be empty, in this case only nodes will be added to the map network.
   def addManSamples[F[_]: Async](
       samples: Set[Sample.Man],
       nodes: Map[MnId.Nim, NodeData],
@@ -70,8 +79,8 @@ trait Manager:
       newNodes: Map[MnId.Nim, Option[IoValue]],
   )(using ActorSystem[?]): F[Map[SampleId, Sample.Gen]]
 
-  // Report an error that occurred in a NodeActor.
-  // In simple implementation it will terminate the manager actor and all its children nodes actors,
+  // Report an error that occurred in a NodeActor:
+  // In simple implementation it will just terminate the manager actor and all its children nodes actors,
   // but in future it may be extended to support more complex error handling.
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
 

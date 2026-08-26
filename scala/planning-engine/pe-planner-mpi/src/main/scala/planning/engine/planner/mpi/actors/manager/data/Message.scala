@@ -34,6 +34,13 @@ private[manager] object Message:
   final case class AddNode(data: NodeData, sender: ActorRef[NodeAdded]) extends Command[NodeAdded]
   final case class NodeAdded(id: MnId) extends Result
 
+  final case class UpsertNodesByName(
+      data: NodeData,
+      sender: ActorRef[NodesByNameUpserted],
+  ) extends Command[NodesByNameUpserted]
+
+  final case class NodesByNameUpserted(id: MnId) extends Result
+
   final case class AddEdge(key: MeKey, sampleIds: Set[SampleId], sender: ActorRef[EdgeAdded]) extends Command[EdgeAdded]
   final case class EdgeAdded(key: MeKey) extends Result
 

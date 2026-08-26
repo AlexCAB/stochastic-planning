@@ -31,25 +31,28 @@ import planning.engine.planner.mpi.common.repr.Representable
 private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with ApiBase[Actor.Msg]:
   import Message.*
 
-  def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
+  override def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
     actor.askF[F, NodeAdded](ref => AddNode(data, ref)).map(_.id)
 
-  def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId])(using ActorSystem[?]): F[MeKey] =
+  override def upsertNodesByName[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
+    actor.askF[F, NodesByNameUpserted](ref => UpsertNodesByName(data, ref)).map(_.id)
+
+  override def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId])(using ActorSystem[?]): F[MeKey] =
     actor.askF[F, EdgeAdded](ref => AddEdge(key, sampleIds, ref)).map(_.key)
 
-  def addManSamples[F[_]: Async](
+  override def addManSamples[F[_]: Async](
       samples: Set[Sample.Man],
       nodes: Map[MnId.Nim, NodeData],
   )(using ActorSystem[?]): F[Map[SampleId, Sample.Man]] =
     actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, nodes, ref)).map(_.samples)
 
-  def addGenSamples[F[_]: Async](
+  override def addGenSamples[F[_]: Async](
       samples: Set[Sample.Gen],
       newNodes: Map[MnId.Nim, Option[IoValue]],
   )(using ActorSystem[?]): F[Map[SampleId, Sample.Gen]] =
     actor.askF[F, GenSamplesAdded](ref => AddGenSamples(samples, newNodes, ref)).map(_.samples)
 
-  def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
+  override def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))
 
   override lazy val toString: String = s"Manager(path = ${actor.path})"

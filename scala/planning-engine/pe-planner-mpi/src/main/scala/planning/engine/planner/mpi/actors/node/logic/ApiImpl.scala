@@ -25,10 +25,10 @@ private[node] final case class ApiImpl(mnId: MnId, name: Option[HnName], actor: 
     extends Node with ApiBase[Actor.Msg]:
   import Message.*
 
-  def upsertEdgeSrc[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
+  override def upsertEdgeSrc[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeSrc(ref, props))
 
-  def upsertEdgeTrg[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
+  override def upsertEdgeTrg[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
   override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"

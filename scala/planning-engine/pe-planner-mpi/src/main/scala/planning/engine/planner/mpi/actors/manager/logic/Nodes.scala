@@ -54,7 +54,7 @@ private[manager] trait Nodes:
       _ <- foundIds.assertDistinct("Duplicate node IDs in found, seems bug")
       newIds = newNodes.values.map(_.mnId)
       _ <- newIds.assertDistinct("Duplicate node IDs in new, seems bug")
-      _ <- foundIds.assertContainsNoneOf(foundIds, "Found duplicate between new and found, seems bug")
+      _ <- foundIds.assertContainsNoneOf(newIds, "Found duplicate between new and found, seems bug")
       allNodes = foundNodes ++ newNodes
     yield (allNodes, newState)
 
@@ -64,5 +64,14 @@ private[manager] trait Nodes:
       node <- nodes.get(Nim.zero).map(_.pure).getOrElse("Node not returned after adding, seems bug".assertionError)
       _ <- logInfo(s"[AddNode] added node $node")
       _ <- msg.reply(NodeAdded(node.mnId))
+      _ <- d.visualizer.nodesAdded[F](Map(node.mnId -> node.name))
+    yield newState
+
+  private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
+    for
+      (nodes, newState) <- upsertNodesByName(Map(Nim.zero -> msg.data), state)
+      node <- nodes.get(Nim.zero).map(_.pure).getOrElse("Node not returned after upserting, seems bug".assertionError)
+      _ <- logInfo(s"[UpsertNodesByName] upserted node $node")
+      _ <- msg.reply(NodesByNameUpserted(node.mnId))
       _ <- d.visualizer.nodesAdded[F](Map(node.mnId -> node.name))
     yield newState

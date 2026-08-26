@@ -21,7 +21,7 @@ import planning.engine.common.values.node.MnId.{Con, Abs}
 
 sealed trait MeKey:
   import MnId.Nim
-  
+
   def src: MnId
   def trg: MnId
 
@@ -42,16 +42,16 @@ sealed trait MeKey:
     case _: MeKey.Then => "-then->"
 
   lazy val repr: String = s"${src.reprNode}$reprArrow${trg.reprNode}"
-  
+
   override def toString: String = repr
   def asKey: MeKey = this
-  
+
   def resolve[F[_]: MonadThrow](idsMap: Map[Nim, MnId]): F[MeKey]
-  
+
   protected def resolveId[F[_]: MonadThrow](id: MnId, idsMap: Map[Nim, MnId]): F[MnId] = id match
     case nim: Nim => idsMap.get(nim) match
-      case Some(mnId) => mnId.pure
-      case None       => s"MnId for $nim not found in $idsMap".assertionError
+        case Some(mnId) => mnId.pure
+        case None       => s"MnId for $nim not found in $idsMap".assertionError
     case other => other.pure
 
   protected def resolveKey[F[_]: MonadThrow, K](idsMap: Map[Nim, MnId], make: (MnId, MnId) => K): F[K] =
@@ -62,7 +62,7 @@ sealed trait MeKey:
 
 object MeKey:
   import MnId.Nim
-  
+
   sealed trait End:
     def id: MnId
     def asSrcKey(src: MnId): MeKey

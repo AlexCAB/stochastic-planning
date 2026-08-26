@@ -14,7 +14,7 @@ package planning.engine.planner.mpi.common.data.node
 
 //import cats.MonadThrow
 //import cats.syntax.all.*
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
 //import planning.engine.common.errors.*
@@ -40,19 +40,7 @@ final case class AbsData(
   val nodeType: NodeType = NodeType.Abstract
   override lazy val toString: String = s"(${name.repr})"
 
-//object NodeData:
-//  final case class Kit(
-//      // List of nodes to be added to the map network
-//      // Can containe duplicate nodes, for example severall NodeData with empty name and description,
-//      // which infact mean "just create number of nodes with unique IDs".
-//      nodes: List[NodeData],
-//  ):
-//    def getUniqueNames[F[_]: MonadThrow]: F[Set[HnName]] =
-//      for
-//        names <- nodes.flatMap(_.name).pure
-//        _ <- names.assertDistinct("Node names must be distinct")
-//      yield names.toSet
-//
-//    def filterNotByNames(names: Set[HnName]): Kit = Kit(nodes.filterNot(_.name.exists(names.contains)))
-//
-//  def apply(nodes: NodeData*): NodeData.Kit = NodeData.Kit(nodes.toList)
+object NodeData:
+  def apply(ioValue: Option[IoValue]): NodeData = ioValue match
+    case Some(io) => ConData(None, None, io.name, io.index)
+    case None     => AbsData(None, None)

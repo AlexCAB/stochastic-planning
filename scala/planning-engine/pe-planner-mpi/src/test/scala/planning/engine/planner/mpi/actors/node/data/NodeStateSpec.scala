@@ -12,31 +12,23 @@
 
 package planning.engine.planner.mpi.actors.node.data
 
-import cats.MonadThrow
 import cats.effect.IO
 import cats.effect.cps.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnIndex, HnName, MnId}
+import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
-class NodeStateSpec extends UnitSpecWithData with AsyncMockFactory:
-  private class CaseData extends Case with MapNodeTestData with MapEdgeTestData:
+class NodeStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNodeTestData with MapEdgeTestData:
+  private class CaseData extends Case with WithMapNode with WithMapEdge:
     val srcMnId1: MnId.Con = MnId.Con(1L)
     val trgMnId1: MnId.Abs = MnId.Abs(2L)
     val trgMnId2: MnId.Abs = MnId.Abs(4L)
-
-    private def makeNodeStub(id: MnId, name: String = ""): Node =
-      val hnName = if name.nonEmpty then Some(HnName(name)) else None
-      val st = stub[Node]
-      (() => st.mnId).when().returns(id)
-      (() => st.name).when().returns(hnName)
-      st
 
     val srcNode1: Node = makeNodeStub(srcMnId1)
     val trgNode1: Node = makeNodeStub(trgMnId1)

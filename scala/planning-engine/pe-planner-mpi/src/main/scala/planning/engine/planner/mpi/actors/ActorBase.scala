@@ -23,13 +23,13 @@ import planning.engine.planner.mpi.common.repr.Representable
 private[actors] trait ActorBase extends ActorExecCtx:
   import ActorBase.GetState
 
-  // Shortcut for actor definition, message type and context type
+  // Shortcut for actor definition
   type Def
   type Msg
   type Ctx = ActorContext[Msg]
   type Ref = ActorRef[Msg]
 
-  // Shortcut for actor state type and behavior type (only for internal use)
+  // Shortcut for actor state type and Sync type (only for internal use)
   protected type St
   protected type S[F[_]] = Sync[F]
 
@@ -58,18 +58,18 @@ private[actors] trait ActorBase extends ActorExecCtx:
   // Helper method for logging messages
   protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
 
-  protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
-
   protected def logInfo[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =
     logInfo(s"$msg:\n${map.map((k, v) => s"    $k -> $v").mkString("\n")}")
 
+  protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
+
   // Actor main behavior definition
-  protected def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>
+  private def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>
     given Ctx = ctx
     setup(state)
 
     Behaviors.receiveMessage: msg =>
-      val msgName = msg.getClass.getSimpleName
+      lazy val msgName = msg.getClass.getSimpleName
 
       def recoverableErr(err: Throwable): IO[Behavior[Msg]] =
         ctx.log.error(s"Error on message, calling error() handler, at msg = $msgName", err)
@@ -108,6 +108,6 @@ private[actors] object ActorBase:
   sealed trait TestCommand[R] extends WithSender[R] with Representable
   sealed trait TestResult extends Representable
 
-  // Used for testing purposes to get the current state of the Actor.
+  // Messages used for testing purposes to get the current state of the Actor.
   final case class GetState[S](sender: ActorRef[CurrentState[S]]) extends TestCommand[CurrentState[S]]
   final case class CurrentState[S](state: S)

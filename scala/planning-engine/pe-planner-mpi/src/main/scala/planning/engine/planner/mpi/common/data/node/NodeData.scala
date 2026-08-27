@@ -12,12 +12,9 @@
 
 package planning.engine.planner.mpi.common.data.node
 
-//import cats.MonadThrow
-//import cats.syntax.all.*
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
-//import planning.engine.common.errors.*
 
 sealed trait NodeData:
   def name: Option[HnName]

@@ -50,6 +50,7 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
 - Test fixtures go in a `private class CaseData extends Case with SomeTestDataTrait`, instantiated fresh per test via `newCase[CaseData]`. Reusable fixtures (test actors, sample domain data) live under each module's `test.actors`/`test.data` packages.
 - Actor tests spawn the real actor via its module's `*TestActor` helper (e.g. `ManagerTestActor`) and assert on messages received by a `TestProbe`, or on actor termination via `probe.expectTerminated(ref)` — they don't call `private[pkg]` `doXxx` handler methods directly, since those need a live `ActorContext`.
 - Effectful (non-actor) code is tested with cats-effect via `UnitSpecIO`/`UnitSpecWithIOAndTestKit`, using `.asserting(...)` / `.assertThrowsError[T](...)`.
+- A test body with more than one matcher (`mustBe`, etc.) must be written with `cats.effect.cps.*`'s `async[IO]: ... .await`, not chained `.asserting(...)`/`.flatMap(...)` — run each effectful step with `.await`, bind results to `val`s, then assert on them directly in the block. Single-matcher tests keep using `.asserting(...)` / `.assertThrowsError[T](...)`. See `ManagerStateSpec`/`NodeStateSpec` for examples.
 
 ## Scala style
 

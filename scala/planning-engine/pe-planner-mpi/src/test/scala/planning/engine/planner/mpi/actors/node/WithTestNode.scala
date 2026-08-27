@@ -20,10 +20,10 @@ import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
-trait WithTestNode:
+trait WithTestNode extends MapNodeTestData with MapEdgeTestData:
   self: UnitSpecWithIOAndTestKit =>
 
-  trait WithNodes extends MapNodeTestData with MapEdgeTestData:
+  trait WithNodes extends WithMapNode with WithMapEdge:
     lazy val fakeManager: FakeManager = FakeManager()
     lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
 

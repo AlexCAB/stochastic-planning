@@ -110,8 +110,18 @@
 6. For each element from collection above to add edge using `upsertEdge` method. 
 7. Report to the sender with `ManSamplesAdded` message. 
 
+❯ Refactor and add new tests in `ManagerStateSpec` regard new implementation if `planning.engine.planner.mpi.actors.manager.data.State`.
 
+❯ Refactor tests in `ManagerStateSpec`, without using `UnitSpecWithIOAndTestKit`. Consider as example `NodeStateSpec`.
 
+❯ In `ManagerStateSpec` refactor test so they will use `async[IO]:`/`await`. Tests to refactor:
+1. `add a named node to nodeRefMap and nodeNameMap, and increment nextMnId`
+2. `add nodes with duplicate data`
+3. `add manual samples to sampleDataMap and increment nextSampleId`
+4. `add generated samples to sampleDataMap with no info and increment nextSampleId`
+5. `return sample data for known sample IDs`
+
+❯ Also add in `claude.md` rule that complex tests (which have more then one matcher) have to be written with using  `async[IO]:`/`await`.
 
 
 ##### TODO: 

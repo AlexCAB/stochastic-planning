@@ -27,20 +27,19 @@ import planning.engine.planner.mpi.test.data.MapEdgeTestData
 
 class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNodeTestData with MapEdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:
-    def spawnNode(rawId: Long, data: NodeData): IO[Node] = IO.pure(makeNodeStub(data.nodeType.toMnId(rawId), data.name))
-
     lazy val stateEmpty: State = State.init
+
+    def spawnNode(rawId: Long, data: NodeData): IO[Node] = IO.pure(makeNodeStub(data.nodeType.toMnId(rawId), data.name))
 
     lazy val (conNodesMap, stateWithConNode): (Map[MnId.Nim, Node], State) = stateEmpty
       .withNewNodes[IO](Map(nim1 -> conNodeData), spawnNode)
       .unsafeRunSync()
 
-    lazy val conNode: Node = conNodesMap(nim1)
-
     lazy val (nodesMap, stateWithNodes): (Map[MnId.Nim, Node], State) = stateEmpty
       .withNewNodes[IO](Map(nim1 -> conNodeData, nim2 -> absNodeData), spawnNode)
       .unsafeRunSync()
 
+    lazy val conNode: Node = conNodesMap(nim1)
     lazy val absNode: Node = nodesMap(nim2)
 
     lazy val sampleProps1: Sample.Props = makePropVals(3)
@@ -52,12 +51,14 @@ class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNo
     lazy val genSample1: Sample.Gen = Sample.Gen(sampleProps2, Set.empty)
 
   "State.withNewNodes(...)" should:
-    "add a named node to nodeRefMap and nodeNameMap, and increment nextMnId" in newCase[CaseData]: (_, data) =>
+    "add a named node to nodeRefMap and nodeNameMap, and increment nextMnId" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         val (nodes, state) = stateEmpty
           .withNewNodes[IO](Map(nim1 -> conNodeData, nim2 -> absNodeData), spawnNode)
           .await
+
+        logInfo(tn, state.longAutoStr[IO]).await
 
         nodes.keySet mustBe Set(nim1, nim2)
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
@@ -69,7 +70,7 @@ class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNo
           absNodeData.name.get -> Set(absMnId),
         )
 
-    "add nodes with duplicate data" in newCase[CaseData]: (_, data) =>
+    "add nodes with duplicate data" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         val id1 = MnId.Con(1L)
@@ -78,6 +79,8 @@ class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNo
         val (_, state) = stateEmpty
           .withNewNodes[IO](Map(nim1 -> conNodeData, nim2 -> conNodeData), spawnNode)
           .await
+
+        logInfo(tn, state.longAutoStr[IO]).await
 
         state.nodeRefMap.keySet mustBe Set(id1, id2)
         state.nextMnId mustBe 3L
@@ -99,33 +102,35 @@ class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNo
         .assertThrowsError[AssertionError](_.getMessage must include("Node IDs already exist in the current state"))
 
   "State.withNewManSamples(...)" should:
-    "add manual samples to sampleDataMap and increment nextSampleId" in newCase[CaseData]: (_, data) =>
+    "add manual samples to sampleDataMap and increment nextSampleId" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val (samples, state) = stateEmpty.withNewManSamples[IO](Set(manSample1)).await
+        val (samples, state) = stateEmpty.withNewManSamples[IO](Set(manSample1), Set(conNode)).await
+        logInfo(tn, state.longAutoStr[IO]).await
 
         samples.values.toSet mustBe Set(manSample1)
         val id = samples.keySet.head
-        state.sampleDataMap mustBe Map(id -> State.SampleData(manSample1.props, Some(manSample1.info)))
+        state.sampleDataMap mustBe Map(id -> State.SampleData(manSample1.props, Some(manSample1.info), Set(conNode)))
         state.nextSampleId mustBe 2L
 
     "raise an error when a sample ID already exists in state" in newCase[CaseData]: (_, data) =>
       import data.*
 
-      stateEmpty.withNewManSamples[IO](Set(manSample1))
-        .flatMap((_, state) => state.copy(nextSampleId = 1L).withNewManSamples[IO](Set(manSample1)))
+      stateEmpty.withNewManSamples[IO](Set(manSample1), Set.empty)
+        .flatMap((_, state) => state.copy(nextSampleId = 1L).withNewManSamples[IO](Set(manSample1), Set.empty))
         .assertThrowsError[AssertionError](_
           .getMessage must include("Sample IDs already exist in the current state"))
 
   "State.withNewGenSamples(...)" should:
-    "add generated samples to sampleDataMap with no info and inc nextSampleId" in newCase[CaseData]: (_, data) =>
+    "add generated samples to sampleDataMap with no info and inc nextSampleId" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
-        val (samples, state) = stateEmpty.withNewGenSamples[IO](Set(genSample1)).await
+        val (samples, state) = stateEmpty.withNewGenSamples[IO](Set(genSample1), Set(absNode)).await
+        logInfo(tn, state.longAutoStr[IO]).await
 
         samples.values.toSet mustBe Set(genSample1)
         val id = samples.keySet.head
-        state.sampleDataMap mustBe Map(id -> State.SampleData(genSample1.props, None))
+        state.sampleDataMap mustBe Map(id -> State.SampleData(genSample1.props, None, Set(absNode)))
         state.nextSampleId mustBe 2L
 
   "State.getNode(...)" should:
@@ -138,19 +143,29 @@ class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNo
       stateEmpty.getNode[IO](conMnId)
         .assertThrowsError[AssertionError](_.getMessage must include(s"Node ID $conMnId not found in state"))
 
+  "State.getNodes(...)" should:
+    "return the nodes for known MnIds" in newCase[CaseData]: (_, data) =>
+      import data.*
+      stateWithNodes.getNodes[IO](Set(conMnId, absMnId)).asserting(_ mustBe Set(nodesMap(nim1), absNode))
+
+    "raise an error when some MnIds are not found in state" in newCase[CaseData]: (_, data) =>
+      import data.*
+      stateEmpty.getNodes[IO](Set(conMnId))
+        .assertThrowsError[AssertionError](_.getMessage must include("Some node IDs not found in state"))
+
   "State.getSamples(...)" should:
     "return sample data for known sample IDs" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        val (manSamples, stateWithMan) = stateEmpty.withNewManSamples[IO](Set(manSample1)).await
-        val (genSamples, stateWithBoth) = stateWithMan.withNewGenSamples[IO](Set(genSample1)).await
+        val (manSamples, stateWithMan) = stateEmpty.withNewManSamples[IO](Set(manSample1), Set.empty).await
+        val (genSamples, stateWithBoth) = stateWithMan.withNewGenSamples[IO](Set(genSample1), Set.empty).await
         val manId = manSamples.keySet.head
         val genId = genSamples.keySet.head
         val result = stateWithBoth.getSamples[IO](Set(manId, genId)).await
 
         result mustBe Map(
-          manId -> State.SampleData(manSample1.props, Some(manSample1.info)),
-          genId -> State.SampleData(genSample1.props, None),
+          manId -> State.SampleData(manSample1.props, Some(manSample1.info), Set.empty),
+          genId -> State.SampleData(genSample1.props, None, Set.empty),
         )
 
     "raise an error when some sample IDs are not found in state" in newCase[CaseData]: (_, _) =>

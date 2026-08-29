@@ -81,15 +81,25 @@ private[manager] final case class State(
       withData = withIds.map((id, sample) => id -> makeData(sample))
     yield (withIds, updateState(withData))
 
-  def withNewManSamples[F[_]: MonadThrow](samples: Set[Sample.Man]): F[(Map[SampleId, Sample.Man], State)] =
-    withNewSamples(samples, sample => SampleData(sample.props, Some(sample.info)))
+  def withNewManSamples[F[_]: MonadThrow](
+      samples: Set[Sample.Man],
+      nodes: Set[Node],
+  ): F[(Map[SampleId, Sample.Man], State)] =
+    withNewSamples(samples, sample => SampleData(sample.props, Some(sample.info), nodes))
 
-  def withNewGenSamples[F[_]: MonadThrow](samples: Set[Sample.Gen]): F[(Map[SampleId, Sample.Gen], State)] =
-    withNewSamples(samples, sample => SampleData(sample.props, None))
+  def withNewGenSamples[F[_]: MonadThrow](
+      samples: Set[Sample.Gen],
+      nodes: Set[Node],
+  ): F[(Map[SampleId, Sample.Gen], State)] = withNewSamples(samples, sample => SampleData(sample.props, None, nodes))
 
   def getNode[F[_]: MonadThrow](id: MnId): F[Node] = nodeRefMap.get(id) match
     case Some(node) => node.pure
     case None       => s"Node ID $id not found in state".assertionError
+
+  def getNodes[F[_]: MonadThrow](ids: Set[MnId]): F[Set[Node]] =
+    for
+        _ <- nodeRefMap.keySet.assertContainsAllOf(ids, "Some node IDs not found in state")
+    yield nodeRefMap.view.filterKeys(ids.contains).values.toSet
 
   def getSamples[F[_]: MonadThrow](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
     for
@@ -102,6 +112,13 @@ private[manager] final case class State(
     case None      => None.pure
 
 private[manager] object State:
-  final case class SampleData(props: Sample.Props, info: Option[Sample.Info])
+  final case class SampleData(
+      props: Sample.Props,
+      info: Option[Sample.Info],
+
+      // Nodes that are connected to this sample via edges.
+      // This is used for getting full sample data when needed (mostly for visualization).
+      nodes: Set[Node],
+  )
 
   val init: State = State(1L, 1L, Map.empty, Map.empty, Map.empty)

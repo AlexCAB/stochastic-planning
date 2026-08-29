@@ -20,6 +20,7 @@ import org.apache.pekko.actor.typed.Behavior
 import java.util.concurrent.atomic.AtomicInteger
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
+
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.visualizer.data.State
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
@@ -28,8 +29,8 @@ final case class TestVisualizer(api: Visualizer):
   import TestVisualizer.*
 
   def ref: ActorRef[Visualizer.Msg] = api.ref
-  def state(using testKit: ActorTestKit): State = api.state
-  def stateTyped(using ActorTestKit): VisualizerState = api.stateTyped
+  def state(using ActorTestKit, IORuntime): State = api.state
+  def stateTyped(using ActorTestKit, IORuntime): VisualizerState = api.stateTyped
 
 object TestVisualizer extends TestActorBase:
   type VisualizerState = (
@@ -54,7 +55,7 @@ object TestVisualizer extends TestActorBase:
     def ref: ActorRef[Visualizer.Msg] = api match
       case ApiImpl(ref) => ref
 
-    def state(using ActorTestKit): State = getActorState[State](ref)
+    def state(using ActorTestKit, IORuntime): State = getActorState[State]("Visualizer", ref)
 
     // Allow access to the state from outside `mpi.actors.manager` package.
-    def stateTyped(using testKit: ActorTestKit): VisualizerState = Tuple.fromProductTyped(state)
+    def stateTyped(using ActorTestKit, IORuntime): VisualizerState = Tuple.fromProductTyped(state)

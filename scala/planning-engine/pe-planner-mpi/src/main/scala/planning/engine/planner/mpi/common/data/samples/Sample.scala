@@ -17,14 +17,15 @@ import Sample.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.planner.mpi.common.repr.Representable
 
 // Fully defined sample data, as they will read from map graph.
 final case class Sample(
     id: SampleId,
     props: Props,
-    info: Info,
+    info: Option[Info],
     edges: Set[Edge],
-)
+) extends Representable
 
 object Sample:
   final case class Props(probabilityCount: Long, utility: Double)
@@ -33,7 +34,7 @@ object Sample:
 
   final case class Edge(key: MeKey, srcVal: HnIndex, trgVal: HnIndex)
 
-  sealed trait New:
+  sealed trait New extends Representable:
     def props: Props
     def edges: Set[MeKey]
 

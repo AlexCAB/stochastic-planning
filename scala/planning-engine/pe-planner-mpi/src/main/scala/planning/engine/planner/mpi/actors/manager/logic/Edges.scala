@@ -31,6 +31,7 @@ private[manager] trait Edges:
       srcNode <- state.getNode(key.src)
       trgNode <- state.getNode(key.trg)
       samples <- state.getSamples(sampleIds)
+      _ <- logInfo(s"[upsertEdge] srcNode = $srcNode, trgNode = $trgNode, samples = $samples")
       _ <- srcNode.upsertEdgeSrc(MeRef(key, srcNode, trgNode), samples.view.mapValues(_.props).toMap)
     yield key
 

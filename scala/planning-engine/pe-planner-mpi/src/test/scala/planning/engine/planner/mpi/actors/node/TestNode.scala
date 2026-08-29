@@ -31,8 +31,8 @@ final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisua
   import TestNode.*
 
   def ref: ActorRef[Node.Msg] = api.ref
-  def state(using testKit: ActorTestKit): State = api.state
-  def stateTyped(using ActorTestKit): NodeState = api.stateTyped
+  def state(using ActorTestKit, IORuntime): State = api.state
+  def stateTyped(using ActorTestKit, IORuntime): NodeState = api.stateTyped
 
 object TestNode extends TestActorBase:
   type NodeState = (
@@ -42,7 +42,7 @@ object TestNode extends TestActorBase:
       Map[SampleId, State.SampleData],
       Long,
   )
-
+  
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   private def spawn(bh: Behavior[Node.Msg], name: String)(using testKit: ActorTestKit): ActorRef[Node.Msg] =
@@ -61,7 +61,7 @@ object TestNode extends TestActorBase:
     def ref: ActorRef[Node.Msg] = api match
       case ApiImpl(_, _, ref) => ref
 
-    def state(using ActorTestKit): State = getActorState[State](ref)
+    def state(using ActorTestKit, IORuntime): State = getActorState[State]("Node", ref)
 
     // Allow access to the state from outside `mpi.actors.node` package.
-    def stateTyped(using ActorTestKit): NodeState = Tuple.fromProductTyped(state)
+    def stateTyped(using ActorTestKit, IORuntime): NodeState = Tuple.fromProductTyped(state)

@@ -123,6 +123,19 @@
 
 ❯ Also add in `claude.md` rule that complex tests (which have more then one matcher) have to be written with using  `async[IO]:`/`await`.
 
+❯ Implement `"NodeData.apply(Option[IoValue])"` test for `planning.engine.planner.mpi.common.data.node.NodeData.apply(ioValue: Option[IoValue]): NodeData` method.
+
+❯ In `ManagerNodesSpec` refactor tests `"Manager.addNode(...)"`  and `"Manager.upsertNodesByName(...)"` regard new definitions in `planning.engine.planner.mpi.actors.manager.Manager` and implementation in `planning.engine.planner.mpi.actors.manager.logic.Nodes`
+
+❯ In `ManagerEdgesSpec` refactor tests `"Manager.addEdge(...)"` regard new definitions in `planning.engine.planner.mpi.actors.manager.Manager` and implementation in `planning.engine.planner.mpi.actors.manager.logic.Edges`
+
+❯ In `ManagerSamplesSpec` write tests for methods `addManSamples` and `addGenSamples` of `planning.engine.planner.mpi.actors.manager.Manager`. Find implementation of this methods in `planning.engine.planner.mpi.actors.manager.logic.Samples`.
+
+❯ Fix `ManagerStateSpec` and `ManagerSamplesSpec` tests regard new implementation. Also in `ManagerStateSpec` add test for `getNodes` method.
+
+❯ Add configuration in `.scalafmt.conf` to allow in line `if` like `)(using d: Def, ctx: Ctx): F[Set[MeKey]] = if sampleMap.isEmpty then Set.empty.pure else`
+
+
 
 ##### TODO: 
 1. Split state of nodes on Struct and Plan

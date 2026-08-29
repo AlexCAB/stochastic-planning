@@ -18,3 +18,5 @@ import fansi.Str
 trait Representable:
   def longAutoRepr[F[_]: MonadThrow]: F[List[Str]] = MonadThrow[F]
     .catchNonFatal(pprint.apply(this).toString.split("\n").toList.map(Str(_)))
+
+  def longAutoStr[F[_]: MonadThrow]: F[Str] = MonadThrow[F].catchNonFatal(pprint.apply(this))

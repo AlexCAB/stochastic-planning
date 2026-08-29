@@ -20,6 +20,7 @@ import org.typelevel.log4cats.{Logger, LoggerFactory}
 import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
 import org.scalatest.matchers.must.Matchers
 import cats.syntax.all.*
+import fansi.Str
 
 trait SpecLogging:
   self: AsyncIOSpec & Matchers =>
@@ -39,6 +40,7 @@ trait SpecLogging:
     case Left(err)    => Logger[IO].error(err)("IO failed.").flatMap(_ => IO.raiseError(err))
 
   def logInfo(tn: String, msg: String): IO[Unit] = Logger[IO].info(s"[$tn] $msg")
+  def logInfo(tn: String, msg: IO[Str]): IO[Unit] = msg.flatMap(str => Logger[IO].info(s"[$tn] $str"))
 
   extension [F[_]: {MonadThrow, Logger}, A](f: F[A])
     def expect(p: A => Boolean)(implicit F: Sync[F]): F[Assertion] = f.asserting(a => assert(p(a)))

@@ -59,7 +59,8 @@ private[actors] trait ActorBase extends ActorExecCtx:
   protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
 
   protected def logInfo[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =
-    logInfo(s"$msg:\n${map.map((k, v) => s"    $k -> $v").mkString("\n")}")
+    val mapRepr = if map.nonEmpty then s"{\n${map.map((k, v) => s"    $k -> $v").mkString("\n")}\n}" else "{}"
+    logInfo(s"$msg:\n$mapRepr")
 
   protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
 

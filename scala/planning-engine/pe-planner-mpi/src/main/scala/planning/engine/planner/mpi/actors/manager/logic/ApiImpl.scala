@@ -44,13 +44,19 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with
       samples: Set[Sample.Man],
       nodes: Map[MnId.Nim, NodeData],
   )(using ActorSystem[?]): F[Map[SampleId, Sample.Man]] =
-    actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, nodes, ref)).map(_.samples)
+    if samples.nonEmpty || nodes.nonEmpty then
+      actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, nodes, ref)).map(_.samples)
+    else
+      Map.empty.pure
 
   override def addGenSamples[F[_]: Async](
       samples: Set[Sample.Gen],
       newNodes: Map[MnId.Nim, Option[IoValue]],
   )(using ActorSystem[?]): F[Map[SampleId, Sample.Gen]] =
-    actor.askF[F, GenSamplesAdded](ref => AddGenSamples(samples, newNodes, ref)).map(_.samples)
+    if samples.nonEmpty || newNodes.nonEmpty then
+      actor.askF[F, GenSamplesAdded](ref => AddGenSamples(samples, newNodes, ref)).map(_.samples)
+    else
+      Map.empty.pure
 
   override def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))

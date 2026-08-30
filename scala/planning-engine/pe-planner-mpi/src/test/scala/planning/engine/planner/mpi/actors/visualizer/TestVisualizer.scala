@@ -55,7 +55,7 @@ object TestVisualizer extends TestActorBase:
     def ref: ActorRef[Visualizer.Msg] = api match
       case ApiImpl(ref) => ref
 
-    def state(using ActorTestKit, IORuntime): State = getActorState[State]("Visualizer", ref)
+    def state(using ActorTestKit, IORuntime): State = logObj("Visualizer", getActorState[State](ref))
 
     // Allow access to the state from outside `mpi.actors.manager` package.
     def stateTyped(using ActorTestKit, IORuntime): VisualizerState = Tuple.fromProductTyped(state)

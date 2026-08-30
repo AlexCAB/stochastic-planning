@@ -28,7 +28,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
   private class CaseData extends Case with WithManager with WithMapEdge:
     lazy val nim99: MnId.Nim = MnId.Nim(99L)
     lazy val conIoValue: IoValue = IoValue(testBoolInNode.name, IoIndex(0))
-  
+
   "Manager.addManSamples(...)" should:
     "create nodes from the given Nim ids, store the sample, and link its edges" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -55,11 +55,11 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           Set(state.nodeRefMap(conMnId), state.nodeRefMap(absMnId)),
         ))
 
-        val (_, _, srcOutgoing, _, _) = state.nodeRefMap(conMnId).stateTyped
+        val ((_, _, srcOutgoing, _, _), _) = state.nodeRefMap(conMnId).stateTyped
         srcOutgoing.keySet mustBe Set(absMnId)
         srcOutgoing(absMnId).sampleIds mustBe Set(sampleId)
 
-        val (_, trgIncoming, _, _, _) = state.nodeRefMap(absMnId).stateTyped
+        val ((_, trgIncoming, _, _, _), _) = state.nodeRefMap(absMnId).stateTyped
         trgIncoming.keySet mustBe Set(conMnId)
         trgIncoming(conMnId).sampleIds mustBe Set(sampleId)
 
@@ -138,7 +138,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
             Set(state.nodeRefMap(conMnId), state.nodeRefMap(absMnId)),
           ))
 
-          val (_, _, srcOutgoing, _, _) = state.nodeRefMap(conMnId).stateTyped
+          val ((_, _, srcOutgoing, _, _), _) = state.nodeRefMap(conMnId).stateTyped
           srcOutgoing.keySet mustBe Set(absMnId)
           srcOutgoing(absMnId).sampleIds mustBe Set(sampleId)
 
@@ -166,15 +166,14 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         fakeVisualizer.probe.expectTerminated(manager.ref)
         succeed
 
-    "terminate when a sample edge references an MnId not present in current state" in newCase[CaseData]:
-      (tn, data) =>
-        import data.*
-        async[IO]:
-          val sample = genSample(MeKey.Link(MnId.Con(999L), nim1))
+    "terminate when a sample edge references an MnId not present in current state" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val sample = genSample(MeKey.Link(MnId.Con(999L), nim1))
 
-          manager.api
-            .addGenSamples[IO](Set(sample), Map(nim1 -> Some(conIoValue))).logValue(tn)
-            .attempt.await
+        manager.api
+          .addGenSamples[IO](Set(sample), Map(nim1 -> Some(conIoValue))).logValue(tn)
+          .attempt.await
 
-          fakeVisualizer.probe.expectTerminated(manager.ref)
-          succeed
+        fakeVisualizer.probe.expectTerminated(manager.ref)
+        succeed

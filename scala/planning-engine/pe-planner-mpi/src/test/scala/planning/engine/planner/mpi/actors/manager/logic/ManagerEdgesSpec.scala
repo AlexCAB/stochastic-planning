@@ -43,12 +43,12 @@ class ManagerEdgesSpec extends UnitSpecWithIOAndTestKit with WithTestManager wit
 
         val nodeMap = manager.state.nodeRefMap
 
-        val (_, _, srcOutgoing, _, _) = nodeMap(srcId).stateTyped
+        val ((_, _, srcOutgoing, _, _), _) = nodeMap(srcId).stateTyped
         srcOutgoing.keySet mustBe Set(trgId)
         srcOutgoing(trgId).neighbor mustBe nodeMap(trgId)
         srcOutgoing(trgId).sampleIds mustBe Set(sampleId)
 
-        val (_, trgIncoming, _, _, _) = nodeMap(trgId).stateTyped
+        val ((_, trgIncoming, _, _, _), _) = nodeMap(trgId).stateTyped
         trgIncoming.keySet mustBe Set(srcId)
         trgIncoming(srcId).neighbor mustBe nodeMap(srcId)
         trgIncoming(srcId).sampleIds mustBe Set(sampleId)

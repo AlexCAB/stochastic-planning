@@ -31,7 +31,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         srcNode.api.upsertEdgeSrc[IO](meRefSrc, props1).await
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props1)
 
-        val state = srcNode.state
+        val (state, _) = srcNode.state
         state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, props1.keySet))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
@@ -49,7 +49,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props2)
 
-        val state = srcNode.state
+        val (state, _) = srcNode.state
         state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, allSampleIds))
         state.sampleMap.keySet mustBe allSampleIds
         state.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
@@ -73,7 +73,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
       async[IO]:
         trgNode.api.upsertEdgeTrg[IO](meRefTrg, props1).await
 
-        val state = trgNode.state
+        val (state, _) = trgNode.state
         state.incomingMap mustBe Map(srcNodeMnId -> StructState.EdgeData(srcNodeFake.api, props1.keySet))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet

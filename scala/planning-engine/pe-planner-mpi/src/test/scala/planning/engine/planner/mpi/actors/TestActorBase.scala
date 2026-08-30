@@ -24,13 +24,13 @@ import planning.engine.planner.mpi.common.repr.Representable
 trait TestActorBase:
   protected given Logger[IO] = Slf4jLogger.getLoggerFromClass[IO](getClass)
 
-  def getActorState[S <: Representable](
-      logName: String,
-      actorRef: ActorRef[GetState[S]],
-  )(using tk: ActorTestKit, r: IORuntime): S =
+  def getActorState[S](actorRef: ActorRef[GetState[S]])(using tk: ActorTestKit): S =
     val probe = tk.createTestProbe[CurrentState[S]]("GetActorStateProbe")
     actorRef ! GetState(probe.ref)
     val res = probe.expectMessageType[CurrentState[S]]
     probe.stop()
-    res.state.longAutoStr[IO].flatMap(srt => Logger[IO].info(s"$logName state: $srt")).unsafeRunSync()
     res.state
+
+  def logObj[S <: Representable](logName: String, obj: S)(using IORuntime): S =
+    obj.longAutoStr[IO].flatMap(srt => Logger[IO].info(s"$logName: $srt")).unsafeRunSync()
+    obj

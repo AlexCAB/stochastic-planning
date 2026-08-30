@@ -20,7 +20,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.node.data.StructState
+import planning.engine.planner.mpi.actors.node.data.{PlanState, StructState}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.common.data.node.NodeData
@@ -31,18 +31,20 @@ final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisua
   import TestNode.*
 
   def ref: ActorRef[Node.Msg] = api.ref
-  def state(using ActorTestKit, IORuntime): StructState = api.state
-  def stateTyped(using ActorTestKit, IORuntime): NodeState = api.stateTyped
+  def state(using ActorTestKit, IORuntime): (StructState, PlanState) = api.state
+  def stateTyped(using ActorTestKit, IORuntime): (NodeStruct, NodePlan) = api.stateTyped
 
 object TestNode extends TestActorBase:
-  type NodeState = (
+  type NodeStruct = (
       Long,
       Map[MnId, StructState.EdgeData],
       Map[MnId, StructState.EdgeData],
       Map[SampleId, StructState.SampleData],
       Long,
   )
-  
+
+  type NodePlan = (Int, Int)
+
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
   private def spawn(bh: Behavior[Node.Msg], name: String)(using testKit: ActorTestKit): ActorRef[Node.Msg] =
@@ -61,7 +63,11 @@ object TestNode extends TestActorBase:
     def ref: ActorRef[Node.Msg] = api match
       case ApiImpl(_, _, ref) => ref
 
-    def state(using ActorTestKit, IORuntime): StructState = getActorState[StructState]("Node", ref)
+    def state(using ActorTestKit, IORuntime): (StructState, PlanState) =
+      val (struct, plan) = getActorState[(StructState, PlanState)](ref)
+      (logObj("Node struct", struct), logObj("Node plan", plan))
 
     // Allow access to the state from outside `mpi.actors.node` package.
-    def stateTyped(using ActorTestKit, IORuntime): NodeState = Tuple.fromProductTyped(state)
+    def stateTyped(using ActorTestKit, IORuntime): (NodeStruct, NodePlan) =
+      val (struct, plan) = state
+      (Tuple.fromProductTyped(struct), Tuple.fromProductTyped(plan))

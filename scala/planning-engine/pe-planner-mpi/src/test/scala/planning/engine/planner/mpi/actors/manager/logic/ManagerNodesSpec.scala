@@ -19,6 +19,8 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.{TestManager, WithTestManager}
 
+import scala.concurrent.duration.*
+
 class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
   private class CaseData extends Case with WithManager:
     def checkManagerState(manager: TestManager, expNodes: Map[MnId, Option[HnName]], expNextId: Long): Assertion =
@@ -81,7 +83,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       import data.*
       async[IO]:
         val gotId = managerOneConNode.api.upsertNodesByName[IO](conNodeData).logValue(tn).await
-        fakeVisualizer.expectShowNodesAdded mustBe Map(gotId -> conNodeData.name)
+        fakeVisualizer.probe.expectNoMessage(500.millis) // No new node created, so no visualizer notification
         gotId mustBe managerOneConNode.srcMnId
 
         checkManagerState(

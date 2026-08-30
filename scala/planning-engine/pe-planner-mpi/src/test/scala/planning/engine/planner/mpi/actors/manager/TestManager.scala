@@ -92,7 +92,7 @@ object TestManager extends TestActorBase:
     def ref: ActorRef[Manager.Msg] = api match
       case ApiImpl(ref) => ref
 
-    def state(using ActorTestKit, IORuntime): State = getActorState[State]("Manager", ref)
+    def state(using ActorTestKit, IORuntime): State = logObj("Manager", getActorState[State](ref))
 
     // Allow access to the state from outside `mpi.actors.manager` package.
     def stateTyped(using ActorTestKit, IORuntime): ManagerState = (

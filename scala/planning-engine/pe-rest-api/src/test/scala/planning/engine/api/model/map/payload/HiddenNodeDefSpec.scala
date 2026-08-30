@@ -13,15 +13,15 @@
 package planning.engine.api.model.map.payload
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.text.Description
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import cats.effect.cps.*
 import io.circe.Json
 import io.circe.syntax.*
 import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.HnName
+import planning.engine.common.values.text.Description
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode}
 import planning.engine.map.io.variable.IntIoVariableLike
 

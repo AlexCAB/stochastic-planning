@@ -13,12 +13,12 @@
 package planning.engine.common.properties
 
 import cats.effect.IO
-import neotypes.model.types.Value
-import planning.engine.common.UnitSpecWithData
-import neotypes.query.QueryArg.Param
-import neotypes.model.query.QueryParam.NullValue
-import neotypes.model.query.QueryParam
 import cats.syntax.all.*
+import neotypes.model.query.QueryParam
+import neotypes.model.query.QueryParam.NullValue
+import neotypes.model.types.Value
+import neotypes.query.QueryArg.Param
+import planning.engine.common.UnitSpecWithData
 
 class PropertiesSpec extends UnitSpecWithData:
 

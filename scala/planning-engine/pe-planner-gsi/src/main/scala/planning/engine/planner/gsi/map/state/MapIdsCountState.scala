@@ -13,7 +13,7 @@
 package planning.engine.planner.gsi.map.state
 
 import planning.engine.common.graph.edges.IndexMap
-import planning.engine.common.values.node.{MnId, HnIndex}
+import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 
 final case class MapIdsCountState(

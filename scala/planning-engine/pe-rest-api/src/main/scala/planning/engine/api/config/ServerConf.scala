@@ -15,12 +15,10 @@ package planning.engine.api.config
 import cats.effect.Sync
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.Config
-import pureconfig.ConfigSource
-import pureconfig.ConfigReader
-
+import planning.engine.api.config.ApiConfigReaders.given
 import pureconfig.generic.semiauto.*
 import pureconfig.module.catseffect.syntax.*
-import planning.engine.api.config.ApiConfigReaders.given
+import pureconfig.{ConfigReader, ConfigSource}
 
 final case class ServerConf(host: Host, port: Port, apiPrefix: String)
 

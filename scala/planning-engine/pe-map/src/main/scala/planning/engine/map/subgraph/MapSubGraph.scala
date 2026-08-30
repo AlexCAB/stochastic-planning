@@ -15,10 +15,10 @@ package planning.engine.map.subgraph
 import cats.MonadThrow
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.values.sample.SampleId
 
 final case class MapSubGraph[F[_]: MonadThrow](
     concreteNodes: List[ConcreteNode[F]],

@@ -12,9 +12,9 @@
 
 package planning.engine.common
 
-import cats.effect.{Async, IO}
 import cats.effect.testing.UnsafeRun
 import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResource}
+import cats.effect.{Async, IO}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.FixtureAsyncWordSpec
 

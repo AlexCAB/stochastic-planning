@@ -13,10 +13,10 @@
 package planning.engine.api.config
 
 import cats.effect.{Resource, Sync}
+import cats.syntax.all.*
 import com.typesafe.config.{Config, ConfigFactory}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.VisualizationServiceConf
-import cats.syntax.all.*
 import planning.engine.planner.gsi.config.PlannerMapConfig
 
 final case class MainInMemConf(

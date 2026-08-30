@@ -14,14 +14,14 @@ package planning.engine.planner.gsi.map.dcg
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.node.{HnIndex, HnName, MnId}
-import planning.engine.common.values.node.MnId.{filterAbs, filterCon}
-import planning.engine.common.values.sample.SampleId
-import planning.engine.map.samples.sample.SampleData
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{MeKey, IndexMap}
+import planning.engine.common.graph.edges.{IndexMap, MeKey}
 import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.MnId.{filterAbs, filterCon}
+import planning.engine.common.values.node.{HnIndex, HnName, MnId}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.gsi.map.dcg.edges.DcgEdge
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
@@ -104,7 +104,7 @@ final case class DcGraph[F[_]: MonadThrow](
     for
       sampleIds <- samples.map(_.sample.data.id).pure
       _ <- sampleIds.assertDistinct("Duplicate sample IDs detected")
-      _ <- sampleIds.assertContainsNoneOf(this.sampleIds, s"Some sample IDs already exists in the graph")
+      _ <- sampleIds.assertContainsNoneOf(this.sampleIds, "Some sample IDs already exists in the graph")
       sampleIdsByKeys = samples.flatMap(_.idsByKey).groupBy(_._1).view.mapValues(_.map(_._2).toMap).toList
       updatedEdges <- sampleIdsByKeys.traverse((k, ids) => updateOrAddEdge(k, ids).map(e => k -> e)).map(_.toMap)
       addedSamples = samples.map(s => s.sample.data.id -> s.sample.data).toMap

@@ -16,8 +16,8 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.manager.data.Message.{AddNode, NodeAdded}
 import planning.engine.planner.mpi.actors.manager.WithTestManager
+import planning.engine.planner.mpi.actors.manager.data.Message.{AddNode, NodeAdded}
 import planning.engine.planner.mpi.actors.node.FakeNode
 import planning.engine.planner.mpi.common.data.node.NodeData
 

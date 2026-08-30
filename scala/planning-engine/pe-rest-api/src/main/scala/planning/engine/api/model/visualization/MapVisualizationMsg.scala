@@ -12,7 +12,7 @@
 
 package planning.engine.api.model.visualization
 
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}

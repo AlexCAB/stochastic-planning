@@ -14,7 +14,6 @@ package planning.engine.common.values.node
 
 import cats.effect.IO
 import cats.syntax.all.*
-
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.values.node.MnId.{Abs, Con}
 

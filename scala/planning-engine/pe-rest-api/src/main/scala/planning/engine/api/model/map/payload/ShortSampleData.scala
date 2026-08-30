@@ -12,9 +12,9 @@
 
 package planning.engine.api.model.map.payload
 
+import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import io.circe.{Encoder, Decoder}
 
 final case class ShortSampleData(
     id: SampleId,

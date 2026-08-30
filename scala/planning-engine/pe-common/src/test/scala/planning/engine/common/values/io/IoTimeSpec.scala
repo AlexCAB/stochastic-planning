@@ -24,7 +24,7 @@ class IoTimeSpec extends UnitSpecIO:
 
   "IoTime.repr" should:
     "return string representation of IoTime" in: _ =>
-      testIoTime.repr mustBe s"t=1"
+      testIoTime.repr mustBe "t=1"
 
   "IoTime.init" should:
     "return IoTime with value 0" in: _ =>

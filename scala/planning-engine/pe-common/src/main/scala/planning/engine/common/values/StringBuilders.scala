@@ -13,8 +13,8 @@
 package planning.engine.common.values
 
 import cats.ApplicativeThrow
-import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
+import planning.engine.common.errors.assertionError
 
 trait StringBuilders[T <: AnyVal]:
   protected def makeValue(str: String): T

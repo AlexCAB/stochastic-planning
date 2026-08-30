@@ -12,10 +12,10 @@
 
 package planning.engine.api.model.map.payload
 
-import planning.engine.common.values.text.{Description, Name}
 import io.circe.{Decoder, Encoder}
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.node.HnName
+import planning.engine.common.values.text.{Description, Name}
 
 final case class NewSampleData(
     probabilityCount: Long,

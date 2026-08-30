@@ -14,12 +14,12 @@ package planning.engine.map.samples.sample
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import neotypes.model.types.Node
+import planning.engine.common.errors.assertionError
+import planning.engine.common.properties.*
+import planning.engine.common.values.db.Neo4j.SAMPLE_LABEL
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.properties.*
-import neotypes.model.types.Node
-import planning.engine.common.values.db.Neo4j.SAMPLE_LABEL
-import planning.engine.common.errors.assertionError
 
 final case class SampleData(
     id: SampleId,

@@ -12,12 +12,13 @@
 
 package planning.engine.planner.mpi.common.data.samples
 
-import planning.engine.common.values.sample.SampleId
-import Sample.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
+import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.common.repr.Representable
+
+import Sample.*
 
 // Fully defined sample data, as they will read from map graph.
 final case class Sample(

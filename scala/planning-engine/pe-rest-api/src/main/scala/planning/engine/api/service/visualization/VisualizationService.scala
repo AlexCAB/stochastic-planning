@@ -14,8 +14,8 @@ package planning.engine.api.service.visualization
 
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
-import fs2.{Pipe, Stream}
 import fs2.concurrent.Topic
+import fs2.{Pipe, Stream}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.VisualizationServiceConf
 import planning.engine.api.model.visualization.MapVisualizationMsg

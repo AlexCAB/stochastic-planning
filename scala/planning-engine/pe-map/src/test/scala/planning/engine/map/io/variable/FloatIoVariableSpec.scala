@@ -13,8 +13,8 @@
 package planning.engine.map.io.variable
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
 import neotypes.model.types.Value
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.properties.PROP
 import planning.engine.common.properties.PropertiesMapping.*
 import planning.engine.common.values.io.IoIndex

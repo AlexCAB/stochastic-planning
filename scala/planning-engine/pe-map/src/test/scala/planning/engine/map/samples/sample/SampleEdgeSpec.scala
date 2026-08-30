@@ -13,13 +13,13 @@
 package planning.engine.map.samples.sample
 
 import cats.effect.IO
+import neotypes.model.types.{Relationship, Value}
 import planning.engine.common.UnitSpecWithData
-import planning.engine.map.samples.sample.SampleEdge
-import planning.engine.common.values.node.{HnId, HnIndex}
-import planning.engine.common.values.sample.SampleId
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.db.Neo4j
-import neotypes.model.types.{Relationship, Value}
+import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.samples.sample.SampleEdge
 
 class SampleEdgeSpec extends UnitSpecWithData:
 

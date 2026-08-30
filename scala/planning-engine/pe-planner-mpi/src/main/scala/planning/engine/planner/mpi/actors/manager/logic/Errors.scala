@@ -12,9 +12,9 @@
 
 package planning.engine.planner.mpi.actors.manager.logic
 
-import cats.syntax.all.*
 import cats.ApplicativeThrow
 import cats.effect.Sync
+import cats.syntax.all.*
 import planning.engine.planner.mpi.actors.manager.data.Message.NodeActorError
 import planning.engine.planner.mpi.common.error.FatalException
 import planning.engine.planner.mpi.common.repr.Representable

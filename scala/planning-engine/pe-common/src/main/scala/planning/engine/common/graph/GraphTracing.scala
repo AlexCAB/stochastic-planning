@@ -14,13 +14,12 @@ package planning.engine.common.graph
 
 import cats.MonadThrow
 import cats.syntax.all.*
-
-import planning.engine.common.graph.edges.MeKey.{Link, Then}
-import planning.engine.common.values.node.MnId
-import planning.engine.common.values.node.MnId.Con
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.graph.paths.MapPath
+import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.MnId.Con
 
 import scala.annotation.tailrec
 

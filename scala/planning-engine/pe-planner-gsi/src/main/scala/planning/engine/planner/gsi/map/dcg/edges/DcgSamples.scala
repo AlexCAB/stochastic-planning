@@ -14,10 +14,10 @@ package planning.engine.planner.gsi.map.dcg.edges
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.node.HnIndex
 import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{MeKey, IndexMap, Indexies}
+import planning.engine.common.graph.edges.{IndexMap, Indexies, MeKey}
+import planning.engine.common.values.node.HnIndex
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
 final case class DcgSamples[F[_]: MonadThrow](

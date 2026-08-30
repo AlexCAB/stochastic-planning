@@ -14,12 +14,12 @@ package planning.engine.planner.gsi.map.dcg.samples
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
-import planning.engine.map.samples.sample.{Sample, SampleData}
+import planning.engine.common.graph.edges.{IndexMap, MeKey}
 import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{MeKey, IndexMap}
+import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.planner.gsi.map.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MonadThrow](

@@ -13,14 +13,14 @@
 package planning.engine.common
 
 import cats.MonadThrow
-import cats.effect.{IO, Resource, Sync}
 import cats.effect.testing.scalatest.AsyncIOSpec
-import org.scalatest.Assertion
-import org.typelevel.log4cats.{Logger, LoggerFactory}
-import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
-import org.scalatest.matchers.must.Matchers
+import cats.effect.{IO, Resource, Sync}
 import cats.syntax.all.*
 import fansi.Str
+import org.scalatest.Assertion
+import org.scalatest.matchers.must.Matchers
+import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
+import org.typelevel.log4cats.{Logger, LoggerFactory}
 
 trait SpecLogging:
   self: AsyncIOSpec & Matchers =>

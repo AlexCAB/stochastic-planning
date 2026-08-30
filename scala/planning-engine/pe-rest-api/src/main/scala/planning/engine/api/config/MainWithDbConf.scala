@@ -13,10 +13,10 @@
 package planning.engine.api.config
 
 import cats.effect.{Resource, Sync}
+import cats.syntax.all.*
 import com.typesafe.config.{Config, ConfigFactory}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.map.config.MapConfig
-import cats.syntax.all.*
 
 final case class MainWithDbConf(
     db: DbConf,

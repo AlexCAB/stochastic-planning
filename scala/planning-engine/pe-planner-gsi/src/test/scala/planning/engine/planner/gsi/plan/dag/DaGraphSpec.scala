@@ -13,8 +13,8 @@
 package planning.engine.planner.gsi.plan.dag
 
 import cats.effect.IO
-import cats.syntax.all.*
 import cats.effect.cps.*
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
 import planning.engine.common.graph.trees.PlanTree

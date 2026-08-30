@@ -12,8 +12,8 @@
 
 package planning.engine.api.model.json
 
-import planning.engine.common.enums.EdgeType
 import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
+import planning.engine.common.enums.EdgeType
 
 package object enums:
 

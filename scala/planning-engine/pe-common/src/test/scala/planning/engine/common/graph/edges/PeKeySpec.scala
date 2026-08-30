@@ -13,7 +13,7 @@
 package planning.engine.common.graph.edges
 
 import planning.engine.common.UnitSpecIO
-import planning.engine.common.values.node.{PnId, MnId}
+import planning.engine.common.values.node.{MnId, PnId}
 
 class PeKeySpec extends UnitSpecIO:
   import PeKey.{Link, Then}

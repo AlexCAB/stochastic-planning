@@ -15,8 +15,8 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
-import planning.engine.common.UnitSpecWithData
 import planning.engine.api.config.VisualizationServiceConf
+import planning.engine.common.UnitSpecWithData
 import planning.engine.planner.gsi.config.PlannerMapConfig
 
 import scala.concurrent.duration.DurationInt

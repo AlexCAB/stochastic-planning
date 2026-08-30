@@ -12,8 +12,8 @@
 
 package planning.engine.api.model.map.payload
 
-import planning.engine.common.enums.EdgeType
 import io.circe.{Decoder, Encoder}
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.HnName
 
 final case class NewSampleEdge(

@@ -13,8 +13,8 @@
 package planning.engine.common.enums
 
 import org.scalatest.EitherValues
-import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import planning.engine.common.values.db.Neo4j
 
 class EdgeTypeSpec extends AnyWordSpecLike with Matchers with EitherValues:

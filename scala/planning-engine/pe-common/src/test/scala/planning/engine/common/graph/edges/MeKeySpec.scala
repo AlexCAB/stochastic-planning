@@ -66,7 +66,7 @@ class MeKeySpec extends UnitSpecIO:
       edgeLink.repr.pure[IO].asserting(_ mustBe "(1)=link=>[2]")
 
     "return correct string representation for Then edge" in: _ =>
-      edgeThen.repr.pure[IO].asserting(_ mustBe s"[3]-then->(4)")
+      edgeThen.repr.pure[IO].asserting(_ mustBe "[3]-then->(4)")
 
   "MeKey.End.repr" should:
     "return correct string representation for Link end" in: _ =>

@@ -14,8 +14,8 @@ package planning.engine.planner.gsi.map.state
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import planning.engine.common.values.node.{MnId, HnIndex}
-import planning.engine.common.values.node.MnId.{Con, Abs}
+import planning.engine.common.values.node.MnId.{Abs, Con}
+import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 
 class MapIdsCountStateSpec extends AnyWordSpecLike with Matchers:

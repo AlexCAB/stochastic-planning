@@ -14,12 +14,11 @@ package planning.engine.common.graph
 
 import cats.MonadThrow
 import cats.syntax.all.*
-
+import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.node.MnId.{filterAbs, filterCon}
-import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.MeKey
 
 import scala.reflect.ClassTag
 

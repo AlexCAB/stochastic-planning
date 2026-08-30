@@ -14,14 +14,14 @@ package planning.engine.planner.gsi.map
 
 import cats.effect.kernel.Async
 import cats.effect.std.AtomicCell
-import planning.engine.common.values.io.{IoName, IoValue}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.map.MapGraphLake
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.map.MapGraphLake
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.Sample

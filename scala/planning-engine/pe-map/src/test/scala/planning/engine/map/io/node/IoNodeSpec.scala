@@ -13,16 +13,16 @@
 package planning.engine.map.io.node
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
-import neotypes.model.types.{Node, Value}
-import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
-import planning.engine.common.properties.PropertiesMapping.*
-import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.common.properties.PROP
-import planning.engine.common.values.io.IoName
-import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, OUT_LABEL}
-import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 import cats.syntax.all.*
+import neotypes.model.types.{Node, Value}
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.properties.PROP
+import planning.engine.common.properties.PropertiesMapping.*
+import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, OUT_LABEL}
+import planning.engine.common.values.io.IoName
+import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
+import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 
 class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
 

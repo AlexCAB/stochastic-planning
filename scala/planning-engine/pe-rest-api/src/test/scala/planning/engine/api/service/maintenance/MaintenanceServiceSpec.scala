@@ -13,8 +13,8 @@
 package planning.engine.api.service.maintenance
 
 import cats.effect.{IO, Resource}
-import planning.engine.common.UnitSpecWithResource
 import planning.engine.api.model.maintenance.HealthResponse
+import planning.engine.common.UnitSpecWithResource
 
 class MaintenanceServiceSpec extends UnitSpecWithResource[MaintenanceService[IO]]:
   override val resource: Resource[IO, MaintenanceService[IO]] = MaintenanceService[IO]()

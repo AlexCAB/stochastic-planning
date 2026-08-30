@@ -13,19 +13,19 @@
 package planning.engine.api.service.map
 
 import cats.effect.IO
-import cats.syntax.all.*
-import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.common.UnitSpecWithData
-import planning.engine.api.model.map.*
 import cats.effect.cps.*
 import cats.effect.std.AtomicCell
+import cats.syntax.all.*
+import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.compatible.Assertion
+import planning.engine.api.model.map.*
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
-import planning.engine.map.{MapBuilderLike, MapGraphLake}
-import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.data.MapMetadata
+import planning.engine.map.io.node.{InputNode, OutputNode}
+import planning.engine.map.{MapBuilderLike, MapGraphLake}
 
 class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 

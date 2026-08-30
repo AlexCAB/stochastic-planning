@@ -15,9 +15,9 @@ package planning.engine.database
 import cats.effect.Sync
 import com.typesafe.config.Config
 import org.neo4j.driver.{AuthToken, AuthTokens}
-import pureconfig.{ConfigReader, ConfigSource}
 import pureconfig.generic.semiauto.*
 import pureconfig.module.catseffect.syntax.*
+import pureconfig.{ConfigReader, ConfigSource}
 
 final case class Neo4jConf(user: String, password: String, uri: String):
   lazy val authToken: AuthToken = AuthTokens.basic(user, password)

@@ -12,11 +12,10 @@
 
 package planning.engine.planner.mpi.actors
 
-import cats.effect.IO
-import cats.effect.Sync
+import cats.effect.{IO, Sync}
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
+import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.planner.mpi.common.error.FatalException
 import planning.engine.planner.mpi.common.repr.Representable
 

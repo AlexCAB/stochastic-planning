@@ -12,16 +12,16 @@
 
 package planning.engine.api.route.map
 
+import cats.effect.cps.*
 import cats.effect.{IO, Resource}
+import io.circe.syntax.*
+import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.implicits.*
 import org.http4s.{Method, Request, Response, Status, Uri}
 import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.api.model.map.*
 import planning.engine.api.service.map.MapServiceLike
 import planning.engine.common.UnitSpecWithResource
-import planning.engine.api.model.map.*
-import cats.effect.cps.*
-import org.http4s.implicits.*
-import org.http4s.circe.CirceEntityCodec.*
-import io.circe.syntax.*
 
 class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO])]
     with AsyncMockFactory with TestApiData:

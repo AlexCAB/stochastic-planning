@@ -14,15 +14,15 @@ package planning.engine.api.route.map
 
 import cats.MonadThrow
 import cats.effect.{Concurrent, Resource}
-import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
-import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest, MapLoadRequest}
-import planning.engine.api.service.map.MapServiceLike
 import cats.syntax.all.*
+import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.circe.*
+import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.api.model.map.{MapAddSamplesRequest, MapInitRequest, MapLoadRequest}
 import planning.engine.api.route.RouteBase
+import planning.engine.api.service.map.MapServiceLike
 
 class MapRoute[F[_]: {Concurrent, LoggerFactory}](service: MapServiceLike[F]) extends RouteBase[F] with Http4sDsl[F]:
   import MapInitRequest.*

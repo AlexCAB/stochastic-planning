@@ -13,15 +13,15 @@
 package planning.engine.api.model.map.payload
 
 import cats.MonadThrow
-import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.text.Description
-import io.circe.{Decoder, Encoder, HCursor, Json}
 import cats.syntax.all.*
 import io.circe.syntax.*
+import io.circe.{Decoder, Encoder, HCursor, Json}
+import planning.engine.common.errors.assertionError
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.HnName
+import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
-import planning.engine.common.errors.assertionError
-import planning.engine.common.values.node.HnName
 import planning.engine.map.io.variable.*
 
 sealed trait HiddenNodeDef:

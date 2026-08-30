@@ -15,6 +15,7 @@ package planning.engine.planner.gsi.map.test.data
 import cats.effect.unsafe.IORuntime
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.sample.SampleId
+
 import MeKey.{Link, Then}
 
 trait AbstractDagTestData extends DcGraphTestData:

@@ -22,8 +22,7 @@ import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
-import planning.engine.planner.mpi.test.data.MapNodeTestData
-import planning.engine.planner.mpi.test.data.MapEdgeTestData
+import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
 class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNodeTestData with MapEdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:

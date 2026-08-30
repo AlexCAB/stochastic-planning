@@ -14,8 +14,8 @@ package planning.engine.common.values.node
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.LongVal
 import planning.engine.common.errors.assertionError
+import planning.engine.common.values.LongVal
 
 // Hidden Node ID is used to identify the hidden node in the graph.
 final case class HnId(value: Long) extends AnyVal with LongVal:

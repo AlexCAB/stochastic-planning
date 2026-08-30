@@ -20,12 +20,12 @@ import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{Indexies, MeKey}
+import planning.engine.common.graph.io.IoValueMap
 import planning.engine.common.values.db.DbName
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.graph.io.IoValueMap
-import planning.engine.common.values.node.{HnIndex, HnName, MnId}
 import planning.engine.map.config.MapConfig
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.ConcreteNode

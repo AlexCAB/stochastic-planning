@@ -55,16 +55,16 @@ class MapServiceBaseSpec extends UnitSpecWithData:
       data.mapServiceBase
         .composeHnIdMap(Map(data.hnName1 -> Set(data.hnId1, HnId(99))), data.newConHnIds ++ data.newAbsHnIds)
         .logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include(s"Expect exactly one variable"))
+        .assertThrowsError[AssertionError](_.getMessage must include("Expect exactly one variable"))
 
     "fail if no name for new HnId" in newCase[CaseData]: (tn, data) =>
       data.mapServiceBase
         .composeHnIdMap(data.foundHnIdMap, Map(data.hnId3 -> None) ++ data.newAbsHnIds)
         .logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include(s"No name found for hnId"))
+        .assertThrowsError[AssertionError](_.getMessage must include("No name found for hnId"))
 
     "fail if duplicate hn names in found ids" in newCase[CaseData]: (tn, data) =>
       data.mapServiceBase
         .composeHnIdMap(data.foundHnIdMap, Map(data.hnId1 -> Some(data.hnName1)) ++ data.newAbsHnIds)
         .logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include(s"Hn names must be distinct"))
+        .assertThrowsError[AssertionError](_.getMessage must include("Hn names must be distinct"))

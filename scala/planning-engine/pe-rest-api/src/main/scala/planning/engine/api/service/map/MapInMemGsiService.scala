@@ -16,10 +16,10 @@ import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
+import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
-import planning.engine.common.errors.*
 import planning.engine.planner.gsi.map.MapInMemGsiLike
 
 class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])

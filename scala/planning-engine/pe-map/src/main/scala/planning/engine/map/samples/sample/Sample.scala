@@ -13,16 +13,15 @@
 package planning.engine.map.samples.sample
 
 import cats.MonadThrow
+import cats.syntax.all.*
 import neotypes.query.QueryArg.Param
+import planning.engine.common.errors.{assertionError, *}
 import planning.engine.common.properties.*
+import planning.engine.common.validation.Validation
+import planning.engine.common.values.StringVal.toStr
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import cats.syntax.all.*
-import planning.engine.common.validation.Validation
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.errors.assertionError
-import planning.engine.common.values.StringVal.toStr
-import planning.engine.common.errors.*
 
 final case class Sample(
     data: SampleData,
@@ -102,7 +101,7 @@ object Sample:
       description = description,
     )
 
-    override lazy val toString: String = s"Sample.New(" +
+    override lazy val toString: String = "Sample.New(" +
       s"probabilityCount = $probabilityCount, " +
       s"utility = $utility, " +
       s"name = ${name.toStr}, " +

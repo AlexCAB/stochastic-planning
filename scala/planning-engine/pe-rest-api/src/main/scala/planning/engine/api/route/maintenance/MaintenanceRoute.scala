@@ -14,14 +14,14 @@ package planning.engine.api.route.maintenance
 
 import cats.MonadThrow
 import cats.effect.Resource
-import org.http4s.HttpRoutes
-import planning.engine.api.service.maintenance.MaintenanceServiceLike
-import org.http4s.dsl.Http4sDsl
-import io.circe.syntax.EncoderOps
 import cats.syntax.all.*
-import planning.engine.api.model.maintenance.HealthResponse
-import org.http4s.circe.*
+import io.circe.syntax.EncoderOps
+import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.circe.*
+import org.http4s.dsl.Http4sDsl
+import planning.engine.api.model.maintenance.HealthResponse
+import planning.engine.api.service.maintenance.MaintenanceServiceLike
 
 class MaintenanceRoute[F[_]: MonadThrow](service: MaintenanceServiceLike[F]) extends Http4sDsl[F]:
   import HealthResponse.*

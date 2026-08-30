@@ -14,16 +14,15 @@ package planning.engine.planner.mpi.actors.visualizer
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.common.graph.edges.MeKey
-import org.apache.pekko.actor.typed.Behavior
-import java.util.concurrent.atomic.AtomicInteger
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
-import org.apache.pekko.actor.typed.ActorRef
-
+import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.visualizer.data.State
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
+
+import java.util.concurrent.atomic.AtomicInteger
 
 final case class TestVisualizer(api: Visualizer):
   import TestVisualizer.*

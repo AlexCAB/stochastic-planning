@@ -12,13 +12,13 @@
 
 package planning.engine.api.model.json
 
-import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
-import planning.engine.common.values.text.{Description, Name}
 import cats.syntax.all.*
+import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.common.values.{LongVal, StringVal}
 
 package object values:

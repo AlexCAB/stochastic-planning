@@ -12,8 +12,8 @@
 
 package planning.engine.map.hidden.node
 
-import planning.engine.common.values.text.Description
 import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
 
 trait HiddenNode[F[_]]:
   def id: HnId

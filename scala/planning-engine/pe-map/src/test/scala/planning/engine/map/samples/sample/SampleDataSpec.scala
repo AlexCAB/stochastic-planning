@@ -13,13 +13,12 @@
 package planning.engine.map.samples.sample
 
 import cats.effect.IO
+import neotypes.model.types.{Node, Value}
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.properties.*
 import planning.engine.common.values.db.Neo4j.SAMPLE_LABEL
-import neotypes.model.types.Node
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.properties.*
-import neotypes.model.types.Value
 
 class SampleDataSpec extends UnitSpecWithData:
 

@@ -19,12 +19,12 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.mpi.actors.manager.data.Definition
 import planning.engine.planner.mpi.actors.manager.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.samples.Sample
-import planning.engine.planner.mpi.actors.manager.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
 
 trait Manager:

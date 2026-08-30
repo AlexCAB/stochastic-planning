@@ -13,11 +13,11 @@
 package planning.engine.map.io.variable
 
 import cats.MonadThrow
+import cats.syntax.all.*
 import neotypes.model.types.Value
+import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
-import cats.syntax.all.*
-import neotypes.query.QueryArg.Param
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
 

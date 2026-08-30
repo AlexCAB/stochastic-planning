@@ -12,12 +12,12 @@
 
 package planning.engine.common.graph.paths
 
-import cats.effect.IO
 import cats.data.NonEmptyChain
-import planning.engine.common.values.node.MnId.{Abs, Con}
+import cats.effect.IO
 import planning.engine.common.UnitSpecIO
 import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
 import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.MnId.{Abs, Con}
 
 class MapPathSpec extends UnitSpecIO:
   lazy val n1: Abs = Abs(1L)

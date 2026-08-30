@@ -16,14 +16,14 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
-import planning.engine.map.io.node.IoNode
-import planning.engine.common.values.text.Description
-import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.errors.assertionError
-import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
+import planning.engine.map.io.node.IoNode
 
 final case class ConcreteNode[F[_]: MonadThrow](
     id: HnId,
@@ -35,7 +35,7 @@ final case class ConcreteNode[F[_]: MonadThrow](
 
   lazy val ioValue: IoValue = IoValue(ioNode.name, valueIndex)
 
-  override lazy val toString: String = s"ConcreteHiddenNode(" +
+  override lazy val toString: String = "ConcreteHiddenNode(" +
     s"id = $id, name = $name, description = $description, valueIndex = $valueIndex, ioNode = $ioNode)"
 
 object ConcreteNode:

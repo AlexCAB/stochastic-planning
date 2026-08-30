@@ -66,7 +66,7 @@ class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
       renderPathRepr(nooses).tab4,
     ).flatten
 
-  lazy val reprNotConnectedNodes: List[String] = s"NOT CONNECTED NODES:" +: renderNotConnectedNodes.tab2
+  lazy val reprNotConnectedNodes: List[String] = "NOT CONNECTED NODES:" +: renderNotConnectedNodes.tab2
 
   lazy val repr: F[String] =
     for

@@ -13,8 +13,8 @@
 package planning.engine.planner.gsi.map.logic
 
 import cats.effect.IO
-import cats.effect.std.AtomicCell
 import cats.effect.cps.*
+import cats.effect.std.AtomicCell
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId

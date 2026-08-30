@@ -14,12 +14,12 @@ package planning.engine.planner.gsi.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
+import planning.engine.common.graph.GraphStructure
+import planning.engine.common.graph.edges.{IndexMap, MeKey}
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.samples.sample.SampleData
-import planning.engine.common.graph.GraphStructure
-import planning.engine.common.graph.edges.{MeKey, IndexMap}
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
 trait DcgSampleTestData extends DcgNodeTestData:

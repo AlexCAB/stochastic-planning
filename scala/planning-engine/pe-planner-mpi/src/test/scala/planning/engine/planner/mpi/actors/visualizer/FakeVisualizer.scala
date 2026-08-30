@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.visualizer
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.visualizer.data.Message.{ShowNodesAdded, ShowEdgesAdded}
+import planning.engine.planner.mpi.actors.visualizer.data.Message.{ShowEdgesAdded, ShowNodesAdded}
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
 
 final case class FakeVisualizer(api: Visualizer, probe: TestProbe[Visualizer.Msg]):

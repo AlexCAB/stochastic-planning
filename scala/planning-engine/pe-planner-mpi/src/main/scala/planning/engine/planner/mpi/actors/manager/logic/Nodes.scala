@@ -14,11 +14,11 @@ package planning.engine.planner.mpi.actors.manager.logic
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import planning.engine.common.errors.*
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.manager.data.Message
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.common.errors.*
 
 private[manager] trait Nodes:
   self: Actor.type =>

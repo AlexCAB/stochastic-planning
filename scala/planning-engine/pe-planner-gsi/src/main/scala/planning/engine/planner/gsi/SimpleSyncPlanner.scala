@@ -13,9 +13,9 @@
 package planning.engine.planner.gsi
 
 import cats.effect.Async
-import planning.engine.map.MapGraphLake
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.graph.io.{Action, Observation}
+import planning.engine.map.MapGraphLake
 import planning.engine.planner.gsi.config.SimpleSyncPlannerConfig
 
 trait SimpleSyncPlannerLike[F[_]]:

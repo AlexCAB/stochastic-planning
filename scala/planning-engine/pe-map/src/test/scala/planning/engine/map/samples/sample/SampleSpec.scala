@@ -13,17 +13,17 @@
 package planning.engine.map.samples.sample
 
 import cats.effect.IO
+import cats.effect.cps.*
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.node.{HnId, HnIndex}
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.map.samples.sample.{Sample, SampleEdge}
-import planning.engine.common.values.sample.SampleId
-import cats.syntax.all.*
-import cats.effect.cps.*
 import planning.engine.common.properties.*
 import planning.engine.common.validation.ValidationCheck
+import planning.engine.common.values.node.{HnId, HnIndex}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.samples.sample.SampleEdge.End
+import planning.engine.map.samples.sample.{Sample, SampleEdge}
 
 class SampleSpec extends UnitSpecWithData with ValidationCheck:
 

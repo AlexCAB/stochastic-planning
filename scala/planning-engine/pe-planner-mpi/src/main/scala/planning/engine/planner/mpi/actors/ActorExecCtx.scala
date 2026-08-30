@@ -13,6 +13,7 @@
 package planning.engine.planner.mpi.actors
 
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
+
 import scala.concurrent.ExecutionContext
 
 // This trait define separate synchronous execution context for each actor, which execute effects in the actor thread,

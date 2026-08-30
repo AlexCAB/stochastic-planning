@@ -13,12 +13,12 @@
 package planning.engine.map.samples.sample
 
 import cats.MonadThrow
+import cats.syntax.all.*
+import neotypes.model.types.{Relationship, Value}
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.errors.{assertDistinct, assertUniform, assertionError}
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.errors.{assertionError, assertDistinct, assertUniform}
-import neotypes.model.types.{Relationship, Value}
-import cats.syntax.all.*
 
 final case class SampleEdge(
     source: SampleEdge.End,

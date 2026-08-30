@@ -13,8 +13,8 @@
 package planning.engine.api.config
 
 import cats.effect.Sync
-import com.typesafe.config.Config
 import cats.syntax.all.*
+import com.typesafe.config.Config
 import planning.engine.database.Neo4jConf
 
 final case class DbConf(connection: Neo4jConf)

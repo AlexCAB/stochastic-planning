@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
 import planning.engine.planner.mpi.test.data.MapEdgeTestData
+
 import scala.concurrent.duration.*
 
 class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with MapEdgeTestData:

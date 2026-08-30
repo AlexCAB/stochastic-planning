@@ -14,10 +14,10 @@ package planning.engine.planner.gsi.map.test.data
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.node.MnId
-import planning.engine.common.values.sample.SampleId
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.io.IoValueMap
+import planning.engine.common.values.node.MnId
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.gsi.map.dcg.DcGraph
 import planning.engine.planner.gsi.map.dcg.edges.DcgEdge

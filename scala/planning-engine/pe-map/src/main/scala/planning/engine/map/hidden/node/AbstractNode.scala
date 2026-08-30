@@ -15,13 +15,13 @@ package planning.engine.map.hidden.node
 import cats.MonadThrow
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
-import planning.engine.common.values.text.Description
-import planning.engine.common.values.node.{HnId, HnName}
-import planning.engine.common.properties.*
 import neotypes.query.QueryArg.Param
-import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
 import planning.engine.common.errors.assertionError
+import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
 
 final case class AbstractNode[F[_]: MonadThrow](
     id: HnId,

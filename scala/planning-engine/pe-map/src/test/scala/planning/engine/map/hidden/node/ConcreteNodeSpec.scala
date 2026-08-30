@@ -13,18 +13,17 @@
 package planning.engine.map.hidden.node
 
 import cats.effect.IO
-import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.node.{HnId, HnName}
-import planning.engine.common.values.text.Description
-import planning.engine.common.properties.PROP
 import cats.syntax.all.*
-import planning.engine.common.properties.*
-import planning.engine.map.io.node.InputNode
-import planning.engine.map.io.variable.IntIoVariable
 import neotypes.model.types.{Node, Value}
+import planning.engine.common.UnitSpecWithData
+import planning.engine.common.properties.{PROP, *}
 import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
+import planning.engine.map.io.node.InputNode
+import planning.engine.map.io.variable.IntIoVariable
 
 class ConcreteNodeSpec extends UnitSpecWithData with ValidationCheck:
 

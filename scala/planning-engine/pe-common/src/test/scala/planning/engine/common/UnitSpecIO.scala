@@ -14,8 +14,8 @@ package planning.engine.common
 
 import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.FutureOutcome
-import org.scalatest.wordspec.FixtureAsyncWordSpecLike
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.FixtureAsyncWordSpecLike
 
 abstract class UnitSpecIO extends FixtureAsyncWordSpecLike with AsyncIOSpec with Matchers with SpecLogging:
   type FixtureParam = String

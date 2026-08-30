@@ -12,13 +12,11 @@
 
 package planning.engine.common.graph
 
-import cats.effect.IO
 import cats.data.NonEmptyChain
-
-import planning.engine.common.values.node.MnId
-import planning.engine.common.graph.edges.MeKey
-
+import cats.effect.IO
 import org.scalatest.matchers.must.Matchers.*
+import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.node.MnId
 
 trait GraphStructureTestData:
   import MeKey.{End, Link, Then}

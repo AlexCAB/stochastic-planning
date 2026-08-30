@@ -12,8 +12,8 @@
 
 package planning.engine.api
 
-import cats.effect.kernel.Resource
 import cats.effect.IO
+import cats.effect.kernel.Resource
 import cats.implicits.toSemigroupKOps
 import planning.engine.api.app.AppBase
 import planning.engine.api.config.MainInMemConf

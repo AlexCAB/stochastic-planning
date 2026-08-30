@@ -14,10 +14,10 @@ package planning.engine.common.graph.edges
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.errors.*
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.errors.*
+import planning.engine.common.values.node.MnId.{Abs, Con}
 import planning.engine.common.values.node.{HnId, MnId}
-import planning.engine.common.values.node.MnId.{Con, Abs}
 
 sealed trait MeKey:
   import MnId.Nim

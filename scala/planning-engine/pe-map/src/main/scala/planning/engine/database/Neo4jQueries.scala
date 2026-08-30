@@ -13,16 +13,16 @@
 package planning.engine.database
 
 import cats.effect.Async
+import cats.syntax.all.*
 import neotypes.AsyncTransaction
 import neotypes.mappers.ResultMapper
 import neotypes.model.query.QueryParam
 import neotypes.model.types.{Node, Relationship}
-import neotypes.query.{DeferredQuery, ResultType}
 import neotypes.query.QueryArg.Param
+import neotypes.query.{DeferredQuery, ResultType}
 import neotypes.syntax.all.*
 import planning.engine.common.properties.PROP
 import planning.engine.common.values.db.Neo4j.*
-import cats.syntax.all.*
 
 trait Neo4jQueries:
 

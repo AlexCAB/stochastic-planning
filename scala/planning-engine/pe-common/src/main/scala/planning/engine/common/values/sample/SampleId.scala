@@ -13,9 +13,9 @@
 package planning.engine.common.values.sample
 
 import cats.ApplicativeThrow
-import planning.engine.common.values.LongVal
-import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
+import planning.engine.common.errors.assertionError
+import planning.engine.common.values.LongVal
 
 final case class SampleId(value: Long) extends AnyVal with LongVal:
   def toPropName: String = "s" + value

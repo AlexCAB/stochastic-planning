@@ -13,8 +13,8 @@
 package planning.engine.common.validation
 
 import cats.effect.IO
-import cats.syntax.all.*
 import cats.effect.testing.scalatest.AsyncIOSpec
+import cats.syntax.all.*
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers
 import planning.engine.common.SpecLogging

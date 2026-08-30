@@ -14,9 +14,9 @@ package planning.engine.common
 
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
-import org.scalatest.{Assertion, FutureOutcome}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.FixtureAsyncWordSpecLike
+import org.scalatest.{Assertion, FutureOutcome}
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag

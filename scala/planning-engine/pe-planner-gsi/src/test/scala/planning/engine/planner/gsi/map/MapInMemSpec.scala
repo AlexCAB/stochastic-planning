@@ -110,7 +110,7 @@ class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
     "fail if io node name not found" in newCase[CaseData]: (tn, data) =>
       import data.*
       initMapInMem.getIoNode(IoName("unknown_node")).logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include(s"IO node with name"))
+        .assertThrowsError[AssertionError](_.getMessage must include("IO node with name"))
 
   "MapInMem.addNewConcreteNodes(...)" should:
     "add new concrete nodes to in-memory state" in newCase[CaseData]: (tn, data) =>

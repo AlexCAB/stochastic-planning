@@ -13,15 +13,15 @@
 package planning.engine.common.properties
 
 import cats.MonadThrow
-import neotypes.model.types.{Entity, Node, Value}
-import planning.engine.common.errors.assertionError
-
-import scala.reflect.Typeable
 import cats.syntax.all.*
 import neotypes.mappers.ParameterMapper
 import neotypes.model.query.QueryParam.NullValue
+import neotypes.model.types.{Entity, Node, Value}
 import neotypes.query.QueryArg.Param
+import planning.engine.common.errors.assertionError
 import planning.engine.common.values.db.Neo4j.Label
+
+import scala.reflect.Typeable
 
 package object properties
 

@@ -135,6 +135,22 @@
 
 ❯ Add configuration in `.scalafmt.conf` to allow in line `if` like `)(using d: Def, ctx: Ctx): F[Set[MeKey]] = if sampleMap.isEmpty then Set.empty.pure else`
 
+❯ In `planning.engine.planner.mpi.actors` add new actor with name `planner` and structure similar to `planning.engine.planner.mpi.actors.visualizer, it should:
+1. API should have first method: `def step(observation: Observation): F[Action]`. Add it definition in `Planner` send message implementation in `ApiImpl`, messages in `object Message`, and handler in `Actor`. Future implementation of `step` method should be placed in `SimpleSyncPlanner` trait.
+2. API should have second method: `def conNodeAdded(node: Node): F[Unit]`
+3. `Definition` should have 2 fields: `inputVariables: Map[IoName, InputNode[F]]` and `outputVariables: Map[IoName, OutputNode[F]]`
+4. `State` should have 2 fields: `inputNodes: Map[IoName, Map[HnIndex, Set[Node]]]` and `outputNodes: Map[MnId.Con, (HnIndex, Node)]` 
+
+❯ Configure `.scalafix.conf` to fold import statements, for example: `import planning.engine.common.values.text.{Description, Name}` instead of:
+```
+import planning.engine.common.values.text.Description  
+import planning.engine.common.values.text.Name
+```
+
+❯ Also add `FakePlanner`, `TestPlanner` and `WithTestPlanner`.
+
+
+
 
 
 ##### TODO: 

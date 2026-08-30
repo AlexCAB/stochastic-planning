@@ -14,8 +14,8 @@ package planning.engine.planner.mpi.actors
 
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorSystem
-import planning.engine.common.UnitSpecWithData
 import org.scalatest.BeforeAndAfterAll
+import planning.engine.common.UnitSpecWithData
 
 class UnitSpecWithIOAndTestKit extends UnitSpecWithData with BeforeAndAfterAll:
   given testKit: ActorTestKit = ActorTestKit()

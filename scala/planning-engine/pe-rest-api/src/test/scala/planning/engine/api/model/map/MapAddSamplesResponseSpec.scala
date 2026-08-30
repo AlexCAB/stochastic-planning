@@ -13,11 +13,11 @@
 package planning.engine.api.model.map
 
 import cats.effect.IO
+import cats.syntax.all.*
 import planning.engine.api.model.map.payload.ShortSampleData
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import cats.syntax.all.*
 
 class MapAddSamplesResponseSpec extends UnitSpecWithData:
   private class CaseData extends Case:

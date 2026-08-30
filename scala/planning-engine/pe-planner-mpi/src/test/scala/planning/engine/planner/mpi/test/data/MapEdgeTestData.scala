@@ -14,8 +14,8 @@ package planning.engine.planner.mpi.test.data
 
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.text.Name
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.common.data.samples.Sample
 
 trait MapEdgeTestData:

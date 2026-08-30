@@ -14,8 +14,8 @@ package planning.engine.planner.gsi.map.data
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.graph.edges.MeKey.Then
+import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.test.data.ActiveAbsDagTestData

@@ -13,15 +13,15 @@
 package planning.engine.planner.gsi.map
 
 import cats.effect.IO
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationError
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.HnId
-import planning.engine.map.subgraph.MapSubGraph
-import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.MapGraphLake
 import planning.engine.map.samples.sample.Sample
+import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.MapTestData
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike

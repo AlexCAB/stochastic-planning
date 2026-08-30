@@ -13,17 +13,16 @@
 package planning.engine.planner.gsi.map.dcg
 
 import cats.effect.IO
-import planning.engine.common.graph.GraphStructure
-import planning.engine.common.values.node.HnName
-import planning.engine.map.samples.sample.SampleData
 import cats.effect.cps.*
 import cats.syntax.all.*
 import org.scalatest.compatible.Assertion
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.graph.edges.{MeKey, IndexMap}
-import planning.engine.common.values.node.{HnIndex, MnId}
-import planning.engine.common.values.sample.SampleId
+import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
+import planning.engine.common.graph.edges.{IndexMap, MeKey}
+import planning.engine.common.values.node.{HnIndex, HnName, MnId}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.map.samples.sample.SampleData
 import planning.engine.planner.gsi.map.dcg.edges.DcgEdge
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample

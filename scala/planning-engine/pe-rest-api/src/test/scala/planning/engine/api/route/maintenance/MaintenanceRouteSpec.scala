@@ -12,17 +12,16 @@
 
 package planning.engine.api.route.maintenance
 
-import cats.effect.{IO, Resource}
-import org.http4s.{Request, Status}
-import planning.engine.common.UnitSpecWithResource
-import planning.engine.api.model.maintenance.HealthResponse
-import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.api.service.maintenance.MaintenanceServiceLike
-
 import cats.effect.cps.*
+import cats.effect.{IO, Resource}
+import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
-import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.{Request, Status}
+import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.api.model.maintenance.HealthResponse
+import planning.engine.api.service.maintenance.MaintenanceServiceLike
+import planning.engine.common.UnitSpecWithResource
 
 class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[IO], MaintenanceRoute[IO])]
     with AsyncMockFactory:

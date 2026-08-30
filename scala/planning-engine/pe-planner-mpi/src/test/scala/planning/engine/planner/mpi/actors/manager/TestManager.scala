@@ -14,18 +14,18 @@ package planning.engine.planner.mpi.actors.manager
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
-import planning.engine.planner.mpi.common.data.node.NodeData
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
 import org.scalatest.matchers.must.Matchers.fail
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.TestActorBase
-import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.manager.data.State
+import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 
 import java.util.concurrent.atomic.AtomicInteger

@@ -14,8 +14,8 @@ package planning.engine.planner.gsi.map.state
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.io.IoName
 import planning.engine.common.errors.*
+import planning.engine.common.values.io.IoName
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 

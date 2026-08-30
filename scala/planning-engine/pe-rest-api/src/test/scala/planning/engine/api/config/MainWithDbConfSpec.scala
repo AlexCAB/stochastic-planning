@@ -13,9 +13,9 @@
 package planning.engine.api.config
 
 import cats.effect.IO
+import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
 import planning.engine.common.UnitSpecWithData
-import com.comcast.ip4s.{Host, Port}
 import planning.engine.database.Neo4jConf
 import planning.engine.map.config.MapConfig
 

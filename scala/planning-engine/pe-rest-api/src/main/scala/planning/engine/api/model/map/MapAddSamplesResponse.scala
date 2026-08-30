@@ -12,10 +12,10 @@
 
 package planning.engine.api.model.map
 
+import io.circe.{Decoder, Encoder}
 import planning.engine.api.model.map.payload.ShortSampleData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
-import io.circe.{Encoder, Decoder}
 
 final case class MapAddSamplesResponse(
     addedSamples: List[ShortSampleData],

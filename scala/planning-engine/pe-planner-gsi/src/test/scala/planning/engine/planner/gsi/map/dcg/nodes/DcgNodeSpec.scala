@@ -13,11 +13,11 @@
 package planning.engine.planner.gsi.map.dcg.nodes
 
 import cats.effect.IO
-import cats.syntax.all.*
 import cats.effect.cps.*
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoName, IoValue}
-import planning.engine.common.values.node.{MnId, HnName}
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.planner.gsi.map.test.data.MapNodeTestData

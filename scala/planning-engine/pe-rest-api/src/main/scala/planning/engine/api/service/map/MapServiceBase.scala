@@ -15,8 +15,8 @@ package planning.engine.api.service.map
 import cats.effect.Async
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.errors.*
+import planning.engine.common.values.node.{HnId, HnName}
 
 abstract class MapServiceBase[F[_]: {Async, LoggerFactory}]:
   private[map] def composeHnIdMap(
@@ -31,5 +31,5 @@ abstract class MapServiceBase[F[_]: {Async, LoggerFactory}]:
         case (id, Some(name)) => (name -> id).pure
         case (id, _)          => s"No name found for hnId: $id".assertionError
       allHnNames = foundIds ++ newIds
-      _ <- allHnNames.map(_._1).assertDistinct(s"Hn names must be distinct")
+      _ <- allHnNames.map(_._1).assertDistinct("Hn names must be distinct")
     yield allHnNames.toMap

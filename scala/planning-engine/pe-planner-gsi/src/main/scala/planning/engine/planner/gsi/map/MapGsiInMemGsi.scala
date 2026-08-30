@@ -17,14 +17,14 @@ import cats.effect.kernel.Async
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.common.values.io.{IoName, IoValue}
-import planning.engine.common.values.sample.SampleId
-import planning.engine.map.samples.sample.Sample
 import planning.engine.common.errors.*
+import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.sample.SampleId
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
+import planning.engine.map.samples.sample.Sample
 import planning.engine.planner.gsi.config.PlannerMapConfig
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
@@ -63,7 +63,7 @@ class MapGsiInMemGsi[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Initialized MapInMem with metadata: $metadata")
       yield (info, ())
     else
-      s"MapInMem is already initialized and cannot be initialized again".assertionError,
+      "MapInMem is already initialized and cannot be initialized again".assertionError,
   )
 
   override def getIoNode(name: IoName): F[IoNode[F]] =

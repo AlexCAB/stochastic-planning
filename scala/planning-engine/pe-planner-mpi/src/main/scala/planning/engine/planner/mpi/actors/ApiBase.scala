@@ -15,9 +15,10 @@ package planning.engine.planner.mpi.actors
 import cats.MonadThrow
 import cats.effect.Async
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
 import org.apache.pekko.actor.typed.scaladsl.AskPattern.*
+import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
 import org.apache.pekko.util.Timeout
+
 import scala.concurrent.duration.*
 
 trait ApiBase[M]:

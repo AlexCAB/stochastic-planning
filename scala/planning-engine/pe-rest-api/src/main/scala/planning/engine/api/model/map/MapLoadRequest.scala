@@ -12,8 +12,8 @@
 
 package planning.engine.api.model.map
 
+import io.circe.{Decoder, Encoder}
 import planning.engine.common.values.db.DbName
-import io.circe.{Encoder, Decoder}
 
 final case class MapLoadRequest(dbName: DbName)
 

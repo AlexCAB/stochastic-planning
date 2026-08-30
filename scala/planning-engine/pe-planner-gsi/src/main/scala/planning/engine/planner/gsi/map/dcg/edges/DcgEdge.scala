@@ -15,11 +15,11 @@ package planning.engine.planner.gsi.map.dcg.edges
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.{IndexMap, MeKey}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
-import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.{MeKey, IndexMap}
 
 final case class DcgEdge[F[_]: MonadThrow](
     key: MeKey,

@@ -14,12 +14,12 @@ package planning.engine.planner.gsi.plan.dag
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import planning.engine.common.values.node.PnId
-import planning.engine.common.values.node.PnId.Con
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.PeKey
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
 import planning.engine.common.graph.trees.PlanTree
+import planning.engine.common.values.node.PnId
+import planning.engine.common.values.node.PnId.Con
 import planning.engine.planner.gsi.plan.dag.edges.DagEdge
 import planning.engine.planner.gsi.plan.dag.nodes.DagNode
 import planning.engine.planner.gsi.plan.repr.DaGraphRepr

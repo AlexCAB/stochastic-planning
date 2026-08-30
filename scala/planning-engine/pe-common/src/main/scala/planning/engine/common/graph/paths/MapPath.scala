@@ -13,11 +13,11 @@
 package planning.engine.common.graph.paths
 
 import cats.MonadThrow
-import cats.syntax.all.*
 import cats.data.NonEmptyChain
+import cats.syntax.all.*
+import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey.End
 import planning.engine.common.values.node.MnId
-import planning.engine.common.errors.*
 
 sealed trait MapPath:
   def walk: NonEmptyChain[(MnId, End)]
@@ -42,7 +42,7 @@ object MapPath:
     for
       _ <- walk.zip(walk.drop(1)).map((c, n) => (c._2.id, n._1)).assertAllEqual("Path must be continuous")
       opList <- NonEmptyChain.fromSeq(walk).pure
-      list <- opList.map(_.pure).getOrElse(s"Path must contain at least one edge".assertionError)
+      list <- opList.map(_.pure).getOrElse("Path must contain at least one edge".assertionError)
     yield make.apply(list)
 
   final case class Direct(walk: NonEmptyChain[(MnId, End)]) extends MapPath

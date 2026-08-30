@@ -13,8 +13,8 @@
 package planning.engine.api.model.maintenance
 
 import io.circe.derivation.{Configuration, ConfiguredEnumCodec}
-import planning.engine.api.model.maintenance.HealthResponse.Status
 import io.circe.{Decoder, Encoder}
+import planning.engine.api.model.maintenance.HealthResponse.Status
 
 final case class HealthResponse(status: Status, version: String)
 

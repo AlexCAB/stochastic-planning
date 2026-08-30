@@ -13,12 +13,12 @@
 package planning.engine.api.route
 
 import cats.effect.Concurrent
+import cats.syntax.all.*
+import io.circe.syntax.EncoderOps
 import io.circe.{Encoder, Json}
 import org.http4s.Response
-import org.http4s.dsl.Http4sDsl
-import io.circe.syntax.EncoderOps
-import cats.syntax.all.*
 import org.http4s.circe.*
+import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.LoggerFactory
 
 trait RouteBase[F[_]: {Concurrent, LoggerFactory}]:

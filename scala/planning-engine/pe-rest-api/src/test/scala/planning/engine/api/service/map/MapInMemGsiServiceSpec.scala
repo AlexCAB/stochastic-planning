@@ -13,9 +13,9 @@
 package planning.engine.api.service.map
 
 import cats.effect.IO
-import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
 import cats.effect.cps.*
 import org.scalamock.scalatest.AsyncMockFactory
+import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}

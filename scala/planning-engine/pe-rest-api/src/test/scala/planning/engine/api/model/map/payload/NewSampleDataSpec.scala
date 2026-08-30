@@ -12,13 +12,13 @@
 
 package planning.engine.api.model.map.payload
 
+import io.circe.Json
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
-import planning.engine.common.values.text.{Description, Name}
-import planning.engine.common.values.io.IoName
-import io.circe.Json
 import planning.engine.common.validation.ValidationCheck
+import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnName
+import planning.engine.common.values.text.{Description, Name}
 
 class NewSampleDataSpec extends UnitSpecWithData with ValidationCheck:
 

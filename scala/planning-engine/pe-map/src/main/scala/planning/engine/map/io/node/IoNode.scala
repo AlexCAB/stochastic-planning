@@ -14,15 +14,15 @@ package planning.engine.map.io.node
 
 import cats.MonadThrow
 import cats.effect.kernel.Concurrent
-import neotypes.model.types.{Node, Value}
-import planning.engine.common.errors.assertionError
-import planning.engine.map.io.variable.IoVariable
 import cats.syntax.all.*
+import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
+import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, Label, OUT_LABEL}
 import planning.engine.common.values.io.IoName
+import planning.engine.map.io.variable.IoVariable
 
 trait IoNode[F[_]: MonadThrow] extends Validation:
   val name: IoName

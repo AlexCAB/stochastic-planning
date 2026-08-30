@@ -13,13 +13,13 @@
 package planning.engine.map.subgraph
 
 import cats.MonadThrow
+import cats.syntax.all.*
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.errors.assertionError
 import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.HiddenNode
 import planning.engine.map.samples.sample.{SampleData, SampleEdge}
-import planning.engine.common.errors.assertionError
-import cats.syntax.all.*
 
 final case class NextSampleEdge[F[_]](
     sampleData: SampleData,

@@ -17,8 +17,8 @@ import cats.syntax.all.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.ApiBase
-import planning.engine.planner.mpi.actors.visualizer.data.Message
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
+import planning.engine.planner.mpi.actors.visualizer.data.Message
 
 private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends Visualizer with ApiBase[Actor.Msg]:
   import Message.*

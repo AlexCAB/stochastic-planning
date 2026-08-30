@@ -13,9 +13,9 @@
 package planning.engine.planner.gsi.map.test.data
 
 import cats.effect.IO
-import planning.engine.common.values.node.MnId
-import planning.engine.common.values.io.IoValue
 import planning.engine.common.graph.io.IoValueMap
+import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 
 trait DcgStatesTestData extends DcGraphTestData with DcgSampleTestData:

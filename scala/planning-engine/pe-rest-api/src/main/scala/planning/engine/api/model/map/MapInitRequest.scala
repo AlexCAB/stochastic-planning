@@ -13,15 +13,15 @@
 package planning.engine.api.model.map
 
 import cats.MonadThrow
-import planning.engine.common.errors.assertionError
 import cats.syntax.all.*
+import io.circe.{Decoder, Encoder}
 import planning.engine.api.model.map.payload.*
+import planning.engine.common.errors.assertionError
+import planning.engine.common.values.db.DbName
+import planning.engine.common.values.io.IoName
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
-import io.circe.{Decoder, Encoder}
-import planning.engine.common.values.db.DbName
-import planning.engine.common.values.io.IoName
 import planning.engine.map.io.variable.*
 
 final case class MapInitRequest(

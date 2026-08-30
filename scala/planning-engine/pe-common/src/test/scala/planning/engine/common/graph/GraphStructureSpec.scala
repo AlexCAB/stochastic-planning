@@ -13,11 +13,10 @@
 package planning.engine.common.graph
 
 import cats.effect.IO
-import cats.syntax.all.*
 import cats.effect.cps.*
+import cats.syntax.all.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey
-
 import planning.engine.common.values.node.MnId
 
 class GraphStructureSpec extends UnitSpecWithData:

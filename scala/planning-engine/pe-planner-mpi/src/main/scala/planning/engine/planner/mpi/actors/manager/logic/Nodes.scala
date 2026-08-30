@@ -28,17 +28,21 @@ private[manager] trait Nodes:
       data: Map[Nim, NodeData],
       state: St,
   )(using d: Def, c: Ctx): F[(Map[Nim, Node], St)] = ifNonEmpty((Map.empty, state), data):
-    state.withNewNodes(
-      data,
-      (id, data) => Node.spawn(data.nodeType.toMnId(id), data, d.self, d.visualizer, (bh, n) => c.spawn(bh, n)),
-    )
+    def spawnNode(rawId: Long, data: NodeData): F[Node] =
+      Node.spawn(data.nodeType.toMnId(rawId), data, d.self, d.visualizer, (bh, n) => c.spawn(bh, n))
+
+    for
+      (newNodes, newState) <- state.withNewNodes(data, spawnNode)
+      _ <- d.visualizer.nodesAdded[F](newNodes.values.map(n => n.mnId -> n.name).toMap)
+      _ <- logInfo("[addNodes] Created new nodes", newNodes)
+    yield (newNodes, newState)
 
   protected def upsertNodesByName[F[_]: S](
       data: Map[Nim, NodeData],
       state: St,
   )(using d: Def, c: Ctx): F[(Map[Nim, Node], Map[Nim, Node], St)] = ifNonEmpty((Map.empty, Map.empty, state), data):
     def findNodesByNames: F[(Map[Nim, Node], Map[Nim, NodeData])] = data
-      .foldU((Map[Nim, Node](), Map[Nim, NodeData]())):
+      .foldM((Map[Nim, Node](), Map[Nim, NodeData]())):
         case ((nAcc, dAcc), (id, nd)) if nd.name.isDefined =>
           state.findByName(nd.name.get).map:
             case Some(node) => (nAcc + (id -> node), dAcc)
@@ -47,9 +51,8 @@ private[manager] trait Nodes:
 
     for
       (foundNodes, toAdd) <- findNodesByNames
-      _ <- logInfo("[upsertNodesByName] Found exist nodes by names", foundNodes)
+      _ <- logInfo("[upsertNodesByName] Found existing nodes by names", foundNodes)
       (newNodes, newState) <- addNodes(toAdd, state)
-      _ <- logInfo("[upsertNodesByName] Created new nodes", newNodes)
       _ <- foundNodes.keySet.assertContainsNoneOf(newNodes.keySet, "Found duplicate node Nim's, seems bug")
       allMnIds = foundNodes.values.map(_.mnId) ++ newNodes.values.map(_.mnId)
       _ <- allMnIds.assertDistinct("Duplicate node IDs found, seems bug")
@@ -61,7 +64,6 @@ private[manager] trait Nodes:
       node <- nodes.get(Nim.zero).map(_.pure).getOrElse("Node not returned after adding, seems bug".assertionError)
       _ <- logInfo(s"[AddNode] added node $node")
       _ <- msg.reply(NodeAdded(node.mnId))
-      _ <- d.visualizer.nodesAdded[F](Map(node.mnId -> node.name))
     yield newState
 
   private[manager] def doUpsertNodesByName[F[_]: S](msg: UpsertNodesByName, state: St)(using d: Def, ctx: Ctx): F[St] =
@@ -71,5 +73,4 @@ private[manager] trait Nodes:
       node <- allNodes.get(Nim.zero).map(_.pure).getOrElse("Node not returned, seems bug".assertionError)
       _ <- logInfo(s"[UpsertNodesByName] upserted node $node")
       _ <- msg.reply(NodesByNameUpserted(node.mnId))
-      _ <- d.visualizer.nodesAdded[F](Map(node.mnId -> node.name))
     yield newState

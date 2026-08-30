@@ -20,7 +20,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.node.data.StructState
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.common.data.node.NodeData
@@ -31,15 +31,15 @@ final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisua
   import TestNode.*
 
   def ref: ActorRef[Node.Msg] = api.ref
-  def state(using ActorTestKit, IORuntime): State = api.state
+  def state(using ActorTestKit, IORuntime): StructState = api.state
   def stateTyped(using ActorTestKit, IORuntime): NodeState = api.stateTyped
 
 object TestNode extends TestActorBase:
   type NodeState = (
       Long,
-      Map[MnId, State.EdgeData],
-      Map[MnId, State.EdgeData],
-      Map[SampleId, State.SampleData],
+      Map[MnId, StructState.EdgeData],
+      Map[MnId, StructState.EdgeData],
+      Map[SampleId, StructState.SampleData],
       Long,
   )
   
@@ -61,7 +61,7 @@ object TestNode extends TestActorBase:
     def ref: ActorRef[Node.Msg] = api match
       case ApiImpl(_, _, ref) => ref
 
-    def state(using ActorTestKit, IORuntime): State = getActorState[State]("Node", ref)
+    def state(using ActorTestKit, IORuntime): StructState = getActorState[StructState]("Node", ref)
 
     // Allow access to the state from outside `mpi.actors.node` package.
     def stateTyped(using ActorTestKit, IORuntime): NodeState = Tuple.fromProductTyped(state)

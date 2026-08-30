@@ -17,7 +17,7 @@ import cats.effect.cps.*
 import org.scalatest.Assertion
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.node.data.StructState
 import planning.engine.planner.mpi.actors.node.{Node, WithTestNode}
 import planning.engine.planner.mpi.common.data.edge.MeRef
 
@@ -32,7 +32,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props1)
 
         val state = srcNode.state
-        state.outgoingMap mustBe Map(trgNodeMnId -> State.EdgeData(trgNodeFake.api, props1.keySet))
+        state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, props1.keySet))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
@@ -50,7 +50,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props2)
 
         val state = srcNode.state
-        state.outgoingMap mustBe Map(trgNodeMnId -> State.EdgeData(trgNodeFake.api, allSampleIds))
+        state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, allSampleIds))
         state.sampleMap.keySet mustBe allSampleIds
         state.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
         state.nextHnIndex mustBe 6L
@@ -74,7 +74,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNode.api.upsertEdgeTrg[IO](meRefTrg, props1).await
 
         val state = trgNode.state
-        state.incomingMap mustBe Map(srcNodeMnId -> State.EdgeData(srcNodeFake.api, props1.keySet))
+        state.incomingMap mustBe Map(srcNodeMnId -> StructState.EdgeData(srcNodeFake.api, props1.keySet))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))

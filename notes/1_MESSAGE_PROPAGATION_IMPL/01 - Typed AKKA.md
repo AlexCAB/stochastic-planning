@@ -139,8 +139,9 @@
 
 ##### TODO: 
 1. Split state of nodes on Struct and Plan
-2. Integration with REST API (test with loading script)
-3. Implement graph representation (using colored text)
+2. Add planner actor
+3. Integration with REST API (test with loading script)
+4. Implement graph representation (using colored text)
 
 
 

@@ -40,15 +40,9 @@ private[manager] trait Samples extends Nodes with Edges:
     for
       edgeGrouped <- groupedByEdgeKey(sampleMap).pure
       idsMap = nodeMap.view.mapValues(_.mnId).toMap
-      edgeKeys <- edgeGrouped.toList.traverse((k, sIds) => k.resolve(idsMap).map(_ -> sIds))
-      addedKeys <- edgeKeys.traverse((key, sIds) => upsertEdge(key, sIds, state))
-    yield addedKeys.toSet
-
-  private def visualize[F[_]: S](nodeMap: Set[Node], addedKeys: Set[MeKey])(using d: Def): F[Unit] =
-    for
-      _ <- d.visualizer.nodesAdded[F](nodeMap.map(n => n.mnId -> n.name).toMap)
-      _ <- d.visualizer.edgesAdded[F](addedKeys)
-    yield ()
+      edgeKeys <- edgeGrouped.traverse((k, sIds) => k.resolve(idsMap).map(_ -> sIds))
+      addedKeys <- upsertEdges(edgeKeys, state)
+    yield addedKeys
 
   private[manager] def doAddManSamples[F[_]: S](msg: AddManSamples, state: St)(using d: Def, ctx: Ctx): F[St] =
     def validate: F[Unit] =
@@ -66,7 +60,6 @@ private[manager] trait Samples extends Nodes with Edges:
       addedKeys <- addAllEdges(sampleMap, allNodes, stateWithSamples)
       _ <- logInfo("[AddManSamples] Added samples", sampleMap)
       _ <- msg.reply(ManSamplesAdded(sampleMap))
-      _ <- visualize(newNodes.values.toSet, addedKeys)
     yield stateWithSamples
 
   private[manager] def doAddGenSamples[F[_]: S](msg: AddGenSamples, state: St)(using d: Def, ctx: Ctx): F[St] =
@@ -80,5 +73,4 @@ private[manager] trait Samples extends Nodes with Edges:
       addedKeys <- addAllEdges(sampleMap, newNodeMap, stateWithSamples)
       _ <- logInfo("[AddGenSamples] Added samples", sampleMap)
       _ <- msg.reply(GenSamplesAdded(sampleMap))
-      _ <- visualize(newNodeMap.values.toSet, addedKeys)
     yield stateWithSamples

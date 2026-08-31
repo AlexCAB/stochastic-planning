@@ -22,6 +22,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.data.Definition
 import planning.engine.planner.mpi.actors.manager.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
@@ -87,5 +88,8 @@ trait Manager:
 object Manager:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MonadThrow](visualizer: Visualizer, make: (Behavior[Msg], String) => ActorRef[Msg]): F[Manager] =
-    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(visualizer), make)))
+  def spawn[F[_]: MonadThrow](
+      visualizer: Visualizer,
+      planner: Planner,
+      make: (Behavior[Msg], String) => ActorRef[Msg],
+  ): F[Manager] = MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(visualizer, planner), make)))

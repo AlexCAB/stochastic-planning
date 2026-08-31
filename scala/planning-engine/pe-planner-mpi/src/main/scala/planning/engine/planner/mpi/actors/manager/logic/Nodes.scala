@@ -29,7 +29,7 @@ private[manager] trait Nodes:
       state: St,
   )(using d: Def, c: Ctx): F[(Map[Nim, Node], St)] = ifNonEmpty((Map.empty, state), data):
     def spawnNode(rawId: Long, data: NodeData): F[Node] =
-      Node.spawn(data.nodeType.toMnId(rawId), data, d.self, d.visualizer, (bh, n) => c.spawn(bh, n))
+      Node.spawn(data.nodeType.toMnId(rawId), data, d.self, d.visualizer, d.planner, (bh, n) => c.spawn(bh, n))
 
     for
       (newNodes, newState) <- state.withNewNodes(data, spawnNode)

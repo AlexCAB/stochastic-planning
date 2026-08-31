@@ -20,6 +20,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.node.NodeData
@@ -43,8 +44,9 @@ object Node:
       data: NodeData,
       manager: Manager,
       visualizer: Visualizer,
+      planner: Planner,
       make: (Behavior[Msg], String) => ActorRef[Msg],
   ): F[Node] =
     for
-        definition <- Definition(id, data, Definition.Actors(manager, visualizer))
+        definition <- Definition(id, data, Definition.Actors(manager, visualizer, planner))
     yield ApiImpl(id, data.name, Actor.spawn(definition, make))

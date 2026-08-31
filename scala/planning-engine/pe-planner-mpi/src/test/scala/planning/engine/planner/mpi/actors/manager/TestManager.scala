@@ -24,6 +24,7 @@ import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.planner.FakePlanner
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
@@ -77,12 +78,24 @@ object TestManager extends TestActorBase:
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  def spawn(name: String, visualizer: FakeVisualizer)(using testKit: ActorTestKit, rt: IORuntime): Manager = Manager
-    .spawn[IO](visualizer.api, (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"))
+  def spawn(
+      name: String,
+      visualizer: FakeVisualizer,
+      planner: FakePlanner,
+  )(using testKit: ActorTestKit, rt: IORuntime): Manager = Manager
+    .spawn[IO](
+      visualizer.api,
+      planner.api,
+      (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"),
+    )
     .unsafeRunSync()
 
-  def apply(name: String, visualizer: FakeVisualizer)(using ActorTestKit, IORuntime): TestManager = new TestManager(
-    api = spawn(name, visualizer),
+  def apply(
+      name: String,
+      visualizer: FakeVisualizer,
+      planner: FakePlanner,
+  )(using ActorTestKit, IORuntime): TestManager = new TestManager(
+    api = spawn(name, visualizer, planner),
     nodes = Map.empty,
     samples = Map.empty,
     visualizer = visualizer,

@@ -22,12 +22,18 @@ import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.FakeManager
 import planning.engine.planner.mpi.actors.node.data.{PlanState, StructState}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
+import planning.engine.planner.mpi.actors.planner.FakePlanner
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.common.data.node.NodeData
 
 import java.util.concurrent.atomic.AtomicInteger
 
-final case class TestNode(api: Node, manager: FakeManager, visualizer: FakeVisualizer):
+final case class TestNode(
+    api: Node,
+    manager: FakeManager,
+    visualizer: FakeVisualizer,
+    planner: FakePlanner,
+):
   import TestNode.*
 
   def ref: ActorRef[Node.Msg] = api.ref
@@ -50,13 +56,17 @@ object TestNode extends TestActorBase:
   private def spawn(bh: Behavior[Node.Msg], name: String)(using testKit: ActorTestKit): ActorRef[Node.Msg] =
     testKit.spawn(bh, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
 
-  def apply(id: MnId, data: NodeData, manager: FakeManager, visualizer: FakeVisualizer)(using
-      ActorTestKit,
-      IORuntime,
-  ): TestNode = new TestNode(
-    api = Node.spawn[IO](id, data, manager.api, visualizer.api, spawn).unsafeRunSync(),
+  def apply(
+      id: MnId,
+      data: NodeData,
+      manager: FakeManager,
+      visualizer: FakeVisualizer,
+      planner: FakePlanner,
+  )(using ActorTestKit, IORuntime): TestNode = new TestNode(
+    api = Node.spawn[IO](id, data, manager.api, visualizer.api, planner.api, spawn).unsafeRunSync(),
     manager = manager,
     visualizer = visualizer,
+    planner = planner,
   )
 
   extension (api: Node)

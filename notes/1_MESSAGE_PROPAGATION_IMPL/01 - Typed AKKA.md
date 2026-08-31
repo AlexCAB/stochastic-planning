@@ -150,7 +150,10 @@ import planning.engine.common.values.text.Name
 ❯ Also add `FakePlanner`, `TestPlanner` and `WithTestPlanner`.
 
 
+❯ Draw actors parent-child graph in pseudo-graphic: On top is `root` actor. Next level connected to `root` is `manager` and `visualizer` and `planner`. Bottom level is set of `node` actors, connected to `manager`.
 
+❯ Draw actors dependency graph in pseudo-graphic: On top is `manager` actor. Next level connected to `manager` is `visualizer` and `planner`. Bottom level is `node` actor, connected to `manager`, `planner` and `visualizer`. 
+Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` and  `manager` to `node`. 
 
 
 ##### TODO: 

@@ -19,6 +19,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData}
 
@@ -44,7 +45,11 @@ private[node] final case class AbsDef(
   override lazy val toString: String = s"(${id.reprValue}, ${data.name.repr})"
 
 object Definition:
-  final case class Actors(manager: Manager, visualizer: Visualizer)
+  final case class Actors(
+      manager: Manager,
+      visualizer: Visualizer,
+      planner: Planner,
+  )
 
   def apply[F[_]: MonadThrow](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
     case (id: MnId.Con, data: ConData) => ConDef(id, data, actors).pure[F]

@@ -24,7 +24,7 @@ import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.planner.FakePlanner
+import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
 import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
@@ -36,6 +36,7 @@ final case class TestManager(
     nodes: Map[MnId, NodeData],
     samples: Map[SampleId, (Sample.Props, Option[Sample.Info])],
     visualizer: FakeVisualizer,
+    planner: FakePlanner,
 ):
   import TestManager.*
 
@@ -53,7 +54,8 @@ final case class TestManager(
   def withNode(data: NodeData)(using ActorSystem[?], IORuntime): TestManager =
     val mnId = api.addNode[IO](data).unsafeRunSync()
     visualizer.probe.expectMessageType[Visualizer.Msg] // Remove ShowAddNodes from visualizer mailbox
-    TestManager(api, nodes ++ Map(mnId -> data), samples, visualizer)
+    if mnId.isCon then planner.probe.expectMessageType[Planner.Msg] // Remove ConNodesAdded from planner mailbox
+    TestManager(api, nodes ++ Map(mnId -> data), samples, visualizer, planner)
 
   def withNodes(data: NodeData*)(using ActorSystem[?], IORuntime): TestManager =
     data.foldLeft(this)((tm, nd) => tm.withNode(nd))
@@ -62,7 +64,8 @@ final case class TestManager(
   // Note: It's adding only sample data, no new nodes and no edges will be added.
   def withSample(props: Sample.Props, info: Sample.Info)(using ActorSystem[?], IORuntime): TestManager =
     val sampleMap = api.addManSamples[IO](Set(Sample.Man(props, info, Set.empty)), Map.empty).unsafeRunSync()
-    TestManager(api, nodes, samples ++ sampleMap.view.mapValues(d => (d.props, Some(d.info))).toMap, visualizer)
+    val newSamples = samples ++ sampleMap.view.mapValues(d => (d.props, Some(d.info))).toMap
+    TestManager(api, nodes, newSamples, visualizer, planner)
 
   def withSample(props: Sample.Props, name: String = "test-sample")(using ActorSystem[?], IORuntime): TestManager =
     withSample(props, Sample.Info(Name(name), None))
@@ -99,6 +102,7 @@ object TestManager extends TestActorBase:
     nodes = Map.empty,
     samples = Map.empty,
     visualizer = visualizer,
+    planner = planner,
   )
 
   extension (api: Manager)

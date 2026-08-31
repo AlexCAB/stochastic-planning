@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.planner.logic
 import cats.effect.IO
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
-import planning.engine.planner.mpi.actors.planner.data._
+import planning.engine.planner.mpi.actors.planner.data.*
 
 private[planner] object Actor extends ActorBase with SimpleSyncPlanner with Structure:
   import Message.*, ActorBase.GetState
@@ -29,10 +29,10 @@ private[planner] object Actor extends ActorBase with SimpleSyncPlanner with Stru
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
     case msg: Step          => doStep(msg, state)
-    case msg: ConNodeAdded  => doConNodeAdded(msg, state)
+    case msg: ConNodesAdded => doConNodesAdded(msg, state)
     case msg: GetState[St]  => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    doIgnoreError(msg, state, err)
+    logAndRaiseFatal("Planner actor error", Some(msg), state, err, "Error on message processing")
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

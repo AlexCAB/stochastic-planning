@@ -14,6 +14,7 @@ package planning.engine.planner.mpi.actors.planner.data
 
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.graph.io.{Action, Observation}
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.ActorBase.WithSender
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.repr.Representable
@@ -31,4 +32,4 @@ private[planner] object Message:
   final case class StepDone(action: Action) extends Result
 
   // Sent from ManagerActor after a new concrete node was added to the map network.
-  final case class ConNodeAdded(node: Node) extends Message
+  final case class ConNodesAdded(nodes: Map[MnId.Con, Node]) extends Message

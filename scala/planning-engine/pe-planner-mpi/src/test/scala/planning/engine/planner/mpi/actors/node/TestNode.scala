@@ -20,7 +20,8 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.node.data.{PlanState, StructState}
+import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.actors.planner.FakePlanner
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
@@ -37,15 +38,15 @@ final case class TestNode(
   import TestNode.*
 
   def ref: ActorRef[Node.Msg] = api.ref
-  def state(using ActorTestKit, IORuntime): (StructState, PlanState) = api.state
+  def state(using ActorTestKit, IORuntime): State = api.state
   def stateTyped(using ActorTestKit, IORuntime): (NodeStruct, NodePlan) = api.stateTyped
 
 object TestNode extends TestActorBase:
   type NodeStruct = (
       Long,
-      Map[MnId, StructState.EdgeData],
-      Map[MnId, StructState.EdgeData],
-      Map[SampleId, StructState.SampleData],
+      Map[MnId, Struct.EdgeData],
+      Map[MnId, Struct.EdgeData],
+      Map[SampleId, Struct.SampleData],
       Long,
   )
 
@@ -73,11 +74,13 @@ object TestNode extends TestActorBase:
     def ref: ActorRef[Node.Msg] = api match
       case ApiImpl(_, _, ref) => ref
 
-    def state(using ActorTestKit, IORuntime): (StructState, PlanState) =
-      val (struct, plan) = getActorState[(StructState, PlanState)](ref)
-      (logObj("Node struct", struct), logObj("Node plan", plan))
+    def state(using ActorTestKit, IORuntime): State =
+      val state = getActorState[State](ref)
+      logObj("Node struct", state.struct)
+      logObj("Node plan", state.plan)
+      state
 
     // Allow access to the state from outside `mpi.actors.node` package.
     def stateTyped(using ActorTestKit, IORuntime): (NodeStruct, NodePlan) =
-      val (struct, plan) = state
-      (Tuple.fromProductTyped(struct), Tuple.fromProductTyped(plan))
+      val st = state
+      (Tuple.fromProductTyped(st.struct), Tuple.fromProductTyped(st.plan))

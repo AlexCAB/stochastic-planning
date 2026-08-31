@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 09.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data
+package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.MonadThrow
 import cats.syntax.all.*
@@ -22,28 +22,28 @@ import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.common.repr.Representable
 
-private[node] final case class StructState(
+private[node] final case class Struct(
     // Counter for generating unique HnIndex
     // NOTE: In practice SampleId can be used as HnIndex, since it also is unique and monotonically increasing,
     // NOTE: but for now we keep them separate for clarity and canonical math model correspondence.
     nextHnIndex: Long,
 
     // Map of incoming edges: previous source node -> this node
-    incomingMap: Map[MnId, StructState.EdgeData],
+    incomingMap: Map[MnId, Struct.EdgeData],
 
     // Map of outgoing edges: this node -> next target node
-    outgoingMap: Map[MnId, StructState.EdgeData],
+    outgoingMap: Map[MnId, Struct.EdgeData],
 
     // Samples that include this node, along with their HnIndex and properties.
     // In more advanced implementation, sample data have to be sored in separate
     // sample data storage and this map can be a cache.
-    sampleMap: Map[SampleId, StructState.SampleData],
+    sampleMap: Map[SampleId, Struct.SampleData],
 
     // Total number of samples in the map network (used for probs calculation).
     // In future also should come from separate sample data storage, but for now it is in Manager state.
     totalSamplesCount: Long,
 ) extends Representable:
-  import StructState.*
+  import Struct.*
 
   // TODO: Approximate inference algorithm:
   // TODO:   1. For each outgoingMap:
@@ -73,7 +73,7 @@ private[node] final case class StructState(
 
   // Edge source (meRef.key.src) is this node, target is next neighbor node.
   // Update outgoingMap with new edge data.
-  def upsertEdgeSrc[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[StructState] =
+  def upsertEdgeSrc[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
     for
       _ <- meRef.key.trg.assertEquals(meRef.trgNode.mnId, "Edge target node does not match meRef target")
       newOutgoing <- upsertEdgeMap(outgoingMap, meRef.key.trg, meRef.trgNode, props.keySet)
@@ -86,7 +86,7 @@ private[node] final case class StructState(
 
   // Edge target (meRef.key.trg) is this node, source is previous neighbor node.
   // Update incomingMap with new edge data.
-  def upsertEdgeTrg[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[StructState] =
+  def upsertEdgeTrg[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
     for
       _ <- meRef.key.src.assertEquals(meRef.srcNode.mnId, "Edge source node does not match meRef source")
       newIncoming <- upsertEdgeMap(incomingMap, meRef.key.src, meRef.srcNode, props.keySet)
@@ -97,10 +97,10 @@ private[node] final case class StructState(
       sampleMap = newSampleMap,
     )
 
-  def withTotalSamplesCount[F[_]: MonadThrow](count: Long): F[StructState] = this.copy(totalSamplesCount = count).pure
+  def withTotalSamplesCount[F[_]: MonadThrow](count: Long): F[Struct] = this.copy(totalSamplesCount = count).pure
 
-private[node] object StructState:
+private[node] object Struct:
   final case class EdgeData(neighbor: Node, sampleIds: Set[SampleId])
   final case class SampleData(index: HnIndex, props: Sample.Props)
 
-  val init = StructState(1L, Map.empty, Map.empty, Map.empty, 0L)
+  val init = Struct(1L, Map.empty, Map.empty, Map.empty, 0L)

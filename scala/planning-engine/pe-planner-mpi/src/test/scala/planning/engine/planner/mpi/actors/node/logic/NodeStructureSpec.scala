@@ -17,9 +17,10 @@ import cats.effect.cps.*
 import org.scalatest.Assertion
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.node.data.StructState
+import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.actors.node.{Node, WithTestNode}
 import planning.engine.planner.mpi.common.data.edge.MeRef
+import planning.engine.planner.mpi.actors.node.data.State
 
 class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
   private class CaseData extends Case with WithNodes
@@ -31,12 +32,12 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         srcNode.api.upsertEdgeSrc[IO](meRefSrc, props1).await
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props1)
 
-        val (state, _) = srcNode.state
-        state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, props1.keySet))
-        state.sampleMap.keySet mustBe props1.keySet
-        state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
-        state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
-        state.nextHnIndex mustBe 4L
+        val State(struct, _) = srcNode.state
+        struct.outgoingMap mustBe Map(trgNodeMnId -> Struct.EdgeData(trgNodeFake.api, props1.keySet))
+        struct.sampleMap.keySet mustBe props1.keySet
+        struct.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
+        struct.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
+        struct.nextHnIndex mustBe 4L
 
     "join sample IDs when edge to same target already exists" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -49,11 +50,11 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props2)
 
-        val (state, _) = srcNode.state
-        state.outgoingMap mustBe Map(trgNodeMnId -> StructState.EdgeData(trgNodeFake.api, allSampleIds))
-        state.sampleMap.keySet mustBe allSampleIds
-        state.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
-        state.nextHnIndex mustBe 6L
+        val State(struct, _) = srcNode.state
+        struct.outgoingMap mustBe Map(trgNodeMnId -> Struct.EdgeData(trgNodeFake.api, allSampleIds))
+        struct.sampleMap.keySet mustBe allSampleIds
+        struct.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
+        struct.nextHnIndex mustBe 6L
 
     "report an error to the manager when edge source does not match this actor" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -73,12 +74,12 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
       async[IO]:
         trgNode.api.upsertEdgeTrg[IO](meRefTrg, props1).await
 
-        val (state, _) = trgNode.state
-        state.incomingMap mustBe Map(srcNodeMnId -> StructState.EdgeData(srcNodeFake.api, props1.keySet))
-        state.sampleMap.keySet mustBe props1.keySet
-        state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
-        state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
-        state.nextHnIndex mustBe 4L
+        val State(struct, _) = trgNode.state
+        struct.incomingMap mustBe Map(srcNodeMnId -> Struct.EdgeData(srcNodeFake.api, props1.keySet))
+        struct.sampleMap.keySet mustBe props1.keySet
+        struct.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
+        struct.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
+        struct.nextHnIndex mustBe 4L
 
     "leave state unchanged when the same edge and samples are upserted again" in newCase[CaseData]: (_, data) =>
       import data.*

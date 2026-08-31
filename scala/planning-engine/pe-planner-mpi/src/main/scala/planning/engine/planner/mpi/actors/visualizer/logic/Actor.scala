@@ -32,6 +32,6 @@ private[visualizer] object Actor extends ActorBase with Structure:
     case msg: GetState[St]   => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    doIgnoreError(msg, state, err)
+    logAndRaiseFatal("Visualizer actor error", Some(msg), state, err, "Error on message processing")
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

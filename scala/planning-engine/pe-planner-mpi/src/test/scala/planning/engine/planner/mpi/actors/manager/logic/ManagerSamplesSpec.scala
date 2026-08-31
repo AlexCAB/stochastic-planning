@@ -41,11 +41,17 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           .addManSamples[IO](Set(sample), Map(nim1 -> conNodeData, nim2 -> absNodeData))
           .logValue(tn).await
 
+        val conNode = manager.state.nodeRefMap.getOrElse(conMnId, fail(s"Node with MnId $conMnId not found"))
+
         val sampleId = added.keySet.head
         added mustBe Map(sampleId -> sample)
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData.name, absMnId -> absNodeData.name)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+        fakeVisualizer.probe.expectNoMessage(200.millis)
+
+        fakePlanner.expectConNodeAdded mustBe Map(conMnId -> conNode)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
@@ -76,6 +82,8 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> absNodeData.name)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+        fakeVisualizer.probe.expectNoMessage(200.millis)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = managerOneConNode.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
@@ -89,6 +97,8 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData.name)
         fakeVisualizer.probe.expectNoMessage(500.millis)
+        fakePlanner.expectConNodeAdded.keySet must contain(conMnId)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId)
@@ -98,18 +108,20 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
       import data.*
       async[IO]:
         val sample = manSample(MeKey.Link(nim99, nim2))
-
         manager.api.addManSamples[IO](Set(sample), Map(nim2 -> absNodeData)).logValue(tn).attempt.await
+
         fakeVisualizer.probe.expectTerminated(manager.ref)
+        fakePlanner.probe.expectNoMessage(200.millis)
         succeed
 
     "terminate when a sample edge references a non-Nim MnId" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         val sample = manSample(MeKey.Link(conMnId, nim2))
-
         manager.api.addManSamples[IO](Set(sample), Map(nim2 -> absNodeData)).logValue(tn).attempt.await
+
         fakeVisualizer.probe.expectTerminated(manager.ref)
+        fakePlanner.probe.expectNoMessage(200.millis)
         succeed
 
   "Manager.addGenSamples(...)" should:
@@ -129,6 +141,8 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
           fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> None)
           fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+          fakeVisualizer.probe.expectNoMessage(200.millis)
+          fakePlanner.probe.expectNoMessage(200.millis)
 
           val state = managerOneConNode.state
           state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
@@ -151,6 +165,8 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> None)
         fakeVisualizer.probe.expectNoMessage(200.millis)
+        fakePlanner.expectConNodeAdded.keySet must contain(conMnId)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId)
@@ -165,6 +181,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           .attempt.await
 
         fakeVisualizer.probe.expectTerminated(manager.ref)
+        fakePlanner.probe.expectNoMessage(200.millis)
         succeed
 
     "terminate when a sample edge references an MnId not present in current state" in newCase[CaseData]: (tn, data) =>
@@ -177,4 +194,5 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           .attempt.await
 
         fakeVisualizer.probe.expectTerminated(manager.ref)
+        fakePlanner.probe.expectNoMessage(200.millis)
         succeed

@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 23.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data
+package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -20,6 +20,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.common.data.edge.MeRef
 import planning.engine.planner.mpi.common.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
@@ -46,7 +47,7 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
 
   "State.init" should:
     "have empty maps, zero total sample count and nextHnIndex starting at 1" in newCase[CaseData]: (tn, _) =>
-      IO.pure(StructState.init).logValue(tn).asserting: state =>
+      IO.pure(Struct.init).logValue(tn).asserting: state =>
         state.nextHnIndex mustBe 1L
         state.incomingMap mustBe Map.empty
         state.outgoingMap mustBe Map.empty
@@ -56,9 +57,9 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
   "State.upsertEdgeSrc(...)" should:
     "add edge to outgoing map and sample map when empty" in newCase[CaseData]: (tn, data) =>
       import data.*
-      StructState.init.upsertEdgeSrc[IO](meRef1, props1).logValue(tn).asserting: state =>
+      Struct.init.upsertEdgeSrc[IO](meRef1, props1).logValue(tn).asserting: state =>
         state.incomingMap mustBe Map.empty
-        state.outgoingMap mustBe Map(trgMnId1 -> StructState.EdgeData(trgNode1, props1.keySet))
+        state.outgoingMap mustBe Map(trgMnId1 -> Struct.EdgeData(trgNode1, props1.keySet))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
@@ -67,22 +68,23 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
     "join sample IDs when edge to same target already exists" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        val state = StructState
+        val state = Struct
           .init.upsertEdgeSrc[IO](meRef1, props1)
           .flatMap(_.upsertEdgeSrc[IO](meRef1, props2))
           .await
 
         val allSampleIds = props1.keySet ++ props2.keySet
 
-        state.outgoingMap mustBe Map(trgMnId1 -> StructState.EdgeData(trgNode1, allSampleIds))
+        state.outgoingMap mustBe Map(trgMnId1 -> Struct.EdgeData(trgNode1, allSampleIds))
         state.sampleMap.keySet mustBe allSampleIds
         state.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
         state.nextHnIndex mustBe 6L
 
     "add edges to multiple distinct target nodes" in newCase[CaseData]: (_, data) =>
-      import data.*, StructState.*
+      import Struct.*
+      import data.*
       async[IO]:
-        val state = StructState
+        val state = Struct
           .init.upsertEdgeSrc[IO](meRef1, props1)
           .flatMap(_.upsertEdgeSrc[IO](meRef2, props2))
           .await
@@ -97,21 +99,21 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
     "leave state unchanged when the same edge and samples are upserted again" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        val state1 = StructState.init.upsertEdgeSrc[IO](meRef1, props1).await
-        val state2 = StructState.init.upsertEdgeSrc[IO](meRef1, props1).await
+        val state1 = Struct.init.upsertEdgeSrc[IO](meRef1, props1).await
+        val state2 = Struct.init.upsertEdgeSrc[IO](meRef1, props1).await
 
         state1 mustBe state2
 
     "fail when the same target id is upserted with a conflicting node reference" in newCase[CaseData]: (tn, data) =>
       import data.*
-      StructState.init.upsertEdgeSrc[IO](meRef1, props1)
+      Struct.init.upsertEdgeSrc[IO](meRef1, props1)
         .flatMap(_.upsertEdgeSrc[IO](meRefConflict, props2))
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Edge reference mismatch"))
 
     "fail when a sample id already exists with different properties" in newCase[CaseData]: (tn, data) =>
       import data.*
-      StructState.init.upsertEdgeSrc[IO](meRef1, props1)
+      Struct.init.upsertEdgeSrc[IO](meRef1, props1)
         .flatMap(_.upsertEdgeSrc[IO](meRef1, propsConflict))
         .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("already exists with different properties"))
@@ -119,8 +121,8 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
   "State.upsertEdgeTrg(...)" should:
     "add edge to incoming map and sample map when empty" in newCase[CaseData]: (_, data) =>
       import data.*
-      StructState.init.upsertEdgeTrg[IO](meRef1, props1).asserting: state =>
-        state.incomingMap mustBe Map(srcMnId1 -> StructState.EdgeData(srcNode1, props1.keySet))
+      Struct.init.upsertEdgeTrg[IO](meRef1, props1).asserting: state =>
+        state.incomingMap mustBe Map(srcMnId1 -> Struct.EdgeData(srcNode1, props1.keySet))
         state.outgoingMap mustBe Map.empty
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
@@ -129,5 +131,5 @@ class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with Ma
 
   "State.withTotalSamplesCount(...)" should:
     "update only the totalSamplesCount field" in newCase[CaseData]: (_, _) =>
-      StructState.init.withTotalSamplesCount[IO](42L)
-        .asserting(_ mustBe StructState.init.copy(totalSamplesCount = 42L))
+      Struct.init.withTotalSamplesCount[IO](42L)
+        .asserting(_ mustBe Struct.init.copy(totalSamplesCount = 42L))

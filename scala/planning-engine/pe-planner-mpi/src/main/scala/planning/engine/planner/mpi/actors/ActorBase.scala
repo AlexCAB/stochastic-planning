@@ -24,12 +24,12 @@ private[actors] trait ActorBase extends ActorExecCtx:
 
   // Shortcut for actor definition
   type Def
-  type Msg
+  type Msg <: Representable
   type Ctx = ActorContext[Msg]
   type Ref = ActorRef[Msg]
 
   // Shortcut for actor state type and Sync type (only for internal use)
-  protected type St
+  protected type St <: Representable
   protected type S[F[_]] = Sync[F]
 
   // Cats-effect helpers
@@ -47,6 +47,28 @@ private[actors] trait ActorBase extends ActorExecCtx:
   // Message processing helpers
   protected def doIgnoreError[F[_]: S](msg: Msg, state: St, err: Throwable)(using ctx: Ctx): F[St] =
     logError(s"Error processing message $msg in state $state: ${err.getMessage}", err).as(state)
+
+  protected def logAndRaiseFatal[F[_]: S](
+      logPrefix: String,
+      atMsg: Option[Representable],
+      state: St,
+      err: Throwable,
+      fatalMsg: String,
+  )(using Ctx): F[St] =
+    def renderOp(prefix: String, obj: Option[Representable]): F[Option[String]] = obj
+      .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
+      .getOrElse(None.pure)
+
+    def buildLogMsg(msgStr: Option[String], stateStr: Option[String]): String =
+      List(Some(logPrefix), msgStr, stateStr).flatten.mkString("\n")
+
+    for
+      msgStr <- renderOp("During processing message:", atMsg)
+      stateStr <- renderOp("Actor state:", Some(state))
+      logMst = buildLogMsg(msgStr, stateStr)
+      _ <- logError(logMst, err)
+      _ <- Sync[F].raiseError(FatalException(fatalMsg, Some(err)))
+    yield state
 
   protected def doGetState[F[_]: S](msg: GetState[St], state: St)(using ctx: Ctx): F[St] =
     for

@@ -155,12 +155,12 @@ import planning.engine.common.values.text.Name
 ❯ Draw actors dependency graph in pseudo-graphic: On top is `manager` actor. Next level connected to `manager` is `visualizer` and `planner`. Bottom level is `node` actor, connected to `manager`, `planner` and `visualizer`. 
 Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` and  `manager` to `node`. 
 
+❯ Run unit tests in `pe-planner-mpi` and fix that failed.
 
 ##### TODO: 
-1. Split state of nodes on Struct and Plan
-2. Add planner actor
-3. Integration with REST API (test with loading script)
-4. Implement graph representation (using colored text)
+1. To implement basic planner actor logic (including IO variables).
+2. Integration with REST API (test with loading script)
+3. Implement graph representation (using colored text)
 
 
 

@@ -16,6 +16,7 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
 import planning.engine.planner.mpi.actors.node.data.*
+import planning.engine.planner.mpi.actors.node.data.State
 
 private[node] object Actor extends ActorBase with Structure:
   import Message.*, ActorBase.GetState
@@ -23,13 +24,7 @@ private[node] object Actor extends ActorBase with Structure:
   override type Def = Definition
   override type Msg = Message | GetState[St]
 
-  override protected type St = (StructState, PlanState)
-
-  extension [F[_]: S](s: St)
-    protected def struct: StructState = s._1
-    protected def mapStruct(f: StructState => F[StructState]): F[St] = f(s._1).map(ns => (ns, s._2))
-    protected def plan: PlanState = s._2
-    protected def mapPlan(f: PlanState => F[PlanState]): F[St] = f(s._2).map(np => (s._1, np))
+  override protected type St = State
 
   override protected def setup(s: St)(using d: Def, ctx: Ctx): Unit = ctx.setLoggerName(s"map-node-actor-${d.id}")
 
@@ -42,4 +37,4 @@ private[node] object Actor extends ActorBase with Structure:
     d.actors.manager.reportError[F](d.self, Some(msg), err).as(state)
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref =
-    make(apply(definition, (StructState.init, PlanState.init)), definition.id.value.toString)
+    make(apply(definition, State.init), definition.id.value.toString)

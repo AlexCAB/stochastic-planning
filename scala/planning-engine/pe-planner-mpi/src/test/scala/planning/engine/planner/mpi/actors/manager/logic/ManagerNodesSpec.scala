@@ -41,13 +41,22 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       async[IO]:
         val conId1 = manager.api.addNode[IO](conNodeData).logValue(tn).await
         conId1 mustBe conMnId
+
+        val conNode = manager.state.nodeRefMap.getOrElse(conId1, fail(s"Node with MnId $conId1 not found"))
+
         fakeVisualizer.expectShowNodesAdded mustBe Map(conId1 -> conNodeData.name)
+        fakeVisualizer.probe.expectNoMessage(200.millis)
+        fakePlanner.expectConNodeAdded mustBe Map(conId1 -> conNode)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         checkManagerState(manager, expNodes = Map(conId1 -> conNodeData.name), expNextId = 2L)
 
         val absId = manager.api.addNode[IO](absNodeData).logValue(tn).await
         absId mustBe absMnId
+
         fakeVisualizer.expectShowNodesAdded mustBe Map(absId -> absNodeData.name)
+        fakeVisualizer.probe.expectNoMessage(200.millis)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         checkManagerState(
           manager,
@@ -57,7 +66,12 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
 
         val conId2 = manager.api.addNode[IO](conNodeData).logValue(tn).await
         conId2 mustBe MnId.Con(3L)
+
         fakeVisualizer.expectShowNodesAdded mustBe Map(conId2 -> conNodeData.name)
+        fakeVisualizer.probe.expectNoMessage(200.millis)
+
+        fakePlanner.expectConNodeAdded.keySet must contain(conId2)
+        fakePlanner.probe.expectNoMessage(200.millis)
 
         checkManagerState(
           manager,
@@ -71,6 +85,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       async[IO]:
         val gotId = managerOneConNode.api.upsertNodesByName[IO](absNodeData).logValue(tn).await
         fakeVisualizer.expectShowNodesAdded mustBe Map(gotId -> absNodeData.name)
+        fakePlanner.probe.expectNoMessage(200.millis)
         gotId mustBe absMnId
 
         checkManagerState(
@@ -84,6 +99,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       async[IO]:
         val gotId = managerOneConNode.api.upsertNodesByName[IO](conNodeData).logValue(tn).await
         fakeVisualizer.probe.expectNoMessage(500.millis) // No new node created, so no visualizer notification
+        fakePlanner.probe.expectNoMessage(200.millis)
         gotId mustBe managerOneConNode.srcMnId
 
         checkManagerState(

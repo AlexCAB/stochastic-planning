@@ -12,42 +12,11 @@
 
 package planning.engine.planner.mpi.actors.manager.logic
 
-import cats.ApplicativeThrow
 import cats.effect.Sync
-import cats.syntax.all.*
 import planning.engine.planner.mpi.actors.manager.data.Message.NodeActorError
-import planning.engine.planner.mpi.common.error.FatalException
-import planning.engine.planner.mpi.common.repr.Representable
 
 private[manager] trait Errors:
   self: Actor.type =>
-
-  private def renderOp[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj
-    .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
-    .getOrElse(None.pure)
-
-  private def renderAtMsg[F[_]: S](msg: Option[Representable]): F[Option[String]] =
-    renderOp("During processing message:", msg)
-
-  private def renderAtSt[F[_]: S](state: St): F[Option[String]] = renderOp("Manager state:", Some(state))
-
-  private def buildLogMsg(prefix: String, msgStr: Option[String], stateStr: Option[String]): String =
-    List(Some(prefix), msgStr, stateStr).flatten.mkString("\n")
-
-  private def logAndRaiseFatal[F[_]: S](
-      logPrefix: String,
-      atMsg: Option[Representable],
-      state: St,
-      err: Throwable,
-      fatalMsg: String,
-  )(using Ctx): F[St] =
-    for
-      msgStr <- renderAtMsg(atMsg)
-      stateStr <- renderAtSt(state)
-      logMst = buildLogMsg(logPrefix, msgStr, stateStr)
-      _ <- logError(logMst, err)
-      _ <- ApplicativeThrow[F].raiseError(FatalException(fatalMsg, Some(err)))
-    yield state
 
   // Called when any error occurs in some NodeActor.
   private[manager] def doHandleNodeError[F[_]: S](msg: NodeActorError, state: St)(using Def, Ctx): F[St] =
@@ -55,4 +24,4 @@ private[manager] trait Errors:
 
   // Called when any error occurs in the ManagerActor itself.
   private[manager] def doHandleManagerError[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    logAndRaiseFatal("ManagerActor error", Some(msg), state, err, "Manager actor error")
+    logAndRaiseFatal("Manager actor error", Some(msg), state, err, "Manager actor error")

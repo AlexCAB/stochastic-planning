@@ -22,13 +22,21 @@ import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData}
+import planning.engine.common.errors.*
 
 private[node] sealed trait Definition:
   def id: MnId
   def data: NodeData
   def actors: Definition.Actors
 
-  def self(using ctx: Actor.Ctx): Node = ApiImpl(id, data.name, ctx.self)
+  def self[F[_]: MonadThrow](using ctx: Actor.Ctx): F[Node] = ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
+
+  def checkIdAndNode[F[_]: MonadThrow](id: MnId, node: Node)(using ctx: Actor.Ctx): F[Unit] =
+    for
+      _ <- id.assertEquals(this.id, "Given ID does not match this node's ID")
+      self <- this.self[F]
+      _ <- node.assertEquals(self, "Given node does not match this node")
+    yield ()
 
 private[node] final case class ConDef(
     id: MnId.Con,

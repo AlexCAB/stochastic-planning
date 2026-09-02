@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.node
 import cats.MonadThrow
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.Manager
@@ -39,8 +40,17 @@ trait Node:
 object Node:
   type Msg = Actor.Msg
 
+  trait Con extends Node:
+    def mnId: MnId.Con
+    def name: Option[HnName]
+    def ioValue: IoValue
+
+  trait Abs extends Node:
+    def mnId: MnId.Abs
+    def name: Option[HnName]
+
   def spawn[F[_]: MonadThrow](
-      id: MnId,
+      mnId: MnId,
       data: NodeData,
       manager: Manager,
       visualizer: Visualizer,
@@ -48,5 +58,6 @@ object Node:
       make: (Behavior[Msg], String) => ActorRef[Msg],
   ): F[Node] =
     for
-        definition <- Definition(id, data, Definition.Actors(manager, visualizer, planner))
-    yield ApiImpl(id, data.name, Actor.spawn(definition, make))
+      definition <- Definition(mnId, data, Definition.Actors(manager, visualizer, planner))
+      api <- ApiImpl(mnId, data, Actor.spawn(definition, make))
+    yield api

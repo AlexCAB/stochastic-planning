@@ -66,7 +66,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
         val (source, err) = fakeManager.expectReportedError
         source mustBe srcNode.api
-        err.getMessage must include("Edge source node does not match this node")
+        err.getMessage must include("Given node does not match this node")
 
   "State.upsertEdgeTrg(...)" should:
     "add edge to incoming map and sample map when empty" in newCase[CaseData]: (_, data) =>
@@ -100,4 +100,4 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
         val (source, err) = fakeManager.expectReportedError
         source mustBe trgNode.api
-        err.getMessage must include("Edge target node does not match this node")
+        err.getMessage must include("Given node does not match this node")

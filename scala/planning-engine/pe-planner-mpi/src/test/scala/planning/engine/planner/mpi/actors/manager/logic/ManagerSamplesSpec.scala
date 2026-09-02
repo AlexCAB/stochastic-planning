@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 29-Aug-26 |||||||||||*/
+| created: 29.08.26 |||||||||||||*/
 
 package planning.engine.planner.mpi.actors.manager.logic
 
@@ -41,8 +41,6 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           .addManSamples[IO](Set(sample), Map(nim1 -> conNodeData, nim2 -> absNodeData))
           .logValue(tn).await
 
-        val conNode = manager.state.nodeRefMap.getOrElse(conMnId, fail(s"Node with MnId $conMnId not found"))
-
         val sampleId = added.keySet.head
         added mustBe Map(sampleId -> sample)
 
@@ -50,7 +48,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
         fakeVisualizer.probe.expectNoMessage(200.millis)
 
-        fakePlanner.expectConNodeAdded mustBe Map(conMnId -> conNode)
+        fakePlanner.expectConNodeAdded.map(_.mnId) mustBe Set(conMnId)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state
@@ -97,7 +95,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData.name)
         fakeVisualizer.probe.expectNoMessage(500.millis)
-        fakePlanner.expectConNodeAdded.keySet must contain(conMnId)
+        fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conMnId)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state
@@ -165,7 +163,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> None)
         fakeVisualizer.probe.expectNoMessage(200.millis)
-        fakePlanner.expectConNodeAdded.keySet must contain(conMnId)
+        fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conMnId)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = manager.state

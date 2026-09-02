@@ -29,7 +29,7 @@ class ManagerErrorsSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       import data.*
       async[IO]:
         val err = new RuntimeException("Node actor boom")
-        val fakeNode = FakeNode(MnId.Con(99L), None)
+        val fakeNode = FakeNode(MnId.Con(99L))
         val sender = testKit.createTestProbe[NodeAdded]("test-sender")
 
         manager.api.reportError[IO](fakeNode.api, Some(AddNode(conNodeData, sender.ref)), err).await

@@ -42,11 +42,9 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
         val conId1 = manager.api.addNode[IO](conNodeData).logValue(tn).await
         conId1 mustBe conMnId
 
-        val conNode = manager.state.nodeRefMap.getOrElse(conId1, fail(s"Node with MnId $conId1 not found"))
-
         fakeVisualizer.expectShowNodesAdded mustBe Map(conId1 -> conNodeData.name)
         fakeVisualizer.probe.expectNoMessage(200.millis)
-        fakePlanner.expectConNodeAdded mustBe Map(conId1 -> conNode)
+        fakePlanner.expectConNodeAdded.map(_.mnId) mustBe Set(conId1)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         checkManagerState(manager, expNodes = Map(conId1 -> conNodeData.name), expNextId = 2L)
@@ -70,7 +68,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
         fakeVisualizer.expectShowNodesAdded mustBe Map(conId2 -> conNodeData.name)
         fakeVisualizer.probe.expectNoMessage(200.millis)
 
-        fakePlanner.expectConNodeAdded.keySet must contain(conId2)
+        fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conId2)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         checkManagerState(

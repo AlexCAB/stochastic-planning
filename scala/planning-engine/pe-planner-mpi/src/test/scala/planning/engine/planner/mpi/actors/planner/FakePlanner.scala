@@ -13,13 +13,12 @@
 package planning.engine.planner.mpi.actors.planner
 
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.Message.ConNodesAdded
 import planning.engine.planner.mpi.actors.planner.logic.ApiImpl
 
 final case class FakePlanner(api: Planner, probe: TestProbe[Planner.Msg]):
-  def expectConNodeAdded: Map[MnId.Con, Node] = probe.expectMessageType[ConNodesAdded].nodes
+  def expectConNodeAdded: Set[Node.Con] = probe.expectMessageType[ConNodesAdded].nodes
 
 object FakePlanner:
   def apply()(using testKit: ActorTestKit): FakePlanner =

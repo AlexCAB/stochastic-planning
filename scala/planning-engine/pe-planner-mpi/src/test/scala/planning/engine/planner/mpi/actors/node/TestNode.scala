@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 15-Aug-26 |||||||||||*/
+| created: 15.08.26 |||||||||||||*/
 
 package planning.engine.planner.mpi.actors.node
 
@@ -72,7 +72,8 @@ object TestNode extends TestActorBase:
 
   extension (api: Node)
     def ref: ActorRef[Node.Msg] = api match
-      case ApiImpl(_, _, ref) => ref
+      case ApiImpl.Con(_, _, _, ref) => ref
+      case ApiImpl.Abs(_, _, ref)    => ref
 
     def state(using ActorTestKit, IORuntime): State =
       val state = getActorState[State](ref)

@@ -35,8 +35,8 @@ trait WithTestNode extends MapNodeTestData with MapEdgeTestData:
     lazy val srcNode: TestNode = TestNode(srcNodeMnId, conNodeData, fakeManager, fakeVisualizer, fakePlanner)
     lazy val trgNode: TestNode = TestNode(trgNodeMnId, absNodeData, fakeManager, fakeVisualizer, fakePlanner)
 
-    lazy val trgNodeFake: FakeNode = FakeNode(trgNodeMnId, absNodeData.name)
-    lazy val srcNodeFake: FakeNode = FakeNode(srcNodeMnId, conNodeData.name)
+    lazy val trgNodeFake: FakeNode = FakeNode(trgNodeMnId, absNodeData.name, None)
+    lazy val srcNodeFake: FakeNode = FakeNode(srcNodeMnId, conNodeData.name, None)
 
     lazy val linkKey: MeKey = MeKey.Link(srcNodeMnId, trgNodeMnId)
     lazy val thenKey: MeKey = MeKey.Then(trgNodeMnId, srcNodeMnId)

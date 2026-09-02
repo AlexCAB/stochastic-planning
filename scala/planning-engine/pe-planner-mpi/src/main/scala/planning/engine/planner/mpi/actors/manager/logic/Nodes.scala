@@ -35,7 +35,7 @@ private[manager] trait Nodes:
       (newNodes, newState) <- state.withNewNodes(data, spawnNode)
       nodeMap = newNodes.values.map(n => n.mnId -> n).toMap
       _ <- d.visualizer.nodesAdded[F](nodeMap.view.mapValues(_.name).toMap)
-      _ <- d.planner.conNodesAdded[F](nodeMap.collect { case (id: MnId.Con, node) => id -> node })
+      _ <- d.planner.conNodesAdded[F](nodeMap.collect { case (_, node: Node.Con) => node }.toSet)
       _ <- logInfo("[addNodes] Created new nodes", newNodes)
     yield (newNodes, newState)
 

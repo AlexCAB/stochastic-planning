@@ -13,9 +13,11 @@
 package planning.engine.planner.mpi.actors.planner.data
 
 import planning.engine.common.values.io.IoName
+import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.io.{InputVariable, OutputVariable}
 
 private[planner] final case class Definition[F[_]](
     inputVariables: Map[IoName, InputVariable],
     outputVariables: Map[IoName, OutputVariable],
-)
+):
+  def validateConNodes(nodes: Set[Node.Con]): F[Unit] = ???

@@ -46,7 +46,7 @@ private[actors] trait ActorBase extends ActorExecCtx:
 
   // Message processing helpers
   protected def doIgnoreError[F[_]: S](msg: Msg, state: St, err: Throwable)(using ctx: Ctx): F[St] =
-    logError(s"Error processing message $msg in state $state: ${err.getMessage}", err).as(state)
+    logError(s"Error processing of the message $msg at state $state: ${err.getMessage}", err).as(state)
 
   protected def logAndRaiseFatal[F[_]: S](
       logPrefix: String,

@@ -17,5 +17,9 @@ import planning.engine.planner.mpi.actors.planner.data.Message.ConNodesAdded
 private[planner] trait Structure:
   self: Actor.type =>
 
-  // TODO Not yet implemented, will register the new concrete node into the input/output nodes state.
   private[planner] def doConNodesAdded[F[_]: S](msg: ConNodesAdded, state: St)(using Def, Ctx): F[St] = ???
+
+//
+//    for
+//      _ <- validateIds
+//    yield ???

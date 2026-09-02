@@ -28,6 +28,7 @@ final case class ConData(
     valueIndex: IoIndex,
 ) extends NodeData:
   val nodeType: NodeType = NodeType.Concrete
+  val ioValue: IoValue = IoValue(ioName, valueIndex)
   override lazy val toString: String = s"[${name.repr}, ${ioName.value}]"
 
 final case class AbsData(

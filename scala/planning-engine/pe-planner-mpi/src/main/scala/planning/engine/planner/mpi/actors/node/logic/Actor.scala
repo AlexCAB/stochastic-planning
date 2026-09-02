@@ -34,7 +34,10 @@ private[node] object Actor extends ActorBase with Structure:
     case msg: GetState[St]  => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using d: Def, c: Ctx): F[St] =
-    d.actors.manager.reportError[F](d.self, Some(msg), err).as(state)
+    for
+      self <- d.self
+      _ <- d.actors.manager.reportError[F](self, Some(msg), err).as(state)
+    yield state
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref =
     make(apply(definition, State.init), definition.id.value.toString)

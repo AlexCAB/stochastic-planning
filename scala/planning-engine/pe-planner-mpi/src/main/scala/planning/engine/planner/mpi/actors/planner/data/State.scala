@@ -12,6 +12,7 @@
 
 package planning.engine.planner.mpi.actors.planner.data
 
+import cats.MonadThrow
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.mpi.actors.node.Node
@@ -23,7 +24,8 @@ private[planner] final case class State(
 
     // Concrete node used for each output variable, along with its HnIndex.
     outputNodes: Map[MnId.Con, (HnIndex, Node)],
-) extends Representable
+) extends Representable:
+  def withNewConNodes[F[_]: MonadThrow](): F[State] = ???
 
 private[planner] object State:
   val init: State = State(Map.empty, Map.empty)

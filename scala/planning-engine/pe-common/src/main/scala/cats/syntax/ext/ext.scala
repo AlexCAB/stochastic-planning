@@ -10,7 +10,7 @@ package cats.syntax
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 24-Aug-26 |||||||||||*/
+| created: 24.08.26 |||||||||||||*/
 
 import cats.Monad
 import cats.syntax.all.*

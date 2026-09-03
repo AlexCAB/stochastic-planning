@@ -31,11 +31,15 @@ trait Node:
   def mnId: MnId
   def name: Option[HnName]
 
+  def repr: String
+
   // Upsert source end of an edge to this node.
   def upsertEdgeSrc[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
 
   // Upsert target end of an edge to this node.
   def upsertEdgeTrg[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
+
+  override def toString: String = repr
 
 object Node:
   type Msg = Actor.Msg
@@ -45,9 +49,13 @@ object Node:
     def name: Option[HnName]
     def ioValue: IoValue
 
+    lazy val repr: String = s"[${mnId.reprValue}, ${name.repr}, ${ioValue.repr}]"
+
   trait Abs extends Node:
     def mnId: MnId.Abs
     def name: Option[HnName]
+
+    lazy val repr: String = s"(${mnId.reprValue}, ${name.repr})"
 
   def spawn[F[_]: MonadThrow](
       mnId: MnId,

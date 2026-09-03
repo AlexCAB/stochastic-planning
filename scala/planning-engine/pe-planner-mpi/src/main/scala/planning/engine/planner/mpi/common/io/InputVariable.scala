@@ -12,4 +12,12 @@
 
 package planning.engine.planner.mpi.common.io
 
-final case class InputVariable()
+import cats.MonadThrow
+import cats.syntax.all.*
+import planning.engine.common.values.io.IoName
+import planning.engine.planner.mpi.actors.node.Node
+
+final case class InputVariable(name: IoName):
+
+  // TODO: Add validation logic for input variables if needed
+  def validateNode[F[_]: MonadThrow](node: Node.Con): F[Node.Con] = node.pure

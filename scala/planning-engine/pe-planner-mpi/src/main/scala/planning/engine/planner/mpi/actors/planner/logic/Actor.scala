@@ -12,7 +12,6 @@
 
 package planning.engine.planner.mpi.actors.planner.logic
 
-import cats.effect.IO
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.ActorBase
 import planning.engine.planner.mpi.actors.planner.data.*
@@ -20,7 +19,7 @@ import planning.engine.planner.mpi.actors.planner.data.*
 private[planner] object Actor extends ActorBase with SimpleSyncPlanner with Structure:
   import Message.*, ActorBase.GetState
 
-  override type Def = Definition[IO]
+  override type Def = Definition
   override type Msg = Message | GetState[St]
 
   override protected type St = State

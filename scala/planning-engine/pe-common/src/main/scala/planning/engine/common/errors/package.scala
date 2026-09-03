@@ -58,6 +58,11 @@ extension [L](left: IterableOnce[L])
   inline def assertEmpty[F[_]: ApplicativeThrow](msg: String): F[Unit] =
     predicateAssert(left.iterator.isEmpty, msg + s", seq: ${left.iterator.mkString(",")}")
 
+  inline def assertContain[F[_]: ApplicativeThrow](right: L, msg: String): F[Unit] = predicateAssert(
+    left.iterator.contains(right),
+    msg + s", seq: ${left.iterator.mkString(",")} does not contain: $right",
+  )
+
   inline def assertNotContain[F[_]: ApplicativeThrow](right: L, msg: String): F[Unit] =
     predicateAssert(!left.iterator.contains(right), msg + s", seq: ${left.iterator.mkString(",")} contains: $right")
 

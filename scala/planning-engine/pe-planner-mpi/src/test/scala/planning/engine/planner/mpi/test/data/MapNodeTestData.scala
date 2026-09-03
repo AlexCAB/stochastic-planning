@@ -12,29 +12,40 @@
 
 package planning.engine.planner.mpi.test.data
 
-import cats.effect.IO
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
-import planning.engine.map.io.node.{InputNode, OutputNode}
-import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.common.data.node.{AbsData, ConData}
+import planning.engine.planner.mpi.common.io.{InputVariable, OutputVariable}
 
 trait MapNodeTestData extends AsyncMockFactory:
   self: UnitSpecWithData =>
 
   trait WithMapNode:
-    lazy val testBoolInNode = InputNode[IO](IoName("boolInputNode"), BooleanIoVariable[IO](Set(true, false)))
-    lazy val testIntInNode = InputNode[IO](IoName("intInputNode"), IntIoVariable[IO](0, 10000))
-    lazy val boolOutNode = OutputNode[IO](IoName("boolOutputNode"), BooleanIoVariable[IO](Set(true, false)))
+    lazy val inVarName: IoName = IoName("boolInputNode")
+    lazy val outVarName: IoName = IoName("boolOutputNode")
+
+    lazy val inVar: InputVariable = InputVariable(inVarName)
+    lazy val outVar: OutputVariable = OutputVariable(outVarName)
+
+    def makeConNodeStub(mnId: MnId.Con, name: IoName, index: IoIndex): Node.Con =
+      val st = stub[Node.Con]
+      (() => st.mnId).when().returns(mnId)
+      (() => st.name).when().returns(None)
+      (() => st.ioValue).when().returns(IoValue(name, index))
+      st
+
+    lazy val inConNode: Node.Con = makeConNodeStub(MnId.Con(1L), inVarName, IoIndex(0))
+    lazy val outConNode: Node.Con = makeConNodeStub(MnId.Con(2L), outVarName, IoIndex(0))
+    lazy val otherInConNode: Node.Con = makeConNodeStub(MnId.Con(3L), inVarName, IoIndex(1))
 
     lazy val conNodeData: ConData = ConData(
       name = Some(HnName("Test Concrete Node")),
       description = Some(Description("A test node for unit testing`.")),
-      ioName = testBoolInNode.name,
+      ioName = inVar.name,
       valueIndex = IoIndex(0),
     )
 

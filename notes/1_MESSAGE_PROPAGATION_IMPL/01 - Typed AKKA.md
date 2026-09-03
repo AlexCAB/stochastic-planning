@@ -157,6 +157,20 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 
 ❯ Run unit tests in `pe-planner-mpi` and fix that failed.
 
+❯ In `actors.planner.data.State` implement:
+1. `withNewInNodes` which add data to `inputNodes` collection
+2. `withNewOutNodes` which add data to `outputNodes` collection
+
+❯ In `actors.planner.data.State` rewrite `withNewOutNodes` similarly to `withNewInNodes`.
+
+❯ Implement `PlannerSateSpec` for `actors.planner.data.State`
+
+❯ Implement `PlannerDefinitionSpec` for `actors.planner.data.Definition`
+
+❯ Implement `PlannerDefinitionSpec` add success case for `conNodesByType` 
+
+❯ Implement `PlannerStructureSpec` for `actors.planner.logic.Structure`, similarly as it done in `VisualizerStructureSpec`
+
 ##### TODO: 
 1. To implement basic planner actor logic (including IO variables).
 2. Integration with REST API (test with loading script)

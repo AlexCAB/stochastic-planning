@@ -16,8 +16,8 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
-import planning.engine.common.values.io.IoName
-import planning.engine.common.values.node.{HnIndex, MnId}
+import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.State
@@ -35,8 +35,8 @@ final case class TestPlanner(api: Planner):
 
 object TestPlanner extends TestActorBase:
   type PlannerState = (
-      Map[IoName, Map[HnIndex, Set[Node]]],
-      Map[MnId.Con, (HnIndex, Node)],
+      Map[IoName, Map[IoIndex, Set[Node.Con]]],
+      Map[MnId.Con, Node.Con],
   )
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)

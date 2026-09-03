@@ -36,7 +36,7 @@ private[manager] trait Nodes:
       nodeMap = newNodes.values.map(n => n.mnId -> n).toMap
       _ <- d.visualizer.nodesAdded[F](nodeMap.view.mapValues(_.name).toMap)
       _ <- d.planner.conNodesAdded[F](nodeMap.collect { case (_, node: Node.Con) => node }.toSet)
-      _ <- logInfo("[addNodes] Created new nodes", newNodes)
+      _ <- logMap("[addNodes] Created new nodes", newNodes)
     yield (newNodes, newState)
 
   protected def upsertNodesByName[F[_]: S](
@@ -53,7 +53,7 @@ private[manager] trait Nodes:
 
     for
       (foundNodes, toAdd) <- findNodesByNames
-      _ <- logInfo("[upsertNodesByName] Found existing nodes by names", foundNodes)
+      _ <- logMap("[upsertNodesByName] Found existing nodes by names", foundNodes)
       (newNodes, newState) <- addNodes(toAdd, state)
       _ <- foundNodes.keySet.assertContainsNoneOf(newNodes.keySet, "Found duplicate node Nim's, seems bug")
       allMnIds = foundNodes.values.map(_.mnId) ++ newNodes.values.map(_.mnId)

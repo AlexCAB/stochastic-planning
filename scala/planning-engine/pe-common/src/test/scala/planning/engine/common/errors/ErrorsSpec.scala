@@ -107,6 +107,21 @@ class ErrorsSpec extends UnitSpecIO:
     "raise an error when the sequence is non empty" in: _ =>
       List(1).assertEmpty[IO]("Sequence is non empty").assertThrows[AssertionError]
 
+  "assertContain" should:
+    "return the collection when it contains the specified element" in: _ =>
+      val collection = Set(1, 2, 3)
+      val element = 2
+      collection.assertContain[IO](element, "Collection does not contain the element").assertNoException
+
+    "raise an error when the collection does not contain the specified element" in: _ =>
+      val collection = Set(1, 2, 3)
+      val element = 4
+      collection
+        .assertContain[IO](element, "Collection does not contain the element")
+        .assertThrowsWithMessage[AssertionError](
+          "Collection does not contain the element, seq: 1,2,3 does not contain: 4",
+        )
+
   "assertNotContain" should:
     "return the collection when it does not contain the specified element" in: _ =>
       val collection = Set(1, 2, 3)

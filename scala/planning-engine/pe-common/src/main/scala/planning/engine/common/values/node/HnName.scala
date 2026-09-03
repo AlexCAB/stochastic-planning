@@ -20,4 +20,4 @@ object HnName extends StringBuilders[HnName]:
   protected def makeValue(str: String): HnName = HnName(str)
 
   extension (opName: Option[HnName])
-    def repr: String = opName.map(_.value).getOrElse("no_name")
+    def repr: String = opName.map(_.value).getOrElse("no-name")

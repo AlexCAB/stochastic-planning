@@ -58,7 +58,7 @@ private[manager] trait Samples extends Nodes with Edges:
       allNodes = foundNodes ++ newNodes
       (sampleMap, stateWithSamples) <- stateWithNodes.withNewManSamples(msg.samples, allNodes.values.toSet)
       addedKeys <- addAllEdges(sampleMap, allNodes, stateWithSamples)
-      _ <- logInfo("[AddManSamples] Added samples", sampleMap)
+      _ <- logMap("[AddManSamples] Added samples", sampleMap)
       _ <- msg.reply(ManSamplesAdded(sampleMap))
     yield stateWithSamples
 
@@ -71,6 +71,6 @@ private[manager] trait Samples extends Nodes with Edges:
       allNodes = oldNodes ++ newNodeMap.values
       (sampleMap, stateWithSamples) <- stateWithNodes.withNewGenSamples(msg.samples, allNodes)
       addedKeys <- addAllEdges(sampleMap, newNodeMap, stateWithSamples)
-      _ <- logInfo("[AddGenSamples] Added samples", sampleMap)
+      _ <- logMap("[AddGenSamples] Added samples", sampleMap)
       _ <- msg.reply(GenSamplesAdded(sampleMap))
     yield stateWithSamples

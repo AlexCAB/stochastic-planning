@@ -28,7 +28,7 @@ import scala.concurrent.duration.*
 class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with MapEdgeTestData:
   private class CaseData extends Case with WithManager with WithMapEdge:
     lazy val nim99: MnId.Nim = MnId.Nim(99L)
-    lazy val conIoValue: IoValue = IoValue(testBoolInNode.name, IoIndex(0))
+    lazy val conIoValue: IoValue = IoValue(inVar.name, IoIndex(0))
 
   "Manager.addManSamples(...)" should:
     "create nodes from the given Nim ids, store the sample, and link its edges" in newCase[CaseData]: (tn, data) =>

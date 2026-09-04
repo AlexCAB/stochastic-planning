@@ -24,7 +24,7 @@ class PlannerStateSpec extends UnitSpecWithData with MapNodeTestData:
   private class CaseData extends Case with WithMapNode:
     val name1: IoName = IoName("boolInputNode")
     val name2: IoName = IoName("intInputNode")
-    
+
     val node1: Node.Con = makeConNodeStub(MnId.Con(1L), name1, IoIndex(0))
     val node2: Node.Con = makeConNodeStub(MnId.Con(2L), name1, IoIndex(1))
     val node3: Node.Con = makeConNodeStub(MnId.Con(3L), name2, IoIndex(0))

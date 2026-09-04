@@ -20,11 +20,16 @@ class NodeDataSpec extends UnitSpecWithData:
   private class CaseData extends Case
 
   "NodeData.apply(Option[IoValue])" should:
-    "return a ConData with the value's name and index when given Some(IoValue)" in newCase[CaseData]: (_, _) =>
+    "return a NodeData.Con with the value's name and index when given Some(IoValue)" in newCase[CaseData]: (_, _) =>
       val ioValue = IoValue(IoName("testIoName"), IoIndex(3))
 
       IO.pure(NodeData(Some(ioValue)))
-        .asserting(_ mustBe ConData(name = None, description = None, ioName = ioValue.name, valueIndex = ioValue.index))
+        .asserting(_ mustBe NodeData.Con(
+          name = None,
+          description = None,
+          ioName = ioValue.name,
+          valueIndex = ioValue.index,
+        ))
 
-    "return an AbsData when given None" in newCase[CaseData]: (_, _) =>
-      IO.pure(NodeData(None)).asserting(_ mustBe AbsData(name = None, description = None))
+    "return an NodeData.Abs when given None" in newCase[CaseData]: (_, _) =>
+      IO.pure(NodeData(None)).asserting(_ mustBe NodeData.Abs(name = None, description = None))

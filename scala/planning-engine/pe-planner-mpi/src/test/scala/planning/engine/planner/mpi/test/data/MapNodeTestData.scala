@@ -18,8 +18,8 @@ import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.node.{AbsData, ConData}
-import planning.engine.planner.mpi.common.io.{InputVariable, OutputVariable}
+import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.common.io.{Type, Variable}
 
 trait MapNodeTestData extends AsyncMockFactory:
   self: UnitSpecWithData =>
@@ -28,8 +28,11 @@ trait MapNodeTestData extends AsyncMockFactory:
     lazy val inVarName: IoName = IoName("boolInputNode")
     lazy val outVarName: IoName = IoName("boolOutputNode")
 
-    lazy val inVar: InputVariable = InputVariable(inVarName)
-    lazy val outVar: OutputVariable = OutputVariable(outVarName)
+    lazy val intType: Type.N = Type.N(-100, 100)
+    lazy val boolType: Type.Bool = Type.Bool(Set(true, false))
+
+    lazy val inVar: Variable.Input = Variable.Input(inVarName, intType)
+    lazy val outVar: Variable.Output = Variable.Output(outVarName, boolType)
 
     def makeConNodeStub(mnId: MnId.Con, name: IoName, index: IoIndex): Node.Con =
       val st = stub[Node.Con]
@@ -42,14 +45,14 @@ trait MapNodeTestData extends AsyncMockFactory:
     lazy val outConNode: Node.Con = makeConNodeStub(MnId.Con(2L), outVarName, IoIndex(0))
     lazy val otherInConNode: Node.Con = makeConNodeStub(MnId.Con(3L), inVarName, IoIndex(1))
 
-    lazy val conNodeData: ConData = ConData(
+    lazy val conNodeData: NodeData.Con = NodeData.Con(
       name = Some(HnName("Test Concrete Node")),
       description = Some(Description("A test node for unit testing`.")),
       ioName = inVar.name,
       valueIndex = IoIndex(0),
     )
 
-    lazy val absNodeData: AbsData = AbsData(
+    lazy val absNodeData: NodeData.Abs = NodeData.Abs(
       name = Some(HnName("Test Abstract Node")),
       description = Some(Description("A test abstract node for unit testing.")),
     )

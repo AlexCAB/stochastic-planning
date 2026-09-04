@@ -171,6 +171,13 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 
 ❯ Implement `PlannerStructureSpec` for `actors.planner.logic.Structure`, similarly as it done in `VisualizerStructureSpec`
 
+❯ Implement VariableSpec for `mpi.common.io.Variable`, for now only for `validateNode` method
+
+❯ Implement TypeSpec for `mpi.common.io.Type`, for all types: `N`, `R`, `Bool`, `Opt`
+
+
+
+
 ##### TODO: 
 1. To implement basic planner actor logic (including IO variables).
 2. Integration with REST API (test with loading script)
@@ -226,9 +233,9 @@ def withNewNodes[F[_]: MonadThrow](
 
 
 
+AbsData
 
-
-
+NodeData.Abs
 
 
 

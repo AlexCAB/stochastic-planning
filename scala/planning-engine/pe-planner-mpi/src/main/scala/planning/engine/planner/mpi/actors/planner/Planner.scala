@@ -20,7 +20,7 @@ import planning.engine.common.values.io.IoName
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.Definition
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
-import planning.engine.planner.mpi.common.io.{InputVariable, OutputVariable}
+import planning.engine.planner.mpi.common.io.Variable
 
 trait Planner:
   // Notify the planner that a new concrete node was added to the map network.
@@ -33,7 +33,7 @@ object Planner:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MonadThrow](
-      inVar: Map[IoName, InputVariable],
-      outVar: Map[IoName, OutputVariable],
+      inVar: Map[IoName, Variable.Input],
+      outVar: Map[IoName, Variable.Output],
       make: (Behavior[Msg], String) => ActorRef[Msg],
   ): F[Planner] = MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(inVar, outVar), make)))

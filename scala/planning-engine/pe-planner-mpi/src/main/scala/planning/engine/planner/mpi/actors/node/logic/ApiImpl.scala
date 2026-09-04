@@ -51,6 +51,6 @@ private[node] object ApiImpl:
   final case class Abs(mnId: MnId.Abs, name: Option[HnName], actor: Actor.Ref) extends ApiImpl with Node.Abs
 
   def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
-    case (mnId: MnId.Con, data: ConData) => Con(mnId, data.name, data.ioValue, actor).pure
-    case (mnId: MnId.Abs, data: AbsData) => Abs(mnId, data.name, actor).pure
+    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure
+    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor).pure
     case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError

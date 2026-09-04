@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData}
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.common.errors.*
 
 private[node] sealed trait Definition:
@@ -40,14 +40,14 @@ private[node] sealed trait Definition:
 
 private[node] final case class ConDef(
     id: MnId.Con,
-    data: ConData,
+    data: NodeData.Con,
     actors: Definition.Actors,
 ) extends Definition:
   override lazy val toString: String = s"[${id.reprValue}, ${data.name.repr}]"
 
 private[node] final case class AbsDef(
     id: MnId.Abs,
-    data: AbsData,
+    data: NodeData.Abs,
     actors: Definition.Actors,
 ) extends Definition:
   override lazy val toString: String = s"(${id.reprValue}, ${data.name.repr})"
@@ -60,6 +60,6 @@ object Definition:
   )
 
   def apply[F[_]: MonadThrow](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
-    case (id: MnId.Con, data: ConData) => ConDef(id, data, actors).pure[F]
-    case (id: MnId.Abs, data: AbsData) => AbsDef(id, data, actors).pure[F]
-    case _                             => "Invalid combination of id and data".assertionError
+    case (id: MnId.Con, data: NodeData.Con) => ConDef(id, data, actors).pure[F]
+    case (id: MnId.Abs, data: NodeData.Abs) => AbsDef(id, data, actors).pure[F]
+    case _                                  => "Invalid combination of id and data".assertionError

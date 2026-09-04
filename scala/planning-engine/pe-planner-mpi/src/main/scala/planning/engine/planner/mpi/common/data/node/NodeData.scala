@@ -21,24 +21,24 @@ sealed trait NodeData:
   def description: Option[Description]
   def nodeType: NodeType
 
-final case class ConData(
-    name: Option[HnName],
-    description: Option[Description],
-    ioName: IoName,
-    valueIndex: IoIndex,
-) extends NodeData:
-  val nodeType: NodeType = NodeType.Concrete
-  val ioValue: IoValue = IoValue(ioName, valueIndex)
-  override lazy val toString: String = s"[${name.repr}, ${ioName.value}]"
-
-final case class AbsData(
-    name: Option[HnName],
-    description: Option[Description],
-) extends NodeData:
-  val nodeType: NodeType = NodeType.Abstract
-  override lazy val toString: String = s"(${name.repr})"
-
 object NodeData:
+  final case class Con(
+      name: Option[HnName],
+      description: Option[Description],
+      ioName: IoName,
+      valueIndex: IoIndex,
+  ) extends NodeData:
+    val nodeType: NodeType = NodeType.Concrete
+    val ioValue: IoValue = IoValue(ioName, valueIndex)
+    override lazy val toString: String = s"[${name.repr}, ${ioName.value}]"
+
+  final case class Abs(
+      name: Option[HnName],
+      description: Option[Description],
+  ) extends NodeData:
+    val nodeType: NodeType = NodeType.Abstract
+    override lazy val toString: String = s"(${name.repr})"
+
   def apply(ioValue: Option[IoValue]): NodeData = ioValue match
-    case Some(io) => ConData(None, None, io.name, io.index)
-    case None     => AbsData(None, None)
+    case Some(io) => Con(None, None, io.name, io.index)
+    case None     => Abs(None, None)

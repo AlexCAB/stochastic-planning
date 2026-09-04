@@ -21,7 +21,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.common.data.edge.MeRef
-import planning.engine.planner.mpi.common.data.node.{AbsData, ConData, NodeData}
+import planning.engine.planner.mpi.common.data.node.NodeData
 import planning.engine.planner.mpi.common.data.samples.Sample
 import org.scalatest.matchers.must.Matchers.fail
 
@@ -36,9 +36,9 @@ final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
 
 object FakeNode:
   private def makeData(mnId: MnId, name: Option[HnName], ioValue: Option[IoValue]): NodeData = (mnId, ioValue) match
-    case (mnId: MnId.Con, Some(ioVal)) => ConData(name, None, ioVal.name, ioVal.index)
-    case (mnId: MnId.Con, None)        => ConData(name, None, IoName("fake-io-node"), IoIndex(0))
-    case (mnId: MnId.Abs, None)        => AbsData(name, None)
+    case (mnId: MnId.Con, Some(ioVal)) => NodeData.Con(name, None, ioVal.name, ioVal.index)
+    case (mnId: MnId.Con, None)        => NodeData.Con(name, None, IoName("fake-io-node"), IoIndex(0))
+    case (mnId: MnId.Abs, None)        => NodeData.Abs(name, None)
     case (mnId, ioVal)                 => fail(s"Unexpected MnId type: $mnId, ioValue = $ioVal")
 
   def apply(mnId: MnId, name: String = "", ioValue: Option[IoValue] = None)(using ActorTestKit, IORuntime): FakeNode =

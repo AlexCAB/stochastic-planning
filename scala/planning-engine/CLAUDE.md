@@ -100,6 +100,6 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: DD.MM.YYYY |||||||||||*/
+| created: YYYY-MM-DD |||||||||||*/
 ```
-Replace `DD.MM.YYYY` with the actual creation date.
+Replace `YYYY-MM-DD` with the actual creation date.

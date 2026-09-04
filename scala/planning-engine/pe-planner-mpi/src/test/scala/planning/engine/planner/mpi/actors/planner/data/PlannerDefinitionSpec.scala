@@ -17,7 +17,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.io.{InputVariable, OutputVariable}
+import planning.engine.planner.mpi.common.io.Variable
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 class PlannerDefinitionSpec extends UnitSpecWithData with MapNodeTestData:
@@ -34,18 +34,18 @@ class PlannerDefinitionSpec extends UnitSpecWithData with MapNodeTestData:
 
     "raise an error when input and output variable names overlap" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val outVarSameName = OutputVariable(inVarName)
+      val outVarSameName = Variable.Output(inVarName, intType)
       Definition[IO](Map(inVarName -> inVar), Map(inVarName -> outVarSameName)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Input and output variable names must be unique"))
 
     "raise an error when an input variable's name does not match its map key" in newCase[CaseData]: (tn, data) =>
       import data.*
-      Definition[IO](Map(outVarName -> inVar), Map.empty[IoName, OutputVariable]).logValue(tn)
+      Definition[IO](Map(outVarName -> inVar), Map.empty[IoName, Variable.Output]).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include(s"Input variable name mismatch for $outVarName"))
 
     "raise an error when an output variable's name does not match its map key" in newCase[CaseData]: (tn, data) =>
       import data.*
-      Definition[IO](Map.empty[IoName, InputVariable], Map(inVarName -> outVar)).logValue(tn)
+      Definition[IO](Map.empty[IoName, Variable.Input], Map(inVarName -> outVar)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include(s"Output variable name mismatch for $inVarName"))
 
   "Definition.apply(inVars: Set, outVars: Set)" should:

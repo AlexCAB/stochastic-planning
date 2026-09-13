@@ -19,7 +19,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.Message.{AddNode, NodeAdded}
 import planning.engine.planner.mpi.actors.node.FakeNode
-import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.model.data.node.NodeData
 
 class ManagerErrorsSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
   private class CaseData extends Case with WithManager

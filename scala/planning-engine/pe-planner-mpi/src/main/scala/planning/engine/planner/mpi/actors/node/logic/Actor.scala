@@ -14,12 +14,12 @@ package planning.engine.planner.mpi.actors.node.logic
 
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.node.data.*
 import planning.engine.planner.mpi.actors.node.data.State
 
-private[node] object Actor extends ActorBase with Structure:
-  import Message.*, ActorBase.GetState
+private[node] object Actor extends Stateful with Structure:
+  import Message.*, Stateful.GetState
 
   override type Def = Definition
   override type Msg = Message | GetState[St]

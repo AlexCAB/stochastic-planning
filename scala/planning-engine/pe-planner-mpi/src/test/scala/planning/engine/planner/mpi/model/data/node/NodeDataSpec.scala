@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 30.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.common.data.node
+package planning.engine.planner.mpi.model.data.node
 
 import cats.effect.IO
 import planning.engine.common.UnitSpecWithData

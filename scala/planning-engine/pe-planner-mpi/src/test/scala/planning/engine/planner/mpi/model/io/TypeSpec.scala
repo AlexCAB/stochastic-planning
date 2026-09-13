@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-09-04 |||||||||||*/
 
-package planning.engine.planner.mpi.common.io
+package planning.engine.planner.mpi.model.io
 
 import cats.effect.IO
 import cats.effect.cps.*

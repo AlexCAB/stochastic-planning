@@ -13,11 +13,11 @@
 package planning.engine.planner.mpi.actors.visualizer.logic
 
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.visualizer.data.*
 
-private[visualizer] object Actor extends ActorBase with Structure:
-  import Message.*, ActorBase.GetState
+private[visualizer] object Actor extends Stateful with Structure:
+  import Message.*, Stateful.GetState
 
   override type Def = Definition
   override type Msg = Message | GetState[St]

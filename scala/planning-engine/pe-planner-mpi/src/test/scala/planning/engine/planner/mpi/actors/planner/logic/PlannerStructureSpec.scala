@@ -23,8 +23,8 @@ class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with MapNodeTestData
   private class CaseData extends Case with WithMapNode:
     lazy val planner: TestPlanner = TestPlanner(
       "structure-spec",
-      inputVariables = Map(inVarName -> inVar),
-      outputVariables = Map(outVarName -> outVar),
+      inVars = Set(inVar),
+      outVars = Set(outVar),
     )
 
   "Planner.conNodesAdded" should:

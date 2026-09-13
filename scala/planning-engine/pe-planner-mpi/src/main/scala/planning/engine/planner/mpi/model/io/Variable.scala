@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 04.08.26 |||||||||||*/
 
-package planning.engine.planner.mpi.common.io
+package planning.engine.planner.mpi.model.io
 
 import cats.MonadThrow
 import cats.syntax.all.*

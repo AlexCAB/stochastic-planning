@@ -8,11 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 19.06.2026 |||||||||||*/
+| created: 2026-09-09 |||||||||||*/
 
-package planning.engine.planner.mpi.common.data.node
 
-import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.node.Node
 
-final case class MnRef(id: MnId, ref: Node)
+package planning.engine.planner.mpi.map
+
+// TODO Provide callbacks for visualizer actor
+trait Visualization:
+  def structureUpdated(): Unit
+  def planUpdated(): Unit
+  

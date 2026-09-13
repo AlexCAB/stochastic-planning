@@ -18,8 +18,8 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import planning.engine.planner.mpi.actors.ActorBase.{CurrentState, GetState}
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.actors.Stateful.{CurrentState, GetState}
+import planning.engine.planner.mpi.model.repr.Representable
 
 trait TestActorBase:
   protected given Logger[IO] = Slf4jLogger.getLoggerFromClass[IO](getClass)

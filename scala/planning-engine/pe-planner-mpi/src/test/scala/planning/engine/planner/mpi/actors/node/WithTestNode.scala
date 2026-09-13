@@ -18,7 +18,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.FakeManager
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.actors.planner.FakePlanner
-import planning.engine.planner.mpi.common.data.edge.MeRef
+import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
 trait WithTestNode extends MapNodeTestData with MapEdgeTestData:

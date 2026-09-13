@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.visualizer.data
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.repr.Representable
 
 private[visualizer] final case class State(
     conNodes: Map[MnId.Con, Option[HnName]],

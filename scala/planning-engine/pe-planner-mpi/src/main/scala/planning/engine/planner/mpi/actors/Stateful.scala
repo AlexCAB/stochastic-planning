@@ -14,26 +14,19 @@ package planning.engine.planner.mpi.actors
 
 import cats.effect.{IO, Sync}
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
-import planning.engine.planner.mpi.common.error.FatalException
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.error.FatalException
+import planning.engine.planner.mpi.model.repr.Representable
 
-private[actors] trait ActorBase extends ActorExecCtx:
-  import ActorBase.GetState
+private[actors] trait Stateful extends Base:
+  import Stateful.GetState
 
   // Shortcut for actor definition
   type Def
-  type Msg <: Representable
-  type Ctx = ActorContext[Msg]
-  type Ref = ActorRef[Msg]
 
-  // Shortcut for actor state type and Sync type (only for internal use)
   protected type St <: Representable
   protected type S[F[_]] = Sync[F]
-
-  // Cats-effect helpers
-  protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
   // Actor setup (called once when the actor is created)
   protected def setup(state: St)(using Def, Ctx): Unit = ()
@@ -73,21 +66,8 @@ private[actors] trait ActorBase extends ActorExecCtx:
   protected def doGetState[F[_]: S](msg: GetState[St], state: St)(using ctx: Ctx): F[St] =
     for
       _ <- logInfo(s"GetState message received, returning current state: $state")
-      _ <- msg.reply(ActorBase.CurrentState(state))
+      _ <- msg.reply(Stateful.CurrentState(state))
     yield state
-
-  // Helper method for logging messages
-  protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
-
-  protected def logMap[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =
-    val mapRepr = if map.nonEmpty then s"{\n${map.map((k, v) => s"    $k -> $v").mkString("\n")}\n}" else "{}"
-    logInfo(s"$msg:\n$mapRepr")
-
-  protected def logSeq[F[_]: S, K, V](msg: String, map: IterableOnce[V])(using ctx: Ctx): F[Unit] =
-    val repr = if map.iterator.nonEmpty then s"[\n${map.iterator.map(v => s"    $v").mkString("\n")}\n]" else "[]"
-    logInfo(s"$msg:\n$repr")
-
-  protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
 
   // Actor main behavior definition
   private def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>
@@ -122,18 +102,9 @@ private[actors] trait ActorBase extends ActorExecCtx:
     given Def = definition
     behavior(state)
 
-private[actors] object ActorBase:
-
-  // Base trait for command messages that require a reply to the sender.
-  trait WithSender[R]:
-    def sender: ActorRef[R]
-
-    def reply[F[_]: Sync](msg: R): F[Unit] = Sync[F].delay(sender.tell(msg)).void
-
-  // Base trait for messages that used for testing of actors.
-  sealed trait TestCommand[R] extends WithSender[R] with Representable
-  sealed trait TestResult extends Representable
+private[actors] object Stateful:
+  import Base.*
 
   // Messages used for testing purposes to get the current state of the Actor.
-  final case class GetState[S](sender: ActorRef[CurrentState[S]]) extends TestCommand[CurrentState[S]]
-  final case class CurrentState[S](state: S)
+  final case class GetState[S](sender: ActorRef[CurrentState[S]]) extends WithSender[CurrentState[S]] with Representable
+  final case class CurrentState[S](state: S) extends Representable

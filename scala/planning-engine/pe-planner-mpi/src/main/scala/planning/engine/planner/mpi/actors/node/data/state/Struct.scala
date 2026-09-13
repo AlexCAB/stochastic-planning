@@ -18,9 +18,9 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.edge.MeRef
-import planning.engine.planner.mpi.common.data.samples.Sample
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.data.edge.MeRef
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.repr.Representable
 
 private[node] final case class Struct(
     // Counter for generating unique HnIndex

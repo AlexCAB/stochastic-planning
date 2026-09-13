@@ -23,9 +23,9 @@ import planning.engine.planner.mpi.actors.node.data.Definition
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.common.data.edge.MeRef
-import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.common.data.samples.Sample
+import planning.engine.planner.mpi.model.data.edge.MeRef
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 
 trait Node:
   def mnId: MnId
@@ -61,7 +61,7 @@ object Node:
       mnId: MnId,
       data: NodeData,
       manager: Manager,
-      visualizer: Visualizer,
+      visualizer: Option[Visualizer],
       planner: Planner,
       make: (Behavior[Msg], String) => ActorRef[Msg],
   ): F[Node] =

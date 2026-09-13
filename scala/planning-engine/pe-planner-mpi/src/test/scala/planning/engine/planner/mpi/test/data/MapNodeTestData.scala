@@ -18,8 +18,8 @@ import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.common.io.{Type, Variable}
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.io.{Type, Variable}
 
 trait MapNodeTestData extends AsyncMockFactory:
   self: UnitSpecWithData =>

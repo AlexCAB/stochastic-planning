@@ -18,7 +18,7 @@ import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.io.IoName
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.io.Variable
+import planning.engine.planner.mpi.model.io.Variable
 
 private[planner] final case class Definition(
     inputVariables: Map[IoName, Variable.Input],

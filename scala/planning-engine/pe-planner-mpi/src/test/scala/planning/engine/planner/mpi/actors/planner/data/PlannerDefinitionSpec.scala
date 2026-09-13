@@ -17,7 +17,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.io.Variable
+import planning.engine.planner.mpi.model.io.Variable
 import planning.engine.planner.mpi.test.data.MapNodeTestData
 
 class PlannerDefinitionSpec extends UnitSpecWithData with MapNodeTestData:

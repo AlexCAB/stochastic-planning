@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.repr.Representable
 
 private[planner] final case class State(
     // Concrete nodes known to represent each value (HnIndex) of each input variable.

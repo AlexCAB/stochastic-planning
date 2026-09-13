@@ -21,6 +21,7 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.visualizer.data.State
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
+import planning.engine.planner.mpi.map.Visualization
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -46,8 +47,8 @@ object TestVisualizer extends TestActorBase:
   private def spawn(bh: Behavior[Visualizer.Msg], name: String)(using tk: ActorTestKit): ActorRef[Visualizer.Msg] =
     tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
 
-  def apply(name: String)(using ActorTestKit, IORuntime): TestVisualizer = new TestVisualizer(
-    api = Visualizer.spawn[IO](spawn).unsafeRunSync(),
+  def apply(viz: Visualization, name: String)(using ActorTestKit, IORuntime): TestVisualizer = new TestVisualizer(
+    api = Visualizer.spawn[IO](viz, spawn).unsafeRunSync(),
   )
 
   extension (api: Visualizer)

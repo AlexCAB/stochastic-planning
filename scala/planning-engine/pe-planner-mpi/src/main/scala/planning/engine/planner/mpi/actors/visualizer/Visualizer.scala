@@ -18,6 +18,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.map.Visualization
 
 trait Visualizer:
 
@@ -30,5 +31,5 @@ trait Visualizer:
 object Visualizer:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MonadThrow](make: (Behavior[Msg], String) => ActorRef[Msg]): F[Visualizer] =
-    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(), make)))
+  def spawn[F[_]: MonadThrow](viz: Visualization, make: (Behavior[Msg], String) => ActorRef[Msg]): F[Visualizer] =
+    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(viz), make)))

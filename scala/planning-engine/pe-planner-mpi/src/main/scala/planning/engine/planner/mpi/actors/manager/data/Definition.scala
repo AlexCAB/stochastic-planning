@@ -18,7 +18,7 @@ import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 
 private[manager] final case class Definition(
-    visualizer: Visualizer,
+    visualizer: Option[Visualizer],
     planner: Planner,
 ):
   def self(using ctx: Actor.Ctx): Manager = ApiImpl(ctx.self)

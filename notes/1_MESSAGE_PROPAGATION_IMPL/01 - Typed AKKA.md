@@ -8,7 +8,7 @@
 
 **SBT commands:**
 * `sbt compile`
-* `sbt scalafmt`
+* `sbt scalafmtAll`
 
 
 ## Prompts 

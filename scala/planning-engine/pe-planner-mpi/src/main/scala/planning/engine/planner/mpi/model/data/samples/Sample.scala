@@ -10,13 +10,13 @@
 | website: github.com/alexcab |||||
 | created: 16.08.26 |||||||||||||*/
 
-package planning.engine.planner.mpi.common.data.samples
+package planning.engine.planner.mpi.model.data.samples
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.repr.Representable
 
 import Sample.*
 

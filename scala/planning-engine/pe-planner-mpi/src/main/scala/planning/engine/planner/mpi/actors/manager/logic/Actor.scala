@@ -13,7 +13,7 @@
 package planning.engine.planner.mpi.actors.manager.logic
 
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.manager.data.*
 import planning.engine.planner.mpi.actors.manager.logic.{Edges, Errors, Nodes}
 
@@ -25,8 +25,8 @@ import planning.engine.planner.mpi.actors.manager.logic.{Edges, Errors, Nodes}
 // - Response to the ManagerAdaptor `ask` queries with success or error.
 // - Handling any error that happens in child actors by receiving `NodeActorError` (in simple implementation
 //   just kill all system in case any error).
-private[manager] object Actor extends ActorBase with Nodes with Edges with Samples with Errors:
-  import Message.*, ActorBase.GetState
+private[manager] object Actor extends Stateful with Nodes with Edges with Samples with Errors:
+  import Message.*, Stateful.GetState
 
   override type Def = Definition
   override type Msg = Message | GetState[St]

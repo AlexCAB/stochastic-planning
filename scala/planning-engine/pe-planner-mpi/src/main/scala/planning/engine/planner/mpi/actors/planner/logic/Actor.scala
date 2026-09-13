@@ -13,11 +13,11 @@
 package planning.engine.planner.mpi.actors.planner.logic
 
 import org.apache.pekko.actor.typed.Behavior
-import planning.engine.planner.mpi.actors.ActorBase
+import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.planner.data.*
 
-private[planner] object Actor extends ActorBase with SimpleSyncPlanner with Structure:
-  import Message.*, ActorBase.GetState
+private[planner] object Actor extends Stateful with SimpleSyncPlanner with Structure:
+  import Message.*, Stateful.GetState
 
   override type Def = Definition
   override type Msg = Message | GetState[St]

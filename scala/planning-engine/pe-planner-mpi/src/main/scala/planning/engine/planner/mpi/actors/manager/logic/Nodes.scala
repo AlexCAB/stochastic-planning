@@ -18,7 +18,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.manager.data.Message
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.model.data.node.NodeData
 
 private[manager] trait Nodes:
   self: Actor.type =>
@@ -34,7 +34,7 @@ private[manager] trait Nodes:
     for
       (newNodes, newState) <- state.withNewNodes(data, spawnNode)
       nodeMap = newNodes.values.map(n => n.mnId -> n).toMap
-      _ <- d.visualizer.nodesAdded[F](nodeMap.view.mapValues(_.name).toMap)
+      _ <- d.visualizer.traverse_(_.nodesAdded[F](nodeMap.view.mapValues(_.name).toMap))
       _ <- d.planner.conNodesAdded[F](nodeMap.collect { case (_, node: Node.Con) => node }.toSet)
       _ <- logMap("[addNodes] Created new nodes", newNodes)
     yield (newNodes, newState)

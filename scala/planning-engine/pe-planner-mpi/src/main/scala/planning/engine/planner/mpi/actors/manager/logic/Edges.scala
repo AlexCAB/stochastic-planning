@@ -17,7 +17,7 @@ import cats.syntax.ext.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.data.Message
-import planning.engine.planner.mpi.common.data.edge.MeRef
+import planning.engine.planner.mpi.model.data.edge.MeRef
 
 private[manager] trait Edges:
   self: Actor.type =>
@@ -39,7 +39,7 @@ private[manager] trait Edges:
     for
       keys <- edges.traverseToSet((key, sIds) => upsert(key, sIds))
       _ <- logInfo(s"[upsertEdges] keys = $keys")
-      _ <- d.visualizer.edgesAdded[F](keys)
+      _ <- d.visualizer.traverse_(_.edgesAdded(keys))
     yield keys
 
   private[manager] def doAddEdge[F[_]: S](msg: AddEdge, state: St)(using d: Def, ctx: Ctx): F[St] =

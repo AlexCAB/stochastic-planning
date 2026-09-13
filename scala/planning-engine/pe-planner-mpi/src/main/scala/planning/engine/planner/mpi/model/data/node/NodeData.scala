@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 19.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.common.data.node
+package planning.engine.planner.mpi.model.data.node
 
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.HnName

@@ -19,9 +19,9 @@ import planning.engine.common.values.node.MnId.Nim
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.common.data.samples.Sample
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.repr.Representable
 
 private[manager] final case class State(
     // Next ID to assign to a new entities (incremented for each new entity)

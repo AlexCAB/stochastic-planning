@@ -8,13 +8,11 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 30.08.26 |||||||||||||*/
+| created: 19.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state
+package planning.engine.planner.mpi.model.data.node
 
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.common.values.node.MnId
+import planning.engine.planner.mpi.actors.node.Node
 
-private[node] final case class Plan(v1: Int, v2: Int) extends Representable
-
-private[node] object Plan:
-  val init = Plan(0, 0)
+final case class MnRef(id: MnId, ref: Node)

@@ -26,8 +26,8 @@ import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
-import planning.engine.planner.mpi.common.data.node.NodeData
-import planning.engine.planner.mpi.common.data.samples.Sample
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -87,7 +87,7 @@ object TestManager extends TestActorBase:
       planner: FakePlanner,
   )(using testKit: ActorTestKit, rt: IORuntime): Manager = Manager
     .spawn[IO](
-      visualizer.api,
+      Some(visualizer.api),
       planner.api,
       (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"),
     )

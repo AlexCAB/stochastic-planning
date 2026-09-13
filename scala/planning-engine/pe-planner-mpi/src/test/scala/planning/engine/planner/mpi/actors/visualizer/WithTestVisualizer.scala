@@ -13,9 +13,14 @@
 package planning.engine.planner.mpi.actors.visualizer
 
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import planning.engine.planner.mpi.map.Visualization
 
 trait WithTestVisualizer:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithVisualizer:
-    lazy val visualizer: TestVisualizer = TestVisualizer("test-visualizer")
+    lazy val visualization: Visualization = new Visualization:
+      override def structureUpdated(): Unit = ()
+      override def planUpdated(): Unit = ()
+
+    lazy val visualizer: TestVisualizer = TestVisualizer(visualization, "test-visualizer")

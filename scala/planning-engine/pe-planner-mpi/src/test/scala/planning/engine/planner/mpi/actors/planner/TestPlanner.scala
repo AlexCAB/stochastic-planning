@@ -22,7 +22,7 @@ import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.State
 import planning.engine.planner.mpi.actors.planner.logic.ApiImpl
-import planning.engine.planner.mpi.common.io.Variable
+import planning.engine.planner.mpi.model.io.Variable
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -46,10 +46,10 @@ object TestPlanner extends TestActorBase:
 
   def apply(
       name: String,
-      inputVariables: Map[IoName, Variable.Input] = Map.empty,
-      outputVariables: Map[IoName, Variable.Output] = Map.empty,
+      inVars: Set[Variable.Input] = Set.empty,
+      outVars: Set[Variable.Output] = Set.empty,
   )(using ActorTestKit, IORuntime): TestPlanner = new TestPlanner(
-    api = Planner.spawn[IO](inputVariables, outputVariables, spawn).unsafeRunSync(),
+    api = Planner.spawn[IO](inVars, outVars, spawn).unsafeRunSync(),
   )
 
   extension (api: Planner)

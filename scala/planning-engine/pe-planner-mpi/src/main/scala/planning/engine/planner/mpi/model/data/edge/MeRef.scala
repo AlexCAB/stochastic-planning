@@ -8,8 +8,12 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 11.08.2026 |||||||||||*/
+| created: 04.07.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.common.error
+package planning.engine.planner.mpi.model.data.edge
 
-final case class FatalException(msg: String, err: Option[Throwable]) extends Exception(msg, err.orNull)
+import planning.engine.common.graph.edges.MeKey
+import planning.engine.planner.mpi.actors.node.Node
+
+final case class MeRef(key: MeKey, srcNode: Node, trgNode: Node):
+  override lazy val toString: String = s"MeRef(${key.toString} | ${srcNode.name} --> ${trgNode.name})"

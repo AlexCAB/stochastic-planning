@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.common.errors.*
 
 private[node] sealed trait Definition:
@@ -55,7 +55,7 @@ private[node] final case class AbsDef(
 object Definition:
   final case class Actors(
       manager: Manager,
-      visualizer: Visualizer,
+      visualizer: Option[Visualizer],
       planner: Planner,
   )
 

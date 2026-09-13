@@ -14,8 +14,8 @@ package planning.engine.planner.mpi.actors.visualizer.data
 
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
-import planning.engine.planner.mpi.actors.ActorBase.WithSender
-import planning.engine.planner.mpi.common.repr.Representable
+import planning.engine.planner.mpi.actors.Base.WithSender
+import planning.engine.planner.mpi.model.repr.Representable
 
 private[visualizer] sealed trait Message extends Representable
 

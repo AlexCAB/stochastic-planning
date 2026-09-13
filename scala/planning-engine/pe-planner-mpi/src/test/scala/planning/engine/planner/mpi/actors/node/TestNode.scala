@@ -25,7 +25,7 @@ import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.actors.planner.FakePlanner
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
-import planning.engine.planner.mpi.common.data.node.NodeData
+import planning.engine.planner.mpi.model.data.node.NodeData
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -64,7 +64,7 @@ object TestNode extends TestActorBase:
       visualizer: FakeVisualizer,
       planner: FakePlanner,
   )(using ActorTestKit, IORuntime): TestNode = new TestNode(
-    api = Node.spawn[IO](id, data, manager.api, visualizer.api, planner.api, spawn).unsafeRunSync(),
+    api = Node.spawn[IO](id, data, manager.api, Some(visualizer.api), planner.api, spawn).unsafeRunSync(),
     manager = manager,
     visualizer = visualizer,
     planner = planner,

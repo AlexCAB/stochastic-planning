@@ -12,4 +12,8 @@
 
 package planning.engine.planner.mpi.actors.visualizer.data
 
-private[visualizer] final case class Definition()
+import planning.engine.planner.mpi.map.Visualization
+
+private[visualizer] final case class Definition(
+    visualization: Visualization,
+)

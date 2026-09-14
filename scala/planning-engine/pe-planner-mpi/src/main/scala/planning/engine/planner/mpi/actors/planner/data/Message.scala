@@ -16,7 +16,7 @@ import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[planner] sealed trait Message extends Representable
 

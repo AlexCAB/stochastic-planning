@@ -18,10 +18,10 @@ import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.visualizer.data.State
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
-import planning.engine.planner.mpi.map.Visualization
 
 import java.util.concurrent.atomic.AtomicInteger
 

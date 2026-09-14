@@ -175,6 +175,15 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 
 ❯ Implement TypeSpec for `mpi.common.io.Type`, for all types: `N`, `R`, `Bool`, `Opt`
 
+❯ In `scala/planning/engine/planner/mpi/actors/guardian/logic/ApiImpl.scala` add implementation similar to `scala/planning/engine/planner/mpi/actors/manager/logic/ApiImpl.scala`
+
+❯ In `scala/planning/engine/planner/mpi/actors/guardian` add `TestGuardian` and `WithTestGuardian` classes, similar as it done in `TestVisualizer` and `WithTestVisualizer` (except state related methods, since Guardian do not have state).
+
+❯ Implement `GuardianLifecycleSpec` tests using `WithTestGuardian`, similarly to `VisualizerStructureSpec`. It should have:
+1. Test for `Guardian.initialize(...)`: Check that for not initialized method return created actors. And for initialized Guardian actor terminate. 
+2. Test for `Guardian.reset(...)`: Check it passes ok for initialized and not initialized. 
+
+❯ Refactor  `GuardianLifecycleSpec` instead of define new `lazy val visualization: Visualization = new Visualization` use the one defined in `WithTestVisualizer`
 
 
 

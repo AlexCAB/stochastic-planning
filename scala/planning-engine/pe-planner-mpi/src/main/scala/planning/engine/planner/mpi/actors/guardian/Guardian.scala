@@ -12,50 +12,33 @@
 
 package planning.engine.planner.mpi.actors.guardian
 
+import cats.effect.{Async, Resource}
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.scaladsl.Behaviors
-import org.apache.pekko.actor.typed.{ActorRef, Behavior, Terminated}
-import planning.engine.planner.mpi.actors.Stateless
+import org.apache.pekko.actor.typed.ActorSystem
+import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.manager.Manager
+import planning.engine.planner.mpi.actors.guardian.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
+import planning.engine.planner.mpi.model.io.Variable
 
-private[mpi] object Guardian extends Stateless with Messages:
-  val name = "map-guardian-actor"
+private[mpi] trait Guardian:
 
-  override protected def setup()(using ctx: Ctx): Unit = ctx.setLoggerName(name)
+  // Initialize the map network, creating manager, planner, and optionally a visualizer.
+  // Will fail (and terminate the Guardian) if called more than once without a reset.
+  private[mpi] def initialize[F[_]: Async](
+      inVars: Set[Variable.Input],
+      outVars: Set[Variable.Output],
+      visualization: Option[Visualization],
+  )(using ActorSystem[?]): F[(Manager, Planner, Option[Visualizer])]
 
-  private def doInitialize[F[_]: S](msg: Initialize)(using ctx: Ctx): F[Unit] =
-    def makeViz = msg.visualization match
-      case Some(v) => Visualizer.spawn(v, (b, n) => ctx.spawn(b, n)).map(Some(_))
-      case None    => None.pure
+  // Reset the map network, stopping all child actors and allowing a new initialization.
+  // Calling multiple times has no effect.
+  private[mpi] def reset[F[_]: Async]()(using ActorSystem[?]): F[Unit]
 
-    for
-      visualizer <- makeViz
-      planner <- Planner.spawn(msg.inVars, msg.outVars, (b, n) => ctx.spawn(b, n))
-      manager <- Manager.spawn(visualizer, planner, (b, n) => ctx.spawn(b, n))
-      _ <- logInfo(s"Created actors: $visualizer, $planner, $manager")
-      _ <- msg.reply(Initialized(manager, planner, visualizer))
-    yield ()
+private[mpi] object Guardian:
+  type Msg = Actor.Msg
 
-  private def awaitingReset(children: Set[ActorRef[Nothing]]): Unit = if children.nonEmpty then
-    Behaviors.receiveSignal:
-      case (_, Terminated(child)) =>
-        awaitingReset(children - child)
-        Behaviors.same
-
-  private def doReset[F[_]: S](msg: Reset)(using ctx: Ctx): F[Unit] =
-    for
-      children <- delay(ctx.children)
-      _ = children.foreach(ctx.watch)
-      _ = children.foreach(ctx.stop)
-      _ = awaitingReset(children.toSet)
-      _ <- logInfo(s"All child actors reset, children: ${children.mkString(", ")}")
-      _ <- msg.reply(Cleaned)
-    yield ()
-
-  override protected def receive[F[_]: S](msg: Msg)(using Ctx): F[Unit] = msg match
-    case msg: Initialize => doInitialize(msg)
-    case msg: Reset      => doReset(msg)
-
-  def spawn(make: (Behavior[Msg], String) => Ref): Ref = make(apply(), name)
+  def create[F[_]: Async](): Resource[F, (Guardian, ActorSystem[?])] = Resource
+    .make(Async[F].delay(ActorSystem(Actor(), Actor.name)))(s => Async[F].delay(s.terminate()).void)
+    .map(s => (ApiImpl(s), s))

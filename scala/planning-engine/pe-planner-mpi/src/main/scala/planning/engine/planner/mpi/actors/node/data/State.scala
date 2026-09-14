@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.node.data
 import cats.Monad
 import cats.syntax.all.*
 import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[node] final case class State(
     // Contain information related to map network structure and connectivity.

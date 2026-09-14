@@ -27,7 +27,7 @@ import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 
-trait Node:
+private[mpi] trait Node:
   def mnId: MnId
   def name: Option[HnName]
 
@@ -41,7 +41,7 @@ trait Node:
 
   override def toString: String = repr
 
-object Node:
+private[mpi] object Node:
   type Msg = Actor.Msg
 
   trait Con extends Node:

@@ -26,9 +26,9 @@ import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
-trait Manager:
+private[mpi] trait Manager:
 
   // Add nodes command:
   // - Create  and return new MnId
@@ -85,7 +85,7 @@ trait Manager:
   // but in future it may be extended to support more complex error handling.
   def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
 
-object Manager:
+private[mpi] object Manager:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MonadThrow](

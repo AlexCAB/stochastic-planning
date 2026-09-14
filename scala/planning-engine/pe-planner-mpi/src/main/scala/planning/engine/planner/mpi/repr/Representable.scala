@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 03.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.model.repr
+package planning.engine.planner.mpi.repr
 
 import cats.MonadThrow
 import fansi.Str

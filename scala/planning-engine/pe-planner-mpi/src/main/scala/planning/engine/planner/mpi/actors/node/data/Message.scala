@@ -16,7 +16,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[node] sealed trait Message extends Representable
 
@@ -24,7 +24,7 @@ private[node] object Message:
 
   // Synchronous command sent to Manager. Reply with type Result is expected to be sent back to the sender.
   sealed trait Command[R] extends Message with WithSender[R]
-  sealed trait Result
+  sealed trait Result extends Representable
 
   sealed trait AddEdge extends Message:
     def ref: MeRef

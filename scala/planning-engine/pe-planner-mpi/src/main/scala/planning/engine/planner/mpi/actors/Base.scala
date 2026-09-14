@@ -18,7 +18,7 @@ import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
 import scala.concurrent.ExecutionContext
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import org.apache.pekko.actor.typed.ActorRef
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Base:
   private val context: ExecutionContext = new ExecutionContext:

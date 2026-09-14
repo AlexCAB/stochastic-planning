@@ -20,7 +20,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[node] final case class Struct(
     // Counter for generating unique HnIndex

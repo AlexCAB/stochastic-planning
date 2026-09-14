@@ -16,11 +16,11 @@ import cats.MonadThrow
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
-import planning.engine.planner.mpi.map.Visualization
 
-trait Visualizer:
+private[mpi] trait Visualizer:
 
   // Save nodes added to the map network for visualization.
   def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit]
@@ -28,7 +28,7 @@ trait Visualizer:
   // Save edges added to the map network for visualization.
   def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit]
 
-object Visualizer:
+private[mpi] object Visualizer:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MonadThrow](viz: Visualization, make: (Behavior[Msg], String) => ActorRef[Msg]): F[Visualizer] =

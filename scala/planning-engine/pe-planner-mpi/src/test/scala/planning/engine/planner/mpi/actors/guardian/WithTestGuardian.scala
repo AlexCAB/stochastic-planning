@@ -8,12 +8,14 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09.08.2026 |||||||||||*/
+| created: 2026-09-14 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer.data
+package planning.engine.planner.mpi.actors.guardian
 
-import planning.engine.planner.mpi.Visualization
+import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 
-private[visualizer] final case class Definition(
-    visualization: Visualization,
-)
+trait WithTestGuardian:
+  self: UnitSpecWithIOAndTestKit =>
+
+  trait WithGuardian:
+    lazy val guardian: TestGuardian = TestGuardian("test-guardian")

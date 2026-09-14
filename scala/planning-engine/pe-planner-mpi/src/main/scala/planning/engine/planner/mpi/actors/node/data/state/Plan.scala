@@ -12,7 +12,7 @@
 
 package planning.engine.planner.mpi.actors.node.data.state
 
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[node] final case class Plan(v1: Int, v2: Int) extends Representable
 

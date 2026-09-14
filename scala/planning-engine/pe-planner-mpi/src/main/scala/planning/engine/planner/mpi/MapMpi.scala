@@ -10,10 +10,19 @@
 | website: github.com/alexcab |||||
 | created: 10.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.map
+package planning.engine.planner.mpi
 
-import cats.effect.Sync
-import cats.effect.Resource
+import cats.effect.std.AtomicCell
+import cats.effect.{Async, Resource}
+import org.apache.pekko.actor.typed.ActorSystem
+import org.typelevel.log4cats.LoggerFactory
+import planning.engine.common.values.node.MnId
+import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.mpi.actors.guardian.Guardian
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.map.MapMpiImpl
 
 // Map actor adaptor, main purpose:
 // - Spawn and host actors network
@@ -54,12 +63,21 @@ import cats.effect.Resource
 // - Only add and update operations for nodes and edges will be supported.
 // - No error handling or recovery will be implemented in the initial version (any errors will terminate the system,
 //   and experiment have to be restarted manually).
-trait MapMpi
+trait MapMpi[F[_]]:
+  // Initialize the map network with given input and output variables, and optional visualization.
+  def init(vars: Set[Variable]): F[Unit]
 
-private[map] class MapMpiLike extends MapMpi
+  // Clean up the map network, stopping all actors and releasing resources.
+  def reset(): F[Unit]
 
-// TODO Adopt functional API to Actors, have state where save actors references
+  // Add manually defined samples to the map network, associating them with the specified nodes.
+  def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]]
 
 object MapMpi:
-
-  def apply[F[_]: Sync](): Resource[F, MapMpi] = ???
+  def apply[F[_]: {Async, LoggerFactory}](visualization: Option[Visualization]): Resource[F, MapMpi[F]] =
+    for
+      (guardian, system) <- Guardian.create()
+      actors <- Resource.eval(AtomicCell[F].of(Option.empty[MapMpiImpl.Actors]))
+    yield
+      given ActorSystem[?] = system
+      new MapMpiImpl[F](visualization, guardian, actors)

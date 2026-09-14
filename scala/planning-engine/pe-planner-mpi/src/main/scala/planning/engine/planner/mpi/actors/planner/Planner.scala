@@ -22,14 +22,14 @@ import planning.engine.planner.mpi.actors.planner.data.Definition
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.io.Variable
 
-trait Planner:
+private[mpi] trait Planner:
   // Notify the planner that a new concrete node was added to the map network.
   def conNodesAdded[F[_]: MonadThrow](nodes: Set[Node.Con]): F[Unit]
 
   // Compute the next action for the given observation.
   def step[F[_]: Async](observation: Observation)(using ActorSystem[?]): F[Action]
 
-object Planner:
+private[mpi] object Planner:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MonadThrow](

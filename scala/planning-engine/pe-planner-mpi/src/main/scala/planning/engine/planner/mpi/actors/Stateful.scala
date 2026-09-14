@@ -17,7 +17,7 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.planner.mpi.model.error.FatalException
-import planning.engine.planner.mpi.model.repr.Representable
+import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Stateful extends Base:
   import Stateful.GetState

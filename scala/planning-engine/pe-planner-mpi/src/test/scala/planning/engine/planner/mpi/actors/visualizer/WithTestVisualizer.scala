@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.visualizer
 
+import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.map.Visualization
 
 trait WithTestVisualizer:
   self: UnitSpecWithIOAndTestKit =>

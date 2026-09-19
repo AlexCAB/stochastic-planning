@@ -37,7 +37,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     actors: AtomicCell[F, Option[MapMpiImpl.Actors]],
 ) extends MapMpi[F]:
   import MapMpiImpl.Actors
-  
+
   private val logger = LoggerFactory[F].getLogger
   private given Scheduler = scheduler
 

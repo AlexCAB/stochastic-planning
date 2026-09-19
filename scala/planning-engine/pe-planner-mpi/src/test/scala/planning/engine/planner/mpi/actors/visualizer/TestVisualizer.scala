@@ -47,11 +47,11 @@ object TestVisualizer extends TestActorBase:
     def spawn(bh: Behavior[Visualizer.Msg], name: String): ActorRef[Visualizer.Msg] =
       tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
 
-    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(viz), spawn), tk.system.scheduler))
+    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(viz), spawn)))
 
   extension (api: Visualizer)
     def ref: ActorRef[Visualizer.Msg] = api match
-      case ApiImpl(ref, _) => ref
+      case ApiImpl(ref) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Visualizer", getActorState[State](ref))
 

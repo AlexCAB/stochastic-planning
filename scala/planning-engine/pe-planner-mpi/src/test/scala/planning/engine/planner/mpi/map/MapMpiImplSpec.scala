@@ -45,7 +45,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val actorsCell: AtomicCell[IO, Option[MapMpiImpl.Actors]] = AtomicCell[IO]
       .of(Option.empty[MapMpiImpl.Actors]).unsafeRunSync()
 
-    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](Some(visualizationStub), guardianStub, actorsCell)
+    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](Some(visualizationStub), guardianStub, scheduler, actorsCell)
 
   "MapMpiImpl.init(...)" should:
     "call Guardian.initialize with the split input/output variables and visualization" in

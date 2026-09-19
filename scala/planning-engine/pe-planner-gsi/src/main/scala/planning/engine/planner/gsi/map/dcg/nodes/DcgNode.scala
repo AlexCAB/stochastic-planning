@@ -15,6 +15,7 @@ package planning.engine.planner.gsi.map.dcg.nodes
 import cats.MonadThrow
 import cats.syntax.all.*
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.StringVal
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
@@ -26,7 +27,8 @@ sealed trait DcgNode[F[_]: MonadThrow]:
   def asConcrete: Option[DcgNode.Concrete[F]]
   def asDcgNode: DcgNode[F] = this
 
-  lazy val idRepr: String = s"${id.value}${name.repr}"
+  // Explicit `StringVal.repr`: `HnName`'s own `Option[HnName].repr` (used by the MPI planner) would take precedence.
+  lazy val idRepr: String = s"${id.value}${StringVal.repr(name)}"
 
   lazy val repr: String = this match
     case cn: DcgNode.Concrete[F] => s"[$idRepr, ${cn.ioValue.repr}]"

@@ -50,11 +50,11 @@ object TestPlanner extends TestActorBase:
       tk.spawn(bh, s"test-planner-$name-${nameIdCounter.getAndIncrement()}")
 
     val definition = Definition[IO](inVars, outVars).unsafeRunSync()
-    new TestPlanner(api = ApiImpl(Actor.spawn(definition, spawn), tk.system.scheduler))
+    new TestPlanner(api = ApiImpl(Actor.spawn(definition, spawn)))
 
   extension (api: Planner)
     def ref: ActorRef[Planner.Msg] = api match
-      case ApiImpl(ref, _) => ref
+      case ApiImpl(ref) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Planner", getActorState[State](ref))
 

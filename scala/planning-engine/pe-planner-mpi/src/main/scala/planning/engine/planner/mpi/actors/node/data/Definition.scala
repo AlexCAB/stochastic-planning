@@ -29,8 +29,7 @@ private[node] sealed trait Definition:
   def data: NodeData
   def actors: Definition.Actors
 
-  def self[F[_]: MonadThrow](using ctx: Actor.Ctx): F[Node] =
-    ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
+  def self[F[_]: MonadThrow](using ctx: Actor.Ctx): F[Node] = ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
 
   def checkIdAndNode[F[_]: MonadThrow](id: MnId, node: Node)(using ctx: Actor.Ctx): F[Unit] =
     for

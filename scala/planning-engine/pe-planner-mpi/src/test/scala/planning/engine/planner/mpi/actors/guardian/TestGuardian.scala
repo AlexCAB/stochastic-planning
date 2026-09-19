@@ -31,9 +31,9 @@ object TestGuardian extends TestActorBase:
     tk.spawn(bh, s"test-guardian-$name-${nameIdCounter.getAndIncrement()}")
 
   def apply(name: String)(using tk: ActorTestKit): TestGuardian = new TestGuardian(
-    api = ApiImpl(spawn(Actor(), name), tk.system.scheduler),
+    api = ApiImpl(spawn(Actor(), name)),
   )
 
   extension (api: Guardian)
     def ref: ActorRef[Guardian.Msg] = api match
-      case ApiImpl(ref, _) => ref
+      case ApiImpl(ref) => ref

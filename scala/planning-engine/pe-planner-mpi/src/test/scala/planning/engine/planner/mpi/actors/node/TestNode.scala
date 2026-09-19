@@ -65,7 +65,7 @@ object TestNode extends TestActorBase:
       testKit.spawn(b, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
 
     val definition = Definition[IO](id, data, Definition.Actors(manager, visualizer, planner)).unsafeRunSync()
-    ApiImpl[IO](id, data, Actor.spawn(definition, spawn), testKit.system.scheduler).unsafeRunSync()
+    ApiImpl[IO](id, data, Actor.spawn(definition, spawn)).unsafeRunSync()
 
   def apply(
       id: MnId,
@@ -82,8 +82,8 @@ object TestNode extends TestActorBase:
 
   extension (api: Node)
     def ref: ActorRef[Node.Msg] = api match
-      case ApiImpl.Con(_, _, _, ref, _) => ref
-      case ApiImpl.Abs(_, _, ref, _)    => ref
+      case ApiImpl.Con(_, _, _, ref) => ref
+      case ApiImpl.Abs(_, _, ref)    => ref
 
     def state(using ActorTestKit, IORuntime): State =
       val state = getActorState[State](ref)

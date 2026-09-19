@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
-import org.apache.pekko.actor.typed.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.typed.{ActorRef, Scheduler}
 import org.scalatest.matchers.must.Matchers.fail
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
@@ -51,23 +51,23 @@ final case class TestManager(
 
   // Add a single node and return a new TestManager with the updated state.
   // Note: It will spawn a real Node actor, not the fake one.
-  def withNode(data: NodeData)(using ActorSystem[?], IORuntime): TestManager =
+  def withNode(data: NodeData)(using Scheduler, IORuntime): TestManager =
     val mnId = api.addNode[IO](data).unsafeRunSync()
     visualizer.probe.expectMessageType[Visualizer.Msg] // Remove ShowAddNodes from visualizer mailbox
     if mnId.isCon then planner.probe.expectMessageType[Planner.Msg] // Remove ConNodesAdded from planner mailbox
     TestManager(api, nodes ++ Map(mnId -> data), samples, visualizer, planner)
 
-  def withNodes(data: NodeData*)(using ActorSystem[?], IORuntime): TestManager =
+  def withNodes(data: NodeData*)(using Scheduler, IORuntime): TestManager =
     data.foldLeft(this)((tm, nd) => tm.withNode(nd))
 
   // Add a single sample and return a new TestManager with the updated state.
   // Note: It's adding only sample data, no new nodes and no edges will be added.
-  def withSample(props: Sample.Props, info: Sample.Info)(using ActorSystem[?], IORuntime): TestManager =
+  def withSample(props: Sample.Props, info: Sample.Info)(using Scheduler, IORuntime): TestManager =
     val sampleMap = api.addManSamples[IO](Set(Sample.Man(props, info, Set.empty)), Map.empty).unsafeRunSync()
     val newSamples = samples ++ sampleMap.view.mapValues(d => (d.props, Some(d.info))).toMap
     TestManager(api, nodes, newSamples, visualizer, planner)
 
-  def withSample(props: Sample.Props, name: String = "test-sample")(using ActorSystem[?], IORuntime): TestManager =
+  def withSample(props: Sample.Props, name: String = "test-sample")(using Scheduler, IORuntime): TestManager =
     withSample(props, Sample.Info(Name(name), None))
 
 object TestManager extends TestActorBase:
@@ -86,8 +86,10 @@ object TestManager extends TestActorBase:
       visualizer: FakeVisualizer,
       planner: FakePlanner,
   )(using testKit: ActorTestKit, rt: IORuntime): Manager = ApiImpl(
-    Actor.spawn(Definition(Some(visualizer.api), planner.api), (b, n) => testKit.spawn(b, n)),
-    testKit.system.scheduler,
+    Actor.spawn(
+      Definition(Some(visualizer.api), planner.api),
+      (b, n) => testKit.spawn(b, s"test-$n-$name-${nameIdCounter.getAndIncrement()}"),
+    ),
   )
 
   def apply(
@@ -104,7 +106,7 @@ object TestManager extends TestActorBase:
 
   extension (api: Manager)
     def ref: ActorRef[Manager.Msg] = api match
-      case ApiImpl(ref, _) => ref
+      case ApiImpl(ref) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Manager", getActorState[State](ref))
 

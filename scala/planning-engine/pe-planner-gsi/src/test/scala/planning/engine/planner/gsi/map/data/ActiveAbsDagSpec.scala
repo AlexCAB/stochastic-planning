@@ -45,7 +45,7 @@ class ActiveAbsDagSpec extends UnitSpecWithData with ValidationCheck:
       val invalidKeys = backwordKeys.keys + Then(testCn1.id, testCn2.id)
 
       ActiveAbsDag[IO](dcGraph.nodes.values, dcGraph.edges.values, invalidKeys, dcGraph.samples.values)
-        .logValue(tn).assertThrowsError(_.getMessage must include("Back THEN edges refer to unknown HnIds"))
+        .logValue(tn).assertThrowsError(_.getMessage must include("Back THEN target edges refer to unknown HnIds"))
 
     "fail if target of back THEN edges are not connected to active graph" in newCase[CaseData]: (tn, data) =>
       import data.{dcGraph, backwordKeys, mn11}

@@ -25,4 +25,4 @@ final case class FakeManager(api: Manager, probe: TestProbe[Manager.Msg]):
 object FakeManager:
   def apply()(using testKit: ActorTestKit): FakeManager =
     val probe = testKit.createTestProbe[Manager.Msg]("FakeManagerProbe")
-    FakeManager(ApiImpl(probe.ref, testKit.system.scheduler), probe)
+    FakeManager(ApiImpl(probe.ref), probe)

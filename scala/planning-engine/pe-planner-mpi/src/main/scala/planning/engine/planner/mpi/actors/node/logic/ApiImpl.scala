@@ -57,7 +57,7 @@ private[node] object ApiImpl:
       scheduler: Scheduler,
   ) extends ApiImpl(scheduler) with Node.Abs
 
-  def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref, scheduler: Scheduler): F[ApiImpl] = 
+  def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref, scheduler: Scheduler): F[ApiImpl] =
     (mnId, data) match
       case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor, scheduler).pure
       case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor, scheduler).pure

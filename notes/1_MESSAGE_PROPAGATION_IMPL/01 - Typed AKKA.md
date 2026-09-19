@@ -198,7 +198,6 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 1. Replace mocking library form `scalamock` to Scala `mockito` and refactor related code.
 2. Use Mockito `mock` like `val plannerStub = mock[Planner]` for `Guardian`, `Manager`. instead of define it as separate class.
 
-
 ❯ Add to `claude.md`: do not mix `async[IO]:` and `.asserting: result =>` in test. 
 Bad example:
 ```
@@ -230,6 +229,7 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 ```
 
+❯ Run via all tests and refactor the tests which use `scalamock` so they will use Mockito.
 
 
 

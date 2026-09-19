@@ -34,12 +34,8 @@ class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
 
   override def init(request: MapInitRequest): F[MapInfoResponse] = ???
 
-   
-
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = ???
 
-
 object MapInMemMpiService:
-  def apply[F[_] : {Async, LoggerFactory}](map: MapMpi[F]): Resource[F, MapInMemMpiService[F]] =
+  def apply[F[_]: {Async, LoggerFactory}](map: MapMpi[F]): Resource[F, MapInMemMpiService[F]] =
     Resource.eval(new MapInMemMpiService[F](map).pure)
-  

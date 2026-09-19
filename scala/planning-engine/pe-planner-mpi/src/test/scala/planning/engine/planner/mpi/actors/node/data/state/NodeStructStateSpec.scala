@@ -14,7 +14,6 @@ package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.effect.IO
 import cats.effect.cps.*
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
@@ -25,7 +24,7 @@ import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
-class NodeStructStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNodeTestData with MapEdgeTestData:
+class NodeStructStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:
     val srcMnId1: MnId.Con = MnId.Con(1L)
     val trgMnId1: MnId.Abs = MnId.Abs(2L)

@@ -25,7 +25,7 @@ final case class MpiMainInMemConf(
 )
 
 object MpiMainInMemConf:
-  def formConfig[F[_] : {Sync, LoggerFactory}](appConf: Config): F[MpiMainInMemConf] =
+  def formConfig[F[_]: {Sync, LoggerFactory}](appConf: Config): F[MpiMainInMemConf] =
     for
       server <- ServerConf.formConfig(appConf.getConfig("api.server"))
       visRoute <- VisualizationRouteConf.fromConfig(appConf.getConfig("api.route.visualization"))
@@ -33,5 +33,5 @@ object MpiMainInMemConf:
       _ <- LoggerFactory[F].getLogger.info(s"Loaded configuration: $appConf")
     yield MpiMainInMemConf(server, visRoute, visService)
 
-  def default[F[_] : {Sync, LoggerFactory}]: Resource[F, MpiMainInMemConf] =
+  def default[F[_]: {Sync, LoggerFactory}]: Resource[F, MpiMainInMemConf] =
     Resource.eval(Sync[F].delay(ConfigFactory.load()).flatMap(ac => formConfig[F](ac)))

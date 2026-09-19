@@ -23,8 +23,8 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.planner.data.Message
 
-private[planner] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
-  extends ApiBase[Actor.Msg](scheduler) with Planner:
+private[planner] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler)
+    extends ApiBase[Actor.Msg](scheduler) with Planner:
   import Message.*
 
   override def conNodesAdded[F[_]: MonadThrow](nodes: Set[Node.Con]): F[Unit] = ifNonEmpty((), nodes):

@@ -20,21 +20,20 @@ import org.http4s.Uri
 import org.http4s.client.testkit.WSTestClient
 import org.http4s.client.websocket.*
 import org.http4s.implicits.*
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.map.TestApiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.api.service.visualization.VisualizationServiceLike
-import planning.engine.common.UnitSpecWithResource
+import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 
 import scala.concurrent.duration.DurationInt
 
 class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationServiceLike[IO], VisualizationRoute[IO])]
-    with AsyncMockFactory with TestApiData:
+    with MockitoWithResource with TestApiData:
 
   override val resource: Resource[IO, (VisualizationServiceLike[IO], VisualizationRoute[IO])] =
     for
-      stubService <- Resource.pure(stub[VisualizationServiceLike[IO]])
+      stubService <- Resource.pure(mock[VisualizationServiceLike[IO]])
       config <- Resource.pure(VisualizationRouteConf(pingTimeout = 5.seconds))
       route <- VisualizationRoute(config, stubService)
     yield (stubService, route)
@@ -48,8 +47,8 @@ class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationServiceL
       yield ()
 
     def setStubService(service: VisualizationServiceLike[IO]): Unit =
-      (() => service.mapReceiveWs).when().returns(testReceiveStream).once()
-      (() => service.mapSendWs).when().returns(testSendStream).once()
+      service.mapReceiveWs returns testReceiveStream
+      service.mapSendWs returns testSendStream
 
     def getConnection(route: VisualizationRoute[IO]): Resource[IO, WSConnection[IO]] =
       for

@@ -18,13 +18,12 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
 import org.http4s.{Request, Status}
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.api.model.maintenance.HealthResponse
 import planning.engine.api.service.maintenance.MaintenanceServiceLike
-import planning.engine.common.UnitSpecWithResource
+import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 
 class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[IO], MaintenanceRoute[IO])]
-    with AsyncMockFactory:
+    with MockitoWithResource:
 
   val testHealthResponse: HealthResponse = HealthResponse(HealthResponse.Status.OK, "1.0.0")
 
@@ -36,7 +35,7 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[
 
   "GET /maintenance/__health" should:
     "return OK status and health response with version" in: (mockedService, route) =>
-      (() => mockedService.getHealth).expects().returns(IO.pure(testHealthResponse)).once()
+      mockedService.getHealth returns IO.pure(testHealthResponse)
       val request = Request[IO](method = GET, uri = uri"/maintenance/__health")
 
       async[IO]:
@@ -44,12 +43,13 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[
           case Some(response) =>
             response.status mustEqual Status.Ok
             response.as[HealthResponse].await mustEqual testHealthResponse
+            mockedService.getHealth was called
 
           case None => fail("Expected a response")
 
   "POST /maintenance/__exit" should:
     "return OK status and termination message" in: (mockedService, route) =>
-      (() => mockedService.exit).expects().returns(IO.unit).once()
+      mockedService.exit returns IO.unit
       val request = Request[IO](method = POST, uri = uri"/maintenance/__exit")
 
       async[IO]:
@@ -57,5 +57,6 @@ class MaintenanceRouteSpec extends UnitSpecWithResource[(MaintenanceServiceLike[
           case Some(response) =>
             response.status mustEqual Status.Ok
             response.as[String].await mustEqual "Application terminated."
+            mockedService.exit was called
 
           case None => fail("Expected a response")

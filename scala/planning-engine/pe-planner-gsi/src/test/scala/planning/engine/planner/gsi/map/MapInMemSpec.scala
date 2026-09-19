@@ -14,7 +14,7 @@ package planning.engine.planner.gsi.map
 
 import cats.effect.IO
 import cats.effect.cps.*
-import org.scalamock.scalatest.AsyncMockFactory
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoName, IoValue}
 import planning.engine.common.values.node.{HnIndex, HnName, MnId}
@@ -26,18 +26,18 @@ import planning.engine.planner.gsi.map.state.{MapGraphState, MapIdsCountState, M
 import planning.engine.planner.gsi.map.test.data.MapTestData
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 
-class MapInMemSpec extends UnitSpecWithData with AsyncMockFactory:
+class MapInMemSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with MapTestData:
-    lazy val visualizationStub = stub[MapVisualizationLike[IO]]
+    lazy val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
     lazy val testConfig = PlannerMapConfig(reprEnabled = true)
 
     lazy val emptyMapInMem: MapGsiInMemGsi[IO] =
-      visualizationStub.stateUpdated.when(*, *).returns(IO.unit).once()
+      visualizationStub.stateUpdated(*, *) returns IO.unit
       MapGsiInMemGsi.empty[IO](testConfig, visualizationStub).unsafeRunSync()
 
     lazy val initMapInMem: MapGsiInMemGsi[IO] =
-      visualizationStub.stateUpdated.when(*, *).returns(IO.unit).anyNumberOfTimes()
+      visualizationStub.stateUpdated(*, *) returns IO.unit
       MapGsiInMemGsi.empty[IO](testConfig, visualizationStub)
         .flatTap(_.init(testMetadata, testInNodes, testOutNodes))
         .flatTap(_.setIdsCount(initialMapIdsCountState))

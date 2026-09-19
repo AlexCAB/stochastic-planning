@@ -86,8 +86,8 @@ object TestManager extends TestActorBase:
       visualizer: FakeVisualizer,
       planner: FakePlanner,
   )(using testKit: ActorTestKit, rt: IORuntime): Manager = ApiImpl(
-    Actor.spawn(Definition(Some(visualizer.api), planner.api), (b, n) => testKit.spawn(b, n)), 
-    testKit.system.scheduler
+    Actor.spawn(Definition(Some(visualizer.api), planner.api), (b, n) => testKit.spawn(b, n)),
+    testKit.system.scheduler,
   )
 
   def apply(

@@ -13,7 +13,8 @@
 package planning.engine.planner.gsi.map
 
 import cats.effect.IO
-import org.scalamock.scalatest.AsyncMockFactory
+import cats.effect.cps.*
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.validation.ValidationError
 import planning.engine.common.values.io.IoValue
@@ -26,46 +27,39 @@ import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.MapTestData
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 
-class MapCacheSpec extends UnitSpecWithData with AsyncMockFactory:
+class MapCacheSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with MapTestData:
-    val mapGraphStub = stub[MapGraphLake[IO]]
-    val visualizationStub = stub[MapVisualizationLike[IO]]
+    val mapGraphStub: MapGraphLake[IO] = mock[MapGraphLake[IO]]
+    val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
     val mapCache = MapGsiCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
 
     def setLoadSubgraphForIoValue(
         expectedValues: List[IoValue],
         expectedLoadedSamples: List[SampleId],
         result: MapSubGraph[IO],
-    ): Unit = mapGraphStub.loadSubgraphForIoValue.when(*, *)
-      .onCall: (values, loadedSamples) =>
-        for
-          _ <- IO.delay(values mustBe expectedValues)
-          _ <- IO.delay(loadedSamples mustBe expectedLoadedSamples)
-        yield result
-      .once()
+    ): Unit = mapGraphStub.loadSubgraphForIoValue(expectedValues, expectedLoadedSamples) returns IO.pure(result)
+
+    def verifyLoadSubgraphForIoValue(expectedValues: List[IoValue], expectedLoadedSamples: List[SampleId]): Unit =
+      mapGraphStub.loadSubgraphForIoValue(expectedValues, expectedLoadedSamples) was called
 
     def setAddNewSamples(
         expectedSamples: Sample.ListNew,
         result: List[Sample],
-    ): Unit = mapGraphStub.addNewSamples.when(*)
-      .onCall: params =>
-        for
-            _ <- IO.delay(params mustBe expectedSamples)
-        yield result
-      .once()
+    ): Unit = mapGraphStub.addNewSamples(expectedSamples) returns IO.pure(result)
 
     def setStateUpdated(expectedInfo: MapInfoState[IO], expectedState: MapGraphState[IO]): Unit =
-      visualizationStub.stateUpdated.when(expectedInfo, expectedState).returns(IO.unit).once()
+      visualizationStub.stateUpdated(expectedInfo, expectedState) returns IO.unit
 
   "MapCache.load(...)" should:
     "load map graph from cache" in newCase[CaseData]: (tn, data) =>
       data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph)
 
-      data.mapCache
-        .load(data.ioValues.toSet, Set(data.sampleId1))
-        .logValue(tn)
-        .asserting(_ mustBe data.mapSubGraph)
+      async[IO]:
+        val result = data.mapCache.load(data.ioValues.toSet, Set(data.sampleId1)).logValue(tn).await
+
+        data.verifyLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1))
+        result mustBe data.mapSubGraph
 
     "fail sub graph is failed" in newCase[CaseData]: (tn, data) =>
       data.setLoadSubgraphForIoValue(data.ioValues, List(data.sampleId1), data.mapSubGraph.copy(concreteNodes = List()))

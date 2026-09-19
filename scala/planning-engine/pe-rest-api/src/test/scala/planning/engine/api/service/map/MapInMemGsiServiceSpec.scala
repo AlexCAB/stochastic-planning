@@ -14,7 +14,7 @@ package planning.engine.api.service.map
 
 import cats.effect.IO
 import cats.effect.cps.*
-import org.scalamock.scalatest.AsyncMockFactory
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
 import planning.engine.api.service.map.inmem.MapInMemGsiService
 import planning.engine.common.UnitSpecWithData
@@ -24,10 +24,10 @@ import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
-class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
+class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito with TestApiData:
 
   private class CaseData extends Case:
-    val mapInMemStub = stub[MapInMemGsiLike[IO]]
+    val mapInMemStub: MapInMemGsiLike[IO] = mock[MapInMemGsiLike[IO]]
     val service = new MapInMemGsiService(mapInMemStub)
 
   "MapInMemService.getState" should:
@@ -42,61 +42,56 @@ class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncMockFactory with
 
   "MapInMemService.init(...)" should:
     "initialize in-mem map" in newCase[CaseData]: (tn, data) =>
+      val metadata = testMapInitRequest.toMetadata[IO].unsafeRunSync()
+      val inputNodes = testMapInitRequest.toInputNodes[IO].unsafeRunSync()
+      val outputNodes = testMapInitRequest.toOutputNodes[IO].unsafeRunSync()
+
+      data.mapInMemStub.init(metadata, inputNodes, outputNodes) returns IO.unit
+
       async[IO]:
-        val metadata = testMapInitRequest.toMetadata[IO].unsafeRunSync()
-        val inputNodes = testMapInitRequest.toInputNodes[IO].unsafeRunSync()
-        val outputNodes = testMapInitRequest.toOutputNodes[IO].unsafeRunSync()
-
-        data.mapInMemStub.init.when(metadata, inputNodes, outputNodes).returning(IO.unit).once()
-
         val response = data.service.init(testMapInitRequest).logValue(tn).await
 
+        data.mapInMemStub.init(metadata, inputNodes, outputNodes) was called
         response.mapName mustBe metadata.name
         response.numInputNodes mustBe inputNodes.size
         response.numOutputNodes mustBe outputNodes.size
 
   "MapInMemService.reset()" should:
     "reset in-mem map" in newCase[CaseData]: (tn, data) =>
+      data.mapInMemStub.reset() returns IO.unit
+
       async[IO]:
-        (() => data.mapInMemStub.reset()).when().returning(IO.unit).once()
-        data.service.reset().logValue(tn).await mustBe MapResetResponse.emptyInMem[IO].await
+        val response = data.service.reset().logValue(tn).await
+
+        data.mapInMemStub.reset() was called
+        response mustBe MapResetResponse.emptyInMem[IO].await
 
   "MapService.addSamples(...)" should:
     "add new samples to the map" in newCase[CaseData]: (tn, data) =>
+      val addedSamples: Map[SampleId, DcgSample[IO]] = testResponse.addedSamples
+        .map(s => s.id -> testDcgSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
+        .toMap
+
+      data.mapInMemStub.getIoNode(testConNodeDef2.ioNodeName) returns IO.pure(ioNodes(testConNodeDef2.ioNodeName))
+
+      data.mapInMemStub.findHnIdsByNames(testMapAddSamplesRequest.hnNames.toSet) returns
+        IO.pure(findHnIdsByNamesRes.map((i, ns) => i -> ns.toSet))
+
+      data.mapInMemStub.addNewConcreteNodes(ConcreteNode.ListNew.of(testConNodeNew2)) returns
+        IO.pure(newConcreteNodesRes)
+
+      data.mapInMemStub.addNewAbstractNodes(AbstractNode.ListNew.of(testAbsNodeDef2.toNew)) returns
+        IO.pure(newAbstractNodesRes)
+
+      data.mapInMemStub.addNewSamples(expectedSampleNewList) returns IO.pure(addedSamples)
+
       async[IO]:
-        val addedSamples: Map[SampleId, DcgSample[IO]] = testResponse.addedSamples
-          .map(s => s.id -> testDcgSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
-          .toMap
-
-        data.mapInMemStub.getIoNode
-          .when(*)
-          .onCall: name =>
-            ioNodes.get(name) match
-              case Some(node) => IO.pure(node)
-              case None       => fail(s"No IoNode found for name: $name")
-          .once()
-
-        data.mapInMemStub.findHnIdsByNames
-          .when(testMapAddSamplesRequest.hnNames.toSet)
-          .returns(IO.pure(findHnIdsByNamesRes.map((i, ns) => i -> ns.toSet)))
-          .once()
-
-        data.mapInMemStub.addNewConcreteNodes
-          .when(ConcreteNode.ListNew.of(testConNodeNew2))
-          .returns(IO.pure(newConcreteNodesRes))
-          .once()
-
-        data.mapInMemStub.addNewAbstractNodes
-          .when(AbstractNode.ListNew.of(testAbsNodeDef2.toNew))
-          .returns(IO.pure(newAbstractNodesRes))
-          .once()
-
-        data.mapInMemStub.addNewSamples
-          .when(expectedSampleNewList)
-          .returns(IO.pure(addedSamples))
-          .once()
-
         val gotResponse: MapAddSamplesResponse = data
           .service.addSamples(testMapAddSamplesRequest).logValue(tn, "response").await
 
+        data.mapInMemStub.getIoNode(testConNodeDef2.ioNodeName) was called
+        data.mapInMemStub.findHnIdsByNames(testMapAddSamplesRequest.hnNames.toSet) was called
+        data.mapInMemStub.addNewConcreteNodes(ConcreteNode.ListNew.of(testConNodeNew2)) was called
+        data.mapInMemStub.addNewAbstractNodes(AbstractNode.ListNew.of(testAbsNodeDef2.toNew)) was called
+        data.mapInMemStub.addNewSamples(expectedSampleNewList) was called
         gotResponse mustEqual testResponse

@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2026-09-16 |||||||||||*/
 
-
-
 package planning.engine.api
 
 import cats.effect.IO
@@ -24,7 +22,7 @@ import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.planner.mpi.MapMpi
 import planning.engine.api.service.map.inmem.MapInMemMpiService
 
-object MpiMainRestInMem  extends AppBase:
+object MpiMainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
       conf <- MpiMainInMemConf.default[IO]
@@ -33,10 +31,9 @@ object MpiMainRestInMem  extends AppBase:
 //      visualizationRoute <- VisualizationRoute[IO](conf.visRoute, visualizationService)
 
       maintenance <- buildMaintenance
-      
+
       map <- MapMpi[IO](visualization = None) // TODO implement visualization for MPI
 
-      
       mapService <- MapInMemMpiService[IO](map)
       mapRoute <- MapRoute[IO](mapService)
 

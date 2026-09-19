@@ -93,5 +93,5 @@ private[mpi] object Manager:
       planner: Planner,
       ctx: ActorContext[?],
   ): F[Manager] = MonadThrow[F].catchNonFatal(
-    ApiImpl(Actor.spawn(Definition(visualizer, planner), (b, n) => ctx.spawn(b, n)), ctx.system.scheduler)
+    ApiImpl(Actor.spawn(Definition(visualizer, planner), (b, n) => ctx.spawn(b, n)), ctx.system.scheduler),
   )

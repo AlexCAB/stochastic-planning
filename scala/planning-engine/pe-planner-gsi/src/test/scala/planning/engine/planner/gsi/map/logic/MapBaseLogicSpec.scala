@@ -15,7 +15,7 @@ package planning.engine.planner.gsi.map.logic
 import cats.effect.IO
 import cats.effect.cps.*
 import cats.effect.std.AtomicCell
-import org.scalamock.scalatest.AsyncMockFactory
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
@@ -23,11 +23,10 @@ import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.DcgStatesTestData
 import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
 
-class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
+class MapBaseLogicSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with DcgStatesTestData:
-    lazy val stateUpdatedStub = stubFunction[MapGraphState[IO], IO[Unit]]
-    lazy val visualizationStub = stub[MapVisualizationLike[IO]]
+    lazy val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
 
     lazy val changedDcgState = initDcgState.copy(ioValues = makeIoValueMap(testIoValue -> Set()))
 
@@ -49,7 +48,7 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
 
   "MapBaseLogic.modifyMapState(...)" should:
     "modify map state and call stateUpdated" in newCase[CaseData]: (tn, data) =>
-      data.visualizationStub.stateUpdated.when(data.initMapInfoState, data.changedDcgState).returning(IO.unit).once()
+      data.visualizationStub.stateUpdated(data.initMapInfoState, data.changedDcgState) returns IO.unit
 
       async[IO]:
         val result = data.mapBaseLogic
@@ -58,20 +57,17 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
             IO.pure((data.changedDcgState, 42))
           .logValue(tn).await
 
+        data.visualizationStub.stateUpdated(data.initMapInfoState, data.changedDcgState) was called
         result mustBe 42
 
   "MapBaseLogic.addNewSamplesToState(...)" should:
     "add new samples to the map state" in newCase[CaseData]: (tn, data) =>
       import data.*
 
-      visualizationStub.stateUpdated.when(*, *)
-        .onCall: (info, state) =>
-          for
-            _ <- logInfo(tn, s"State updated called with $state")
-            _ <- IO.delay(info mustBe initMapInfoState)
-            _ <- IO.delay(state.graph.samples must contain key simpleSampleId)
-          yield ()
-        .once()
+      def hasSimpleSample(state: MapGraphState[IO]): Boolean = state.graph.samples.contains(simpleSampleId)
+
+      visualizationStub.stateUpdated(initMapInfoState, argThat((s: MapGraphState[IO]) => hasSimpleSample(s))) returns
+        IO.unit
 
       def newSamples(state: MapGraphState[IO]): IO[List[DcgSample.Add[IO]]] =
         state mustBe initDcgState
@@ -81,5 +77,9 @@ class MapBaseLogicSpec extends UnitSpecWithData with AsyncMockFactory:
         val result: Map[SampleId, DcgSample[IO]] = mapBaseLogic.addNewSamplesToState(newSamples).logValue(tn).await
         val state = mapBaseLogic.getMapState.logValue(tn).await
 
+        visualizationStub.stateUpdated(
+          initMapInfoState,
+          argThat((s: MapGraphState[IO]) => hasSimpleSample(s)),
+        ) was called
         result mustBe Map(simpleSampleId -> simpleSampleAdd.sample)
         state.graph.samples must contain key simpleSampleId

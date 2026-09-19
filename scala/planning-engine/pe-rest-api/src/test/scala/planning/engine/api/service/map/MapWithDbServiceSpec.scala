@@ -16,65 +16,70 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.effect.std.AtomicCell
 import cats.syntax.all.*
-import org.scalamock.scalatest.AsyncMockFactory
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import org.scalatest.compatible.Assertion
 import planning.engine.api.model.map.*
 import planning.engine.api.service.map.withdb.MapWithDbService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.db.DbName
-import planning.engine.common.values.node.HnId
 import planning.engine.common.values.text.Name
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
-class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
+class MapWithDbServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito with TestApiData:
 
   private class CaseData extends Case:
     lazy val testNumOfHiddenNodes = 5L
-    lazy val mockBuilder = mock[MapBuilderLike[IO]]
+    lazy val mockBuilder: MapBuilderLike[IO] = mock[MapBuilderLike[IO]]
     lazy val emptyService = MapWithDbService(testConfig, mockBuilder).use(_.pure).unsafeRunSync()
 
     def makeMockGraph(inNodes: List[InputNode[IO]], outNodes: List[OutputNode[IO]]): MapGraphLake[IO] =
       val ioNodes = (inNodes ++ outNodes).map(node => node.name -> node).toMap
       val mockedGraph = mock[MapGraphLake[IO]]
-      (() => mockedGraph.countHiddenNodes).expects().returns(IO.pure(testNumOfHiddenNodes)).once()
-      (() => mockedGraph.metadata).expects().returns(MapMetadata(testMapInitRequest.name, None)).once()
-      (() => mockedGraph.ioNodes).expects().returns(ioNodes).twice()
+      mockedGraph.countHiddenNodes returns IO.pure(testNumOfHiddenNodes)
+      mockedGraph.metadata returns MapMetadata(testMapInitRequest.name, None)
+      mockedGraph.ioNodes returns ioNodes
       mockedGraph
 
-    lazy val mockedGraph = mock[MapGraphLake[IO]]
+    def verifyMockGraph(mockedGraph: MapGraphLake[IO]): Unit =
+      mockedGraph.countHiddenNodes was called
+      mockedGraph.metadata was called
+      mockedGraph.ioNodes wasCalled twice
+
+    lazy val mockedGraph: MapGraphLake[IO] = mock[MapGraphLake[IO]]
     lazy val service =
       new MapWithDbService(testConfig, mockBuilder, AtomicCell[IO].of(Some((mockedGraph, testDbName))).unsafeRunSync())
 
   "MapService.reset(...)" should:
     "reset map graph" in newCase[CaseData]: (tn, data) =>
+      val testMapName = Name("testMapName")
+
+      data.mockedGraph.metadata returns MapMetadata(Some(testMapName), None)
+
       async[IO]:
-        val testMapName = Name("testMapName")
-
-        (() => data.mockedGraph.metadata).expects().returns(MapMetadata(Some(testMapName), None)).once()
-
         data.service.reset().logValue(tn, "resetResponse").await mustEqual
           MapResetResponse(Some(testDbName), Some(testMapName))
 
+        data.mockedGraph.metadata was called
         data.service.getState.logValue(tn, "state").await mustBe empty
 
   "MapService.init(...)" should:
     "initialize map graph when none exists" in newCase[CaseData]: (tn, data) =>
+      val expMetadata: MapMetadata = testMapInitRequest.toMetadata[IO].unsafeRunSync()
+      val expInputNodes: List[InputNode[IO]] = testMapInitRequest.toInputNodes[IO].unsafeRunSync()
+      val expOutputNodes: List[OutputNode[IO]] = testMapInitRequest.toOutputNodes[IO].unsafeRunSync()
+      val mockGraph = data.makeMockGraph(expInputNodes, expOutputNodes)
+
+      data.mockBuilder.init(testDbName, testConfig, expMetadata, expInputNodes, expOutputNodes) returns
+        IO.pure(mockGraph)
+
       async[IO]:
-        val expMetadata: MapMetadata = testMapInitRequest.toMetadata[IO].await
-        val expInputNodes: List[InputNode[IO]] = testMapInitRequest.toInputNodes[IO].await
-        val expOutputNodes: List[OutputNode[IO]] = testMapInitRequest.toOutputNodes[IO].await
-        val mockGraph = data.makeMockGraph(expInputNodes, expOutputNodes)
-
-        data.mockBuilder.init
-          .expects(testDbName, testConfig, expMetadata, expInputNodes, expOutputNodes)
-          .returns(IO.pure(mockGraph))
-          .once()
-
         val mapInfo: MapInfoResponse = data.emptyService.init(testMapInitRequest).logValue(tn, "mapInfo").await
 
+        data.mockBuilder.init(testDbName, testConfig, expMetadata, expInputNodes, expOutputNodes) was called
+        data.verifyMockGraph(mockGraph)
         mapInfo.mapName mustEqual testMapInitRequest.name
         mapInfo.numInputNodes mustEqual testMapInitRequest.inputNodes.size
         mapInfo.numOutputNodes mustEqual testMapInitRequest.outputNodes.size
@@ -82,12 +87,15 @@ class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with T
 
   "MapService.load(...)" should:
     "load map graph when none exists" in newCase[CaseData]: (tn, data) =>
+      val mockGraph = data.makeMockGraph(List(), List())
+
+      data.mockBuilder.load(testDbName, testConfig) returns IO.pure(mockGraph)
+
       async[IO]:
-        val mockGraph = data.makeMockGraph(List(), List())
-
-        data.mockBuilder.load.expects(testDbName, testConfig).returns(IO.pure(mockGraph)).once()
-
         val mapInfo = data.emptyService.load(testMapLoadRequest).logValue(tn, "mapInfo").await
+
+        data.mockBuilder.load(testDbName, testConfig) was called
+        data.verifyMockGraph(mockGraph)
         mapInfo.mapName mustEqual testMapInitRequest.name
         mapInfo.numInputNodes mustEqual 0
         mapInfo.numOutputNodes mustEqual 0

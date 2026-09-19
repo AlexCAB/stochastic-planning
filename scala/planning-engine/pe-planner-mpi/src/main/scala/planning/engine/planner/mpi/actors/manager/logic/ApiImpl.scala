@@ -28,8 +28,8 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
 
-private[manager] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
-  extends ApiBase[Actor.Msg](scheduler) with Manager:
+private[manager] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler)
+    extends ApiBase[Actor.Msg](scheduler) with Manager:
   import Message.*
 
   override def addNode[F[_]: Async](data: NodeData): F[MnId] =

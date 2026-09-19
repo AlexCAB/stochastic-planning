@@ -15,7 +15,6 @@ package planning.engine.map.io.node
 import cats.effect.IO
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.properties.PROP
 import planning.engine.common.properties.PropertiesMapping.*
@@ -24,7 +23,7 @@ import planning.engine.common.values.io.IoName
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 import planning.engine.map.io.variable.{BooleanIoVariable, IntIoVariable}
 
-class IoNodeSpec extends UnitSpecWithData with AsyncMockFactory:
+class IoNodeSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
     lazy val `variable.varType` = s"${PROP.VARIABLE}.${PROP.VAR_TYPE}"

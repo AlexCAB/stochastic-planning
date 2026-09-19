@@ -15,7 +15,6 @@ package planning.engine.api.service.visualization
 import cats.effect.IO
 import cats.effect.cps.*
 import fs2.Stream
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.api.config.parts.VisualizationServiceConf
 import planning.engine.api.model.map.TestApiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
@@ -23,7 +22,7 @@ import planning.engine.common.UnitSpecWithData
 
 import scala.concurrent.duration.DurationInt
 
-class VisualizationServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
+class VisualizationServiceSpec extends UnitSpecWithData with TestApiData:
 
   private class CaseData extends Case:
     val config = VisualizationServiceConf(mapEnabled = true)

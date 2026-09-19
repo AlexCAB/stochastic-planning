@@ -15,7 +15,7 @@ package planning.engine.api.model.map
 import cats.effect.IO
 import cats.effect.cps.*
 import io.circe.Json
-import org.scalamock.scalatest.AsyncMockFactory
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.enums.EdgeType
@@ -26,7 +26,7 @@ import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.{InputNode, IoNode}
 import planning.engine.map.io.variable.IntIoVariableLike
 
-class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
+class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case:
     lazy val testEdge = NewSampleEdge(
@@ -75,22 +75,23 @@ class MapAddSamplesRequestSpec extends UnitSpecWithData with AsyncMockFactory:
   "MapAddSamplesRequest.listNewNotFoundHn" should:
     "return empty lists when all hidden nodes are found" in newCase[CaseData]: (_, data) =>
       async[IO]:
-        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(data.ioNode)).never()
-
         val foundHnNames = Set(data.testConcreteNodeDef.name, data.testAbstractNodeDef.name)
         val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(foundHnNames, data.mockedGetIoNode).await
 
+        data.mockedGetIoNode(data.testConcreteNodeDef.ioNodeName) wasNever called
         concreteList.list mustBe empty
         abstractList.list mustBe empty
 
     "return lists of new hidden nodes when some are not found" in newCase[CaseData]: (_, data) =>
-      async[IO]:
-        val testIoIndex = IoIndex(4321)
-        data.mockedGetIoNode.apply.expects(data.testConcreteNodeDef.ioNodeName).returning(IO.pure(data.ioNode)).once()
-        data.mockedIntIoVariable.indexForValue.expects(data.testValue).returning(IO.pure(testIoIndex)).once()
+      val testIoIndex = IoIndex(4321)
+      data.mockedGetIoNode(data.testConcreteNodeDef.ioNodeName) returns IO.pure(data.ioNode)
+      data.mockedIntIoVariable.indexForValue(data.testValue) returns IO.pure(testIoIndex)
 
+      async[IO]:
         val (concreteList, abstractList) = data.testRequest.listNewNotFoundHn(Set(), data.mockedGetIoNode).await
 
+        data.mockedGetIoNode(data.testConcreteNodeDef.ioNodeName) was called
+        data.mockedIntIoVariable.indexForValue(data.testValue) was called
         concreteList.list.size mustEqual 1
         concreteList.list.head mustEqual ConcreteNode.New(
           name = Some(data.testConcreteNodeDef.name),

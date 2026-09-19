@@ -43,14 +43,11 @@ object TestVisualizer extends TestActorBase:
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  
-
   def apply(viz: Visualization, name: String)(using tk: ActorTestKit, r: IORuntime): TestVisualizer =
     def spawn(bh: Behavior[Visualizer.Msg], name: String): ActorRef[Visualizer.Msg] =
       tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
-    
-    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(viz), spawn), tk.system.scheduler))
 
+    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(viz), spawn), tk.system.scheduler))
 
   extension (api: Visualizer)
     def ref: ActorRef[Visualizer.Msg] = api match

@@ -14,7 +14,6 @@ package planning.engine.planner.mpi.actors.manager.data
 
 import cats.effect.IO
 import cats.effect.cps.*
-import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
@@ -24,7 +23,7 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
 
-class ManagerStateSpec extends UnitSpecWithData with AsyncMockFactory with MapNodeTestData with MapEdgeTestData:
+class ManagerStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:
     lazy val stateEmpty: State = State.init
 

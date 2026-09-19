@@ -22,8 +22,8 @@ import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.actors.visualizer.data.Message
 
-private[visualizer] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
-  extends ApiBase[Actor.Msg](scheduler) with Visualizer:
+private[visualizer] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler)
+    extends ApiBase[Actor.Msg](scheduler) with Visualizer:
   import Message.*
 
   override def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit] = ifNonEmpty((), ids):

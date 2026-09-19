@@ -24,8 +24,8 @@ import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.io.Variable
 
-private[guardian] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
-  extends ApiBase[Actor.Msg](scheduler) with Guardian:
+private[guardian] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler)
+    extends ApiBase[Actor.Msg](scheduler) with Guardian:
   import Message.*
 
   override def initialize[F[_]: Async](

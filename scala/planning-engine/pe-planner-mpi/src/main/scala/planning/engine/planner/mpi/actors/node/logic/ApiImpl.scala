@@ -14,6 +14,7 @@ package planning.engine.planner.mpi.actors.node.logic
 
 import cats.MonadThrow
 import cats.syntax.all.*
+import org.apache.pekko.actor.typed.Scheduler
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ApiBase
@@ -25,7 +26,7 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.common.errors.*
 import planning.engine.common.values.io.IoValue
 
-private[node] trait ApiImpl extends Node with ApiBase[Actor.Msg]:
+private[node] abstract class ApiImpl(scheduler: Scheduler) extends ApiBase[Actor.Msg](scheduler) with Node:
   import Message.*
 
   def mnId: MnId
@@ -46,11 +47,18 @@ private[node] object ApiImpl:
       name: Option[HnName],
       ioValue: IoValue,
       actor: Actor.Ref,
-  ) extends ApiImpl with Node.Con
+      scheduler: Scheduler,
+  ) extends ApiImpl(scheduler) with Node.Con
 
-  final case class Abs(mnId: MnId.Abs, name: Option[HnName], actor: Actor.Ref) extends ApiImpl with Node.Abs
+  final case class Abs(
+      mnId: MnId.Abs,
+      name: Option[HnName],
+      actor: Actor.Ref,
+      scheduler: Scheduler,
+  ) extends ApiImpl(scheduler) with Node.Abs
 
-  def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
-    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure
-    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor).pure
-    case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError
+  def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref, scheduler: Scheduler): F[ApiImpl] = 
+    (mnId, data) match
+      case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor, scheduler).pure
+      case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor, scheduler).pure
+      case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError

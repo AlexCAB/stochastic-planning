@@ -15,13 +15,15 @@ package planning.engine.planner.mpi.actors.visualizer.logic
 import cats.MonadThrow
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import org.apache.pekko.actor.typed.Scheduler
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.actors.visualizer.data.Message
 
-private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends Visualizer with ApiBase[Actor.Msg]:
+private[visualizer] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
+  extends ApiBase[Actor.Msg](scheduler) with Visualizer:
   import Message.*
 
   override def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit] = ifNonEmpty((), ids):

@@ -12,7 +12,6 @@
 
 package planning.engine.planner.mpi.actors.visualizer
 
-import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
@@ -20,8 +19,8 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.TestActorBase
-import planning.engine.planner.mpi.actors.visualizer.data.State
-import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
+import planning.engine.planner.mpi.actors.visualizer.data.{Definition, State}
+import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -44,16 +43,18 @@ object TestVisualizer extends TestActorBase:
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  private def spawn(bh: Behavior[Visualizer.Msg], name: String)(using tk: ActorTestKit): ActorRef[Visualizer.Msg] =
-    tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
+  
 
-  def apply(viz: Visualization, name: String)(using ActorTestKit, IORuntime): TestVisualizer = new TestVisualizer(
-    api = Visualizer.spawn[IO](viz, spawn).unsafeRunSync(),
-  )
+  def apply(viz: Visualization, name: String)(using tk: ActorTestKit, r: IORuntime): TestVisualizer =
+    def spawn(bh: Behavior[Visualizer.Msg], name: String): ActorRef[Visualizer.Msg] =
+      tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
+    
+    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(viz), spawn), tk.system.scheduler))
+
 
   extension (api: Visualizer)
     def ref: ActorRef[Visualizer.Msg] = api match
-      case ApiImpl(ref) => ref
+      case ApiImpl(ref, _) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Visualizer", getActorState[State](ref))
 

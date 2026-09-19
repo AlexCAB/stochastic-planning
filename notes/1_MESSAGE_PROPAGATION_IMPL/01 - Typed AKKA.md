@@ -183,14 +183,61 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 1. Test for `Guardian.initialize(...)`: Check that for not initialized method return created actors. And for initialized Guardian actor terminate. 
 2. Test for `Guardian.reset(...)`: Check it passes ok for initialized and not initialized. 
 
-❯ Refactor  `GuardianLifecycleSpec` instead of define new `lazy val visualization: Visualization = new Visualization` use the one defined in `WithTestVisualizer`
+❯ Refactor `GuardianLifecycleSpec` instead of define new `lazy val visualization: Visualization = new Visualization` use the one defined in `WithTestVisualizer`
+
+
+❯ Implement `MapMpiImplSpec`:
+1. Create and use `stub`'s for `Guardian`, `Manager`, `Planner` and `Visualization`.
+2. Add test for `MapMpiImpl.init(...)`: Check if `Guardian.initialize` called with proper params. 
+3. Add test for `MapMpiImpl.reset(...)`: Check if `Guardian.reset` called. 
+4. Add test for `MapMpiImpl.addSamples(...)`: Check if `Manager.addManSamples` called. 
+
+❯ Refactor `MapMpiImplSpec`: Use `scalamock` `stub` like `val plannerStub: Planner = stub[Planner]` for `Guardian`, `Manager`. instead of define it as separate class.
+
+❯ Refactor `MapMpiImplSpec`: 
+1. Replace mocking library form `scalamock` to Scala `mockito` and refactor related code.
+2. Use Mockito `mock` like `val plannerStub = mock[Planner]` for `Guardian`, `Manager`. instead of define it as separate class.
+
+
+❯ Add to `claude.md`: do not mix `async[IO]:` and `.asserting: result =>` in test. 
+Bad example:
+```
+async[IO]:  
+  mapMpi.init(vars).logValue(tn).await  
+  mapMpi.addSamples(samples, nodes).logValue(tn).await  
+.asserting: result =>  
+  managerStub.addManSamples[IO](samples, nodes) was called  
+  result mustBe Map.empty
+```
+Good example:
+```
+async[IO]:  
+  mapMpi.init(vars).logValue(tn).await  
+  val result = mapMpi.addSamples(samples, nodes).logValue(tn).await  
+  
+  managerStub.addManSamples[IO](samples, nodes) was called  
+  result mustBe Map.empty
+```
+
+Use `.asserting: result =>` only for on matcher tests.
+
+❯ Investigate warnings, try to fix:
+```
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3  
+WARNING: A Java agent has been loaded dynamically (C:\Users\cabem\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\net\bytebuddy\byte-buddy-agent\1.17.7\byte-buddy-agent-1.17.7.jar)  
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning  
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information  
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+```
+
+
 
 
 
 ##### TODO: 
-1. To implement basic planner actor logic (including IO variables).
-2. Integration with REST API (test with loading script)
-3. Implement graph representation (using colored text)
+1. Integration with REST API (test with loading script)
+2. Implement graph representation (using colored text)
+3. Implement basic visualization API and integrate with Python
 
 
 
@@ -213,7 +260,7 @@ unorderedTraverse
 
 
 
-
+sbt "planner_mpi/testOnly *MapMpiImplSpec"
 
 
 
@@ -246,6 +293,22 @@ AbsData
 
 NodeData.Abs
 
+
+
+// Mockito's inline mock maker self-attaches as a Java agent at runtime  
+Test / fork := true  
+Test / javaOptions += "-Xshare:off"  
+Test / javaOptions ++= (Test / dependencyClasspath).value  
+  .map(a => fileConverter.value.toPath(a.data))  
+  .find(_.getFileName.toString.startsWith("mockito-core-"))  
+  .map(p => s"-javaagent:${p.toAbsolutePath}")  
+  .toSeq
+
+
+Params for Idea ScalaTest runnner:
+  --sun-misc-unsafe-memory-access=allow
+  -javaagent:C:\Users\cabem\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\org\mockito\mockito-core\5.23.0\mockito-core-5.23.0.jar
+  -Xshare:off
 
 
 ```

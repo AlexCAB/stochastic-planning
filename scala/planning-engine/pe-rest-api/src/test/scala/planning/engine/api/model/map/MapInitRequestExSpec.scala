@@ -18,8 +18,9 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.io.variable.{BooleanIoVariable, FloatIoVariable, IntIoVariable, ListStrIoVariable}
+import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
-class MapInitRequestSpec extends UnitSpecWithData with TestApiData:
+class MapInitRequestExSpec extends UnitSpecWithData with TestApiData:
 
   private class CaseData extends Case:
     lazy val expectedMetadata = MapMetadata(

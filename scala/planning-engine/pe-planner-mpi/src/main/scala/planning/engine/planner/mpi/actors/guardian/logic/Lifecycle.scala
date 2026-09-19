@@ -27,14 +27,14 @@ private[guardian] trait Lifecycle:
 
   private[guardian] def doInitialize[F[_]: S](msg: Initialize)(using ctx: Ctx): F[Bhv] =
     def makeViz = msg.visualization match
-      case Some(v) => Visualizer.spawn(v, (b, n) => ctx.spawn(b, n)).map(Some(_))
+      case Some(v) => Visualizer.spawn(v, ctx).map(Some(_))
       case None    => None.pure
 
     for
       _ <- ctx.children.assertEmpty("Cannot initialize Guardian, it is already initialized or not reset")
       visualizer <- makeViz
-      planner <- Planner.spawn(msg.inVars, msg.outVars, (b, n) => ctx.spawn(b, n))
-      manager <- Manager.spawn(visualizer, planner, (b, n) => ctx.spawn(b, n))
+      planner <- Planner.spawn(msg.inVars, msg.outVars, ctx)
+      manager <- Manager.spawn(visualizer, planner, ctx)
       _ <- logInfo(s"Created actors: $visualizer, $planner, $manager")
       _ <- msg.reply(Initialized(manager, planner, visualizer))
     yield Behaviors.same

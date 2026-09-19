@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-20 |||||||||||*/
 
-package planning.engine.api.config
+package planning.engine.api.config.parts
 
 import cats.effect.Sync
 import com.comcast.ip4s.{Host, Port}

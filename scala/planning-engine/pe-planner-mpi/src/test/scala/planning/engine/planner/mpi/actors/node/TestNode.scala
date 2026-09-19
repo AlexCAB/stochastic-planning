@@ -19,12 +19,12 @@ import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
-import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.manager.{FakeManager, Manager}
+import planning.engine.planner.mpi.actors.node.data.{Definition, State}
 import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
-import planning.engine.planner.mpi.actors.node.logic.ApiImpl
-import planning.engine.planner.mpi.actors.planner.FakePlanner
-import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
+import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
+import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
 import planning.engine.planner.mpi.model.data.node.NodeData
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -54,8 +54,18 @@ object TestNode extends TestActorBase:
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  private def spawn(bh: Behavior[Node.Msg], name: String)(using testKit: ActorTestKit): ActorRef[Node.Msg] =
-    testKit.spawn(bh, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
+  private def makeApi(
+      id: MnId,
+      data: NodeData,
+      manager: Manager,
+      visualizer: Option[Visualizer],
+      planner: Planner,
+  )(using testKit: ActorTestKit, r: IORuntime): Node =
+    def spawn(b: Behavior[Node.Msg], name: String): ActorRef[Node.Msg] =
+      testKit.spawn(b, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
+
+    val definition = Definition[IO](id, data, Definition.Actors(manager, visualizer, planner)).unsafeRunSync()
+    ApiImpl[IO](id, data, Actor.spawn(definition, spawn), testKit.system.scheduler).unsafeRunSync()
 
   def apply(
       id: MnId,
@@ -64,7 +74,7 @@ object TestNode extends TestActorBase:
       visualizer: FakeVisualizer,
       planner: FakePlanner,
   )(using ActorTestKit, IORuntime): TestNode = new TestNode(
-    api = Node.spawn[IO](id, data, manager.api, Some(visualizer.api), planner.api, spawn).unsafeRunSync(),
+    api = makeApi(id, data, manager.api, Some(visualizer.api), planner.api),
     manager = manager,
     visualizer = visualizer,
     planner = planner,
@@ -72,8 +82,8 @@ object TestNode extends TestActorBase:
 
   extension (api: Node)
     def ref: ActorRef[Node.Msg] = api match
-      case ApiImpl.Con(_, _, _, ref) => ref
-      case ApiImpl.Abs(_, _, ref)    => ref
+      case ApiImpl.Con(_, _, _, ref, _) => ref
+      case ApiImpl.Abs(_, _, ref, _)    => ref
 
     def state(using ActorTestKit, IORuntime): State =
       val state = getActorState[State](ref)

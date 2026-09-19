@@ -8,7 +8,7 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-12-23 |||||||||||*/
+| created: 2025-04-19 |||||||||||*/
 
 package planning.engine.api
 
@@ -16,32 +16,26 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits.toSemigroupKOps
 import planning.engine.api.app.AppBase
-import planning.engine.api.config.MainInMemConf
+import planning.engine.api.config.GsiMainWithDbConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
-import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
-import planning.engine.api.service.map.MapInMemGsiService
-import planning.engine.api.service.visualization.VisualizationService
-import planning.engine.planner.gsi.map.MapGsiInMemGsi
+import planning.engine.api.service.map.withdb.MapWithDbService
+import planning.engine.map.MapBuilder
 
-object MainRestInMem extends AppBase:
+object GsiMainRestWithDb extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
-      mainConf <- MainInMemConf.default[IO]
-
-      visualizationService <- VisualizationService[IO](mainConf.visService)
-      visualizationRoute <- VisualizationRoute[IO](mainConf.visRoute, visualizationService)
-
-      map <- MapGsiInMemGsi[IO](mainConf.plannerMap, visualizationService)
+      mainConf <- GsiMainWithDbConf.default[IO]
+      builder <- MapBuilder[IO](mainConf.db.connection)
 
       maintenanceService <- MaintenanceService[IO]()
-      maintenanceRoute <- MaintenanceRoute[IO](maintenanceService)
+      maintenanceRoute <- MaintenanceRoute(maintenanceService)
 
-      mapService <- MapInMemGsiService[IO](map)
-      mapRoute <- MapRoute[IO](mapService)
+      mapService <- MapWithDbService[IO](mainConf.mapGraph, builder)
+      mapRoute <- MapRoute(mapService)
 
       rootRoute = maintenanceRoute.endpoints <+> mapRoute.endpoints
 
-      _ <- buildServer(mainConf.server, ws => rootRoute <+> visualizationRoute.endpoints(ws))
+      _ <- buildServer(mainConf.server, _ => rootRoute)
     yield maintenanceService

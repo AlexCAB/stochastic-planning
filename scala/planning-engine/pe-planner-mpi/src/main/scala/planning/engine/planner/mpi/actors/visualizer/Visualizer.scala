@@ -13,7 +13,7 @@
 package planning.engine.planner.mpi.actors.visualizer
 
 import cats.MonadThrow
-import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.Visualization
@@ -31,5 +31,5 @@ private[mpi] trait Visualizer:
 private[mpi] object Visualizer:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MonadThrow](viz: Visualization, make: (Behavior[Msg], String) => ActorRef[Msg]): F[Visualizer] =
-    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(viz), make)))
+  def spawn[F[_]: MonadThrow](viz: Visualization,  ctx: ActorContext[?]): F[Visualizer] =
+    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(viz), (b, n) => ctx.spawn(b, n)), ctx.system.scheduler))

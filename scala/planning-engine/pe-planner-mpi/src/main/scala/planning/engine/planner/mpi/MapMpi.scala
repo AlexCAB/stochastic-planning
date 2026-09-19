@@ -14,7 +14,6 @@ package planning.engine.planner.mpi
 
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
-import org.apache.pekko.actor.typed.ActorSystem
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
@@ -76,8 +75,6 @@ trait MapMpi[F[_]]:
 object MapMpi:
   def apply[F[_]: {Async, LoggerFactory}](visualization: Option[Visualization]): Resource[F, MapMpi[F]] =
     for
-      (guardian, system) <- Guardian.create()
+      guardian <- Guardian.create()
       actors <- Resource.eval(AtomicCell[F].of(Option.empty[MapMpiImpl.Actors]))
-    yield
-      given ActorSystem[?] = system
-      new MapMpiImpl[F](visualization, guardian, actors)
+    yield new MapMpiImpl[F](visualization, guardian, actors)

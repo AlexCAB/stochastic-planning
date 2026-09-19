@@ -16,7 +16,6 @@ import cats.effect.Async
 import cats.effect.kernel.Async
 import cats.syntax.all.*
 import cats.effect.std.AtomicCell
-import org.apache.pekko.actor.typed.ActorSystem
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.planner.mpi.{MapMpi, Visualization}
 import planning.engine.planner.mpi.actors.guardian.Guardian
@@ -34,14 +33,13 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     visualization: Option[Visualization],
     guardian: Guardian,
     actors: AtomicCell[F, Option[MapMpiImpl.Actors]],
-)(using ActorSystem[?]) extends MapMpi[F]:
+) extends MapMpi[F]:
   import MapMpiImpl.Actors
   private val logger = LoggerFactory[F].getLogger
 
-  private def runAtActors[R](block: Actors => F[R]): F[R] =
-    actors.get.flatMap:
-      case Some(actors) => block(actors)
-      case None => "Map network not initialized".assertionError
+  private def runAtActors[R](block: Actors => F[R]): F[R] = actors.get.flatMap:
+    case Some(actors) => block(actors)
+    case None         => "Map network not initialized".assertionError
 
   def init(vars: Set[Variable]): F[Unit] =
     def splitVars: (Set[Variable.Input], Set[Variable.Output]) =
@@ -58,7 +56,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
 
     actors.evalUpdate:
       case Some(actors) => s"Map network already initialized, $actors".assertionError
-      case None => initActors
+      case None         => initActors
 
   def reset(): F[Unit] =
     def cleanup(actors: Actors): F[Option[Actors]] =
@@ -68,7 +66,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       yield None
 
     actors.evalUpdate:
-      case None => logger.info("Map network not initialized, nothing to do").as(None)
+      case None         => logger.info("Map network not initialized, nothing to do").as(None)
       case Some(actors) => cleanup(actors)
 
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =

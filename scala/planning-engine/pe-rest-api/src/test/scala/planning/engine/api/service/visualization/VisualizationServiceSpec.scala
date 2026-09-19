@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.cps.*
 import fs2.Stream
 import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.api.config.VisualizationServiceConf
+import planning.engine.api.config.parts.VisualizationServiceConf
 import planning.engine.api.model.map.TestApiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.UnitSpecWithData

@@ -20,7 +20,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.config.VisualizationRouteConf
+import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.api.route.RouteBase
 import planning.engine.api.service.visualization.VisualizationServiceLike

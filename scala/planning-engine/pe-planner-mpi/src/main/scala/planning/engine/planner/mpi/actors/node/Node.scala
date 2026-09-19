@@ -14,7 +14,7 @@ package planning.engine.planner.mpi.actors.node
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
@@ -63,9 +63,9 @@ private[mpi] object Node:
       manager: Manager,
       visualizer: Option[Visualizer],
       planner: Planner,
-      make: (Behavior[Msg], String) => ActorRef[Msg],
+      ctx: ActorContext[?],
   ): F[Node] =
     for
       definition <- Definition(mnId, data, Definition.Actors(manager, visualizer, planner))
-      api <- ApiImpl(mnId, data, Actor.spawn(definition, make))
+      api <- ApiImpl(mnId, data, Actor.spawn(definition, (b, n) => ctx.spawn(b, n)), ctx.system.scheduler)
     yield api

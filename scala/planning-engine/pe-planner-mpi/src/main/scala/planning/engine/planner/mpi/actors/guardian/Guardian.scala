@@ -30,15 +30,15 @@ private[mpi] trait Guardian:
       inVars: Set[Variable.Input],
       outVars: Set[Variable.Output],
       visualization: Option[Visualization],
-  )(using ActorSystem[?]): F[(Manager, Planner, Option[Visualizer])]
+  ): F[(Manager, Planner, Option[Visualizer])]
 
   // Reset the map network, stopping all child actors and allowing a new initialization.
   // Calling multiple times has no effect.
-  private[mpi] def reset[F[_]: Async]()(using ActorSystem[?]): F[Unit]
+  private[mpi] def reset[F[_]: Async](): F[Unit]
 
 private[mpi] object Guardian:
   type Msg = Actor.Msg
 
-  def create[F[_]: Async](): Resource[F, (Guardian, ActorSystem[?])] = Resource
+  def create[F[_]: Async](): Resource[F, Guardian] = Resource
     .make(Async[F].delay(ActorSystem(Actor(), Actor.name)))(s => Async[F].delay(s.terminate()).void)
-    .map(s => (ApiImpl(s), s))
+    .map(s => ApiImpl(s, s.scheduler))

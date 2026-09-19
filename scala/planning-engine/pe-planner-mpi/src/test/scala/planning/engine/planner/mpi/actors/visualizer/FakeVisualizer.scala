@@ -26,4 +26,4 @@ final case class FakeVisualizer(api: Visualizer, probe: TestProbe[Visualizer.Msg
 object FakeVisualizer:
   def apply()(using testKit: ActorTestKit): FakeVisualizer =
     val probe = testKit.createTestProbe[Visualizer.Msg]("FakeVisualizerProbe")
-    FakeVisualizer(ApiImpl(probe.ref), probe)
+    FakeVisualizer(ApiImpl(probe.ref, testKit.system.scheduler), probe)

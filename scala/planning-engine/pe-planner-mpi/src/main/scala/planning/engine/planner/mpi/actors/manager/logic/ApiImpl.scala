@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager.logic
 import cats.MonadThrow
 import cats.effect.Async
 import cats.syntax.all.*
-import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.actor.typed.Scheduler
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId
@@ -28,22 +28,23 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
 
-private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with ApiBase[Actor.Msg]:
+private[manager] final case class ApiImpl(actor: Actor.Ref, scheduler: Scheduler) 
+  extends ApiBase[Actor.Msg](scheduler) with Manager:
   import Message.*
 
-  override def addNode[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
+  override def addNode[F[_]: Async](data: NodeData): F[MnId] =
     actor.askF[F, NodeAdded](ref => AddNode(data, ref)).map(_.id)
 
-  override def upsertNodesByName[F[_]: Async](data: NodeData)(using ActorSystem[?]): F[MnId] =
+  override def upsertNodesByName[F[_]: Async](data: NodeData): F[MnId] =
     actor.askF[F, NodesByNameUpserted](ref => UpsertNodesByName(data, ref)).map(_.id)
 
-  override def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId])(using ActorSystem[?]): F[MeKey] =
+  override def addEdge[F[_]: Async](key: MeKey, sampleIds: Set[SampleId]): F[MeKey] =
     actor.askF[F, EdgeAdded](ref => AddEdge(key, sampleIds, ref)).map(_.key)
 
   override def addManSamples[F[_]: Async](
       samples: Set[Sample.Man],
       nodes: Map[MnId.Nim, NodeData],
-  )(using ActorSystem[?]): F[Map[SampleId, Sample.Man]] =
+  ): F[Map[SampleId, Sample.Man]] =
     if samples.nonEmpty || nodes.nonEmpty then
       actor.askF[F, ManSamplesAdded](ref => AddManSamples(samples, nodes, ref)).map(_.samples)
     else
@@ -52,7 +53,7 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends Manager with
   override def addGenSamples[F[_]: Async](
       samples: Set[Sample.Gen],
       newNodes: Map[MnId.Nim, Option[IoValue]],
-  )(using ActorSystem[?]): F[Map[SampleId, Sample.Gen]] =
+  ): F[Map[SampleId, Sample.Gen]] =
     if samples.nonEmpty || newNodes.nonEmpty then
       actor.askF[F, GenSamplesAdded](ref => AddGenSamples(samples, newNodes, ref)).map(_.samples)
     else

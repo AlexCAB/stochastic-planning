@@ -18,10 +18,10 @@ import fs2.{Pipe, Stream}
 import io.circe.parser.*
 import org.http4s.Uri
 import org.http4s.client.testkit.WSTestClient
-import org.http4s.client.websocket.{WSRequest, *}
+import org.http4s.client.websocket.*
 import org.http4s.implicits.*
 import org.scalamock.scalatest.AsyncMockFactory
-import planning.engine.api.config.VisualizationRouteConf
+import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.map.TestApiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.api.service.visualization.VisualizationServiceLike

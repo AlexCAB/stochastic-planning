@@ -15,6 +15,7 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
+import planning.engine.api.config.parts.ServerConf
 import planning.engine.common.UnitSpecWithData
 
 class ServerConfSpec extends UnitSpecWithData:

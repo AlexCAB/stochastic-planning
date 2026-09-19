@@ -25,6 +25,7 @@ val scalatestVersion = "3.2.20"
 val catsEffectTestingScalatestVersion = "1.8.0"
 val catsEffectCpsVersion = "0.5.0"
 val scalamockVersion = "7.5.5"
+val mockitoScalaVersion = "2.2.3"
 val pprintVersion = "0.9.6"
 
 // Subprojects settings
@@ -62,4 +63,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingScalatestVersion % Test,
   "org.typelevel" %% "cats-effect-cps" % catsEffectCpsVersion % Test,
   "org.scalamock" %% "scalamock-cats-effect" % scalamockVersion % Test,
+  "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion % Test,
+  "org.mockito" %% "mockito-scala-cats" % mockitoScalaVersion % Test,
 )

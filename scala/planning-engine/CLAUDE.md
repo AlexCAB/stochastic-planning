@@ -51,6 +51,24 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
 - Actor tests spawn the real actor via its module's `*TestActor` helper (e.g. `ManagerTestActor`) and assert on messages received by a `TestProbe`, or on actor termination via `probe.expectTerminated(ref)` — they don't call `private[pkg]` `doXxx` handler methods directly, since those need a live `ActorContext`.
 - Effectful (non-actor) code is tested with cats-effect via `UnitSpecIO`/`UnitSpecWithIOAndTestKit`, using `.asserting(...)` / `.assertThrowsError[T](...)`.
 - A test body with more than one matcher (`mustBe`, etc.) must be written with `cats.effect.cps.*`'s `async[IO]: ... .await`, not chained `.asserting(...)`/`.flatMap(...)` — run each effectful step with `.await`, bind results to `val`s, then assert on them directly in the block. Single-matcher tests keep using `.asserting(...)` / `.assertThrowsError[T](...)`. See `ManagerStateSpec`/`NodeStateSpec` for examples.
+- Do not mix `async[IO]: ...` with a trailing `.asserting: result => ...` — bind the final effectful step to a `val` inside the `async[IO]` block and assert directly there, in the same block. Only use `.asserting: result => ...` for single-matcher tests (see above).
+  ```scala
+  // avoid
+  async[IO]:
+    mapMpi.init(vars).logValue(tn).await
+    mapMpi.addSamples(samples, nodes).logValue(tn).await
+  .asserting: result =>
+    managerStub.addManSamples[IO](samples, nodes) was called
+    result mustBe Map.empty
+
+  // preferred
+  async[IO]:
+    mapMpi.init(vars).logValue(tn).await
+    val result = mapMpi.addSamples(samples, nodes).logValue(tn).await
+
+    managerStub.addManSamples[IO](samples, nodes) was called
+    result mustBe Map.empty
+  ```
 
 ## Scala style
 

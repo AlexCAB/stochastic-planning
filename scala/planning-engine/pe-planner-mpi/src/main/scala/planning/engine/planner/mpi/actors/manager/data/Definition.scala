@@ -21,4 +21,4 @@ private[manager] final case class Definition(
     visualizer: Option[Visualizer],
     planner: Planner,
 ):
-  def self(using ctx: Actor.Ctx): Manager = ApiImpl(ctx.self)
+  def self(using ctx: Actor.Ctx): Manager = ApiImpl(ctx.self, ctx.system.scheduler)

@@ -14,6 +14,7 @@ package planning.engine.api.config
 
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory
+import planning.engine.api.config.parts.DbConf
 import planning.engine.common.UnitSpecWithData
 import planning.engine.database.Neo4jConf
 

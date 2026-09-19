@@ -20,8 +20,8 @@ import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.planner.data.State
-import planning.engine.planner.mpi.actors.planner.logic.ApiImpl
+import planning.engine.planner.mpi.actors.planner.data.{Definition, State}
+import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.io.Variable
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -41,20 +41,20 @@ object TestPlanner extends TestActorBase:
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  private def spawn(bh: Behavior[Planner.Msg], name: String)(using tk: ActorTestKit): ActorRef[Planner.Msg] =
-    tk.spawn(bh, s"test-planner-$name-${nameIdCounter.getAndIncrement()}")
-
   def apply(
       name: String,
       inVars: Set[Variable.Input] = Set.empty,
       outVars: Set[Variable.Output] = Set.empty,
-  )(using ActorTestKit, IORuntime): TestPlanner = new TestPlanner(
-    api = Planner.spawn[IO](inVars, outVars, spawn).unsafeRunSync(),
-  )
+  )(using tk: ActorTestKit, r: IORuntime): TestPlanner =
+    def spawn(bh: Behavior[Planner.Msg], name: String): ActorRef[Planner.Msg] =
+      tk.spawn(bh, s"test-planner-$name-${nameIdCounter.getAndIncrement()}")
+
+    val definition = Definition[IO](inVars, outVars).unsafeRunSync()
+    new TestPlanner(api = ApiImpl(Actor.spawn(definition, spawn), tk.system.scheduler))
 
   extension (api: Planner)
     def ref: ActorRef[Planner.Msg] = api match
-      case ApiImpl(ref) => ref
+      case ApiImpl(ref, _) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Planner", getActorState[State](ref))
 

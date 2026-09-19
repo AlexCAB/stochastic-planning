@@ -21,8 +21,8 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.TestActorBase
-import planning.engine.planner.mpi.actors.manager.data.State
-import planning.engine.planner.mpi.actors.manager.logic.ApiImpl
+import planning.engine.planner.mpi.actors.manager.data.{Definition, State}
+import planning.engine.planner.mpi.actors.manager.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
@@ -85,13 +85,10 @@ object TestManager extends TestActorBase:
       name: String,
       visualizer: FakeVisualizer,
       planner: FakePlanner,
-  )(using testKit: ActorTestKit, rt: IORuntime): Manager = Manager
-    .spawn[IO](
-      Some(visualizer.api),
-      planner.api,
-      (bh, n) => testKit.spawn(bh, s"$n-$name-${nameIdCounter.getAndIncrement()}"),
-    )
-    .unsafeRunSync()
+  )(using testKit: ActorTestKit, rt: IORuntime): Manager = ApiImpl(
+    Actor.spawn(Definition(Some(visualizer.api), planner.api), (b, n) => testKit.spawn(b, n)), 
+    testKit.system.scheduler
+  )
 
   def apply(
       name: String,
@@ -107,7 +104,7 @@ object TestManager extends TestActorBase:
 
   extension (api: Manager)
     def ref: ActorRef[Manager.Msg] = api match
-      case ApiImpl(ref) => ref
+      case ApiImpl(ref, _) => ref
 
     def state(using ActorTestKit, IORuntime): State = logObj("Manager", getActorState[State](ref))
 

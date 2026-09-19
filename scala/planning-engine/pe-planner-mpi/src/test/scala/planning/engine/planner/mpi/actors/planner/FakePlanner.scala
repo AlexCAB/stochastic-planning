@@ -23,4 +23,4 @@ final case class FakePlanner(api: Planner, probe: TestProbe[Planner.Msg]):
 object FakePlanner:
   def apply()(using testKit: ActorTestKit): FakePlanner =
     val probe = testKit.createTestProbe[Planner.Msg]("FakePlannerProbe")
-    FakePlanner(ApiImpl(probe.ref), probe)
+    FakePlanner(ApiImpl(probe.ref, testKit.system.scheduler), probe)

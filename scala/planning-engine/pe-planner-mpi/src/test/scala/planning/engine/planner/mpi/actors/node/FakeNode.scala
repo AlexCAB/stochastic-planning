@@ -50,5 +50,5 @@ object FakeNode:
   def apply(mnId: MnId, data: NodeData)(using testKit: ActorTestKit, rt: IORuntime): FakeNode =
     val safeName = data.name.map(_.value.replaceAll("[^a-zA-Z0-9\\-_.*$+:@&=,!~';]", "_")).getOrElse("none")
     val probe = testKit.createTestProbe[Node.Msg](s"FakeNodeProbe-id_${mnId.value}-name_$safeName")
-    val nodeApi = ApiImpl[IO](mnId, data, probe.ref)
+    val nodeApi = ApiImpl[IO](mnId, data, probe.ref, testKit.system.scheduler)
     nodeApi.map(api => FakeNode(api, probe)).unsafeRunSync()

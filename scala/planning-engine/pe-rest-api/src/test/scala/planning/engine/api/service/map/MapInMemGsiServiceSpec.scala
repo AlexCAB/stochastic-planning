@@ -16,11 +16,13 @@ import cats.effect.IO
 import cats.effect.cps.*
 import org.scalamock.scalatest.AsyncMockFactory
 import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
+import planning.engine.api.service.map.inmem.MapInMemGsiService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
+import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
 class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 

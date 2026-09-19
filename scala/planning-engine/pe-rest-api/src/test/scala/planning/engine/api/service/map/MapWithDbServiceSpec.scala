@@ -19,6 +19,7 @@ import cats.syntax.all.*
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.compatible.Assertion
 import planning.engine.api.model.map.*
+import planning.engine.api.service.map.withdb.MapWithDbService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.node.HnId
@@ -26,6 +27,7 @@ import planning.engine.common.values.text.Name
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, OutputNode}
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
+import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
 class MapWithDbServiceSpec extends UnitSpecWithData with AsyncMockFactory with TestApiData:
 

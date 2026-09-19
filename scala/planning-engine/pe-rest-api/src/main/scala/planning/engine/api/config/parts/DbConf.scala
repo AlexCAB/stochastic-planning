@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-23 |||||||||||*/
 
-package planning.engine.api.config
+package planning.engine.api.config.parts
 
 import cats.effect.Sync
 import cats.syntax.all.*

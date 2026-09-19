@@ -30,10 +30,10 @@ object TestGuardian extends TestActorBase:
   private def spawn(bh: Behavior[Guardian.Msg], name: String)(using tk: ActorTestKit): ActorRef[Guardian.Msg] =
     tk.spawn(bh, s"test-guardian-$name-${nameIdCounter.getAndIncrement()}")
 
-  def apply(name: String)(using ActorTestKit): TestGuardian = new TestGuardian(
-    api = ApiImpl(spawn(Actor(), name)),
+  def apply(name: String)(using tk: ActorTestKit): TestGuardian = new TestGuardian(
+    api = ApiImpl(spawn(Actor(), name), tk.system.scheduler),
   )
 
   extension (api: Guardian)
     def ref: ActorRef[Guardian.Msg] = api match
-      case ApiImpl(ref) => ref
+      case ApiImpl(ref, _) => ref

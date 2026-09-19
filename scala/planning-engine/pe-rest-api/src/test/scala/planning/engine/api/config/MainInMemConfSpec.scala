@@ -15,7 +15,7 @@ package planning.engine.api.config
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
-import planning.engine.api.config.VisualizationServiceConf
+import planning.engine.api.config.parts.{ServerConf, VisualizationRouteConf, VisualizationServiceConf}
 import planning.engine.common.UnitSpecWithData
 import planning.engine.planner.gsi.config.PlannerMapConfig
 
@@ -48,9 +48,9 @@ class MainInMemConfSpec extends UnitSpecWithData:
 
   "MainInMemCon.formConfig(...)" should:
     "load MainInMemConf from valid configuration" in newCase[CaseData]: (tn, data) =>
-      MainInMemConf.formConfig[IO](data.validConfig)
+      GsiMainInMemConf.formConfig[IO](data.validConfig)
         .logValue(tn, "MainInMemConf")
-        .asserting(_ mustEqual MainInMemConf(
+        .asserting(_ mustEqual GsiMainInMemConf(
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           visRoute = VisualizationRouteConf(pingTimeout = 1.minute),
           visService = VisualizationServiceConf(mapEnabled = false),

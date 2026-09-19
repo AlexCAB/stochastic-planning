@@ -67,5 +67,5 @@ private[mpi] object Node:
   ): F[Node] =
     for
       definition <- Definition(mnId, data, Definition.Actors(manager, visualizer, planner))
-      api <- ApiImpl(mnId, data, Actor.spawn(definition, (b, n) => ctx.spawn(b, n)), ctx.system.scheduler)
+      api <- ApiImpl(mnId, data, Actor.spawn(definition, (b, n) => ctx.spawn(b, n)))
     yield api

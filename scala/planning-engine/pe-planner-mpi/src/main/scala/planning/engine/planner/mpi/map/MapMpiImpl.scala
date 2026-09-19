@@ -16,6 +16,7 @@ import cats.effect.Async
 import cats.effect.kernel.Async
 import cats.syntax.all.*
 import cats.effect.std.AtomicCell
+import org.apache.pekko.actor.typed.Scheduler
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.planner.mpi.{MapMpi, Visualization}
 import planning.engine.planner.mpi.actors.guardian.Guardian
@@ -32,10 +33,13 @@ import planning.engine.common.errors.*
 private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     visualization: Option[Visualization],
     guardian: Guardian,
+    scheduler: Scheduler,
     actors: AtomicCell[F, Option[MapMpiImpl.Actors]],
 ) extends MapMpi[F]:
   import MapMpiImpl.Actors
+  
   private val logger = LoggerFactory[F].getLogger
+  private given Scheduler = scheduler
 
   private def runAtActors[R](block: Actors => F[R]): F[R] = actors.get.flatMap:
     case Some(actors) => block(actors)

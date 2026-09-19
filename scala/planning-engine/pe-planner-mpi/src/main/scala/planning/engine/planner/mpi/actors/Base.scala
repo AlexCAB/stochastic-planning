@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors
 import cats.effect.Sync
 import cats.syntax.all.*
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
+
 import scala.concurrent.ExecutionContext
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import org.apache.pekko.actor.typed.ActorRef
@@ -32,7 +33,7 @@ private[actors] trait Base:
   // So currently IO used only as a wrapper for effects, for handling errors and for better composition,
   // but not for parallelism, which is handled by actors themselves.
   // WARNING: This IORuntime should not be passes to another actor or used outside the actor.
-  given ioRuntime: IORuntime = IORuntime(
+  given IORuntime = IORuntime(
     compute = context,
     blocking = context,
     scheduler = scheduler,

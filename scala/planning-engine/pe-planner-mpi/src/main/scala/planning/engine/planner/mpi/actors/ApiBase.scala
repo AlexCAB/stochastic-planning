@@ -21,12 +21,11 @@ import org.apache.pekko.util.Timeout
 
 import scala.concurrent.duration.*
 
-abstract class ApiBase[M](scheduler: Scheduler):
+trait ApiBase[M]:
   given Timeout = Timeout(5.seconds)
-  given Scheduler = scheduler
 
   extension (ref: ActorRef[M])
     protected def tellF[F[_]: MonadThrow](msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
 
-    protected def askF[F[_]: Async, R](makeMsg: ActorRef[R] => M): F[R] =
+    protected def askF[F[_]: Async, R](makeMsg: ActorRef[R] => M)(using Scheduler): F[R] =
       Async[F].fromFuture(Async[F].delay(ref.ask(makeMsg)))

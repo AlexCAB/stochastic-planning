@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-25 |||||||||||*/
 
-package planning.engine.api.config
+package planning.engine.api.config.gsi
 
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
 import com.typesafe.config.ConfigFactory
+import planning.engine.api.config.gsi.MainWithDbConf
 import planning.engine.api.config.parts.{DbConf, ServerConf}
 import planning.engine.common.UnitSpecWithData
 import planning.engine.database.Neo4jConf
@@ -48,9 +49,9 @@ class MainWithDbConfSpec extends UnitSpecWithData:
 
   "MainConfSpec.formConfig(...)" should:
     "load MainConf from valid configuration" in newCase[CaseData]: (tn, data) =>
-      GsiMainWithDbConf.formConfig[IO](data.validConfig)
+      MainWithDbConf.formConfig[IO](data.validConfig)
         .logValue(tn, "MainConf")
-        .asserting(_ mustEqual GsiMainWithDbConf(
+        .asserting(_ mustEqual MainWithDbConf(
           db = DbConf(Neo4jConf(uri = "bolt://localhost:7687", user = "neo4j", password = "password")),
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           mapGraph = MapConfig(

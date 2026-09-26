@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits.toSemigroupKOps
 import planning.engine.api.app.AppBase
-import planning.engine.api.config.GsiMainWithDbConf
+import planning.engine.api.config.gsi.MainWithDbConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
@@ -26,7 +26,7 @@ import planning.engine.map.MapBuilder
 object GsiMainRestWithDb extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
-      mainConf <- GsiMainWithDbConf.default[IO]
+      mainConf <- MainWithDbConf.default[IO]
       builder <- MapBuilder[IO](mainConf.db.connection)
 
       maintenanceService <- MaintenanceService[IO]()

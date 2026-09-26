@@ -31,8 +31,8 @@ class GuardianLifecycleSpec extends UnitSpecWithIOAndTestKit with WithTestGuardi
             .initialize[IO](Set.empty[Variable.Input], Set.empty[Variable.Output], Some(visualization))
             .logValue(tn).await
 
-          manager must not be null
-          planner must not be null
+          manager.toString must include("Manager(path =")
+          planner.toString must include("Planner(path =")
           visualizer mustBe defined
 
     "terminate the Guardian actor when called again without a reset" in newCase[CaseData]: (tn, data) =>

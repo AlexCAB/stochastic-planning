@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits.toSemigroupKOps
 import planning.engine.api.app.AppBase
-import planning.engine.api.config.MpiMainInMemConf
+import planning.engine.api.config.mpi.MainInMemConf
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.planner.mpi.MapMpi
@@ -25,7 +25,7 @@ import planning.engine.api.service.map.inmem.MapInMemMpiService
 object MpiMainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
-      conf <- MpiMainInMemConf.default[IO]
+      conf <- MainInMemConf.default[IO]
 
 //      visualizationService <- VisualizationService[IO](conf.visService)
 //      visualizationRoute <- VisualizationRoute[IO](conf.visRoute, visualizationService)

@@ -231,6 +231,11 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Run via all tests and refactor the tests which use `scalamock` so they will use Mockito.
 
+❯ Write test for `mpi.MainInMemConf` similarly to `gsi.MainInMemConfSpec` 
+
+❯ Fix `MapMpiImplSpec` regard new implementation
+
+
 
 
 

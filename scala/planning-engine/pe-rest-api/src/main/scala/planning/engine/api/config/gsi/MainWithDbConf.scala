@@ -8,33 +8,31 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2025-12-23 |||||||||||*/
+| created: 2025-04-23 |||||||||||*/
 
-package planning.engine.api.config
+package planning.engine.api.config.gsi
 
 import cats.effect.{Resource, Sync}
 import cats.syntax.all.*
 import com.typesafe.config.{Config, ConfigFactory}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.parts.*
-import planning.engine.planner.gsi.config.PlannerMapConfig
+import planning.engine.map.config.MapConfig
 
-final case class GsiMainInMemConf(
+final case class MainWithDbConf(
+    db: DbConf,
     server: ServerConf,
-    visRoute: VisualizationRouteConf,
-    visService: VisualizationServiceConf,
-    plannerMap: PlannerMapConfig,
+    mapGraph: MapConfig,
 )
 
-object GsiMainInMemConf:
-  def formConfig[F[_]: {Sync, LoggerFactory}](appConf: Config): F[GsiMainInMemConf] =
+object MainWithDbConf:
+  def formConfig[F[_]: {Sync, LoggerFactory}](appConf: Config): F[MainWithDbConf] =
     for
+      dbConf <- DbConf.formConfig(appConf.getConfig("db"))
       serverConf <- ServerConf.formConfig(appConf.getConfig("api.server"))
-      visRouteConf <- VisualizationRouteConf.fromConfig(appConf.getConfig("api.route.visualization"))
-      visServiceConf <- VisualizationServiceConf.fromConfig(appConf.getConfig("api.service.visualization"))
-      plannerMap <- PlannerMapConfig.formConfig(appConf.getConfig("planner.map"))
+      mapGraphConf <- MapConfig.formConfig(appConf.getConfig("map-graph"))
       _ <- LoggerFactory[F].getLogger.info(s"Loaded configuration: $appConf")
-    yield GsiMainInMemConf(serverConf, visRouteConf, visServiceConf, plannerMap)
+    yield MainWithDbConf(dbConf, serverConf, mapGraphConf)
 
-  def default[F[_]: {Sync, LoggerFactory}]: Resource[F, GsiMainInMemConf] =
+  def default[F[_]: {Sync, LoggerFactory}]: Resource[F, MainWithDbConf] =
     Resource.eval(Sync[F].delay(ConfigFactory.load()).flatMap(ac => formConfig[F](ac)))

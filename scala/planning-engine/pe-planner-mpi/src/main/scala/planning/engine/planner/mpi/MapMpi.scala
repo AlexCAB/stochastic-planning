@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.Variable
 import planning.engine.planner.mpi.map.MapMpiImpl
+import planning.engine.planner.mpi.model.data.map.Metadata
 
 // Map actor adaptor, main purpose:
 // - Spawn and host actors network
@@ -64,7 +65,7 @@ import planning.engine.planner.mpi.map.MapMpiImpl
 //   and experiment have to be restarted manually).
 trait MapMpi[F[_]]:
   // Initialize the map network with given input and output variables, and optional visualization.
-  def init(vars: Set[Variable]): F[Unit]
+  def init(metadata: Metadata, inVars: Set[Variable.Input], outVars: Set[Variable.Output]): F[Unit]
 
   // Clean up the map network, stopping all actors and releasing resources.
   def reset(): F[Unit]
@@ -76,5 +77,5 @@ object MapMpi:
   def apply[F[_]: {Async, LoggerFactory}](visualization: Option[Visualization]): Resource[F, MapMpi[F]] =
     for
       (guardian, scheduler) <- Guardian.create()
-      actors <- Resource.eval(AtomicCell[F].of(Option.empty[MapMpiImpl.Actors]))
+      actors <- Resource.eval(AtomicCell[F].of(Option.empty[MapMpiImpl.MapState]))
     yield new MapMpiImpl[F](visualization, guardian, scheduler, actors)

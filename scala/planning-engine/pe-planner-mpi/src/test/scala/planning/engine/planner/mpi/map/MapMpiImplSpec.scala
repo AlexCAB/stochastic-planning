@@ -24,9 +24,11 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
+import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.{Type, Variable}
+import planning.engine.common.values.text.Name
 
 class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito:
 
@@ -36,23 +38,25 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val plannerStub: Planner = mock[Planner]
     val visualizationStub: Visualization = mock[Visualization]
 
+    val metadata: Metadata = Metadata(Name("test-map"), None)
     val inVar: Variable.Input = Variable.Input(IoName("testInput"), Type.Bool(Set(true, false)))
     val outVar: Variable.Output = Variable.Output(IoName("testOutput"), Type.Bool(Set(true, false)))
-    val vars: Set[Variable] = Set(inVar, outVar)
+    val inVars: Set[Variable.Input] = Set(inVar)
+    val outVars: Set[Variable.Output] = Set(outVar)
 
     guardianStub.initialize[IO](*, *, *) returns IO.pure((managerStub, plannerStub, None))
 
-    val actorsCell: AtomicCell[IO, Option[MapMpiImpl.Actors]] = AtomicCell[IO]
-      .of(Option.empty[MapMpiImpl.Actors]).unsafeRunSync()
+    val mapStateCell: AtomicCell[IO, Option[MapMpiImpl.MapState]] = AtomicCell[IO]
+      .of(Option.empty[MapMpiImpl.MapState]).unsafeRunSync()
 
-    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](Some(visualizationStub), guardianStub, scheduler, actorsCell)
+    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](Some(visualizationStub), guardianStub, scheduler, mapStateCell)
 
   "MapMpiImpl.init(...)" should:
-    "call Guardian.initialize with the split input/output variables and visualization" in
+    "call Guardian.initialize with the given input/output variables and visualization" in
       newCase[CaseData]: (tn, data) =>
         import data.*
-        mapMpi.init(vars).logValue(tn).asserting: _ =>
-          guardianStub.initialize[IO](Set(inVar), Set(outVar), Some(visualizationStub)) was called
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).asserting: _ =>
+          guardianStub.initialize[IO](inVars, outVars, Some(visualizationStub)) was called
           succeed
 
   "MapMpiImpl.reset(...)" should:
@@ -61,7 +65,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
       guardianStub.reset[IO]() returns IO.unit
 
       async[IO]:
-        mapMpi.init(vars).logValue(tn).await
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
         mapMpi.reset().logValue(tn).await
 
         guardianStub.reset[IO]() was called
@@ -75,7 +79,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
       managerStub.addManSamples[IO](*, *) returns IO.pure(Map.empty[SampleId, Sample.Man])
 
       async[IO]:
-        mapMpi.init(vars).logValue(tn).await
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
         val result = mapMpi.addSamples(samples, nodes).logValue(tn).await
 
         managerStub.addManSamples[IO](samples, nodes) was called

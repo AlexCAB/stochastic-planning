@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits.toSemigroupKOps
 import planning.engine.api.app.AppBase
-import planning.engine.api.config.GsiMainInMemConf
+import planning.engine.api.config.gsi.MainInMemConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.route.visualization.VisualizationRoute
@@ -28,7 +28,7 @@ import planning.engine.planner.gsi.map.MapGsiInMemGsi
 object GsiMainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =
     for
-      mainConf <- GsiMainInMemConf.default[IO]
+      mainConf <- MainInMemConf.default[IO]
 
       visualizationService <- VisualizationService[IO](mainConf.visService)
       visualizationRoute <- VisualizationRoute[IO](mainConf.visRoute, visualizationService)

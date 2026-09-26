@@ -24,13 +24,14 @@ import planning.engine.common.values.db.DbName
 import planning.engine.map.config.MapConfig
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx
+import planning.engine.api.model.map.extensions.gsi.MapGraphLakeEx
 
 class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
 ) extends MapServiceBase[F] with MapServiceLike[F]:
-  import MapInitRequestEx.*
+  import MapInitRequestEx.*, MapGraphLakeEx.*
 
   private val logger = LoggerFactory[F].getLogger
 
@@ -61,7 +62,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
         inputNodes <- request.toInputNodes
         outputNodes <- request.toOutputNodes
         mapGraph <- builder.init(request.dbName, config, metadata, inputNodes, outputNodes)
-        info <- MapInfoResponse.fromMapGraph(request.dbName, mapGraph)
+        info <- mapGraph.toResponse(request.dbName)
       yield (Some(mapGraph, request.dbName), info)
 
     case Some((mapGraph, dbName)) => initError(mapGraph, dbName)
@@ -70,12 +71,12 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
     case None =>
       for
         mapGraph <- builder.load(request.dbName, config)
-        info <- MapInfoResponse.fromMapGraph(request.dbName, mapGraph)
+        info <- mapGraph.toResponse(request.dbName)
       yield (Some(mapGraph, request.dbName), info)
 
     case Some((mapGraph, dbName)) if dbName == request.dbName =>
       for
-          info <- MapInfoResponse.fromMapGraph(dbName, mapGraph)
+          info <- mapGraph.toResponse(dbName)
       yield (Some(mapGraph, dbName), info)
 
     case Some((mapGraph, dbName)) => initError(mapGraph, dbName)

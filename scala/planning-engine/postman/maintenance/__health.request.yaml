@@ -1,0 +1,6 @@
+$kind: http-request
+url: localhost:8080/pe/v1/maintenance/__health
+method: GET
+auth:
+  type: noauth
+order: 1000

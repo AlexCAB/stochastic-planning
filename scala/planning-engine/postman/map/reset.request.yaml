@@ -1,0 +1,97 @@
+$kind: http-request
+url: localhost:8080/pe/v1/map/reset
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"dbName\" : \"test-db\",\r
+
+    \  \"name\" : \"testMapName\",\r
+
+    \  \"description\" : \"testMapDescription\",\r
+
+    \  \"inputNodes\" : [\r
+
+    \    {\r
+
+    \      \"type\" : \"BooleanIoNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"boolDef\",\r
+
+    \        \"acceptableValues\" : [\r
+
+    \          true,\r
+
+    \          false\r
+
+    \        ]\r
+
+    \      }\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"type\" : \"FloatIoNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"floatDef\",\r
+
+    \        \"min\" : -1.0,\r
+
+    \        \"max\" : 1.0\r
+
+    \      }\r
+
+    \    }\r
+
+    \  ],\r
+
+    \  \"outputNodes\" : [\r
+
+    \    {\r
+
+    \      \"type\" : \"IntIoNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"intDef\",\r
+
+    \        \"min\" : 0,\r
+
+    \        \"max\" : 10\r
+
+    \      }\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"type\" : \"ListStrIoNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"listStrDef\",\r
+
+    \        \"elements\" : [\r
+
+    \          \"a\",\r
+
+    \          \"b\",\r
+
+    \          \"c\"\r
+
+    \        ]\r
+
+    \      }\r
+
+    \    }\r
+
+    \  ]\r
+
+    }"
+order: 1000

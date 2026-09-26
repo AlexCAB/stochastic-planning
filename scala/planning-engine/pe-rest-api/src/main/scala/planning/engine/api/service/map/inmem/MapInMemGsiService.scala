@@ -40,11 +40,12 @@ class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
       inputNodes <- request.toInputNodes
       outputNodes <- request.toOutputNodes
       _ <- map.init(metadata, inputNodes, outputNodes)
-      info <- MapInfoResponse.emptyInMem()
-    yield info.copy(
+    yield MapInfoResponse(
+      DbName("gsi-in-mem"),
       mapName = metadata.name,
       numInputNodes = inputNodes.size,
       numOutputNodes = outputNodes.size,
+      numHiddenNodes = 0,
     )
 
   override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])

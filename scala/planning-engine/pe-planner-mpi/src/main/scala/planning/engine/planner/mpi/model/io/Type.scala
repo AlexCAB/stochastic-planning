@@ -34,6 +34,8 @@ object Type:
       if value >= min && value <= max then IoIndex(value).pure
       else s"Value $value not in range [$min, $max]".assertionError
 
+    override def toString: String = s"[$min, $max]"
+
   final case class R(min: Double, max: Double) extends Type[Double]:
     private val scaling = 10000.0
 
@@ -47,6 +49,8 @@ object Type:
       val value = toValue(index)
       if isDefinedAt(index) then value.pure
       else s"Value $value not in range [$min, $max], for index $index".assertionError
+
+    override def toString: String = s"[$min, $max]"
 
     override def indexForValue[F[_]: MonadThrow](value: Double): F[IoIndex] =
       if value >= min && value <= max then IoIndex((value * scaling).toLong).pure
@@ -67,6 +71,8 @@ object Type:
       if acceptable.contains(value) then IoIndex(if value then 1 else 0).pure
       else s"Value '$value' not in acceptable values: $acceptable".assertionError
 
+    override def toString: String = s"{${acceptable.mkString(", ")}}"
+
   final case class Opt(options: List[String]) extends Type[String]:
     override def isDefinedAt(index: IoIndex): Boolean =
       index.value <= Int.MaxValue && options.isDefinedAt(index.value.toInt)
@@ -78,3 +84,5 @@ object Type:
     override def indexForValue[F[_]: MonadThrow](value: String): F[IoIndex] = options.indexOf(value) match
       case -1 => s"Value $value not in options list: $options".assertionError
       case i  => IoIndex(i).pure
+
+    override def toString: String = s"{${options.mkString(", ")}}"

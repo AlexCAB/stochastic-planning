@@ -33,3 +33,8 @@ metals.sbt
 
 # Secrets
 pe-common/src/main/resources/db.conf
+
+# Postman
+/postman/.postman
+/postman/postman
+

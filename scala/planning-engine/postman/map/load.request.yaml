@@ -1,0 +1,7 @@
+$kind: http-request
+url: localhost:8080/pe/v1/map/load
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"dbName\" : \"test-db\"\r\n}"
+order: 3000

@@ -29,5 +29,8 @@ sealed trait Variable:
     yield node
 
 object Variable:
-  final case class Input(name: IoName, varType: Type[?]) extends Variable
-  final case class Output(name: IoName, varType: Type[?]) extends Variable
+  final case class Input(name: IoName, varType: Type[?]) extends Variable:
+    override def toString: String = s"InVar(${name.value}, $varType)"
+
+  final case class Output(name: IoName, varType: Type[?]) extends Variable:
+    override def toString: String = s"OutVar(${name.value}, $varType)"

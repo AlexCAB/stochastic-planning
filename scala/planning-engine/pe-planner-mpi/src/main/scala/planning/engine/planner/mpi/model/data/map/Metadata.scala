@@ -17,4 +17,5 @@ import planning.engine.common.values.text.{Description, Name}
 final case class Metadata(
     name: Name,
     description: Option[Description],
-)
+):
+  override def toString: String = s"MPI(${name.value}${description.map(d => s", ${d.value}").getOrElse("")})"

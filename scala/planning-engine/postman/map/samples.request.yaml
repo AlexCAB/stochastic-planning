@@ -1,0 +1,133 @@
+$kind: http-request
+url: localhost:8080/pe/v1/map/samples
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"hiddenNodes\" : [\r
+
+    \    {\r
+
+    \      \"type\" : \"ConcreteNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"con-hn-1\",\r
+
+    \        \"description\" : \"Concrete HN 1\",\r
+
+    \        \"ioNodeName\" : \"boolDef\",\r
+
+    \        \"value\" : true\r
+
+    \      }\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"type\" : \"ConcreteNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"con-hn-2\",\r
+
+    \t\t\"description\" : \"Concrete HN 2\",\r
+
+    \        \"ioNodeName\" : \"listStrDef\",\r
+
+    \        \"value\" : \"a\"\r
+
+    \      }\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"type\" : \"AbstractNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"abs-hn-3\",\r
+
+    \t\t\"description\" : \"Abstract HN 3\"\r
+
+    \      }\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"type\" : \"AbstractNode\",\r
+
+    \      \"data\" : {\r
+
+    \        \"name\" : \"abs-hn-4\",\r
+
+    \t\t\"description\" : \"Abstract HN 4\"\r
+
+    \      }\r
+
+    \    }\r
+
+    \  ],\r
+
+    \  \"samples\" : [\r
+
+    \    {\r
+
+    \      \"probabilityCount\" : 10,\r
+
+    \      \"utility\" : -0.5,\r
+
+    \      \"name\" : \"sample-1\",\r
+
+    \      \"description\" : \"Sample 1 description\",\r
+
+    \      \"edges\" : [\r
+
+    \        {\r
+
+    \          \"sourceHnName\" : \"con-hn-1\",\r
+
+    \          \"targetHnName\" : \"abs-hn-3\",\r
+
+    \          \"edgeType\" : \"Then\"\r
+
+    \        }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"probabilityCount\" : 20,\r
+
+    \      \"utility\" : 0.8,\r
+
+    \      \"name\" : \"sample2\",\r
+
+    \      \"description\" : \"Sample 2 description\",\r
+
+    \      \"edges\" : [\r
+
+    \        {\r
+
+    \          \"sourceHnName\" : \"con-hn-2\",\r
+
+    \          \"targetHnName\" : \"abs-hn-4\",\r
+
+    \          \"edgeType\" : \"Link\"\r
+
+    \        }\r
+
+    \      ]\r
+
+    \    }\r
+
+    \  ]\r
+
+    }"
+order: 4000

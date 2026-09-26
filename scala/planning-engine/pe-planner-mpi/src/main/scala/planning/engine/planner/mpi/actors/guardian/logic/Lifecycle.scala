@@ -35,7 +35,7 @@ private[guardian] trait Lifecycle:
       visualizer <- makeViz
       planner <- Planner.spawn(msg.inVars, msg.outVars, ctx)
       manager <- Manager.spawn(visualizer, planner, ctx)
-      _ <- logInfo(s"Created actors: $visualizer, $planner, $manager")
+      _ <- logInfo(s"Created actors: visualizer = $visualizer, planner = $planner, manager = $manager")
       _ <- msg.reply(Initialized(manager, planner, visualizer))
     yield Behaviors.same
 

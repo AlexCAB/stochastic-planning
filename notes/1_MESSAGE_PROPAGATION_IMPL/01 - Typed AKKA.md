@@ -235,7 +235,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Fix `MapMpiImplSpec` regard new implementation
 
-
+❯ Consider `gsi.MapInitRequestEx` as example and implement `mpi.MapInitRequestEx`. Also add tests for `mpi.MapInitRequestEx`.
 
 
 

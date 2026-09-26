@@ -80,4 +80,6 @@ private[mpi] object MapMpiImpl:
       manager: Manager,
       planner: Planner,
       visualizer: Option[Visualizer],
-  )
+  ):
+    override def toString: String =
+      s"MPI(${metadata.name.value}, $manager, $planner, ${visualizer.map(_.toString).getOrElse("no visualizer")})"

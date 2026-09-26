@@ -1,0 +1,6 @@
+$kind: http-request
+url: localhost:8080/pe/v1/maintenance/__exit
+method: POST
+auth:
+  type: noauth
+order: 2000

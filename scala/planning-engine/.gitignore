@@ -38,3 +38,5 @@ pe-common/src/main/resources/db.conf
 /postman/.postman
 /postman/postman
 
+# Claude
+.claude/

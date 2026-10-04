@@ -21,6 +21,8 @@ name := "pe-rest-api"
 description := "Rest API for integration with Python tools"
 version := "0.0.0-SNAPSHOT"
 
+Compile / mainClass := Some("planning.engine.api.MpiMainRestInMem") // Suppress `[warn] multiple main classes detected`
+
 Test / fork := true
 Test / envVars := Map("APP_VERSION" -> "test_app_version")
 

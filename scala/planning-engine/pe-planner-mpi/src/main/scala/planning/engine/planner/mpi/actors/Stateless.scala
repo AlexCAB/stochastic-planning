@@ -28,7 +28,7 @@ private[actors] trait Stateless extends Base:
   protected def receive[F[_]: S](msg: Msg)(using Ctx): F[Bhv]
 
   // Actor main behavior definition
-  private def behavior(): Bhv = Behaviors.setup: ctx =>
+  protected def behavior(): Bhv = Behaviors.setup: ctx =>
     given Ctx = ctx
     setup()
 

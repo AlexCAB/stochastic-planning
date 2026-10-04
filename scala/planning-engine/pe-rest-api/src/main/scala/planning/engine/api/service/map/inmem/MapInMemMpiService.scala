@@ -32,7 +32,7 @@ class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
   override def load(request: MapLoadRequest): F[MapInfoResponse] =
     "Load operation is not supported in in-memory map service".assertionError
 
-  override def reset(): F[MapResetResponse] = ???
+  override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])
 
   override def init(request: MapInitRequest): F[MapInfoResponse] =
     for

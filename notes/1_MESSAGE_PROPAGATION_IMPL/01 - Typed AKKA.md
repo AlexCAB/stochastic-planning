@@ -267,6 +267,7 @@ unorderedTraverse
 
 sbt "planner_mpi/testOnly *MapMpiImplSpec"
 
+sbt "planner_mpi/test"
 
 
 def withNewNodes[F[_]: MonadThrow](  
@@ -314,6 +315,7 @@ Params for Idea ScalaTest runnner:
   --sun-misc-unsafe-memory-access=allow
   -javaagent:C:\Users\cabem\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\org\mockito\mockito-core\5.23.0\mockito-core-5.23.0.jar
   -Xshare:off
+
 
 
 ```

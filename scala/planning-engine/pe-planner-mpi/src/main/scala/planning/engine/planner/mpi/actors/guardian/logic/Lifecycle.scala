@@ -43,7 +43,7 @@ private[guardian] trait Lifecycle:
     def cleaned: Bhv =
       ctx.log.info("All child actors cleaned")
       msg.sender ! Cleaned
-      Behaviors.same
+      behavior()
 
     def awaitNext(children: Set[ActorRef[Nothing]]): Bhv = Behaviors.receiveSignal[Msg]:
       case (_, Terminated(child)) =>

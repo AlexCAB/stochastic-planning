@@ -19,15 +19,15 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.implicits.*
 import org.http4s.{Method, Request, Response, Status, Uri}
 import planning.engine.api.model.map.*
-import planning.engine.api.service.map.MapServiceLike
+import planning.engine.api.service.map.MapService
 import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 
-class MapRouteSpec extends UnitSpecWithResource[(MapServiceLike[IO], MapRoute[IO])]
+class MapRouteSpec extends UnitSpecWithResource[(MapService[IO], MapRoute[IO])]
     with MockitoWithResource with TestApiData:
 
-  override val resource: Resource[IO, (MapServiceLike[IO], MapRoute[IO])] =
+  override val resource: Resource[IO, (MapService[IO], MapRoute[IO])] =
     for
-      mockService <- Resource.pure(mock[MapServiceLike[IO]])
+      mockService <- Resource.pure(mock[MapService[IO]])
       route <- MapRoute(mockService)
     yield (mockService, route)
 

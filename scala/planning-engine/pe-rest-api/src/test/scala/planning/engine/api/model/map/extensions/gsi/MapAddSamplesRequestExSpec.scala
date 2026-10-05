@@ -17,6 +17,7 @@ import cats.effect.cps.*
 import io.circe.Json
 import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.api.model.map.MapAddSamplesRequest
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
 import planning.engine.api.model.map.extensions.gsi.MapAddSamplesRequestEx.*
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.UnitSpecWithData

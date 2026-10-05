@@ -16,7 +16,7 @@ import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
-import planning.engine.api.service.map.{MapServiceBase, MapServiceLike}
+import planning.engine.api.service.map.{MapServiceBase, MapService}
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
@@ -25,7 +25,7 @@ import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.api.model.map.extensions.gsi.*
 
 class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
-    extends MapServiceBase[F] with MapServiceLike[F]:
+    extends MapServiceBase[F] with MapService[F]:
   import MapInitRequestEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
 
   override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure

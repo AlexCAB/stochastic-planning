@@ -16,7 +16,7 @@ import planning.engine.api.model.map.*
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
 
-trait MapServiceLike[F[_]]:
+trait MapService[F[_]]:
   def getState: F[Option[(MapGraphLake[F], DbName)]]
   def reset(): F[MapResetResponse]
   def init(request: MapInitRequest): F[MapInfoResponse]

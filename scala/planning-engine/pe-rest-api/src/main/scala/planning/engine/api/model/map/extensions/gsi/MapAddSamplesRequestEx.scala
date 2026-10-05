@@ -22,6 +22,8 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.api.model.map.MapAddSamplesRequest
+import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
 
 object MapAddSamplesRequestEx:
   extension (request: MapAddSamplesRequest)

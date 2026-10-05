@@ -15,7 +15,7 @@ package planning.engine.api.service.map.inmem
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.service.map.{MapServiceBase, MapServiceLike}
+import planning.engine.api.service.map.{MapServiceBase, MapService}
 import planning.engine.planner.mpi.MapMpi
 import planning.engine.api.model.map.*
 import planning.engine.common.errors.*
@@ -25,8 +25,8 @@ import planning.engine.api.model.map.extensions.mpi.*
 import planning.engine.common.validation.Validation
 
 class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
-    extends MapServiceBase[F] with MapServiceLike[F]:
-  
+    extends MapServiceBase[F] with MapService[F]:
+
   import MapInitRequestEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
   private val logger = LoggerFactory[F].getLogger
 

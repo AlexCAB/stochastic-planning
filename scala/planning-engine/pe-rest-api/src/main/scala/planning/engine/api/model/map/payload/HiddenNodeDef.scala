@@ -12,44 +12,26 @@
 
 package planning.engine.api.model.map.payload
 
-import cats.MonadThrow
-import cats.syntax.all.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, HCursor, Json}
-import planning.engine.common.errors.assertionError
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnName
 import planning.engine.common.values.text.Description
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
-import planning.engine.map.io.node.IoNode
-import planning.engine.map.io.variable.*
 
 sealed trait HiddenNodeDef:
   def name: HnName
 
-final case class ConcreteNodeDef(name: HnName, description: Option[Description], ioNodeName: IoName, value: Json)
-    extends HiddenNodeDef:
+final case class ConcreteNodeDef(
+    name: HnName,
+    description: Option[Description],
+    ioNodeName: IoName,
+    value: Json,
+) extends HiddenNodeDef
 
-  def toNew[F[_]: MonadThrow](getIoNode: IoName => F[IoNode[F]]): F[ConcreteNode.New] =
-    def parseValue(variable: IoVariable[F, ?]): F[IoIndex] = variable match
-      case v: BooleanIoVariableLike[F] => MonadThrow[F].fromEither(value.as[Boolean]).flatMap(v.indexForValue)
-      case v: FloatIoVariableLike[F]   => MonadThrow[F].fromEither(value.as[Double]).flatMap(v.indexForValue)
-      case v: IntIoVariableLike[F]     => MonadThrow[F].fromEither(value.as[Long]).flatMap(v.indexForValue)
-      case v: ListStrIoVariableLike[F] => MonadThrow[F].fromEither(value.as[String]).flatMap(v.indexForValue)
-      case v                           => s"Unsupported variable type for value: $value, variable: $v".assertionError
-
-    for
-      ioNode <- getIoNode(ioNodeName)
-      valueIndex <- parseValue(ioNode.variable)
-    yield ConcreteNode.New(
-      name = Some(name),
-      description = description,
-      ioNodeName = ioNodeName,
-      valueIndex = valueIndex,
-    )
-
-final case class AbstractNodeDef(name: HnName, description: Option[Description]) extends HiddenNodeDef:
-  def toNew: AbstractNode.New = AbstractNode.New(name = Some(name), description)
+final case class AbstractNodeDef(
+    name: HnName,
+    description: Option[Description],
+) extends HiddenNodeDef
 
 object HiddenNodeDef:
   import io.circe.generic.auto.*

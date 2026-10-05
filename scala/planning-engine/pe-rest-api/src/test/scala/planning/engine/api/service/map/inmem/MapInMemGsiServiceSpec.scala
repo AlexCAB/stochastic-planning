@@ -10,11 +10,13 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-25 |||||||||||*/
 
-package planning.engine.api.service.map
+package planning.engine.api.service.map.inmem
 
 import cats.effect.IO
 import cats.effect.cps.*
 import org.mockito.scalatest.AsyncIdiomaticMockito
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
 import planning.engine.api.service.map.inmem.MapInMemGsiService
 import planning.engine.common.UnitSpecWithData
@@ -22,7 +24,6 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
-import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 
 class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito with TestApiData:
 

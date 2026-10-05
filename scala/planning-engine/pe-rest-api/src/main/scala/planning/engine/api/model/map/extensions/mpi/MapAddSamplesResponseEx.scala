@@ -17,7 +17,6 @@ import planning.engine.api.model.map.MapAddSamplesResponse
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.model.data.samples.Sample
 
-
 object MapAddSamplesResponseEx:
   extension (ids: Map[SampleId, Sample.Man])
     def toMapAddSamplesResponse[F[_]: MonadThrow]: F[MapAddSamplesResponse] = ???

@@ -17,7 +17,7 @@ import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
-import planning.engine.api.service.map.{MapServiceBase, MapServiceLike}
+import planning.engine.api.service.map.{MapServiceBase, MapService}
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
@@ -29,7 +29,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
-) extends MapServiceBase[F] with MapServiceLike[F]:
+) extends MapServiceBase[F] with MapService[F]:
   import MapInitRequestEx.*, MapGraphLakeEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
 
   private val logger = LoggerFactory[F].getLogger

@@ -22,11 +22,11 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.gsi.map.MapInMemGsiLike
-import planning.engine.api.model.map.extensions.gsi.{MapInitRequestEx, MapAddSamplesRequestEx}
+import planning.engine.api.model.map.extensions.gsi.*
 
 class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
     extends MapServiceBase[F] with MapServiceLike[F]:
-  import MapInitRequestEx.*, MapAddSamplesRequestEx.*
+  import MapInitRequestEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
 
   override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure
 
@@ -59,7 +59,7 @@ class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
       sampleNewList <- definition.toSampleNewList(hnIdMap)
       samples <- map.addNewSamples(sampleNewList)
       sampleNameMap = samples.map((i, s) => (i, s.data.name))
-    yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
+    yield sampleNameMap.toMapAddSamplesResponse
 
 object MapInMemGsiService:
   def apply[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F]): Resource[F, MapInMemGsiService[F]] =

@@ -10,16 +10,18 @@
 | website: github.com/alexcab |||||
 | created: 2025-07-12 |||||||||||*/
 
-package planning.engine.api.model.map
+package planning.engine.api.model.map.extensions.gsi
 
 import cats.effect.IO
 import cats.syntax.all.*
+import planning.engine.api.model.map.MapAddSamplesResponse
+import planning.engine.api.model.map.extensions.gsi.MapAddSamplesResponseEx.*
 import planning.engine.api.model.map.payload.ShortSampleData
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 
-class MapAddSamplesResponseSpec extends UnitSpecWithData:
+class MapAddSamplesResponseExSpec extends UnitSpecWithData:
   private class CaseData extends Case:
     lazy val sampleNames = Map(
       SampleId(1) -> Name.some("Sample 1"),
@@ -33,6 +35,6 @@ class MapAddSamplesResponseSpec extends UnitSpecWithData:
       ),
     )
 
-  "MapAddSamplesResponse.fromSampleNames(...)" should:
+  "MapAddSamplesResponseEx.toMapAddSamplesResponse" should:
     "create response from sample names" in newCase[CaseData]: (_, data) =>
-      MapAddSamplesResponse.fromSampleNames(data.sampleNames).pure[IO].asserting(_ mustEqual data.expectedResponse)
+      data.sampleNames.toMapAddSamplesResponse.pure[IO].asserting(_ mustEqual data.expectedResponse)

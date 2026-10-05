@@ -30,7 +30,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
 ) extends MapServiceBase[F] with MapServiceLike[F]:
-  import MapInitRequestEx.*, MapGraphLakeEx.*, MapAddSamplesRequestEx.*
+  import MapInitRequestEx.*, MapGraphLakeEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
 
   private val logger = LoggerFactory[F].getLogger
 
@@ -93,7 +93,7 @@ class MapWithDbService[F[_]: {Async, LoggerFactory}](
       sampleIds <- graph.addNewSamples(sampleNewList).map(_.map(_.data.id))
       sampleNameMap <- graph.getSampleNames(sampleIds)
       _ <- sampleIds.assertSameElems(sampleNameMap.keys, "Seems bug: not for all sampleIds names found")
-    yield MapAddSamplesResponse.fromSampleNames(sampleNameMap)
+    yield sampleNameMap.toMapAddSamplesResponse
 
 object MapWithDbService:
   def apply[F[_]: {Async, LoggerFactory}](

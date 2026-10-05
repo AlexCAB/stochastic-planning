@@ -18,7 +18,7 @@ import planning.engine.common.values.io.IoName
 import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.node.Node
 
-private[mpi] final case class IoVars(
+final case class IoVars(
     in: Map[IoName, Variable.Input],
     out: Map[IoName, Variable.Output],
 ):
@@ -31,10 +31,14 @@ private[mpi] final case class IoVars(
         out(n.ioValue.name).validateNode(n).as((inNs, outNs + n))
 
       case (_, n) => s"Undefined IO name ${n.ioValue.name}".assertionError
+      
+  def get[F[_]: MT](name: IoName): F[Variable] = in.get(name).orElse(out.get(name)) match
+    case Some(v) => v.pure
+    case None => s"Undefined IO name $name".assertionError
 
   override lazy val toString: String = s"IoVars(in = ${in.values.mkString(", ")}, out = ${out.values.mkString(", ")})"
 
-private[mpi] object IoVars:
+object IoVars:
   def apply[F[_]: MT](in: Map[IoName, Variable.Input], out: Map[IoName, Variable.Output]): F[IoVars] =
     for
       _ <- in.keySet.assertContainsNoneOf(out.keySet, "Input and output variable names should not overlap")

@@ -72,6 +72,8 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       case None      => logger.info("Map network not initialized, nothing to do").as(None)
       case Some(map) => cleanup(map)
 
+  def getIoVars: F[IoVars] = runAt(_.ioVars.pure)
+  
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
 

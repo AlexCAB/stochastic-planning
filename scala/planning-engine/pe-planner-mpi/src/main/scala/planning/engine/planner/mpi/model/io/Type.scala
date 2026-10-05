@@ -17,7 +17,7 @@ import cats.syntax.ext.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.errors.assertionError
 
-trait Type[V]:
+sealed trait Type[V]:
   def isDefinedAt(index: IoIndex): Boolean
   def valueForIndex[F[_]: MT](index: IoIndex): F[V]
   def indexForValue[F[_]: MT](value: V): F[IoIndex]

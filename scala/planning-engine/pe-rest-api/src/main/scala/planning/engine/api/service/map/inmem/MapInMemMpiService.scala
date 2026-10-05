@@ -54,13 +54,13 @@ class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
     for
       _ <- Validation.validate(definition)
       _ <- Validation.validateList(definition.samples)
-      (mnIds, nodes) <- definition.toNodes
+      vars <- map.getIoVars
+      (mnIds, nodes) <- definition.toNodes(vars)
       _ <- logger.info(s"Built mnIds map = $mnIds")
       samples <- definition.toSamples(mnIds)
       ids <- map.addSamples(samples, nodes)
       _ <- logger.info(s"Added samples = $ids")
-      response <- ids.toMapAddSamplesResponse
-    yield response
+    yield ids.toMapAddSamplesResponse
 
 object MapInMemMpiService:
   def apply[F[_]: {Async, LoggerFactory}](map: MapMpi[F]): Resource[F, MapInMemMpiService[F]] =

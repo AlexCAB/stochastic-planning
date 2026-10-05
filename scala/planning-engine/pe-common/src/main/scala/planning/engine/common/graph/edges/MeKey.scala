@@ -94,10 +94,12 @@ object MeKey:
       def asSrcKey(src: MnId): Then = Then(src, id)
       def asTrgKey(trg: MnId): Then = Then(id, trg)
 
+  def apply(et: EdgeType, src: MnId, trg: MnId): MeKey = et match
+    case EdgeType.LINK => Link(src, trg)
+    case EdgeType.THEN => Then(src, trg)
+      
   def apply[F[_]: MT](et: EdgeType, src: HnId, trg: HnId, conMnId: Set[Con], absMnId: Set[Abs]): F[MeKey] =
     for
       srcMnId <- src.toMnId(conMnId, absMnId)
       trgMnId <- trg.toMnId(conMnId, absMnId)
-    yield et match
-      case EdgeType.LINK => Link(srcMnId, trgMnId)
-      case EdgeType.THEN => Then(srcMnId, trgMnId)
+    yield apply(et, srcMnId, trgMnId)

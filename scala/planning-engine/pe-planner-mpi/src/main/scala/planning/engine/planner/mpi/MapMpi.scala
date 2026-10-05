@@ -20,7 +20,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 import planning.engine.planner.mpi.map.MapMpiImpl
 import planning.engine.planner.mpi.model.data.map.Metadata
 
@@ -69,6 +69,9 @@ trait MapMpi[F[_]]:
 
   // Clean up the map network, stopping all actors and releasing resources.
   def reset(): F[Unit]
+  
+  // Return the current input and output variables of the map network.
+  def getIoVars: F[IoVars]
 
   // Add manually defined samples to the map network, associating them with the specified nodes.
   // More info in `Manager.addManSamples(...)` description.

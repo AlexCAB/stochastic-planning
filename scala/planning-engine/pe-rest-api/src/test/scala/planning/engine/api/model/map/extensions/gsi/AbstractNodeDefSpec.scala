@@ -14,7 +14,7 @@ package planning.engine.api.model.map.extensions.gsi
 
 import cats.effect.IO
 import cats.syntax.all.*
-import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 import planning.engine.api.model.map.payload.AbstractNodeDef
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.HnName

@@ -12,8 +12,8 @@
 
 package planning.engine.api.model.map.extensions.gsi
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.io.IoName
@@ -22,12 +22,12 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
 import planning.engine.api.model.map.MapAddSamplesRequest
-import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDef.toNew
-import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDefEx.toNew
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 
 object MapAddSamplesRequestEx:
   extension (request: MapAddSamplesRequest)
-    def listNewNotFoundHn[F[_]: MonadThrow](
+    def listNewNotFoundHn[F[_]: MT](
         foundHnNames: Set[HnName],
         getIoNode: IoName => F[IoNode[F]],
     ): F[(ConcreteNode.ListNew, AbstractNode.ListNew)] =
@@ -40,7 +40,7 @@ object MapAddSamplesRequestEx:
       conHns.traverse(_.toNew(getIoNode)).map: newConHns =>
         (ConcreteNode.ListNew(newConHns), AbstractNode.ListNew(absHns.map(_.toNew)))
 
-    def toSampleNewList[F[_]: MonadThrow](hnIdMap: Map[HnName, HnId]): F[Sample.ListNew] =
+    def toSampleNewList[F[_]: MT](hnIdMap: Map[HnName, HnId]): F[Sample.ListNew] =
       def getHnId(hnName: HnName): F[HnId] = hnIdMap.get(hnName) match
         case Some(id) => id.pure
         case _        => s"HnName $hnName not found in hnIdMap: $hnIdMap".assertionError

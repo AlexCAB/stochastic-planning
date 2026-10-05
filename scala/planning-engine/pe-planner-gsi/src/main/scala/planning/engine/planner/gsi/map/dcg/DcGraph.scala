@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.dcg
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{IndexMap, MeKey}
@@ -32,7 +32,7 @@ import scala.reflect.ClassTag
 // TODO May be move samples map to separate state in MapInMem,
 // TODO since samples is not part of graph structur. Or replace SampleId with SampleData
 // TODO in DcgSamples, since SampleData is not mutable and anyway it will be a object link.
-final case class DcGraph[F[_]: MonadThrow](
+final case class DcGraph[F[_]: MT](
     nodes: Map[MnId, DcgNode[F]],
     edges: Map[MeKey, DcgEdge[F]],
     samples: Map[SampleId, SampleData],
@@ -137,14 +137,14 @@ final case class DcGraph[F[_]: MonadThrow](
        |)""".stripMargin
 
 object DcGraph:
-  def empty[F[_]: MonadThrow]: DcGraph[F] = new DcGraph[F](
+  def empty[F[_]: MT]: DcGraph[F] = new DcGraph[F](
     nodes = Map.empty,
     edges = Map.empty,
     samples = Map.empty,
     structure = GraphStructure.empty,
   )
 
-  def apply[F[_]: MonadThrow](
+  def apply[F[_]: MT](
       nodes: Iterable[DcgNode[F]],
       edges: Iterable[DcgEdge[F]],
       samples: Iterable[SampleData],
@@ -160,7 +160,7 @@ object DcGraph:
       _ <- samplesMap.keySet.assertContainsAllOf(edgesSampleIds, "Some sample IDs used in edges are not found")
     yield new DcGraph(nodesMap, edgesMap, samplesMap, GraphStructure(edgesMap.keySet))
 
-  def apply[F[_]: MonadThrow](
+  def apply[F[_]: MT](
       nodes: Map[MnId, DcgNode[F]],
       edges: Map[MeKey, DcgEdge[F]],
       samples: Map[SampleId, SampleData],

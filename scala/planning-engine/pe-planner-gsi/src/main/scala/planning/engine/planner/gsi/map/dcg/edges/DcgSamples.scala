@@ -12,15 +12,15 @@
 
 package planning.engine.planner.gsi.map.dcg.edges
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.{IndexMap, Indexies, MeKey}
 import planning.engine.common.values.node.HnIndex
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge.SampleIndexies
 
-final case class DcgSamples[F[_]: MonadThrow](
+final case class DcgSamples[F[_]: MT](
     indexies: Map[SampleId, Indexies],
 ):
   lazy val size: Int = indexies.size
@@ -43,25 +43,25 @@ final case class DcgSamples[F[_]: MonadThrow](
     .mkString(", ")
 
 object DcgSamples:
-  def empty[F[_]: MonadThrow]: DcgSamples[F] = new DcgSamples(Map.empty)
+  def empty[F[_]: MT]: DcgSamples[F] = new DcgSamples(Map.empty)
 
-  def apply[F[_]: MonadThrow](sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): DcgSamples[F] =
+  def apply[F[_]: MT](sId: SampleId, srcInd: HnIndex, trgInd: HnIndex): DcgSamples[F] =
     new DcgSamples(Map(sId -> Indexies(srcInd, trgInd)))
 
-  def apply[F[_]: MonadThrow](indexies: Map[SampleId, Indexies]): F[DcgSamples[F]] =
+  def apply[F[_]: MT](indexies: Map[SampleId, Indexies]): F[DcgSamples[F]] =
     for
       _ <- indexies.map((_, i) => i.src).assertDistinct("Map edge can't have duplicate source index")
       _ <- indexies.map((_, i) => i.trg).assertDistinct("Map edge can't have duplicate target index")
     yield new DcgSamples(indexies)
 
-  def fromSamples[F[_]: MonadThrow](samples: Iterable[SampleIndexies]): F[DcgSamples[F]] =
+  def fromSamples[F[_]: MT](samples: Iterable[SampleIndexies]): F[DcgSamples[F]] =
     for
       _ <- samples.map(_.sampleId).assertDistinct("Map edge can't have duplicate sample")
       indexies = samples.map(s => s.sampleId -> Indexies(s.sourceIndex, s.targetIndex)).toMap
       dcgSamples <- DcgSamples(indexies)
     yield dcgSamples
 
-  def fromIndexMap[F[_]: MonadThrow](key: MeKey, indexMap: Map[SampleId, IndexMap]): F[DcgSamples[F]] =
+  def fromIndexMap[F[_]: MT](key: MeKey, indexMap: Map[SampleId, IndexMap]): F[DcgSamples[F]] =
     for
       indexies <- indexMap.toList.traverse((sId, ind) => ind.get(key.src, key.trg).map(i => sId -> i)).map(_.toMap)
       dcgSamples <- DcgSamples(indexies)

@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.dcg.samples
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{IndexMap, MeKey}
@@ -22,7 +22,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.map.samples.sample.{Sample, SampleData}
 import planning.engine.planner.gsi.map.repr.DcgSampleRepr
 
-final case class DcgSample[F[_]: MonadThrow](
+final case class DcgSample[F[_]: MT](
     data: SampleData,
     structure: GraphStructure[F],
 ) extends DcgSampleRepr[F]:
@@ -30,7 +30,7 @@ final case class DcgSample[F[_]: MonadThrow](
     s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
 
 object DcgSample:
-  final case class Add[F[_]: MonadThrow](
+  final case class Add[F[_]: MT](
       sample: DcgSample[F],
       indexMap: IndexMap, // Value indexies map should be provided from outside, from DB of from fast counts.
   ):
@@ -38,7 +38,7 @@ object DcgSample:
       .structure.keys
       .map(k => k -> (sample.data.id, indexMap))
 
-  def apply[F[_]: MonadThrow](
+  def apply[F[_]: MT](
       id: SampleId,
       sample: Sample.New,
       conMnId: Set[Con],
@@ -51,7 +51,7 @@ object DcgSample:
       structure = GraphStructure(keys.toSet)
     yield new DcgSample(data, structure)
 
-  def apply[F[_]: MonadThrow](data: SampleData, structure: GraphStructure[F]): F[DcgSample[F]] =
+  def apply[F[_]: MT](data: SampleData, structure: GraphStructure[F]): F[DcgSample[F]] =
     for
       _ <- data.probabilityCount.assertPositive("Sample probability count must be positive")
       _ <- structure.isConnected.assertTrue("DcgSample edges must form a connected graph")

@@ -12,13 +12,13 @@
 
 package planning.engine.common.graph.io
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.{assertDistinct, assertionError}
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId.Con
 
-final case class IoValueMap[F[_]: MonadThrow](
+final case class IoValueMap[F[_]: MT](
     valueMap: Map[IoValue, Set[Con]],
 ):
   lazy val isEmpty: Boolean = valueMap.isEmpty
@@ -42,9 +42,9 @@ final case class IoValueMap[F[_]: MonadThrow](
     .map(newIoValues => this.copy(valueMap = valueMap ++ newIoValues.toMap))
 
 object IoValueMap:
-  def empty[F[_]: MonadThrow]: IoValueMap[F] = new IoValueMap(Map.empty)
+  def empty[F[_]: MT]: IoValueMap[F] = new IoValueMap(Map.empty)
 
-  def apply[F[_]: MonadThrow](ioValues: Map[IoValue, Set[Con]]): F[IoValueMap[F]] =
+  def apply[F[_]: MT](ioValues: Map[IoValue, Set[Con]]): F[IoValueMap[F]] =
     for
         _ <- ioValues.values.flatMap(_.toList).assertDistinct("Two or more IoValue cant refer to the same MnId")
     yield new IoValueMap(ioValues)

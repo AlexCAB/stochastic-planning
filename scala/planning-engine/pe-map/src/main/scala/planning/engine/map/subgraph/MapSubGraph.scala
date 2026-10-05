@@ -12,7 +12,7 @@
 
 package planning.engine.map.subgraph
 
-import cats.MonadThrow
+import cats.syntax.ext.MT
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.sample.SampleId
@@ -20,7 +20,7 @@ import planning.engine.map.hidden.edge.HiddenEdge
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.samples.sample.SampleData
 
-final case class MapSubGraph[F[_]: MonadThrow](
+final case class MapSubGraph[F[_]: MT](
     concreteNodes: List[ConcreteNode[F]],
     abstractNodes: List[AbstractNode[F]],
     edges: List[HiddenEdge],
@@ -51,7 +51,7 @@ final case class MapSubGraph[F[_]: MonadThrow](
     )
 
 object MapSubGraph:
-  def emptySubGraph[F[_]: MonadThrow]: MapSubGraph[F] = MapSubGraph[F](
+  def emptySubGraph[F[_]: MT]: MapSubGraph[F] = MapSubGraph[F](
     concreteNodes = List.empty,
     abstractNodes = List.empty,
     edges = List.empty,

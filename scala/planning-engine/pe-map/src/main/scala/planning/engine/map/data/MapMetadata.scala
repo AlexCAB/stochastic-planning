@@ -12,8 +12,8 @@
 
 package planning.engine.map.data
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -25,11 +25,11 @@ final case class MapMetadata(
     name: Option[Name],
     description: Option[Description],
 ):
-  def toQueryParams[F[_]: MonadThrow]: F[Map[String, Param]] =
+  def toQueryParams[F[_]: MT]: F[Map[String, Param]] =
     paramsOf(PROP.NAME -> name.map(_.toDbParam), PROP.DESCRIPTION -> description.map(_.toDbParam))
 
 object MapMetadata:
-  def fromNode[F[_]: MonadThrow](node: Node): F[MapMetadata] = node match
+  def fromNode[F[_]: MT](node: Node): F[MapMetadata] = node match
     case n if n.is(ROOT_LABEL) =>
       for
         name <- node.getOptional[F, String](PROP.NAME).flatMap(Name.fromString)

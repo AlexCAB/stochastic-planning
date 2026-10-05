@@ -12,8 +12,8 @@
 
 package planning.engine.map.io.variable
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -21,12 +21,12 @@ import planning.engine.common.properties.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-abstract class ListStrIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, String]:
+abstract class ListStrIoVariableLike[F[_]: MT] extends IoVariable[F, String]:
   def elements: List[String]
   def valueForIndex(index: IoIndex): F[String]
   def indexForValue(value: String): F[IoIndex]
 
-final case class ListStrIoVariable[F[_]: MonadThrow](elements: List[String]) extends ListStrIoVariableLike[F]:
+final case class ListStrIoVariable[F[_]: MT](elements: List[String]) extends ListStrIoVariableLike[F]:
 
   override def valueForIndex(index: IoIndex): F[String] =
     if elements.isDefinedAt(index.value.toInt) then elements(index.value.toInt).pure
@@ -44,5 +44,5 @@ final case class ListStrIoVariable[F[_]: MonadThrow](elements: List[String]) ext
   override lazy val toString: String = s"ListStrIoVariable(elements = [${elements.mkString(", ")}])"
 
 object ListStrIoVariable:
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[ListStrIoVariable[F]] =
+  def fromProperties[F[_]: MT](properties: Map[String, Value]): F[ListStrIoVariable[F]] =
     properties.getList[F, String](PROP.DOMAIN).map(es => ListStrIoVariable(es))

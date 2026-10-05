@@ -12,9 +12,9 @@
 
 package planning.engine.map.io.node
 
-import cats.MonadThrow
 import cats.effect.kernel.Concurrent
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -24,7 +24,7 @@ import planning.engine.common.values.db.Neo4j.{IN_LABEL, IO_LABEL, Label, OUT_LA
 import planning.engine.common.values.io.IoName
 import planning.engine.map.io.variable.IoVariable
 
-trait IoNode[F[_]: MonadThrow] extends Validation:
+trait IoNode[F[_]: MT] extends Validation:
   val name: IoName
   val variable: IoVariable[F, ?]
 
@@ -65,6 +65,6 @@ object IoNode:
       yield ioNode
     case _ => s"Not a IO node: $node".assertionError
 
-  def nameFromNode[F[_]: MonadThrow](node: Node): F[IoName] = node match
+  def nameFromNode[F[_]: MT](node: Node): F[IoName] = node match
     case n if n.is(IO_LABEL) => node.properties.getValue[F, String](PROP.NAME).flatMap(IoName.fromString)
     case _                   => s"Not a IO node: $node".assertionError

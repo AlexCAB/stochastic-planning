@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.data
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.{MeKey, MeKeySet}
@@ -27,13 +27,13 @@ import planning.engine.planner.gsi.map.repr.ActiveAbsDagRepr
 // Is DAG where leafs are concrete hidden nodes and rest of the tree is abstract hidden nodes.
 // Edges with type LINK pointed form higher abstract root nodes to concrete leaf nodes.
 // Also include THEN edges to previous nodes.
-final case class ActiveAbsDag[F[_]: MonadThrow](
+final case class ActiveAbsDag[F[_]: MT](
     backwordKeys: MeKeySet[MeKey.Then], // Targets of THEN edges is nodes in this graph
     graph: DcGraph[F],
 ) extends ActiveAbsDagRepr[F]
 
 object ActiveAbsDag:
-  def apply[F[_]: MonadThrow](
+  def apply[F[_]: MT](
       nodes: Iterable[DcgNode[F]],
       linkEdges: Iterable[DcgEdge[F]],
       backThenKeys: Set[MeKey.Then],

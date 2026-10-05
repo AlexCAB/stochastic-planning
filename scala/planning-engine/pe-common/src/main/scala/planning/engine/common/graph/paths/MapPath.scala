@@ -12,9 +12,9 @@
 
 package planning.engine.common.graph.paths
 
-import cats.MonadThrow
 import cats.data.NonEmptyChain
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey.End
 import planning.engine.common.values.node.MnId
@@ -35,7 +35,7 @@ sealed trait MapPath:
   override lazy val toString: String = s"$reprType(${reprChain})"
 
 object MapPath:
-  private[paths] def makePath[F[_]: MonadThrow, P <: MapPath](
+  private[paths] def makePath[F[_]: MT, P <: MapPath](
       walk: Vector[(MnId, End)],
       make: NonEmptyChain[(MnId, End)] => P,
   ): F[P] =
@@ -48,14 +48,14 @@ object MapPath:
   final case class Direct(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Direct:
-    def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Direct] = makePath(walk, Direct.apply)
+    def apply[F[_]: MT](walk: Vector[(MnId, End)]): F[Direct] = makePath(walk, Direct.apply)
 
   final case class Loop(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Loop:
-    def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Loop] = makePath(walk, Loop.apply)
+    def apply[F[_]: MT](walk: Vector[(MnId, End)]): F[Loop] = makePath(walk, Loop.apply)
 
   final case class Noose(walk: NonEmptyChain[(MnId, End)]) extends MapPath
 
   object Noose:
-    def apply[F[_]: MonadThrow](walk: Vector[(MnId, End)]): F[Noose] = makePath(walk, Noose.apply)
+    def apply[F[_]: MT](walk: Vector[(MnId, End)]): F[Noose] = makePath(walk, Noose.apply)

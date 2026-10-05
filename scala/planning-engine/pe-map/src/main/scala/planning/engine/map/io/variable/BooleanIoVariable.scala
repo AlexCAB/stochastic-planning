@@ -12,8 +12,8 @@
 
 package planning.engine.map.io.variable
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -21,12 +21,12 @@ import planning.engine.common.properties.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.BOOL_TYPE
 
-abstract class BooleanIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Boolean]:
+abstract class BooleanIoVariableLike[F[_]: MT] extends IoVariable[F, Boolean]:
   def acceptableValues: Set[Boolean]
   def valueForIndex(index: IoIndex): F[Boolean]
   def indexForValue(value: Boolean): F[IoIndex]
 
-final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boolean]) extends BooleanIoVariableLike[F]:
+final case class BooleanIoVariable[F[_]: MT](acceptableValues: Set[Boolean]) extends BooleanIoVariableLike[F]:
 
   override def valueForIndex(index: IoIndex): F[Boolean] = index match
     case IoIndex(0) if acceptableValues.contains(false) => false.pure
@@ -45,5 +45,5 @@ final case class BooleanIoVariable[F[_]: MonadThrow](acceptableValues: Set[Boole
   override lazy val toString: String = s"BooleanIoVariable(acceptableValues = [${acceptableValues.mkString(", ")}])"
 
 object BooleanIoVariable:
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[BooleanIoVariable[F]] =
+  def fromProperties[F[_]: MT](properties: Map[String, Value]): F[BooleanIoVariable[F]] =
     properties.getList[F, Boolean](PROP.DOMAIN).map(bs => BooleanIoVariable(bs.toSet))

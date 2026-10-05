@@ -12,7 +12,7 @@
 
 package planning.engine.map.config
 
-import cats.MonadThrow
+import cats.syntax.ext.MT
 import cats.effect.Sync
 import com.typesafe.config.Config
 import neotypes.query.QueryArg.Param
@@ -27,11 +27,11 @@ final case class MapConfig(
     initSampleCount: Long,
     initNextHnIndex: Long,
 ):
-  def toRootParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+  def toRootParams[F[_]: MT]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_HN_ID -> initNextHnId.toDbParam,
   )
 
-  def toSamplesParams[F[_]: MonadThrow]: F[Map[String, Param]] = paramsOf(
+  def toSamplesParams[F[_]: MT]: F[Map[String, Param]] = paramsOf(
     PROP.NEXT_SAMPLES_ID -> initNextSampleId.toDbParam,
     PROP.SAMPLES_COUNT -> initSampleCount.toDbParam,
     PROP.NAME -> SAMPLES_LABEL.toDbParam,

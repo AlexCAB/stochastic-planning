@@ -12,25 +12,25 @@
 
 package planning.engine.planner.mpi.model.io
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.errors.assertionError
 
 trait Type[V]:
   def isDefinedAt(index: IoIndex): Boolean
-  def valueForIndex[F[_]: MonadThrow](index: IoIndex): F[V]
-  def indexForValue[F[_]: MonadThrow](value: V): F[IoIndex]
+  def valueForIndex[F[_]: MT](index: IoIndex): F[V]
+  def indexForValue[F[_]: MT](value: V): F[IoIndex]
 
 object Type:
   final case class N(min: Long, max: Long) extends Type[Long]:
     override def isDefinedAt(index: IoIndex): Boolean = min <= index.value && index.value <= max
 
-    override def valueForIndex[F[_]: MonadThrow](index: IoIndex): F[Long] =
+    override def valueForIndex[F[_]: MT](index: IoIndex): F[Long] =
       if isDefinedAt(index) then index.value.pure
       else s"Index $index not in range [$min, $max]".assertionError
 
-    override def indexForValue[F[_]: MonadThrow](value: Long): F[IoIndex] =
+    override def indexForValue[F[_]: MT](value: Long): F[IoIndex] =
       if value >= min && value <= max then IoIndex(value).pure
       else s"Value $value not in range [$min, $max]".assertionError
 
@@ -45,14 +45,14 @@ object Type:
       val value = toValue(index)
       min <= value && value <= max
 
-    override def valueForIndex[F[_]: MonadThrow](index: IoIndex): F[Double] =
+    override def valueForIndex[F[_]: MT](index: IoIndex): F[Double] =
       val value = toValue(index)
       if isDefinedAt(index) then value.pure
       else s"Value $value not in range [$min, $max], for index $index".assertionError
 
     override def toString: String = s"[$min, $max]"
 
-    override def indexForValue[F[_]: MonadThrow](value: Double): F[IoIndex] =
+    override def indexForValue[F[_]: MT](value: Double): F[IoIndex] =
       if value >= min && value <= max then IoIndex((value * scaling).toLong).pure
       else s"Value $value not in range [$min, $max]".assertionError
 
@@ -62,12 +62,12 @@ object Type:
       case 1 => acceptable.contains(true)
       case _ => false
 
-    def valueForIndex[F[_]: MonadThrow](index: IoIndex): F[Boolean] = index.value match
+    def valueForIndex[F[_]: MT](index: IoIndex): F[Boolean] = index.value match
       case 0 if acceptable.contains(false) => false.pure
       case 1 if acceptable.contains(true)  => true.pure
       case _ => s"Invalid index ($index) or not in acceptable values: $acceptable".assertionError
 
-    def indexForValue[F[_]: MonadThrow](value: Boolean): F[IoIndex] =
+    def indexForValue[F[_]: MT](value: Boolean): F[IoIndex] =
       if acceptable.contains(value) then IoIndex(if value then 1 else 0).pure
       else s"Value '$value' not in acceptable values: $acceptable".assertionError
 
@@ -77,11 +77,11 @@ object Type:
     override def isDefinedAt(index: IoIndex): Boolean =
       index.value <= Int.MaxValue && options.isDefinedAt(index.value.toInt)
 
-    override def valueForIndex[F[_]: MonadThrow](index: IoIndex): F[String] =
+    override def valueForIndex[F[_]: MT](index: IoIndex): F[String] =
       if isDefinedAt(index) then options(index.value.toInt).pure
       else s"Index $index out of bounds for options list of size ${options.size}".assertionError
 
-    override def indexForValue[F[_]: MonadThrow](value: String): F[IoIndex] = options.indexOf(value) match
+    override def indexForValue[F[_]: MT](value: String): F[IoIndex] = options.indexOf(value) match
       case -1 => s"Value $value not in options list: $options".assertionError
       case i  => IoIndex(i).pure
 

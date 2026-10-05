@@ -12,8 +12,8 @@
 
 package planning.engine.map.samples.sample
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.{assertionError, *}
 import planning.engine.common.properties.*
@@ -77,7 +77,7 @@ object Sample:
       edges.nonEmpty -> "At least one edge must be provided",
     )
 
-    def findHnIndexies[F[_]: MonadThrow](hnInsToHnIndex: Map[HnId, List[HnIndex]])
+    def findHnIndexies[F[_]: MT](hnInsToHnIndex: Map[HnId, List[HnIndex]])
         : F[(Map[HnId, List[HnIndex]], Map[HnId, HnIndex])] = hnIds
       .foldRight((Map[HnId, List[HnIndex]](), Map[HnId, HnIndex]()).pure):
         case (hnId, acc) => hnInsToHnIndex.get(hnId) match
@@ -85,7 +85,7 @@ object Sample:
             case _ => s"Missing HnIndex for hnId = $hnId, in hnInsToHnIndex = $hnInsToHnIndex".assertionError
       .map((ixs, ix) => (ixs ++ hnInsToHnIndex.filterNot((id, _) => hnIds.contains(id)), ix))
 
-    def toQueryParams[F[_]: MonadThrow](sampleId: SampleId): F[Map[String, Param]] = paramsOf(
+    def toQueryParams[F[_]: MT](sampleId: SampleId): F[Map[String, Param]] = paramsOf(
       PROP.SAMPLE_ID -> sampleId.toDbParam,
       PROP.PROBABILITY_COUNT -> probabilityCount.toDbParam,
       PROP.UTILITY -> utility.toDbParam,
@@ -119,7 +119,7 @@ object Sample:
   object ListNew:
     def of(samples: New*): ListNew = ListNew(samples.toList)
 
-  def formNew[F[_]: MonadThrow](
+  def formNew[F[_]: MT](
       id: SampleId,
       newData: Sample.New,
       hnIndexes: Map[HnId, HnIndex],
@@ -130,7 +130,7 @@ object Sample:
       data = newData.toSampleData(id)
     yield Sample(data = data, edges = edges.toSet)
 
-  def formDataMap[F[_]: MonadThrow](
+  def formDataMap[F[_]: MT](
       id: SampleId,
       sampleDataMap: Map[SampleId, SampleData],
       edgesMap: Map[SampleId, List[SampleEdge]],

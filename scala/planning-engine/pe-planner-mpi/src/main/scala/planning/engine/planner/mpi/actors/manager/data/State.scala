@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.manager.data
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.MnId.Nim
 import planning.engine.common.values.node.{HnName, MnId}
@@ -42,7 +42,7 @@ private[manager] final case class State(
 ) extends Representable:
   import State.*
 
-  def withNewNodes[F[_]: MonadThrow](
+  def withNewNodes[F[_]: MT](
       data: Map[Nim, NodeData],
       spawn: (Long, NodeData) => F[Node],
   ): F[(Map[Nim, Node], State)] =
@@ -66,7 +66,7 @@ private[manager] final case class State(
       _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
     yield (nodes.toMap, updateState(nodes.map(_._2)))
 
-  private def withNewSamples[F[_]: MonadThrow, S](
+  private def withNewSamples[F[_]: MT, S](
       samples: Set[S],
       makeData: S => SampleData,
   ): F[(Map[SampleId, S], State)] =
@@ -81,32 +81,32 @@ private[manager] final case class State(
       withData = withIds.map((id, sample) => id -> makeData(sample))
     yield (withIds, updateState(withData))
 
-  def withNewManSamples[F[_]: MonadThrow](
+  def withNewManSamples[F[_]: MT](
       samples: Set[Sample.Man],
       nodes: Set[Node],
   ): F[(Map[SampleId, Sample.Man], State)] =
     withNewSamples(samples, sample => SampleData(sample.props, Some(sample.info), nodes))
 
-  def withNewGenSamples[F[_]: MonadThrow](
+  def withNewGenSamples[F[_]: MT](
       samples: Set[Sample.Gen],
       nodes: Set[Node],
   ): F[(Map[SampleId, Sample.Gen], State)] = withNewSamples(samples, sample => SampleData(sample.props, None, nodes))
 
-  def getNode[F[_]: MonadThrow](id: MnId): F[Node] = nodeRefMap.get(id) match
+  def getNode[F[_]: MT](id: MnId): F[Node] = nodeRefMap.get(id) match
     case Some(node) => node.pure
     case None       => s"Node ID $id not found in state".assertionError
 
-  def getNodes[F[_]: MonadThrow](ids: Set[MnId]): F[Set[Node]] =
+  def getNodes[F[_]: MT](ids: Set[MnId]): F[Set[Node]] =
     for
         _ <- nodeRefMap.keySet.assertContainsAllOf(ids, "Some node IDs not found in state")
     yield nodeRefMap.view.filterKeys(ids.contains).values.toSet
 
-  def getSamples[F[_]: MonadThrow](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
+  def getSamples[F[_]: MT](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
     for
         _ <- sampleDataMap.keySet.assertContainsAllOf(ids, "Some sample IDs not found in state")
     yield sampleDataMap.view.filterKeys(ids.contains).toMap
 
-  def findByName[F[_]: MonadThrow](name: HnName): F[Option[Node]] = nodeNameMap.get(name) match
+  def findByName[F[_]: MT](name: HnName): F[Option[Node]] = nodeNameMap.get(name) match
     case Some(ids) if ids.size == 1 => getNode(ids.head).map(Some(_))
     case Some(ids) => s"Expected exactly one node ID for name '$name', got: ${ids.mkString(", ")}".assertionError
     case None      => None.pure

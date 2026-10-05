@@ -12,8 +12,8 @@
 
 package planning.engine.map.hidden.node
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.{Node, Value}
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -23,7 +23,7 @@ import planning.engine.common.values.db.Neo4j.{ABSTRACT_LABEL, HN_LABEL}
 import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.common.values.text.Description
 
-final case class AbstractNode[F[_]: MonadThrow](
+final case class AbstractNode[F[_]: MT](
     id: HnId,
     name: Option[HnName],
     description: Option[Description],
@@ -38,7 +38,7 @@ object AbstractNode:
       name.forall(_.value.nonEmpty) -> "Name must not be empty if defined",
     )
 
-    def toProperties[F[_]: MonadThrow](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
+    def toProperties[F[_]: MT](id: HnId, initNextHnIndex: Long): F[Map[String, Param]] = paramsOf(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.map(_.toDbParam),
       PROP.DESCRIPTION -> description.map(_.toDbParam),
@@ -50,7 +50,7 @@ object AbstractNode:
   object ListNew:
     def of(elems: New*): ListNew = ListNew(elems.toList)
 
-  def fromNode[F[_]: MonadThrow](node: Node): F[AbstractNode[F]] = node match
+  def fromNode[F[_]: MT](node: Node): F[AbstractNode[F]] = node match
     case n if n.is(HN_LABEL) && n.is(ABSTRACT_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.HN_ID).map(HnId.apply)

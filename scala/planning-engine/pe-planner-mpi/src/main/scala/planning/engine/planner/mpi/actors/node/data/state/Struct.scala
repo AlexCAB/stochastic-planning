@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.node.data.state
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
@@ -51,7 +51,7 @@ private[node] final case class Struct(
   // TODO:     1.2. (probability, utility) = calculate based on reCalcSamples.map(_.values) and totalSamplesCount
   // TODO:   2. outgoingMap.filter(probability * utility > threshold).foreach(send InferenceMsg to next Node)
 
-  private def upsertEdgeMap[F[_]: MonadThrow](
+  private def upsertEdgeMap[F[_]: MT](
       edgeMap: Map[MnId, EdgeData],
       mnId: MnId,
       node: Node,
@@ -61,7 +61,7 @@ private[node] final case class Struct(
     case Some(EdgeData(n, _)) => s"Edge reference mismatch: expected ${n.mnId}, got ${node.mnId}".assertionError
     case None                 => (edgeMap + (mnId -> EdgeData(node, sampleIds))).pure
 
-  private def upsertSampleMap[F[_]: MonadThrow](
+  private def upsertSampleMap[F[_]: MT](
       props: Map[SampleId, Sample.Props],
   ): F[(Map[SampleId, SampleData], Long)] = props.toList.foldLeftM((sampleMap, nextHnIndex)):
     case ((samples, nextId), (sId, p)) if samples.contains(sId) && samples(sId).props == p =>
@@ -73,7 +73,7 @@ private[node] final case class Struct(
 
   // Edge source (meRef.key.src) is this node, target is next neighbor node.
   // Update outgoingMap with new edge data.
-  def upsertEdgeSrc[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
+  def upsertEdgeSrc[F[_]: MT](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
     for
       _ <- meRef.key.trg.assertEquals(meRef.trgNode.mnId, "Edge target node does not match meRef target")
       newOutgoing <- upsertEdgeMap(outgoingMap, meRef.key.trg, meRef.trgNode, props.keySet)
@@ -86,7 +86,7 @@ private[node] final case class Struct(
 
   // Edge target (meRef.key.trg) is this node, source is previous neighbor node.
   // Update incomingMap with new edge data.
-  def upsertEdgeTrg[F[_]: MonadThrow](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
+  def upsertEdgeTrg[F[_]: MT](meRef: MeRef, props: Map[SampleId, Sample.Props]): F[Struct] =
     for
       _ <- meRef.key.src.assertEquals(meRef.srcNode.mnId, "Edge source node does not match meRef source")
       newIncoming <- upsertEdgeMap(incomingMap, meRef.key.src, meRef.srcNode, props.keySet)
@@ -97,7 +97,7 @@ private[node] final case class Struct(
       sampleMap = newSampleMap,
     )
 
-  def withTotalSamplesCount[F[_]: MonadThrow](count: Long): F[Struct] = this.copy(totalSamplesCount = count).pure
+  def withTotalSamplesCount[F[_]: MT](count: Long): F[Struct] = this.copy(totalSamplesCount = count).pure
 
 private[node] object Struct:
   final case class EdgeData(neighbor: Node, sampleIds: Set[SampleId])

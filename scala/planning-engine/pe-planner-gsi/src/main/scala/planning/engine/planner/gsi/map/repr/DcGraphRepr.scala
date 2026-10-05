@@ -12,15 +12,15 @@
 
 package planning.engine.planner.gsi.map.repr
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.repr.StructureReprBase
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.gsi.map.dcg.DcGraph
 
-class DcGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
+class DcGraphRepr[F[_]: MT] extends StructureReprBase[F]:
   self: DcGraph[F] =>
 
   private[repr] def srcNode(id: MnId): String = nodes.get(id).map(_.repr).getOrElse(id.reprNode)

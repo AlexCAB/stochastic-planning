@@ -12,12 +12,12 @@
 //
 //package planning.engine.planner.plan.state
 //
-//import cats.MonadThrow
+//
 //import planning.engine.common.values.node.SnId
 //import planning.engine.planner.map.dcg.nodes.DcgNode
 //import planning.engine.planner.plan.dag.nodes.DagNode
 //
-//final case class DagState[F[_]: MonadThrow](
+//final case class DagState[F[_]: MT](
 //    contextConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
 //    contextAbsNodes: Map[SnId, DagNode[F, DcgNode.Abstract[F]]],
 //    planConNodes: Map[SnId, DagNode[F, DcgNode.Concrete[F]]],
@@ -29,7 +29,7 @@
 //)
 //
 //object DagState:
-//  def empty[F[_]: MonadThrow]: DagState[F] = DagState(
+//  def empty[F[_]: MT]: DagState[F] = DagState(
 //    contextConNodes = Map.empty,
 //    contextAbsNodes = Map.empty,
 //    planConNodes = Map.empty,

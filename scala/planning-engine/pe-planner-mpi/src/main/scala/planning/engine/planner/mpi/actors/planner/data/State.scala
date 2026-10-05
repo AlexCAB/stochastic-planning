@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.planner.data
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
@@ -28,7 +28,7 @@ private[planner] final case class State(
 ) extends Representable:
   import State.*
 
-  def withNewInNodes[F[_]: MonadThrow](nodes: Set[Node.Con]): F[State] =
+  def withNewInNodes[F[_]: MT](nodes: Set[Node.Con]): F[State] =
     def addNode(acc: InNodes, node: Node.Con): InNodes =
       val index = node.ioValue.index
       val name = node.ioValue.name
@@ -41,7 +41,7 @@ private[planner] final case class State(
 
     copy(inputNodes = nodes.foldLeft(inputNodes)(addNode)).pure
 
-  def withNewOutNodes[F[_]: MonadThrow](nodes: Set[Node.Con]): F[State] =
+  def withNewOutNodes[F[_]: MT](nodes: Set[Node.Con]): F[State] =
     def addNode(acc: OutNodes, node: Node.Con): OutNodes = acc.updated(node.mnId, node)
 
     copy(outputNodes = nodes.foldLeft(outputNodes)(addNode)).pure

@@ -12,14 +12,14 @@
 
 package planning.engine.planner.gsi.plan.dag.nodes
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.assertEquals
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 
-final case class DagNode[F[_]: MonadThrow](
+final case class DagNode[F[_]: MT](
     id: PnId,
 
     // Agent world time (step), it set for active nodes, i.e. for nodes in context.
@@ -39,7 +39,7 @@ final case class DagNode[F[_]: MonadThrow](
   override lazy val toString: String = s"${dcgNode.repr}_${time.repr}"
 
 object DagNode:
-  def apply[F[_]: MonadThrow](id: PnId, time: Option[IoTime], dcgNode: DcgNode[F]): F[DagNode[F]] =
+  def apply[F[_]: MT](id: PnId, time: Option[IoTime], dcgNode: DcgNode[F]): F[DagNode[F]] =
     for
         _ <- id.mnId.assertEquals(dcgNode.id, "MnIds must match between PnId and DcgNode")
     yield new DagNode(id, time, dcgNode)

@@ -12,8 +12,8 @@
 
 package planning.engine.common.graph
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
@@ -25,7 +25,7 @@ import scala.annotation.tailrec
 
 // Set of algorithms for tracing of graph structure,
 // e.g. for finding paths between nodes, finding cycles, etc.
-trait GraphTracing[F[_]: MonadThrow]:
+trait GraphTracing[F[_]: MT]:
   self: GraphStructure[F] =>
 
   private[graph] def findInEdgeMap[E <: MeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =

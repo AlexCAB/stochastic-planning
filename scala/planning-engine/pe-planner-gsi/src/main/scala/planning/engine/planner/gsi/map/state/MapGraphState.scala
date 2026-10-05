@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.state
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.io.IoValueMap
 import planning.engine.common.values.io.IoValue
@@ -22,7 +22,7 @@ import planning.engine.planner.gsi.map.dcg.DcGraph
 import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
-final case class MapGraphState[F[_]: MonadThrow](
+final case class MapGraphState[F[_]: MT](
     ioValues: IoValueMap[F],
     graph: DcGraph[F],
 ):
@@ -60,12 +60,12 @@ final case class MapGraphState[F[_]: MonadThrow](
   override lazy val toString: String = s"DcgState(nodes count = ${graph.nodes.size}, edges count = ${graph.edges.size})"
 
 object MapGraphState:
-  def empty[F[_]: MonadThrow]: MapGraphState[F] = new MapGraphState[F](
+  def empty[F[_]: MT]: MapGraphState[F] = new MapGraphState[F](
     ioValues = IoValueMap.empty,
     graph = DcGraph.empty,
   )
 
-  def apply[F[_]: MonadThrow](ioValues: IoValueMap[F], graph: DcGraph[F]): F[MapGraphState[F]] =
+  def apply[F[_]: MT](ioValues: IoValueMap[F], graph: DcGraph[F]): F[MapGraphState[F]] =
     for
       _ <- graph.conMnId.assertSameElems(ioValues.allMnIds, "Con MnId in ioValues refer to unknown nodes in graph")
       _ <- graph.ioValues.assertSameElems(ioValues.keySet, "IoValues refer to unknown nodes in graph")

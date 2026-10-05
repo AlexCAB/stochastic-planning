@@ -15,7 +15,7 @@ package planning.engine.api.service.map.inmem
 import cats.effect.IO
 import cats.effect.cps.*
 import org.mockito.scalatest.AsyncIdiomaticMockito
-import planning.engine.api.model.map.extensions.gsi.AbstractNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
 import planning.engine.api.service.map.inmem.MapInMemGsiService

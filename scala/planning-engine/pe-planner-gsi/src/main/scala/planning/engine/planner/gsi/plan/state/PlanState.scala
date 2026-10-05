@@ -12,10 +12,10 @@
 
 package planning.engine.planner.gsi.plan.state
 
-import cats.MonadThrow
+import cats.syntax.ext.MT
 import planning.engine.planner.gsi.plan.dag.DaGraph
 
-final case class PlanState[F[_]: MonadThrow](
+final case class PlanState[F[_]: MT](
     graph: DaGraph[F],
 
     // ??? Also here ia separation of graph to context and plan

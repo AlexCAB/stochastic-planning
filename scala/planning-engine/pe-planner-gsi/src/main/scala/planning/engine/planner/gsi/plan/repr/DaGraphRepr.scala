@@ -12,15 +12,15 @@
 
 package planning.engine.planner.gsi.plan.repr
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.graph.edges.PeKey.Link
 import planning.engine.common.repr.StructureReprBase
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.gsi.plan.dag.DaGraph
 
-trait DaGraphRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
+trait DaGraphRepr[F[_]: MT] extends StructureReprBase[F]:
   self: DaGraph[F] =>
 
   private[repr] def renderSrc(id: PnId): String = nodes.get(id).map(_.repr).getOrElse(id.repr)

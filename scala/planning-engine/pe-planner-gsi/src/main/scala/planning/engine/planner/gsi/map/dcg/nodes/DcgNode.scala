@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.dcg.nodes
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.StringVal
 import planning.engine.common.values.node.{HnName, MnId}
@@ -21,7 +21,7 @@ import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 
-sealed trait DcgNode[F[_]: MonadThrow]:
+sealed trait DcgNode[F[_]: MT]:
   def id: MnId
   def name: Option[HnName]
   def asConcrete: Option[DcgNode.Concrete[F]]
@@ -35,7 +35,7 @@ sealed trait DcgNode[F[_]: MonadThrow]:
     case _: DcgNode.Abstract[F]  => s"($idRepr)"
 
 object DcgNode:
-  final case class Concrete[F[_]: MonadThrow](
+  final case class Concrete[F[_]: MT](
       id: MnId.Con,
       name: Option[HnName],
       description: Option[Description],
@@ -47,7 +47,7 @@ object DcgNode:
     override lazy val toString: String = s"[C, $idRepr, ${ioValue.toString}]"
 
   object Concrete:
-    def apply[F[_]: MonadThrow](node: ConcreteNode[F]): F[Concrete[F]] = new Concrete[F](
+    def apply[F[_]: MT](node: ConcreteNode[F]): F[Concrete[F]] = new Concrete[F](
       id = node.id.asCon,
       name = node.name,
       description = node.description,
@@ -55,7 +55,7 @@ object DcgNode:
       valueIndex = node.valueIndex,
     ).pure
 
-    def apply[F[_]: MonadThrow](
+    def apply[F[_]: MT](
         hnId: MnId.Con,
         node: ConcreteNode.New,
         getIoNode: IoName => F[IoNode[F]],
@@ -70,7 +70,7 @@ object DcgNode:
         valueIndex = node.valueIndex,
       )
 
-  final case class Abstract[F[_]: MonadThrow](
+  final case class Abstract[F[_]: MT](
       id: MnId.Abs,
       name: Option[HnName],
       description: Option[Description],
@@ -79,13 +79,13 @@ object DcgNode:
     override lazy val toString: String = s"(A, $idRepr)"
 
   object Abstract:
-    def apply[F[_]: MonadThrow](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](
+    def apply[F[_]: MT](node: AbstractNode[F]): F[Abstract[F]] = new Abstract[F](
       id = node.id.asAbs,
       name = node.name,
       description = node.description,
     ).pure
 
-    def apply[F[_]: MonadThrow](hnId: MnId.Abs, node: AbstractNode.New): F[Abstract[F]] = new Abstract[F](
+    def apply[F[_]: MT](hnId: MnId.Abs, node: AbstractNode.New): F[Abstract[F]] = new Abstract[F](
       id = hnId,
       name = node.name,
       description = node.description,

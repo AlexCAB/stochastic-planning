@@ -16,7 +16,7 @@ import cats.effect.IO
 import cats.effect.cps.*
 import io.circe.Json
 import org.mockito.scalatest.AsyncIdiomaticMockito
-import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDef.toNew
+import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDefEx.toNew
 import planning.engine.api.model.map.payload.ConcreteNodeDef
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}

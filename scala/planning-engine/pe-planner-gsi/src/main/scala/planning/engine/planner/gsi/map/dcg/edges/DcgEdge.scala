@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.map.dcg.edges
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.{IndexMap, MeKey}
@@ -21,7 +21,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.edge.HiddenEdge
 
-final case class DcgEdge[F[_]: MonadThrow](
+final case class DcgEdge[F[_]: MT](
     key: MeKey,
     samples: DcgSamples[F],
 ):
@@ -42,7 +42,7 @@ final case class DcgEdge[F[_]: MonadThrow](
   override lazy val toString: String = s"$edgeType(${key.src.reprNode}->${key.trg.reprNode}, {$samples})"
 
 object DcgEdge:
-  def apply[F[_]: MonadThrow](edge: HiddenEdge, conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[DcgEdge[F]] =
+  def apply[F[_]: MT](edge: HiddenEdge, conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[DcgEdge[F]] =
     for
       srcMnId <- edge.sourceId.toMnId(conIds, absIds)
       trgMnId <- edge.targetId.toMnId(conIds, absIds)
@@ -51,5 +51,5 @@ object DcgEdge:
       case EdgeType.LINK => new DcgEdge(MeKey.Link(srcMnId, trgMnId), samples)
       case EdgeType.THEN => new DcgEdge(MeKey.Then(srcMnId, trgMnId), samples)
 
-  def apply[F[_]: MonadThrow](key: MeKey, ids: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
+  def apply[F[_]: MT](key: MeKey, ids: Map[SampleId, IndexMap]): F[DcgEdge[F]] =
     DcgSamples.fromIndexMap(key, ids).map(samples => new DcgEdge(key, samples))

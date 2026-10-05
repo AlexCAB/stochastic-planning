@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.node.data
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.manager.Manager
@@ -29,9 +29,9 @@ private[node] sealed trait Definition:
   def data: NodeData
   def actors: Definition.Actors
 
-  def self[F[_]: MonadThrow](using ctx: Actor.Ctx): F[Node] = ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
+  def self[F[_]: MT](using ctx: Actor.Ctx): F[Node] = ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
 
-  def checkIdAndNode[F[_]: MonadThrow](id: MnId, node: Node)(using ctx: Actor.Ctx): F[Unit] =
+  def checkIdAndNode[F[_]: MT](id: MnId, node: Node)(using ctx: Actor.Ctx): F[Unit] =
     for
       _ <- id.assertEquals(this.id, "Given ID does not match this node's ID")
       self <- this.self[F]
@@ -59,7 +59,7 @@ object Definition:
       planner: Planner,
   )
 
-  def apply[F[_]: MonadThrow](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
+  def apply[F[_]: MT](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
     case (id: MnId.Con, data: NodeData.Con) => ConDef(id, data, actors).pure[F]
     case (id: MnId.Abs, data: NodeData.Abs) => AbsDef(id, data, actors).pure[F]
     case _                                  => "Invalid combination of id and data".assertionError

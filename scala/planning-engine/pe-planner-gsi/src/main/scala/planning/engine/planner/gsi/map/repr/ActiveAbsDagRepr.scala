@@ -12,12 +12,12 @@
 
 package planning.engine.planner.gsi.map.repr
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.repr.StructureReprBase
 import planning.engine.planner.gsi.map.data.ActiveAbsDag
 
-trait ActiveAbsDagRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
+trait ActiveAbsDagRepr[F[_]: MT] extends StructureReprBase[F]:
   self: ActiveAbsDag[F] =>
 
   lazy val repr: F[String] =

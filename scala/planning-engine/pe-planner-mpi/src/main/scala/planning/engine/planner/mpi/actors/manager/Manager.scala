@@ -13,6 +13,7 @@
 package planning.engine.planner.mpi.actors.manager
 
 import cats.MonadThrow
+import cats.syntax.ext.MT
 import cats.effect.Async
 import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
@@ -84,12 +85,12 @@ private[mpi] trait Manager:
   // Report an error that occurred in a NodeActor:
   // In simple implementation it will just terminate the manager actor and all its children nodes actors,
   // but in future it may be extended to support more complex error handling.
-  def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
+  def reportError[F[_]: MT](source: Node, msg: Option[Representable], err: Throwable): F[Unit]
 
 private[mpi] object Manager:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MonadThrow](
+  def spawn[F[_]: MT](
       visualizer: Option[Visualizer],
       planner: Planner,
       ctx: ActorContext[?],

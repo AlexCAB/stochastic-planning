@@ -12,8 +12,8 @@
 
 package planning.engine.map.io.variable
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -21,13 +21,13 @@ import planning.engine.common.properties.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-abstract class FloatIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Double]:
+abstract class FloatIoVariableLike[F[_]: MT] extends IoVariable[F, Double]:
   def min: Double
   def max: Double
   def valueForIndex(index: IoIndex): F[Double]
   def indexForValue(value: Double): F[IoIndex]
 
-final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) extends FloatIoVariableLike[F]:
+final case class FloatIoVariable[F[_]: MT](min: Double, max: Double) extends FloatIoVariableLike[F]:
 
   private val scalingConstant = 10000.0
 
@@ -48,7 +48,7 @@ final case class FloatIoVariable[F[_]: MonadThrow](min: Double, max: Double) ext
   override lazy val toString: String = s"FloatIoVariable(min = $min, min = $max)"
 
 object FloatIoVariable:
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[FloatIoVariable[F]] =
+  def fromProperties[F[_]: MT](properties: Map[String, Value]): F[FloatIoVariable[F]] =
     for
       min <- properties.getValue[F, Double](PROP.MIN)
       max <- properties.getValue[F, Double](PROP.MAX)

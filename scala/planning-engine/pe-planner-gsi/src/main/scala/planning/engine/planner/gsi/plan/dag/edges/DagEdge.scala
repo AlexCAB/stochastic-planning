@@ -12,14 +12,14 @@
 
 package planning.engine.planner.gsi.plan.dag.edges
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.assertEquals
 import planning.engine.common.graph.edges.PeKey
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.gsi.map.dcg.edges.DcgEdge
 
-final case class DagEdge[F[_]: MonadThrow](
+final case class DagEdge[F[_]: MT](
     key: PeKey,
     dcgEdge: DcgEdge[F],
 ):
@@ -30,7 +30,7 @@ final case class DagEdge[F[_]: MonadThrow](
   override lazy val toString: String = s"${key.src.repr}${dcgEdge.key.reprArrow}${key.trg.repr}"
 
 object DagEdge:
-  def apply[F[_]: MonadThrow](key: PeKey, dcgEdge: DcgEdge[F]): F[DagEdge[F]] =
+  def apply[F[_]: MT](key: PeKey, dcgEdge: DcgEdge[F]): F[DagEdge[F]] =
     for
       _ <- key.src.mnId.assertEquals(dcgEdge.key.src, "Source MnIds must match between PeKey and DcgEdge")
       _ <- key.trg.mnId.assertEquals(dcgEdge.key.trg, "Target MnIds must match between PeKey and DcgEdge")

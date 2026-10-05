@@ -13,10 +13,11 @@
 package planning.engine.planner.mpi.repr
 
 import cats.MonadThrow
+import cats.syntax.ext.MT
 import fansi.Str
 
 trait Representable:
-  def longAutoRepr[F[_]: MonadThrow]: F[List[Str]] = MonadThrow[F]
+  def longAutoRepr[F[_]: MT]: F[List[Str]] = MonadThrow[F]
     .catchNonFatal(pprint.apply(this).toString.split("\n").toList.map(Str(_)))
 
-  def longAutoStr[F[_]: MonadThrow]: F[Str] = MonadThrow[F].catchNonFatal(pprint.apply(this))
+  def longAutoStr[F[_]: MT]: F[Str] = MonadThrow[F].catchNonFatal(pprint.apply(this))

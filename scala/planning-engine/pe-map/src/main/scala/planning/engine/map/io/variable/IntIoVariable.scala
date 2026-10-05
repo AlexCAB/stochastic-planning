@@ -12,8 +12,8 @@
 
 package planning.engine.map.io.variable
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -21,13 +21,13 @@ import planning.engine.common.properties.*
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.*
 
-abstract class IntIoVariableLike[F[_]: MonadThrow] extends IoVariable[F, Long]:
+abstract class IntIoVariableLike[F[_]: MT] extends IoVariable[F, Long]:
   def min: Long
   def max: Long
   def valueForIndex(index: IoIndex): F[Long]
   def indexForValue(value: Long): F[IoIndex]
 
-final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends IntIoVariableLike[F]:
+final case class IntIoVariable[F[_]: MT](min: Long, max: Long) extends IntIoVariableLike[F]:
 
   override def valueForIndex(index: IoIndex): F[Long] = index.value match
     case v if v >= min && v <= max => v.pure
@@ -46,7 +46,7 @@ final case class IntIoVariable[F[_]: MonadThrow](min: Long, max: Long) extends I
   override lazy val toString: String = s"IntIoVariable(min = $min, min = $max)"
 
 object IntIoVariable:
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IntIoVariable[F]] =
+  def fromProperties[F[_]: MT](properties: Map[String, Value]): F[IntIoVariable[F]] =
     for
       min <- properties.getValue[F, Long](PROP.MIN)
       max <- properties.getValue[F, Long](PROP.MAX)

@@ -12,8 +12,8 @@
 
 package planning.engine.map.io.variable
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Value
 import neotypes.query.QueryArg.Param
 import planning.engine.common.errors.assertionError
@@ -21,7 +21,7 @@ import planning.engine.common.properties.PROP
 import planning.engine.common.values.io.IoIndex
 import planning.engine.map.io.variable.IoVariable.PROP_VALUE.*
 
-trait IoVariable[F[_]: MonadThrow, T]:
+trait IoVariable[F[_]: MT, T]:
   def valueForIndex(index: IoIndex): F[T]
   def indexForValue(value: T): F[IoIndex]
   def toQueryParams: F[Map[String, Param]]
@@ -35,7 +35,7 @@ object IoVariable:
     val FLOAT_TYPE = "float"
     val LIST_STR_TYPE = "list-str"
 
-  def fromProperties[F[_]: MonadThrow](properties: Map[String, Value]): F[IoVariable[F, ?]] =
+  def fromProperties[F[_]: MT](properties: Map[String, Value]): F[IoVariable[F, ?]] =
     properties.get(PROP.VAR_TYPE) match
       case Some(Value.Str(BOOL_TYPE)) =>
         BooleanIoVariable.fromProperties(properties).map(_.asInstanceOf[IoVariable[F, ?]])

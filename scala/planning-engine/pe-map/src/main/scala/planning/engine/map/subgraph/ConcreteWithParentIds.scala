@@ -12,11 +12,11 @@
 
 package planning.engine.map.subgraph
 
-import cats.MonadThrow
+import cats.syntax.ext.MT
 import planning.engine.common.values.node.HnId
 import planning.engine.map.hidden.node.ConcreteNode
 
-final case class ConcreteWithParentIds[F[_]: MonadThrow](
+final case class ConcreteWithParentIds[F[_]: MT](
     node: ConcreteNode[F],
     linkParentIds: Set[HnId],
     thenParentIds: Set[HnId],

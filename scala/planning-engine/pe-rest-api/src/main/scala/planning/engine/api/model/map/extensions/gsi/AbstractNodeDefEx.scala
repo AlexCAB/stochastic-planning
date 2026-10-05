@@ -15,6 +15,6 @@ package planning.engine.api.model.map.extensions.gsi
 import planning.engine.api.model.map.payload.AbstractNodeDef
 import planning.engine.map.hidden.node.AbstractNode
 
-object AbstractNodeDef:
+object AbstractNodeDefEx:
   extension (node: AbstractNodeDef)
     def toNew: AbstractNode.New = AbstractNode.New(name = Some(node.name), description = node.description)

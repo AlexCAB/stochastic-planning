@@ -12,7 +12,6 @@
 
 package planning.engine.planner.mpi.actors.planner.logic
 
-import cats.MonadThrow
 import cats.effect.Async
 import cats.syntax.all.*
 import cats.syntax.ext.*
@@ -26,7 +25,7 @@ import planning.engine.planner.mpi.actors.planner.data.Message
 private[planner] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Actor.Msg] with Planner:
   import Message.*
 
-  override def conNodesAdded[F[_]: MonadThrow](nodes: Set[Node.Con]): F[Unit] = ifNonEmpty((), nodes):
+  override def conNodesAdded[F[_]: MT](nodes: Set[Node.Con]): F[Unit] = ifNonEmpty((), nodes):
     actor.tellF(ConNodesAdded(nodes))
 
   override def step[F[_]: Async](observation: Observation)(using Scheduler): F[Action] =

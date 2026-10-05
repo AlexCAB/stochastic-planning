@@ -12,14 +12,14 @@
 
 package planning.engine.planner.gsi.map.state
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.io.IoName
 import planning.engine.map.data.MapMetadata
 import planning.engine.map.io.node.{InputNode, IoNode, OutputNode}
 
-final case class MapInfoState[F[_]: MonadThrow](
+final case class MapInfoState[F[_]: MT](
     metadata: MapMetadata,
     inNodes: Map[IoName, InputNode[F]],
     outNodes: Map[IoName, OutputNode[F]],
@@ -35,9 +35,9 @@ final case class MapInfoState[F[_]: MonadThrow](
     s"MapInfoState(name = ${metadata.name}, inNodes = ${inNodes.size}, outNodes = ${outNodes.size})"
 
 object MapInfoState:
-  def empty[F[_]: MonadThrow]: MapInfoState[F] = new MapInfoState[F](MapMetadata.empty, Map.empty, Map.empty)
+  def empty[F[_]: MT]: MapInfoState[F] = new MapInfoState[F](MapMetadata.empty, Map.empty, Map.empty)
 
-  def apply[F[_]: MonadThrow](
+  def apply[F[_]: MT](
       metadata: MapMetadata,
       inNodes: Iterable[InputNode[F]],
       outNodes: Iterable[OutputNode[F]],

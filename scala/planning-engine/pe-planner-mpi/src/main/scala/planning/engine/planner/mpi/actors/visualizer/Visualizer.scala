@@ -13,6 +13,7 @@
 package planning.engine.planner.mpi.actors.visualizer
 
 import cats.MonadThrow
+import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
@@ -23,13 +24,13 @@ import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
 private[mpi] trait Visualizer:
 
   // Save nodes added to the map network for visualization.
-  def nodesAdded[F[_]: MonadThrow](ids: Map[MnId, Option[HnName]]): F[Unit]
+  def nodesAdded[F[_]: MT](ids: Map[MnId, Option[HnName]]): F[Unit]
 
   // Save edges added to the map network for visualization.
-  def edgesAdded[F[_]: MonadThrow](keys: Set[MeKey]): F[Unit]
+  def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]
 
 private[mpi] object Visualizer:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MonadThrow](viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
+  def spawn[F[_]: MT](viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
     MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(viz), (b, n) => ctx.spawn(b, n))))

@@ -12,8 +12,8 @@
 
 package planning.engine.map.samples.sample
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.{Relationship, Value}
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.errors.{assertDistinct, assertUniform, assertionError}
@@ -33,7 +33,7 @@ object SampleEdge:
     override lazy val toString: String = s"(hn = ${hnId.value}, value = ${value.value})"
 
   final case class New(source: HnId, target: HnId, edgeType: EdgeType):
-    def toQueryParams[F[_]: MonadThrow](sampleId: SampleId, indexies: Map[HnId, HnIndex]): F[(String, List[Long])] =
+    def toQueryParams[F[_]: MT](sampleId: SampleId, indexies: Map[HnId, HnIndex]): F[(String, List[Long])] =
       def getIndex(hnId: HnId): F[HnIndex] = indexies.get(hnId) match
         case Some(id) => id.pure
         case _        => s"Missing HnIndex for $hnId in $indexies".assertionError
@@ -45,7 +45,7 @@ object SampleEdge:
 
     override lazy val toString: String = s"ObservedEdge($source --$edgeType-> target=$target)"
 
-  def fromEdgesBySampleId[F[_]: MonadThrow](
+  def fromEdgesBySampleId[F[_]: MT](
       edges: List[(HnId, Relationship, HnId)],
       sampleId: SampleId,
   ): F[List[SampleEdge]] =
@@ -79,7 +79,7 @@ object SampleEdge:
       )
     yield edges
 
-  def fromEdge[F[_]: MonadThrow](sourceHnId: HnId, targetHnId: HnId, edge: Relationship): F[List[SampleEdge]] =
+  def fromEdge[F[_]: MT](sourceHnId: HnId, targetHnId: HnId, edge: Relationship): F[List[SampleEdge]] =
     def parse(sIdStr: String, values: Value): F[(SampleId, (HnIndex, HnIndex))] =
       for
         sampleId <- SampleId.fromPropName(sIdStr)
@@ -101,7 +101,7 @@ object SampleEdge:
       ),
     )
 
-  def fromNew[F[_]: MonadThrow](sampleId: SampleId, edge: New, indexies: Map[HnId, HnIndex]): F[SampleEdge] =
+  def fromNew[F[_]: MT](sampleId: SampleId, edge: New, indexies: Map[HnId, HnIndex]): F[SampleEdge] =
     def getIndex(hnId: HnId): F[HnIndex] = indexies.get(hnId) match
       case Some(id) => id.pure
       case _        => s"Missing HnIndex for $hnId in $indexies".assertionError

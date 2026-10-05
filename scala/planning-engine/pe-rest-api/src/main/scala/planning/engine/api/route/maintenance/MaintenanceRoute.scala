@@ -13,6 +13,7 @@
 package planning.engine.api.route.maintenance
 
 import cats.MonadThrow
+import cats.syntax.ext.MT
 import cats.effect.Resource
 import cats.syntax.all.*
 import io.circe.syntax.EncoderOps
@@ -23,7 +24,7 @@ import org.http4s.dsl.Http4sDsl
 import planning.engine.api.model.maintenance.HealthResponse
 import planning.engine.api.service.maintenance.MaintenanceServiceLike
 
-class MaintenanceRoute[F[_]: MonadThrow](service: MaintenanceServiceLike[F]) extends Http4sDsl[F]:
+class MaintenanceRoute[F[_]: MT](service: MaintenanceServiceLike[F]) extends Http4sDsl[F]:
   import HealthResponse.*
 
   val endpoints: HttpRoutes[F] = HttpRoutes.of[F]:
@@ -31,5 +32,5 @@ class MaintenanceRoute[F[_]: MonadThrow](service: MaintenanceServiceLike[F]) ext
     case POST -> Root / "maintenance" / "__exit"  => service.exit.flatMap(_ => Ok("Application terminated."))
 
 object MaintenanceRoute:
-  def apply[F[_]: MonadThrow](maintenanceService: MaintenanceServiceLike[F]): Resource[F, MaintenanceRoute[F]] =
+  def apply[F[_]: MT](maintenanceService: MaintenanceServiceLike[F]): Resource[F, MaintenanceRoute[F]] =
     Resource.eval(MonadThrow[F].pure(new MaintenanceRoute[F](maintenanceService)))

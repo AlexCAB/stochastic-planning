@@ -12,9 +12,9 @@
 
 package planning.engine.planner.mpi.actors.manager.logic
 
-import cats.MonadThrow
 import cats.effect.Async
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.Scheduler
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.io.IoValue
@@ -58,7 +58,7 @@ private[manager] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Acto
     else
       Map.empty.pure
 
-  override def reportError[F[_]: MonadThrow](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
+  override def reportError[F[_]: MT](source: Node, msg: Option[Representable], err: Throwable): F[Unit] =
     actor.tellF(NodeActorError(source, msg, err))
 
   override lazy val toString: String = s"Manager(path = ${actor.path})"

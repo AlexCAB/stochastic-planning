@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.node
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.{HnName, MnId}
@@ -34,10 +34,10 @@ private[mpi] trait Node:
   def repr: String
 
   // Upsert source end of an edge to this node.
-  def upsertEdgeSrc[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
+  def upsertEdgeSrc[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
 
   // Upsert target end of an edge to this node.
-  def upsertEdgeTrg[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
+  def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
 
   override def toString: String = repr
 
@@ -57,7 +57,7 @@ private[mpi] object Node:
 
     lazy val repr: String = s"(${mnId.reprValue}, ${name.repr})"
 
-  def spawn[F[_]: MonadThrow](
+  def spawn[F[_]: MT](
       mnId: MnId,
       data: NodeData,
       manager: Manager,

@@ -12,8 +12,8 @@
 
 package planning.engine.common.graph
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{End, Link, Then}
@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
 
 // GraphStructure represents the structure of the graph, providing algorithms
 // for tracing and analysis of graph structure.
-final case class GraphStructure[F[_]: MonadThrow](
+final case class GraphStructure[F[_]: MT](
     keys: Set[MeKey],
     srcMap: Map[MnId, Set[End]],
     trgMap: Map[MnId, Set[End]],
@@ -62,9 +62,9 @@ final case class GraphStructure[F[_]: MonadThrow](
     yield GraphStructure(this.keys ++ ends)
 
 object GraphStructure:
-  def empty[F[_]: MonadThrow]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)
+  def empty[F[_]: MT]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)
 
-  def apply[F[_]: MonadThrow](keys: Set[MeKey]): GraphStructure[F] = GraphStructure(
+  def apply[F[_]: MT](keys: Set[MeKey]): GraphStructure[F] = GraphStructure(
     keys = keys,
     srcMap = keys.groupBy(_.src).view.mapValues(_.map(_.trgEnd).toSet).toMap,
     trgMap = keys.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap,

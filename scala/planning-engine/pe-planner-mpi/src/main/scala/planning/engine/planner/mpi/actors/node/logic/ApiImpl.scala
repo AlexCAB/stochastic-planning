@@ -12,8 +12,8 @@
 
 package planning.engine.planner.mpi.actors.node.logic
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ApiBase
@@ -32,10 +32,10 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   def name: Option[HnName]
   def actor: Actor.Ref
 
-  override def upsertEdgeSrc[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
+  override def upsertEdgeSrc[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeSrc(ref, props))
 
-  override def upsertEdgeTrg[F[_]: MonadThrow](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
+  override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
   override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"
@@ -54,7 +54,7 @@ private[node] object ApiImpl:
       actor: Actor.Ref,
   ) extends ApiImpl with Node.Abs
 
-  def apply[F[_]: MonadThrow](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
+  def apply[F[_]: MT](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
     case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure
     case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor).pure
     case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError

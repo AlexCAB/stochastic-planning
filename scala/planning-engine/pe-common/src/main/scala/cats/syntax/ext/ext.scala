@@ -12,10 +12,11 @@ package cats.syntax
 | website: github.com/alexcab |||||
 | created: 24.08.26 |||||||||||||*/
 
-import cats.Monad
+import cats.{Monad, MonadThrow}
 import cats.syntax.all.*
 
 package object ext:
+  type MT[F[_]] = MonadThrow[F]
 
   inline def ifNonEmpty[F[_]: Monad, R](r: => R, first: IterableOnce[?], rest: IterableOnce[?]*)(f: => F[R]): F[R] =
     if first.iterator.nonEmpty || rest.exists(_.iterator.nonEmpty) then f else r.pure

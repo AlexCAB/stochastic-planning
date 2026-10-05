@@ -12,8 +12,8 @@
 
 package planning.engine.map.subgraph
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.node.{HnId, HnIndex}
@@ -30,7 +30,7 @@ final case class NextSampleEdge[F[_]](
 )
 
 object NextSampleEdge:
-  def fromSampleEdge[F[_]: MonadThrow](
+  def fromSampleEdge[F[_]: MT](
       edge: SampleEdge,
       sampleDataMap: Map[SampleId, SampleData],
       hnMap: Map[HnId, HiddenNode[F]],

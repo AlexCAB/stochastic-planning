@@ -12,8 +12,8 @@
 
 package planning.engine.map.samples.sample
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.model.types.Node
 import planning.engine.common.errors.assertionError
 import planning.engine.common.properties.*
@@ -36,7 +36,7 @@ final case class SampleData(
     s"description = $description)"
 
 object SampleData:
-  def fromNode[F[_]: MonadThrow](node: Node): F[SampleData] = node match
+  def fromNode[F[_]: MT](node: Node): F[SampleData] = node match
     case n if n.is(SAMPLE_LABEL) =>
       for
         id <- n.getValue[F, Long](PROP.SAMPLE_ID).map(SampleId.apply)
@@ -47,7 +47,7 @@ object SampleData:
       yield SampleData(id, probabilityCount, utility, name, description)
     case _ => s"Node is not sample data: $node".assertionError
 
-  def fromNew[F[_]: MonadThrow](id: SampleId, sampleNew: Sample.New): F[SampleData] = SampleData(
+  def fromNew[F[_]: MT](id: SampleId, sampleNew: Sample.New): F[SampleData] = SampleData(
     id = id,
     probabilityCount = sampleNew.probabilityCount,
     utility = sampleNew.utility,

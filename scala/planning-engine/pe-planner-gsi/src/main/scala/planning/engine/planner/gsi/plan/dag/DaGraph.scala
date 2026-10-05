@@ -12,8 +12,8 @@
 
 package planning.engine.planner.gsi.plan.dag
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.graph.edges.PeKey
 import planning.engine.common.graph.edges.PeKey.{Link, Then}
@@ -28,7 +28,7 @@ import scala.annotation.tailrec
 
 // Planning DAG, here algorithms for building and tracing (similar to GraphStructure[F])
 // It represent whole general plan-graph structure, so context node and plan node are together in this graph.
-final case class DaGraph[F[_]: MonadThrow](
+final case class DaGraph[F[_]: MT](
     nodes: Map[PnId, DagNode[F]],
     edges: Map[PeKey, DagEdge[F]],
 ) extends DaGraphRepr[F]:
@@ -99,9 +99,9 @@ final case class DaGraph[F[_]: MonadThrow](
   def tracePlanForest(rootIds: Set[PnId]): F[List[PlanTree]] = rootIds.toList.traverse(tracePlanTree)
 
 object DaGraph:
-  def empty[F[_]: MonadThrow]: DaGraph[F] = new DaGraph(Map.empty, Map.empty)
+  def empty[F[_]: MT]: DaGraph[F] = new DaGraph(Map.empty, Map.empty)
 
-  def apply[F[_]: MonadThrow](nodes: Map[PnId, DagNode[F]], edges: Map[PeKey, DagEdge[F]]): F[DaGraph[F]] =
+  def apply[F[_]: MT](nodes: Map[PnId, DagNode[F]], edges: Map[PeKey, DagEdge[F]]): F[DaGraph[F]] =
     for
       pnIds <- nodes.keySet.pure
       _ <- pnIds.assertSameElems(nodes.values.map(_.id), "Nodes map keys and values IDs mismatch")

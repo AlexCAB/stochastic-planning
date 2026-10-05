@@ -12,8 +12,8 @@
 
 package planning.engine.common.properties
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import neotypes.mappers.ParameterMapper
 import neotypes.model.query.QueryParam.NullValue
 import neotypes.model.types.{Entity, Node, Value}
@@ -31,7 +31,7 @@ extension [T](value: T)
   def toDbParam(implicit mapper: ParameterMapper[T]): Param =
     Param(if value == null then NullValue else mapper.toQueryParam(value))
 
-extension [F[_]: MonadThrow, P <: Param | Value](parms: F[Map[String, P]])
+extension [F[_]: MT, P <: Param | Value](parms: F[Map[String, P]])
   inline def addKeyPrefix(prefix: String): F[Map[String, P]] = parms.map(_.map((k, v) => (s"$prefix.$k", v)))
 
   inline def removeKeyPrefix(prefix: String): F[Map[String, P]] = parms.flatMap(_
@@ -41,7 +41,7 @@ extension [F[_]: MonadThrow, P <: Param | Value](parms: F[Map[String, P]])
     .toSeq.sequence
     .map(_.toMap))
 
-inline def paramsOf[F[_]: MonadThrow](items: (
+inline def paramsOf[F[_]: MT](items: (
     String,
     Param | Option[Param] | F[Param] | F[Map[String, Param]],
 )*): F[Map[String, Param]] = items
@@ -54,14 +54,14 @@ inline def paramsOf[F[_]: MonadThrow](items: (
   .reduce((ma, mb) => ma.flatMap(a => mb.map(b => b ++ a)))
 
 extension (propsMap: Map[String, Value])
-  private def validateValue[F[_]: MonadThrow, I, V <: ScalaValue: Typeable](
+  private def validateValue[F[_]: MT, I, V <: ScalaValue: Typeable](
       in: I,
       key: String,
   ): F[V] = in match
     case v: V => v.pure
     case v    => s"Type of value '$v' not match expected, for kay: $key".assertionError
 
-  private def valueFor[F[_]: MonadThrow, V <: ScalaValue: Typeable](
+  private def valueFor[F[_]: MT, V <: ScalaValue: Typeable](
       value: Value,
       key: String,
   ): F[V] = value match
@@ -71,26 +71,24 @@ extension (propsMap: Map[String, Value])
     case Value.Bool(bool) => validateValue[F, Boolean, V](bool, key)
     case v                => s"Expected a Int, Float, String or Boolean value, but got: $v".assertionError
 
-  private def parseValue[F[_]: MonadThrow, V](key: String)(parse: Value => F[V]): F[V] = propsMap.get(key) match
+  private def parseValue[F[_]: MT, V](key: String)(parse: Value => F[V]): F[V] = propsMap.get(key) match
     case Some(v: Value) => parse(v)
     case _              => s"Missing property '$key' in properties: $propsMap".assertionError
 
-  private def parseList[F[_]: MonadThrow, V](key: String)(parse: Value => F[V]): F[List[V]] = parseValue(key):
+  private def parseList[F[_]: MT, V](key: String)(parse: Value => F[V]): F[List[V]] = parseValue(key):
     case Value.ListValue(values) => values.map(parse).sequence
     case v                       => s"Expected a list value, but got: $v".assertionError
 
-  inline def getValue[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[V] =
-    parseValue(key)(v => valueFor(v, key))
+  inline def getValue[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[V] = parseValue(key)(v => valueFor(v, key))
 
-  inline def getOptional[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[Option[V]] =
-    propsMap.get(key) match
-      case Some(v: Value) => valueFor(v, key).map(_.some)
-      case _              => None.pure
+  inline def getOptional[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[Option[V]] = propsMap.get(key) match
+    case Some(v: Value) => valueFor(v, key).map(_.some)
+    case _              => None.pure
 
-  inline def getList[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[List[V]] =
+  inline def getList[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[List[V]] =
     parseList(key)(v => valueFor(v, key))
 
-  inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] =
+  inline def getProps[F[_]: MT](key: String): F[Map[String, Value]] =
     val keyWithDot = key + "."
     propsMap.filter((k, _) => k.startsWith(keyWithDot)).pure.removeKeyPrefix(key)
 
@@ -98,15 +96,14 @@ extension (node: Node)
   inline def is(l: Label): Boolean = node.labels.exists(_.equalsIgnoreCase(l))
 
 extension (entity: Entity)
-  inline def getValue[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[V] = entity.properties.getValue(key)
+  inline def getValue[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[V] = entity.properties.getValue(key)
 
-  inline def getOptional[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[Option[V]] =
+  inline def getOptional[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[Option[V]] =
     entity.properties.getOptional(key)
 
-  inline def getList[F[_]: MonadThrow, V <: ScalaValue: Typeable](key: String): F[List[V]] =
-    entity.properties.getList(key)
+  inline def getList[F[_]: MT, V <: ScalaValue: Typeable](key: String): F[List[V]] = entity.properties.getList(key)
 
-  inline def getProps[F[_]: MonadThrow](key: String): F[Map[String, Value]] = entity.properties.getProps(key)
+  inline def getProps[F[_]: MT](key: String): F[Map[String, Value]] = entity.properties.getProps(key)
 
 object PROP:
   val VAR_TYPE = "varType"

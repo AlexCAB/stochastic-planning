@@ -12,14 +12,14 @@
 
 package planning.engine.planner.gsi.map.repr
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.repr.StructureReprBase
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
-trait DcgSampleRepr[F[_]: MonadThrow] extends StructureReprBase[F]:
+trait DcgSampleRepr[F[_]: MT] extends StructureReprBase[F]:
   self: DcgSample[F] =>
 
   protected def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer

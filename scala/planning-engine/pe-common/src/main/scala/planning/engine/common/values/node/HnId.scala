@@ -12,8 +12,8 @@
 
 package planning.engine.common.values.node
 
-import cats.MonadThrow
 import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.LongVal
 
@@ -24,7 +24,7 @@ final case class HnId(value: Long) extends AnyVal with LongVal:
   def asAbs: MnId.Abs = MnId.Abs(value)
   override def toString: String = s"<$value>"
 
-  def toMnId[F[_]: MonadThrow](conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[MnId] =
+  def toMnId[F[_]: MT](conIds: Set[MnId.Con], absIds: Set[MnId.Abs]): F[MnId] =
     def idsToStr: String =
       s"conIds: [${conIds.map(_.value).mkString(", ")}], absIds: [${absIds.map(_.value).mkString(", ")}]"
 

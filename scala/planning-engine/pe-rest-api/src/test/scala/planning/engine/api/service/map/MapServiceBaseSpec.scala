@@ -30,11 +30,11 @@ class MapServiceBaseSpec extends UnitSpecWithData:
     lazy val hnName3 = HnName("Node_3")
     lazy val hnName4 = HnName("Node_4")
 
-    lazy val foundHnIdMap = Map(hnName1 -> Set(hnId1), hnName2 -> Set(hnId2))
-    lazy val newConHnIds = Map(hnId3 -> Some(hnName3))
-    lazy val newAbsHnIds = Map(hnId4 -> Some(hnName4))
+    lazy val foundHnIdMap: Map[HnName, Set[HnId]] = Map(hnName1 -> Set(hnId1), hnName2 -> Set(hnId2))
+    lazy val newConHnIds: Map[HnId, Some[HnName]] = Map(hnId3 -> Some(hnName3))
+    lazy val newAbsHnIds: Map[HnId, Some[HnName]] = Map(hnId4 -> Some(hnName4))
 
-    val mapServiceBase = new MapServiceBase[IO] {}
+    val mapServiceBase: MapServiceBase[IO] = new MapServiceBase[IO] {}
 
   "MapServiceBase.composeHnIdMap(...)" should:
     "compose hn name to id map from found and new hn ids" in newCase[CaseData]: (tn, data) =>

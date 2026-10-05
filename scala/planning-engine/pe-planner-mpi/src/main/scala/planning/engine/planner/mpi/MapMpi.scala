@@ -71,6 +71,7 @@ trait MapMpi[F[_]]:
   def reset(): F[Unit]
 
   // Add manually defined samples to the map network, associating them with the specified nodes.
+  // More info in `Manager.addManSamples(...)` description.
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]]
 
 object MapMpi:

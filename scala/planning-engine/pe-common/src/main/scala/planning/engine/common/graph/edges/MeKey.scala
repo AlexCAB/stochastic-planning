@@ -48,7 +48,7 @@ sealed trait MeKey:
 
   def resolve[F[_]: MonadThrow](idsMap: Map[Nim, MnId]): F[MeKey]
 
-  protected def resolveId[F[_]: MonadThrow](id: MnId, idsMap: Map[Nim, MnId]): F[MnId] = id match
+  private def resolveId[F[_]: MonadThrow](id: MnId, idsMap: Map[Nim, MnId]): F[MnId] = id match
     case nim: Nim => idsMap.get(nim) match
         case Some(mnId) => mnId.pure
         case None       => s"MnId for $nim not found in $idsMap".assertionError

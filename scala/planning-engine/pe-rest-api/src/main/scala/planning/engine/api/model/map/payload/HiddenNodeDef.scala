@@ -37,16 +37,14 @@ object HiddenNodeDef:
   import io.circe.generic.auto.*
   import planning.engine.api.model.json.values.*
 
-  given Encoder[HiddenNodeDef] = new Encoder[HiddenNodeDef]:
-    final def apply(data: HiddenNodeDef): Json = data match
-      case con: ConcreteNodeDef => Json.obj("type" -> Json.fromString("ConcreteNode"), "data" -> con.asJson)
-      case abs: AbstractNodeDef => Json.obj("type" -> Json.fromString("AbstractNode"), "data" -> abs.asJson)
+  given Encoder[HiddenNodeDef] =
+    case con: ConcreteNodeDef => Json.obj("type" -> Json.fromString("ConcreteNode"), "data" -> con.asJson)
+    case abs: AbstractNodeDef => Json.obj("type" -> Json.fromString("AbstractNode"), "data" -> abs.asJson)
 
-  given Decoder[HiddenNodeDef] = new Decoder[HiddenNodeDef]:
-    final def apply(c: HCursor): Decoder.Result[HiddenNodeDef] =
-      for
-        tpe <- c.downField("type").as[String]
-        data <- tpe match
-          case "ConcreteNode" => c.downField("data").as[ConcreteNodeDef]
-          case "AbstractNode" => c.downField("data").as[AbstractNodeDef]
-      yield data
+  given Decoder[HiddenNodeDef] = (c: HCursor) =>
+    for
+      tpe <- c.downField("type").as[String]
+      data <- tpe match
+        case "ConcreteNode" => c.downField("data").as[ConcreteNodeDef]
+        case "AbstractNode" => c.downField("data").as[AbstractNodeDef]
+    yield data

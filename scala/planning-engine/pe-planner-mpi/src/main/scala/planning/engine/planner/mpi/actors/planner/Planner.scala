@@ -21,7 +21,7 @@ import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.Definition
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
-import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.model.io.IoVars
 
 private[mpi] trait Planner:
   // Notify the planner that a new concrete node was added to the map network.
@@ -34,8 +34,6 @@ private[mpi] object Planner:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MonadThrow](
-      inVar: Set[Variable.Input],
-      outVar: Set[Variable.Output],
+      variables: IoVars,
       ctx: ActorContext[?],
-  ): F[Planner] = Definition(inVar, outVar)
-    .map(d => ApiImpl(Actor.spawn(d, (b, n) => ctx.spawn(b, n))))
+  ): F[Planner] = ApiImpl(Actor.spawn(Definition(variables), (b, n) => ctx.spawn(b, n))).pure

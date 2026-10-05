@@ -22,7 +22,7 @@ import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.{Definition, State}
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
-import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -49,7 +49,7 @@ object TestPlanner extends TestActorBase:
     def spawn(bh: Behavior[Planner.Msg], name: String): ActorRef[Planner.Msg] =
       tk.spawn(bh, s"test-planner-$name-${nameIdCounter.getAndIncrement()}")
 
-    val definition = Definition[IO](inVars, outVars).unsafeRunSync()
+    val definition = Definition(IoVars[IO](inVars, outVars).unsafeRunSync())
     new TestPlanner(api = ApiImpl(Actor.spawn(definition, spawn)))
 
   extension (api: Planner)

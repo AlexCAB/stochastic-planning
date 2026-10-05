@@ -27,7 +27,7 @@ import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.io.{Type, Variable}
+import planning.engine.planner.mpi.model.io.{IoVars, Type, Variable}
 import planning.engine.common.values.text.Name
 
 class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito:
@@ -43,8 +43,9 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val outVar: Variable.Output = Variable.Output(IoName("testOutput"), Type.Bool(Set(true, false)))
     val inVars: Set[Variable.Input] = Set(inVar)
     val outVars: Set[Variable.Output] = Set(outVar)
+    val ioVars: IoVars = new IoVars(Map(inVar.name -> inVar), Map(outVar.name -> outVar))
 
-    guardianStub.initialize[IO](*, *, *) returns IO.pure((managerStub, plannerStub, None))
+    guardianStub.initialize[IO](*, *) returns IO.pure((managerStub, plannerStub, None))
 
     val mapStateCell: AtomicCell[IO, Option[MapMpiImpl.MapState]] = AtomicCell[IO]
       .of(Option.empty[MapMpiImpl.MapState]).unsafeRunSync()
@@ -56,7 +57,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
       newCase[CaseData]: (tn, data) =>
         import data.*
         mapMpi.init(metadata, inVars, outVars).logValue(tn).asserting: _ =>
-          guardianStub.initialize[IO](inVars, outVars, Some(visualizationStub)) was called
+          guardianStub.initialize[IO](ioVars, Some(visualizationStub)) was called
           succeed
 
   "MapMpiImpl.reset(...)" should:

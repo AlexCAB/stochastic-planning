@@ -23,7 +23,7 @@ import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.common.values.node.MnId
@@ -51,8 +51,9 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     def initMap: F[Option[MapState]] =
       for
         _ <- logger.info(s"Init: md = $metadata, in = $inVars, out = $outVars, viz = $visualization")
-        (manager, planner, visualizer) <- guardian.initialize(inVars, outVars, visualization)
-        map = MapState(metadata, manager, planner, visualizer)
+        ioVars <- IoVars(inVars, outVars)
+        (manager, planner, visualizer) <- guardian.initialize(ioVars, visualization)
+        map = MapState(metadata, ioVars, manager, planner, visualizer)
         _ <- logger.info(s"Initialized: $map")
       yield Some(map)
 
@@ -77,9 +78,16 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
 private[mpi] object MapMpiImpl:
   final case class MapState(
       metadata: Metadata,
+      ioVars: IoVars,
       manager: Manager,
       planner: Planner,
       visualizer: Option[Visualizer],
   ):
     override def toString: String =
-      s"MPI(${metadata.name.value}, $manager, $planner, ${visualizer.map(_.toString).getOrElse("no visualizer")})"
+      s"""MPI(
+         |${metadata.name.value},
+         |$ioVars, 
+         |$manager, 
+         |$planner, 
+         |${visualizer.map(_.toString).getOrElse("no visualizer")}
+         |)""".stripMargin

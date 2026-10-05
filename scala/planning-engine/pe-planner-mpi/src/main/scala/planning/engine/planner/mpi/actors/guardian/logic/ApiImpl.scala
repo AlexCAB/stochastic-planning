@@ -22,17 +22,16 @@ import planning.engine.planner.mpi.actors.guardian.data.Message
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.model.io.Variable
+import planning.engine.planner.mpi.model.io.IoVars
 
 private[guardian] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Actor.Msg] with Guardian:
   import Message.*
 
   override def initialize[F[_]: Async](
-      inVars: Set[Variable.Input],
-      outVars: Set[Variable.Output],
+      variables: IoVars,
       visualization: Option[Visualization],
   )(using Scheduler): F[(Manager, Planner, Option[Visualizer])] = actor
-    .askF[F, Initialized](ref => Initialize(inVars, outVars, visualization, ref))
+    .askF[F, Initialized](ref => Initialize(variables, visualization, ref))
     .map(i => (i.manager, i.planner, i.visualizer))
 
   override def reset[F[_]: Async]()(using Scheduler): F[Unit] = actor.askF[F, Cleaned.type](ref => Reset(ref)).void

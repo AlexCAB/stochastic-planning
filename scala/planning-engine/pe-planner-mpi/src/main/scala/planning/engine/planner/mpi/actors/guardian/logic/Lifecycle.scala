@@ -33,7 +33,7 @@ private[guardian] trait Lifecycle:
     for
       _ <- ctx.children.assertEmpty("Cannot initialize Guardian, it is already initialized or not reset")
       visualizer <- makeViz
-      planner <- Planner.spawn(msg.inVars, msg.outVars, ctx)
+      planner <- Planner.spawn(msg.variables, ctx)
       manager <- Manager.spawn(visualizer, planner, ctx)
       _ <- logInfo(s"Created actors: visualizer = $visualizer, planner = $planner, manager = $manager")
       _ <- msg.reply(Initialized(manager, planner, visualizer))

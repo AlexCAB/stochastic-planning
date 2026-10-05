@@ -72,8 +72,11 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       case None      => logger.info("Map network not initialized, nothing to do").as(None)
       case Some(map) => cleanup(map)
 
-  def getIoVars: F[IoVars] = runAt(_.ioVars.pure)
-  
+  def getIoVars: F[IoVars] = runAt: state =>
+    for
+        _ <- logger.info(s"Current IO variables: ${state.ioVars}")
+    yield state.ioVars
+
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
 
@@ -87,9 +90,9 @@ private[mpi] object MapMpiImpl:
   ):
     override def toString: String =
       s"""MPI(
-         |${metadata.name.value},
-         |$ioVars, 
-         |$manager, 
-         |$planner, 
-         |${visualizer.map(_.toString).getOrElse("no visualizer")}
+         |  ${metadata.name.value},
+         |  $ioVars,
+         |  $manager,
+         |  $planner,
+         |  ${visualizer.map(_.toString).getOrElse("no visualizer")}
          |)""".stripMargin

@@ -56,9 +56,9 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     "call Guardian.initialize with the given input/output variables and visualization" in
       newCase[CaseData]: (tn, data) =>
         import data.*
-        mapMpi.init(metadata, inVars, outVars).logValue(tn).asserting: _ =>
+        async[IO]:
+          mapMpi.init(metadata, inVars, outVars).logValue(tn).await
           guardianStub.initialize[IO](ioVars, Some(visualizationStub)) was called
-          succeed
 
   "MapMpiImpl.reset(...)" should:
     "call Guardian.reset when the map network is initialized" in newCase[CaseData]: (tn, data) =>
@@ -71,6 +71,20 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
 
         guardianStub.reset[IO]() was called
         succeed
+
+  "MapMpiImpl.getIoVars" should:
+    "return IO variables the map network was initialized with" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
+        val result = mapMpi.getIoVars.logValue(tn).await
+
+        result mustBe ioVars
+
+    "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.getIoVars.logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
 
   "MapMpiImpl.addSamples(...)" should:
     "call Manager.addManSamples with the given samples and nodes" in newCase[CaseData]: (tn, data) =>

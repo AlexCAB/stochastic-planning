@@ -31,10 +31,10 @@ final case class IoVars(
         out(n.ioValue.name).validateNode(n).as((inNs, outNs + n))
 
       case (_, n) => s"Undefined IO name ${n.ioValue.name}".assertionError
-      
+
   def get[F[_]: MT](name: IoName): F[Variable] = in.get(name).orElse(out.get(name)) match
     case Some(v) => v.pure
-    case None => s"Undefined IO name $name".assertionError
+    case None    => s"Undefined IO name $name".assertionError
 
   override lazy val toString: String = s"IoVars(in = ${in.values.mkString(", ")}, out = ${out.values.mkString(", ")})"
 

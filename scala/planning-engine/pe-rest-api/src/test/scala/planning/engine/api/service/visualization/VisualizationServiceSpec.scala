@@ -16,13 +16,13 @@ import cats.effect.IO
 import cats.effect.cps.*
 import fs2.Stream
 import planning.engine.api.config.parts.VisualizationServiceConf
-import planning.engine.api.model.map.TestApiData
+import planning.engine.api.model.map.TestGsiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.common.UnitSpecWithData
 
 import scala.concurrent.duration.DurationInt
 
-class VisualizationServiceSpec extends UnitSpecWithData with TestApiData:
+class VisualizationServiceSpec extends UnitSpecWithData with TestGsiData:
 
   private class CaseData extends Case:
     val config = VisualizationServiceConf(mapEnabled = true)

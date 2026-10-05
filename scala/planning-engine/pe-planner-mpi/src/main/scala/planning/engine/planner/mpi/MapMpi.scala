@@ -69,7 +69,7 @@ trait MapMpi[F[_]]:
 
   // Clean up the map network, stopping all actors and releasing resources.
   def reset(): F[Unit]
-  
+
   // Return the current input and output variables of the map network.
   def getIoVars: F[IoVars]
 

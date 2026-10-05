@@ -185,7 +185,6 @@ Add arrows: `planner` and `visualizer` to `manager`, `planner` and `visualizer` 
 
 ❯ Refactor `GuardianLifecycleSpec` instead of define new `lazy val visualization: Visualization = new Visualization` use the one defined in `WithTestVisualizer`
 
-
 ❯ Implement `MapMpiImplSpec`:
 1. Create and use `stub`'s for `Guardian`, `Manager`, `Planner` and `Visualization`.
 2. Add test for `MapMpiImpl.init(...)`: Check if `Guardian.initialize` called with proper params. 
@@ -237,7 +236,19 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Consider `gsi.MapInitRequestEx` as example and implement `mpi.MapInitRequestEx`. Also add tests for `mpi.MapInitRequestEx`.
 
+❯ Add test for `getIoVars` in `MapMpiImplSpec`
 
+❯ In `HiddenNodeDefExSpec` add tests for `HiddenNodeDefEx.toNodeData(...)` method
+
+❯ In `HiddenNodeDefExSpec` rewrite `convert ConcreteNodeDef...` to use `testConNodeBoolDef`, `testConNodeFloatDef`, `testConNodeIntDef`, `testConNodeListStrDef`
+
+❯ In `NewSampleDataExSpec` add tests for `NewSampleDataEx.toSample(...)` method
+
+❯ In `MapAddSamplesRequestExSpec` add tests for `MapAddSamplesRequestEx.toNodes(...)` method and `MapAddSamplesRequestEx.toSamples(...)` method``
+
+❯ In `MapAddSamplesResponseExSpec` add tests for `MapAddSamplesResponseEx.toMapAddSamplesResponse(...)` method
+
+❯ In `MapInMemMpiServiceSpec` add tests for `MapInMemMpiService` class. Similar to `MapInMemGsiServiceSpec` tests.
 
 ##### TODO: 
 1. Integration with REST API (test with loading script)

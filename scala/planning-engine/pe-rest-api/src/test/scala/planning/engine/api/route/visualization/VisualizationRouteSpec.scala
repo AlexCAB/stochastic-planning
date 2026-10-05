@@ -21,7 +21,7 @@ import org.http4s.client.testkit.WSTestClient
 import org.http4s.client.websocket.*
 import org.http4s.implicits.*
 import planning.engine.api.config.parts.VisualizationRouteConf
-import planning.engine.api.model.map.TestApiData
+import planning.engine.api.model.map.TestGsiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.api.service.visualization.VisualizationServiceLike
 import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
@@ -29,7 +29,7 @@ import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 import scala.concurrent.duration.DurationInt
 
 class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationServiceLike[IO], VisualizationRoute[IO])]
-    with MockitoWithResource with TestApiData:
+    with MockitoWithResource with TestGsiData:
 
   override val resource: Resource[IO, (VisualizationServiceLike[IO], VisualizationRoute[IO])] =
     for

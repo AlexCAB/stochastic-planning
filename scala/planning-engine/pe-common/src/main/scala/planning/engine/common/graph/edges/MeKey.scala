@@ -97,7 +97,7 @@ object MeKey:
   def apply(et: EdgeType, src: MnId, trg: MnId): MeKey = et match
     case EdgeType.LINK => Link(src, trg)
     case EdgeType.THEN => Then(src, trg)
-      
+
   def apply[F[_]: MT](et: EdgeType, src: HnId, trg: HnId, conMnId: Set[Con], absMnId: Set[Abs]): F[MeKey] =
     for
       srcMnId <- src.toMnId(conMnId, absMnId)

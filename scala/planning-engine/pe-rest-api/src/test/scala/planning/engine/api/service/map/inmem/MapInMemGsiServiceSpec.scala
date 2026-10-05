@@ -17,7 +17,7 @@ import cats.effect.cps.*
 import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
-import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestApiData}
+import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestGsiData}
 import planning.engine.api.service.map.inmem.MapInMemGsiService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
@@ -25,7 +25,7 @@ import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.planner.gsi.map.MapInMemGsiLike
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 
-class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito with TestApiData:
+class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito with TestGsiData:
 
   private class CaseData extends Case:
     val mapInMemStub: MapInMemGsiLike[IO] = mock[MapInMemGsiLike[IO]]
@@ -73,7 +73,9 @@ class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito
         .map(s => s.id -> testDcgSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
         .toMap
 
-      data.mapInMemStub.getIoNode(testConNodeDef2.ioNodeName) returns IO.pure(ioNodes(testConNodeDef2.ioNodeName))
+      data.mapInMemStub.getIoNode(testConNodeListStrDef.ioNodeName) returns IO.pure(
+        ioNodes(testConNodeListStrDef.ioNodeName),
+      )
 
       data.mapInMemStub.findHnIdsByNames(testMapAddSamplesRequest.hnNames.toSet) returns
         IO.pure(findHnIdsByNamesRes.map((i, ns) => i -> ns.toSet))
@@ -90,7 +92,7 @@ class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito
         val gotResponse: MapAddSamplesResponse = data
           .service.addSamples(testMapAddSamplesRequest).logValue(tn, "response").await
 
-        data.mapInMemStub.getIoNode(testConNodeDef2.ioNodeName) was called
+        data.mapInMemStub.getIoNode(testConNodeListStrDef.ioNodeName) was called
         data.mapInMemStub.findHnIdsByNames(testMapAddSamplesRequest.hnNames.toSet) was called
         data.mapInMemStub.addNewConcreteNodes(ConcreteNode.ListNew.of(testConNodeNew2)) was called
         data.mapInMemStub.addNewAbstractNodes(AbstractNode.ListNew.of(testAbsNodeDef2.toNew)) was called

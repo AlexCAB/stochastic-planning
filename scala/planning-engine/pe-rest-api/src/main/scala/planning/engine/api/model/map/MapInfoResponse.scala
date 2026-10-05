@@ -30,3 +30,11 @@ object MapInfoResponse:
 
   implicit val decoder: Decoder[MapInfoResponse] = deriveDecoder[MapInfoResponse]
   implicit val encoder: Encoder[MapInfoResponse] = deriveEncoder[MapInfoResponse]
+
+  def emptyInMem: MapInfoResponse = MapInfoResponse(
+    DbName("in-mem"),
+    None,
+    numInputNodes = 0L,
+    numOutputNodes = 0L,
+    numHiddenNodes = 0L,
+  )

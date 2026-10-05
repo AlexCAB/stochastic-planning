@@ -23,15 +23,14 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.config.MapConfig
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
-import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx
-import planning.engine.api.model.map.extensions.gsi.MapGraphLakeEx
+import planning.engine.api.model.map.extensions.gsi.*
 
 class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
 ) extends MapServiceBase[F] with MapServiceLike[F]:
-  import MapInitRequestEx.*, MapGraphLakeEx.*
+  import MapInitRequestEx.*, MapGraphLakeEx.*, MapAddSamplesRequestEx.*
 
   private val logger = LoggerFactory[F].getLogger
 

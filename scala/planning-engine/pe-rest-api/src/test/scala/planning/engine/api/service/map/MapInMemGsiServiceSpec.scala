@@ -64,7 +64,7 @@ class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito
         val response = data.service.reset().logValue(tn).await
 
         data.mapInMemStub.reset() was called
-        response mustBe MapResetResponse.emptyInMem[IO].await
+        response mustBe MapResetResponse.emptyInMem
 
   "MapService.addSamples(...)" should:
     "add new samples to the map" in newCase[CaseData]: (tn, data) =>

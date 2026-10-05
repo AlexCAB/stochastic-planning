@@ -22,12 +22,11 @@ import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.gsi.map.MapInMemGsiLike
-import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx
+import planning.engine.api.model.map.extensions.gsi.{MapInitRequestEx, MapAddSamplesRequestEx}
 
 class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
     extends MapServiceBase[F] with MapServiceLike[F]:
-
-  import MapInitRequestEx.*
+  import MapInitRequestEx.*, MapAddSamplesRequestEx.*
 
   override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure
 
@@ -40,15 +39,13 @@ class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
       inputNodes <- request.toInputNodes
       outputNodes <- request.toOutputNodes
       _ <- map.init(metadata, inputNodes, outputNodes)
-    yield MapInfoResponse(
-      DbName("gsi-in-mem"),
+    yield MapInfoResponse.emptyInMem.copy(
       mapName = metadata.name,
       numInputNodes = inputNodes.size,
       numOutputNodes = outputNodes.size,
-      numHiddenNodes = 0,
     )
 
-  override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])
+  override def reset(): F[MapResetResponse] = map.reset().map(_ => MapResetResponse.emptyInMem)
 
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] =
     for

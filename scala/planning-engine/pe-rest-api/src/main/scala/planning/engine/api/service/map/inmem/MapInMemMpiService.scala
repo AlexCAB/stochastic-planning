@@ -32,7 +32,7 @@ class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
   override def load(request: MapLoadRequest): F[MapInfoResponse] =
     "Load operation is not supported in in-memory map service".assertionError
 
-  override def reset(): F[MapResetResponse] = map.reset().flatMap(_ => MapResetResponse.emptyInMem[F])
+  override def reset(): F[MapResetResponse] = map.reset().map(_ => MapResetResponse.emptyInMem)
 
   override def init(request: MapInitRequest): F[MapInfoResponse] =
     for
@@ -40,12 +40,10 @@ class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
       inVars <- request.inVars
       outVars <- request.outVars
       _ <- map.init(metadata, inVars, outVars)
-    yield MapInfoResponse(
-      DbName("mpi-in-mem"),
+    yield MapInfoResponse.emptyInMem.copy(
       mapName = Some(metadata.name),
       numInputNodes = inVars.size,
       numOutputNodes = outVars.size,
-      numHiddenNodes = 0L,
     )
 
   override def addSamples(definition: MapAddSamplesRequest): F[MapAddSamplesResponse] = ???

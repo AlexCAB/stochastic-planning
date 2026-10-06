@@ -14,7 +14,7 @@ package planning.engine.api.model.map
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.api.model.visualization.gsi.MapVisualizationMsg
+import planning.engine.api.model.visualization.gsi.GsiVisualizationMsg
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{Indexies, MeKey}
 import planning.engine.common.graph.io.IoValueMap
@@ -148,7 +148,7 @@ trait TestGsiData extends TestApiData:
     outNodes = Map(intIoNode.name -> intIoNode),
   )
 
-  lazy val testMapVisualizationMsg = MapVisualizationMsg(
+  lazy val testMapVisualizationMsg = GsiVisualizationMsg(
     inNodes = testMapInfoState.inNodes.keySet,
     outNodes = testMapInfoState.outNodes.keySet,
     ioValues = testDcgState.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),

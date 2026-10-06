@@ -18,7 +18,7 @@ import fs2.concurrent.Topic
 import fs2.{Pipe, Stream}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.parts.VisualizationServiceConf
-import planning.engine.api.model.visualization.gsi.MapVisualizationMsg
+import planning.engine.api.model.visualization.gsi.GsiVisualizationMsg
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.visualization.MapVisualization
@@ -31,9 +31,9 @@ class VisualizationGsiService[F[_]: {Async, LoggerFactory}](
   private val topicMaxQueued = 1000
   private val logger = LoggerFactory[F].getLogger
 
-  override val mapSendWs: Stream[F, MapVisualizationMsg] = topic
+  override val mapSendWs: Stream[F, GsiVisualizationMsg] = topic
     .subscribe(topicMaxQueued)
-    .map((info, state) => MapVisualizationMsg.fromState(info, state))
+    .map((info, state) => GsiVisualizationMsg.fromState(info, state))
 
   override val mapReceiveWs: Pipe[F, String, Unit] =
     in => in.evalMap(frameIn => logger.info("Pong received: " + frameIn))

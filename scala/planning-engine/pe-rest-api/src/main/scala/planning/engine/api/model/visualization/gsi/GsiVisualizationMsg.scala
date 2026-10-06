@@ -17,7 +17,7 @@ import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 
-final case class MapVisualizationMsg(
+final case class GsiVisualizationMsg(
     inNodes: Set[IoName],
     outNodes: Set[IoName],
     ioValues: Set[(IoName, Set[HnId])],
@@ -26,8 +26,8 @@ final case class MapVisualizationMsg(
     edgesMapping: Set[(HnId, Set[HnId])],
 ) extends VisualizationMsg
 
-object MapVisualizationMsg:
-  def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): MapVisualizationMsg = MapVisualizationMsg(
+object GsiVisualizationMsg:
+  def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): GsiVisualizationMsg = GsiVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,
     ioValues = state.ioValues.valueMap.toSet.map((k, v) => (k.name, v.map(_.asHnId))),

@@ -28,7 +28,6 @@ private[guardian] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Act
 
   override def initialize[F[_]: Async](
       variables: IoVars,
-      
   )(using Scheduler): F[(Manager, Planner, Option[Visualizer])] = actor
     .askF[F, Initialized](ref => Initialize(variables, ref))
     .map(i => (i.manager, i.planner, i.visualizer))

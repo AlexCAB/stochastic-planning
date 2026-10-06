@@ -250,6 +250,10 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `MapInMemMpiServiceSpec` add tests for `MapInMemMpiService` class. Similar to `MapInMemGsiServiceSpec` tests.
 
+❯ Refactor `VisualizerStructureSpec`: do mock `Visualization` instead of using `vizProbe`
+
+
+
 ##### TODO: 
 1. Integration with REST API (test with loading script)
 2. Implement graph representation (using colored text)

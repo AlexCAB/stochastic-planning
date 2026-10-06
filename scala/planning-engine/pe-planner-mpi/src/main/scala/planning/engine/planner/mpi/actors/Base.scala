@@ -57,7 +57,7 @@ private[actors] trait Base:
   protected def renderRepresentable[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj
     .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
     .getOrElse(None.pure)
-  
+
   protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
 
   protected def logMap[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =

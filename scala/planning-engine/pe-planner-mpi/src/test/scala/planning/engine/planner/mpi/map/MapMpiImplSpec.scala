@@ -19,7 +19,6 @@ import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
@@ -36,7 +35,6 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val guardianStub: Guardian = mock[Guardian]
     val managerStub: Manager = mock[Manager]
     val plannerStub: Planner = mock[Planner]
-    val visualizationStub: Visualization = mock[Visualization]
 
     val metadata: Metadata = Metadata(Name("test-map"), None)
     val inVar: Variable.Input = Variable.Input(IoName("testInput"), Type.Bool(Set(true, false)))
@@ -45,20 +43,20 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val outVars: Set[Variable.Output] = Set(outVar)
     val ioVars: IoVars = new IoVars(Map(inVar.name -> inVar), Map(outVar.name -> outVar))
 
-    guardianStub.initialize[IO](*, *) returns IO.pure((managerStub, plannerStub, None))
+    guardianStub.initialize[IO](*) returns IO.pure((managerStub, plannerStub, None))
 
     val mapStateCell: AtomicCell[IO, Option[MapMpiImpl.MapState]] = AtomicCell[IO]
       .of(Option.empty[MapMpiImpl.MapState]).unsafeRunSync()
 
-    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](Some(visualizationStub), guardianStub, scheduler, mapStateCell)
+    val mapMpi: MapMpiImpl[IO] = new MapMpiImpl[IO](guardianStub, scheduler, mapStateCell)
 
   "MapMpiImpl.init(...)" should:
-    "call Guardian.initialize with the given input/output variables and visualization" in
+    "call Guardian.initialize with the given input/output variables" in
       newCase[CaseData]: (tn, data) =>
         import data.*
         async[IO]:
           mapMpi.init(metadata, inVars, outVars).logValue(tn).await
-          guardianStub.initialize[IO](ioVars, Some(visualizationStub)) was called
+          guardianStub.initialize[IO](ioVars) was called
 
   "MapMpiImpl.reset(...)" should:
     "call Guardian.reset when the map network is initialized" in newCase[CaseData]: (tn, data) =>

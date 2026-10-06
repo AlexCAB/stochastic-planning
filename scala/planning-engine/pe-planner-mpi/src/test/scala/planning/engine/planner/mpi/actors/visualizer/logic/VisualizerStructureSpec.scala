@@ -13,15 +13,16 @@
 package planning.engine.planner.mpi.actors.visualizer.logic
 
 import cats.effect.IO
-import cats.effect.cps.*
-import org.scalatest.Assertion
+import org.mockito.Mockito.{timeout, verify}
+import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.visualizer.{TestVisualizer, WithTestVisualizer}
 
-class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer:
+class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer with AsyncIdiomaticMockito:
   private class CaseData extends Case with WithVisualizer:
     val conId: MnId.Con = MnId.Con(1L)
     val absId: MnId.Abs = MnId.Abs(2L)
@@ -32,50 +33,28 @@ class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisu
     val linkKey: Link = Link(conId, absId)
     val thenKey: Then = Then(absId, conId)
 
-    def checkVisualizerState(
-        visualizer: TestVisualizer,
-        expConNodes: Map[MnId.Con, Option[HnName]] = Map.empty,
-        expAbsNodes: Map[MnId.Abs, Option[HnName]] = Map.empty,
-        expSrcLinkMap: Map[MnId, Set[Link.End]] = Map.empty,
-        expSrcThenMap: Map[MnId, Set[Then.End]] = Map.empty,
-        expTrgLinkMap: Map[MnId, Set[Link.End]] = Map.empty,
-        expTrgThenMap: Map[MnId, Set[Then.End]] = Map.empty,
-    ): Assertion =
-      val state = visualizer.state
+    val ids: Map[MnId, Option[HnName]] = Map(conId -> conName, absId -> absName)
+    val keys: Set[MeKey] = Set(linkKey, thenKey)
 
-      state.conNodes mustBe expConNodes
-      state.absNodes mustBe expAbsNodes
-      state.srcLinkMap mustBe expSrcLinkMap
-      state.srcThenMap mustBe expSrcThenMap
-      state.trgLinkMap mustBe expTrgLinkMap
-      state.trgThenMap mustBe expTrgThenMap
+    val visualizationMock: Visualization = mock[Visualization]
+    val visualizer: TestVisualizer = makeVisualizer(viz = visualizationMock)
+
+    val callTimeoutMs = 3000L // Visualization is called asynchronously, so verification waits for it.
 
   "Visualizer.nodesAdded" should:
-    "log the added Concrete node with its ID and name" in newCase[CaseData]: (tn, data) =>
+    "pass the added nodes to the visualization" in newCase[CaseData]: (tn, data) =>
       import data.*
-      async[IO]:
-        visualizer.api.nodesAdded[IO](Map(conId -> conName, absId -> absName)).logValue(tn).await
+      visualizationMock.nodesAdded[IO](ids) returns IO.unit
 
-        checkVisualizerState(visualizer, expConNodes = Map(conId -> conName), expAbsNodes = Map(absId -> absName))
-
-    "log the added Abstract node with its ID and unnamed marker" in newCase[CaseData]: (tn, data) =>
-      import data.*
-      async[IO]:
-        visualizer.api.nodesAdded[IO](Map(conId -> conName, absId -> absName)).logValue(tn).await
-
-        checkVisualizerState(visualizer, expConNodes = Map(conId -> conName), expAbsNodes = Map(absId -> absName))
+      visualizer.api.nodesAdded[IO](ids).logValue(tn).asserting: _ =>
+        verify(visualizationMock, timeout(callTimeoutMs)).nodesAdded[IO](ids)
+        succeed
 
   "Visualizer.edgesAdded" should:
-    "log the added edge keys" in newCase[CaseData]: (tn, data) =>
+    "pass the added edge keys to the visualization" in newCase[CaseData]: (tn, data) =>
       import data.*
-      async[IO]:
-        val keys: Set[MeKey] = Set(linkKey, thenKey)
-        visualizer.api.edgesAdded[IO](keys).logValue(tn).await
+      visualizationMock.edgesAdded[IO](keys) returns IO.unit
 
-        checkVisualizerState(
-          visualizer,
-          expSrcLinkMap = Map(conId -> Set(linkKey.trgEnd)),
-          expSrcThenMap = Map(absId -> Set(thenKey.trgEnd)),
-          expTrgLinkMap = Map(absId -> Set(linkKey.srcEnd)),
-          expTrgThenMap = Map(conId -> Set(thenKey.srcEnd)),
-        )
+      visualizer.api.edgesAdded[IO](keys).logValue(tn).asserting: _ =>
+        verify(visualizationMock, timeout(callTimeoutMs)).edgesAdded[IO](keys)
+        succeed

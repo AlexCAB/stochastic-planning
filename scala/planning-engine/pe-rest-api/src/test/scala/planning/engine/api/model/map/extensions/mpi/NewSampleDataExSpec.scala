@@ -21,7 +21,7 @@ import planning.engine.common.values.text.Name
 
 class NewSampleDataExSpec extends UnitSpecWithData:
   private class CaseData extends Case with TestMpiData
-  
+
   "NewSampleDataEx.toSample(...)" should:
     "convert NewSampleData to Sample.Man" in newCase[CaseData]: (tn, data) =>
       data.testNewSampleData.toSample[IO](data.mnIds).logValue(tn)

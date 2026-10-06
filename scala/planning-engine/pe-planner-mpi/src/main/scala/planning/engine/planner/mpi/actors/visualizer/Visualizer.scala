@@ -33,5 +33,5 @@ private[mpi] trait Visualizer:
 private[mpi] object Visualizer:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MT](vars: IoVars,viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
+  def spawn[F[_]: MT](vars: IoVars, viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
     MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(vars, viz), (b, n) => ctx.spawn(b, n))))

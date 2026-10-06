@@ -57,8 +57,8 @@ private[actors] trait Stateless extends Base:
 
     Behaviors.receiveMessage: m =>
       handleMsg[IO](m)(
-        msg => receive[IO](msg).as(behavior),
-        (err, msg) => error[IO](msg, err).as(behavior),
+        msg => receive[IO](msg),
+        (err, msg) => error[IO](msg, err),
       ).unsafeRunSync()
 
   // Factory method for creating the actor's behavior

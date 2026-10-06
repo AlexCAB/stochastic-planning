@@ -18,4 +18,4 @@ trait WithTestGuardian:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithGuardian:
-    lazy val guardian: TestGuardian = TestGuardian("test-guardian")
+    lazy val guardian: TestGuardian = TestGuardian("test-guardian", None)

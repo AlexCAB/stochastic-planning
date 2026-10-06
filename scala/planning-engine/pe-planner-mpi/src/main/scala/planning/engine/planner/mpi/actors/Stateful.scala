@@ -53,7 +53,7 @@ private[actors] trait Stateful extends Base:
       _ <- logError(logMst, err)
       _ <- Sync[F].raiseError(FatalException(fatalMsg, Some(err)))
     yield state
-  
+
   protected def doGetState[F[_]: S](msg: GetState[St], state: St)(using ctx: Ctx): F[St] =
     for
       _ <- logInfo(s"GetState message received, returning current state: $state")

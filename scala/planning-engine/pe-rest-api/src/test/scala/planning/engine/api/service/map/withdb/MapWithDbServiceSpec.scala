@@ -20,7 +20,7 @@ import org.mockito.scalatest.AsyncIdiomaticMockito
 import org.scalatest.compatible.Assertion
 import planning.engine.api.model.map.*
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
-import planning.engine.api.service.map.withdb.MapWithDbService
+import planning.engine.api.service.map.gsi.MapWithDbService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.db.DbName
 import planning.engine.common.values.text.Name

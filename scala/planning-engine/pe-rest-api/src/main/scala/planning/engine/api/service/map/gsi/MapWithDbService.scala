@@ -10,27 +10,27 @@
 | website: github.com/alexcab |||||
 | created: 2025-04-23 |||||||||||*/
 
-package planning.engine.api.service.map.withdb
+package planning.engine.api.service.map.gsi
 
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
-import planning.engine.api.service.map.{MapServiceBase, MapService}
+import planning.engine.api.model.map.extensions.gsi.*
+import planning.engine.api.service.map.{MapService, MapServiceBase}
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.config.MapConfig
 import planning.engine.map.{MapBuilderLike, MapGraphLake}
-import planning.engine.api.model.map.extensions.gsi.*
 
 class MapWithDbService[F[_]: {Async, LoggerFactory}](
     config: MapConfig,
     builder: MapBuilderLike[F],
     mgState: AtomicCell[F, Option[(MapGraphLake[F], DbName)]],
 ) extends MapServiceBase[F] with MapService[F]:
-  import MapInitRequestEx.*, MapGraphLakeEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
+  import MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*, MapGraphLakeEx.*, MapInitRequestEx.*
 
   private val logger = LoggerFactory[F].getLogger
 

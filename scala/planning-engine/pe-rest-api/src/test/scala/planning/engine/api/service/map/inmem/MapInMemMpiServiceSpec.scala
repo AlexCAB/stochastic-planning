@@ -19,6 +19,7 @@ import planning.engine.api.model.map.extensions.mpi.MapAddSamplesRequestEx.*
 import planning.engine.api.model.map.extensions.mpi.MapInitRequestEx.*
 import planning.engine.api.model.map.payload.ShortSampleData
 import planning.engine.api.model.map.{MapResetResponse, TestMpiData}
+import planning.engine.api.service.map.mpi.MapInMemMpiService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.MapMpi

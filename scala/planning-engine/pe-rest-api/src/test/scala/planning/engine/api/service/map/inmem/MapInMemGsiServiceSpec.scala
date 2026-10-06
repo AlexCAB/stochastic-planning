@@ -18,7 +18,7 @@ import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 import planning.engine.api.model.map.extensions.gsi.MapInitRequestEx.*
 import planning.engine.api.model.map.{MapAddSamplesResponse, MapResetResponse, TestGsiData}
-import planning.engine.api.service.map.inmem.MapInMemGsiService
+import planning.engine.api.service.map.gsi.MapInMemGsiService
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.sample.SampleId
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}

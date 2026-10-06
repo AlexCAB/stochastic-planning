@@ -10,23 +10,23 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-23 |||||||||||*/
 
-package planning.engine.api.service.map.inmem
+package planning.engine.api.service.map.gsi
 
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.model.map.*
-import planning.engine.api.service.map.{MapServiceBase, MapService}
+import planning.engine.api.model.map.extensions.gsi.*
+import planning.engine.api.service.map.{MapService, MapServiceBase}
 import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
 import planning.engine.common.values.db.DbName
 import planning.engine.map.MapGraphLake
 import planning.engine.planner.gsi.map.MapInMemGsiLike
-import planning.engine.api.model.map.extensions.gsi.*
 
 class MapInMemGsiService[F[_]: {Async, LoggerFactory}](map: MapInMemGsiLike[F])
     extends MapServiceBase[F] with MapService[F]:
-  import MapInitRequestEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
+  import MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*, MapInitRequestEx.*
 
   override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure
 

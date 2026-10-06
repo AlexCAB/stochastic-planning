@@ -10,24 +10,24 @@
 | website: github.com/alexcab |||||
 | created: 2026-09-16 |||||||||||*/
 
-package planning.engine.api.service.map.inmem
+package planning.engine.api.service.map.mpi
 
 import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.api.service.map.{MapServiceBase, MapService}
-import planning.engine.planner.mpi.MapMpi
 import planning.engine.api.model.map.*
-import planning.engine.common.errors.*
-import planning.engine.map.MapGraphLake
-import planning.engine.common.values.db.DbName
 import planning.engine.api.model.map.extensions.mpi.*
+import planning.engine.api.service.map.{MapService, MapServiceBase}
+import planning.engine.common.errors.*
 import planning.engine.common.validation.Validation
+import planning.engine.common.values.db.DbName
+import planning.engine.map.MapGraphLake
+import planning.engine.planner.mpi.MapMpi
 
 class MapInMemMpiService[F[_]: {Async, LoggerFactory}](map: MapMpi[F])
     extends MapServiceBase[F] with MapService[F]:
+  import MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*, MapInitRequestEx.*
 
-  import MapInitRequestEx.*, MapAddSamplesRequestEx.*, MapAddSamplesResponseEx.*
   private val logger = LoggerFactory[F].getLogger
 
   override def getState: F[Option[(MapGraphLake[F], DbName)]] = None.pure

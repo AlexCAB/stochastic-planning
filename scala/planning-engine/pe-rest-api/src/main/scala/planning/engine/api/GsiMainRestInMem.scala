@@ -21,7 +21,7 @@ import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
-import planning.engine.api.service.map.inmem.MapInMemGsiService
+import planning.engine.api.service.map.gsi.MapInMemGsiService
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.planner.gsi.map.MapGsiInMemGsi
 

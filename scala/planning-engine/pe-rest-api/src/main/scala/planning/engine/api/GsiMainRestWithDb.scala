@@ -20,7 +20,7 @@ import planning.engine.api.config.gsi.MainWithDbConf
 import planning.engine.api.route.maintenance.MaintenanceRoute
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
-import planning.engine.api.service.map.withdb.MapWithDbService
+import planning.engine.api.service.map.gsi.MapWithDbService
 import planning.engine.map.MapBuilder
 
 object GsiMainRestWithDb extends AppBase:

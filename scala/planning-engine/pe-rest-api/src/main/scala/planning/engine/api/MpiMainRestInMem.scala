@@ -19,8 +19,8 @@ import planning.engine.api.app.AppBase
 import planning.engine.api.config.mpi.MainInMemConf
 import planning.engine.api.route.map.MapRoute
 import planning.engine.api.service.maintenance.MaintenanceService
+import planning.engine.api.service.map.mpi.MapInMemMpiService
 import planning.engine.planner.mpi.MapMpi
-import planning.engine.api.service.map.inmem.MapInMemMpiService
 
 object MpiMainRestInMem extends AppBase:
   protected override def buildApp(): Resource[IO, MaintenanceService[IO]] =

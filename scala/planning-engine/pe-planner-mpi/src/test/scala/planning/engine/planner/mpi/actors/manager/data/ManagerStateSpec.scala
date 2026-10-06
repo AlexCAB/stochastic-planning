@@ -27,18 +27,19 @@ class ManagerStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdg
   private class CaseData extends Case with WithMapNode with WithMapEdge:
     lazy val stateEmpty: State = State.init
 
-    def spawnNode(rawId: Long, data: NodeData): IO[Node] = IO.pure(makeNodeStub(data.nodeType.toMnId(rawId), data.name))
+    def spawnNode(rawId: Long, data: NodeData): IO[(NodeData, Node)] =
+      IO.pure((data, makeNodeStub(data.nodeType.toMnId(rawId), data.name)))
 
-    lazy val (conNodesMap, stateWithConNode): (Map[MnId.Nim, Node], State) = stateEmpty
+    lazy val (conNodesMap, stateWithConNode): (Map[MnId.Nim, (NodeData, Node)], State) = stateEmpty
       .withNewNodes[IO](Map(nim1 -> conNodeData), spawnNode)
       .unsafeRunSync()
 
-    lazy val (nodesMap, stateWithNodes): (Map[MnId.Nim, Node], State) = stateEmpty
+    lazy val (nodesMap, stateWithNodes): (Map[MnId.Nim, (NodeData, Node)], State) = stateEmpty
       .withNewNodes[IO](Map(nim1 -> conNodeData, nim2 -> absNodeData), spawnNode)
       .unsafeRunSync()
 
-    lazy val conNode: Node = conNodesMap(nim1)
-    lazy val absNode: Node = nodesMap(nim2)
+    lazy val conNode: Node = conNodesMap(nim1)._2
+    lazy val absNode: Node = nodesMap(nim2)._2
 
     lazy val sampleProps1: Sample.Props = makePropVals(3)
     lazy val sampleProps2: Sample.Props = makePropVals(7)
@@ -60,7 +61,8 @@ class ManagerStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdg
 
         nodes.keySet mustBe Set(nim1, nim2)
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
-        state.nodeRefMap.values.toSet mustBe nodes.values.toSet
+        nodes.view.mapValues(_._1).toMap mustBe Map(nim1 -> conNodeData, nim2 -> absNodeData)
+        state.nodeRefMap.values.toSet mustBe nodes.values.map(_._2).toSet
         state.nextMnId mustBe 3L
 
         state.nodeNameMap mustBe Map(
@@ -134,7 +136,7 @@ class ManagerStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdg
   "State.getNode(...)" should:
     "return the node for a known MnId" in newCase[CaseData]: (_, data) =>
       import data.*
-      stateWithNodes.getNode[IO](conMnId).asserting(_ mustBe nodesMap(nim1))
+      stateWithNodes.getNode[IO](conMnId).asserting(_ mustBe nodesMap(nim1)._2)
 
     "raise an error for an unknown MnId" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -144,7 +146,7 @@ class ManagerStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdg
   "State.getNodes(...)" should:
     "return the nodes for known MnIds" in newCase[CaseData]: (_, data) =>
       import data.*
-      stateWithNodes.getNodes[IO](Set(conMnId, absMnId)).asserting(_ mustBe Set(nodesMap(nim1), absNode))
+      stateWithNodes.getNodes[IO](Set(conMnId, absMnId)).asserting(_ mustBe Set(nodesMap(nim1)._2, absNode))
 
     "raise an error when some MnIds are not found in state" in newCase[CaseData]: (_, data) =>
       import data.*

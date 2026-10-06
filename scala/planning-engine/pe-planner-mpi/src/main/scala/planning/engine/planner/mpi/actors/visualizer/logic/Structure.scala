@@ -22,7 +22,7 @@ private[visualizer] trait Structure:
 
   private[visualizer] def doNodesAdded[F[_]: S](msg: ShowNodesAdded)(using d: Def, c: Ctx): F[Bhv] =
     for
-      _ <- logMap("[NodesAdded] added nodes", msg.ids.view.mapValues(_.repr).toMap)
+      _ <- logMap("[NodesAdded] added nodes", msg.ids)
       _ <- d.visualization.nodesAdded(msg.ids)
     yield Behaviors.same
 

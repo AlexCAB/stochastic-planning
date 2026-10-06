@@ -21,6 +21,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
+import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.test.data.MapEdgeTestData
 
 import scala.concurrent.duration.*
@@ -44,7 +45,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         val sampleId = added.keySet.head
         added mustBe Map(sampleId -> sample)
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData.name, absMnId -> absNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData, absMnId -> absNodeData)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
         fakeVisualizer.probe.expectNoMessage(200.millis)
 
@@ -78,7 +79,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           .addManSamples[IO](Set(sample), Map(nim1 -> conNodeData, nim2 -> absNodeData))
           .logValue(tn).await
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> absNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> absNodeData)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
         fakeVisualizer.probe.expectNoMessage(200.millis)
         fakePlanner.probe.expectNoMessage(200.millis)
@@ -93,7 +94,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         val added = manager.api.addManSamples[IO](Set.empty, Map(nim1 -> conNodeData)).logValue(tn).await
         added mustBe Map.empty
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData)
         fakeVisualizer.probe.expectNoMessage(500.millis)
         fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conMnId)
         fakePlanner.probe.expectNoMessage(200.millis)
@@ -137,7 +138,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           val sampleId = added.keySet.head
           added mustBe Map(sampleId -> sample)
 
-          fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> None)
+          fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> NodeData(None))
           fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
           fakeVisualizer.probe.expectNoMessage(200.millis)
           fakePlanner.probe.expectNoMessage(200.millis)
@@ -161,7 +162,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         val added = manager.api.addGenSamples[IO](Set.empty, Map(nim1 -> Some(conIoValue))).logValue(tn).await
         added mustBe Map.empty
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> None)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> NodeData(Some(conIoValue)))
         fakeVisualizer.probe.expectNoMessage(200.millis)
         fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conMnId)
         fakePlanner.probe.expectNoMessage(200.millis)

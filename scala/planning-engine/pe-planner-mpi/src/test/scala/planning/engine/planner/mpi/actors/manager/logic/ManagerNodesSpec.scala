@@ -42,7 +42,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
         val conId1 = manager.api.addNode[IO](conNodeData).logValue(tn).await
         conId1 mustBe conMnId
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(conId1 -> conNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(conId1 -> conNodeData)
         fakeVisualizer.probe.expectNoMessage(200.millis)
         fakePlanner.expectConNodeAdded.map(_.mnId) mustBe Set(conId1)
         fakePlanner.probe.expectNoMessage(200.millis)
@@ -52,7 +52,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
         val absId = manager.api.addNode[IO](absNodeData).logValue(tn).await
         absId mustBe absMnId
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(absId -> absNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(absId -> absNodeData)
         fakeVisualizer.probe.expectNoMessage(200.millis)
         fakePlanner.probe.expectNoMessage(200.millis)
 
@@ -65,7 +65,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
         val conId2 = manager.api.addNode[IO](conNodeData).logValue(tn).await
         conId2 mustBe MnId.Con(3L)
 
-        fakeVisualizer.expectShowNodesAdded mustBe Map(conId2 -> conNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(conId2 -> conNodeData)
         fakeVisualizer.probe.expectNoMessage(200.millis)
 
         fakePlanner.expectConNodeAdded.map(_.mnId) must contain(conId2)
@@ -82,7 +82,7 @@ class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       import data.*
       async[IO]:
         val gotId = managerOneConNode.api.upsertNodesByName[IO](absNodeData).logValue(tn).await
-        fakeVisualizer.expectShowNodesAdded mustBe Map(gotId -> absNodeData.name)
+        fakeVisualizer.expectShowNodesAdded mustBe Map(gotId -> absNodeData)
         fakePlanner.probe.expectNoMessage(200.millis)
         gotId mustBe absMnId
 

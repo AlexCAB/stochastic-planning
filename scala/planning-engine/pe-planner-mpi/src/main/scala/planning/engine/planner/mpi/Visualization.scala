@@ -14,8 +14,9 @@ package planning.engine.planner.mpi
 
 import cats.syntax.ext.MT
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.model.data.map.Metadata
+import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.io.IoVars
 
 // Map network visualization interface:
@@ -35,7 +36,7 @@ trait Visualization:
   def init[F[_]: MT](metadata: Metadata, variables: IoVars): F[Unit]
 
   // Called when new hidden nodes added to the map network structure.
-  def nodesAdded[F[_]: MT](ids: Map[MnId, Option[HnName]]): F[Unit]
+  def nodesAdded[F[_]: MT](ids: Map[MnId, NodeData]): F[Unit]
 
   // Called when new edges added to the map network structure.
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]

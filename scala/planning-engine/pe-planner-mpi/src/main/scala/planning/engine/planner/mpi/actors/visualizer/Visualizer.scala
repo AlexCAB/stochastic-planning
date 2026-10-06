@@ -16,17 +16,18 @@ import cats.MonadThrow
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.data.map.Metadata
+import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.io.IoVars
 
 private[mpi] trait Visualizer:
 
   // Save nodes added to the map network for visualization.
-  def nodesAdded[F[_]: MT](ids: Map[MnId, Option[HnName]]): F[Unit]
+  def nodesAdded[F[_]: MT](ids: Map[MnId, NodeData]): F[Unit]
 
   // Save edges added to the map network for visualization.
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]

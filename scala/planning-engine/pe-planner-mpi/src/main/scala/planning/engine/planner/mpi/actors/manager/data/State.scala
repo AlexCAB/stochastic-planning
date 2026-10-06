@@ -44,10 +44,10 @@ private[manager] final case class State(
 
   def withNewNodes[F[_]: MT](
       data: Map[Nim, NodeData],
-      spawn: (Long, NodeData) => F[Node],
-  ): F[(Map[Nim, Node], State)] =
-    def spawnAllNode: F[List[(Nim, Node)]] =
-      data.zipWithIndex.toList.traverse((e, i) => spawn(nextMnId + i, e._2).map(n => e._1 -> n))
+      spawn: (Long, NodeData) => F[(NodeData, Node)],
+  ): F[(Map[Nim, (NodeData, Node)], State)] =
+    def spawnAllNode: F[List[(Nim, (NodeData, Node))]] =
+      data.zipWithIndex.toList.traverse((e, i) => spawn(nextMnId + i, e._2).map(n => e._1 -> (n._1, n._2)))
 
     def extractNames(nodes: List[Node]): Map[HnName, Set[MnId]] = nodes
       .collect { case n if n.name.isDefined => n.name.get -> n.mnId }
@@ -61,10 +61,10 @@ private[manager] final case class State(
 
     for
       nodes <- spawnAllNode
-      mnIds = nodes.map(_._2.mnId)
+      mnIds = nodes.map(_._2._2.mnId)
       _ <- mnIds.assertDistinct("Duplicate node IDs in new nodes")
       _ <- nodeRefMap.keySet.assertContainsNoneOf(mnIds, "Node IDs already exist in the current state")
-    yield (nodes.toMap, updateState(nodes.map(_._2)))
+    yield (nodes.toMap, updateState(nodes.map(_._2._2)))
 
   private def withNewSamples[F[_]: MT, S](
       samples: Set[S],

@@ -15,7 +15,6 @@ package planning.engine.planner.mpi.actors.guardian.logic
 import cats.effect.Async
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Scheduler
-import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.guardian.data.Message
@@ -29,9 +28,9 @@ private[guardian] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Act
 
   override def initialize[F[_]: Async](
       variables: IoVars,
-      visualization: Option[Visualization],
+      
   )(using Scheduler): F[(Manager, Planner, Option[Visualizer])] = actor
-    .askF[F, Initialized](ref => Initialize(variables, visualization, ref))
+    .askF[F, Initialized](ref => Initialize(variables, ref))
     .map(i => (i.manager, i.planner, i.visualizer))
 
   override def reset[F[_]: Async]()(using Scheduler): F[Unit] = actor.askF[F, Cleaned.type](ref => Reset(ref)).void

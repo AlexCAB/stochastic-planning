@@ -8,14 +8,12 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 09.08.2026 |||||||||||*/
+| created: 06.10.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer.data
+package planning.engine.planner.mpi.actors.guardian.data
 
 import planning.engine.planner.mpi.Visualization
-import planning.engine.planner.mpi.model.io.IoVars
 
-private[visualizer] final case class Definition(
-    variables: IoVars,
-    visualization: Visualization,
+private[planner] final case class Definition(
+    visualization: Option[Visualization],
 )

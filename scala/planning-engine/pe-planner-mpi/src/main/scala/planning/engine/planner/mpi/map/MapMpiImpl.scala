@@ -18,7 +18,7 @@ import cats.syntax.all.*
 import cats.effect.std.AtomicCell
 import org.apache.pekko.actor.typed.Scheduler
 import org.typelevel.log4cats.LoggerFactory
-import planning.engine.planner.mpi.{MapMpi, Visualization}
+import planning.engine.planner.mpi.MapMpi
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
@@ -32,7 +32,6 @@ import planning.engine.common.errors.*
 import planning.engine.planner.mpi.model.data.map.Metadata
 
 private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
-    visualization: Option[Visualization],
     guardian: Guardian,
     scheduler: Scheduler,
     mapState: AtomicCell[F, Option[MapMpiImpl.MapState]],
@@ -50,9 +49,9 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
 
     def initMap: F[Option[MapState]] =
       for
-        _ <- logger.info(s"Init: md = $metadata, in = $inVars, out = $outVars, viz = $visualization")
+        _ <- logger.info(s"Init: md = $metadata, in = $inVars, out = $outVars")
         ioVars <- IoVars(inVars, outVars)
-        (manager, planner, visualizer) <- guardian.initialize(ioVars, visualization)
+        (manager, planner, visualizer) <- guardian.initialize(ioVars)
         map = MapState(metadata, ioVars, manager, planner, visualizer)
         _ <- logger.info(s"Initialized: $map")
       yield Some(map)

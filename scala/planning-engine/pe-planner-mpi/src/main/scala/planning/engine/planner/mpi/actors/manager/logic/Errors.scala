@@ -20,8 +20,8 @@ private[manager] trait Errors:
 
   // Called when any error occurs in some NodeActor.
   private[manager] def doHandleNodeError[F[_]: S](msg: NodeActorError, state: St)(using Def, Ctx): F[St] =
-    logAndRaiseFatal(s"NodeActorError received: ${msg.nodeRef}", msg.msg, state, msg.err, "Node actor error")
+    doLogAndRaiseFatal(s"NodeActorError received: ${msg.nodeRef}", msg.msg, state, msg.err, "Node actor error")
 
   // Called when any error occurs in the ManagerActor itself.
   private[manager] def doHandleManagerError[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    logAndRaiseFatal("Manager actor error", Some(msg), state, err, "Manager actor error")
+    doLogAndRaiseFatal("Manager actor error", Some(msg), state, err, "Manager actor error")

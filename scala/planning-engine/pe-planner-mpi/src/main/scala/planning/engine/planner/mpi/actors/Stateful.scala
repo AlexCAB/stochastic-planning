@@ -22,9 +22,7 @@ import planning.engine.planner.mpi.repr.Representable
 private[actors] trait Stateful extends Base:
   import Stateful.GetState
 
-  // Shortcut for actor definition
-  type Def
-
+  // Shortcut for actor types
   protected type St <: Representable
   protected type S[F[_]] = Sync[F]
 
@@ -37,32 +35,25 @@ private[actors] trait Stateful extends Base:
   // Abstract method for handling errors during message processing (i.e., exceptions thrown in the receive method)
   protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St]
 
-  // Message processing helpers
+  // Common message handler
   protected def doIgnoreError[F[_]: S](msg: Msg, state: St, err: Throwable)(using ctx: Ctx): F[St] =
     logError(s"Error processing of the message $msg at state $state: ${err.getMessage}", err).as(state)
 
-  protected def logAndRaiseFatal[F[_]: S](
+  protected def doLogAndRaiseFatal[F[_]: S](
       logPrefix: String,
       atMsg: Option[Representable],
       state: St,
       err: Throwable,
       fatalMsg: String,
   )(using Ctx): F[St] =
-    def renderOp(prefix: String, obj: Option[Representable]): F[Option[String]] = obj
-      .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
-      .getOrElse(None.pure)
-
-    def buildLogMsg(msgStr: Option[String], stateStr: Option[String]): String =
-      List(Some(logPrefix), msgStr, stateStr).flatten.mkString("\n")
-
     for
-      msgStr <- renderOp("During processing message:", atMsg)
-      stateStr <- renderOp("Actor state:", Some(state))
-      logMst = buildLogMsg(msgStr, stateStr)
+      msgStr <- renderRepresentable("During processing message:", atMsg)
+      stateStr <- renderRepresentable("Actor state:", Some(state))
+      logMst = List(Some(logPrefix), msgStr, stateStr).flatten.mkString("\n")
       _ <- logError(logMst, err)
       _ <- Sync[F].raiseError(FatalException(fatalMsg, Some(err)))
     yield state
-
+  
   protected def doGetState[F[_]: S](msg: GetState[St], state: St)(using ctx: Ctx): F[St] =
     for
       _ <- logInfo(s"GetState message received, returning current state: $state")
@@ -74,33 +65,14 @@ private[actors] trait Stateful extends Base:
     given Ctx = ctx
     setup(state)
 
-    Behaviors.receiveMessage: msg =>
-      lazy val msgName = msg.getClass.getSimpleName
-
-      def recoverableErr(err: Throwable): IO[Behavior[Msg]] =
-        ctx.log.error(s"Error on message, calling error() handler, at msg = $msgName", err)
-
-        error[IO](msg, state, err)
-          .map(ns => behavior(ns))
-          .handleErrorWith: err =>
-            ctx.log.error(s"Failed to recover after error, actor will terminated: at msg = $msgName", err)
-            IO.delay(Behaviors.stopped)
-
-      def fatalErr(err: FatalException): IO[Behavior[Msg]] =
-        ctx.log.error(s"Received FatalException, actor will terminated: at msg = $msgName", err)
-        IO.delay(Behaviors.stopped)
-
-      receive[IO](msg, state)
-        .map(ns => behavior(ns))
-        .handleErrorWith:
-          case err: FatalException => fatalErr(err)
-          case err: Throwable      => recoverableErr(err)
-        .unsafeRunSync()
+    Behaviors.receiveMessage: m =>
+      handleMsg[IO](m)(
+        msg => receive[IO](msg, state).map(behavior),
+        (err, msg) => error[IO](msg, state, err).map(behavior),
+      ).unsafeRunSync()
 
   // Factory method for creating the actor's behavior
-  protected def apply(definition: Def, state: St): Behavior[Msg] =
-    given Def = definition
-    behavior(state)
+  protected def apply(definition: Def, state: St): Behavior[Msg] = behavior(state)(using definition)
 
 private[actors] object Stateful:
   import Base.*

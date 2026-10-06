@@ -20,6 +20,7 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.model.io.IoVars
 
 private[mpi] trait Visualizer:
 
@@ -32,5 +33,5 @@ private[mpi] trait Visualizer:
 private[mpi] object Visualizer:
   type Msg = Actor.Msg
 
-  def spawn[F[_]: MT](viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
-    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(viz), (b, n) => ctx.spawn(b, n))))
+  def spawn[F[_]: MT](vars: IoVars,viz: Visualization, ctx: ActorContext[?]): F[Visualizer] =
+    MonadThrow[F].catchNonFatal(ApiImpl(Actor.spawn(Definition(vars, viz), (b, n) => ctx.spawn(b, n))))

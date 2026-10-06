@@ -13,8 +13,11 @@
 package planning.engine.planner.mpi.actors
 
 import cats.effect.{IO, Sync}
+import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import planning.engine.planner.mpi.model.error.FatalException
+import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Stateless extends Base:
 
@@ -22,25 +25,41 @@ private[actors] trait Stateless extends Base:
   type Bhv = Behavior[Msg]
 
   // Actor setup (called once when the actor is created)
-  protected def setup()(using Ctx): Unit = ()
+  protected def setup()(using Def, Ctx): Unit = ()
 
   // Abstract method for handling messages
-  protected def receive[F[_]: S](msg: Msg)(using Ctx): F[Bhv]
+  protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv]
+
+  // Abstract method for handling errors during message processing
+  protected def error[F[_]: S](msg: Msg, err: Throwable)(using Def, Ctx): F[Bhv]
+
+  // Common message handler
+  protected def doIgnoreError[F[_]: S](msg: Msg, err: Throwable)(using ctx: Ctx): F[Bhv] =
+    logError(s"Error processing of the message $msg: ${err.getMessage}", err).as(Behaviors.same)
+
+  protected def doLogAndRaiseFatal[F[_]: S](
+      logPrefix: String,
+      atMsg: Option[Representable],
+      err: Throwable,
+      fatalMsg: String,
+  )(using Ctx): F[Bhv] =
+    for
+      msgStr <- renderRepresentable("During processing message:", atMsg)
+      logMst = List(Some(logPrefix), msgStr).flatten.mkString("\n")
+      _ <- logError(logMst, err)
+      _ <- Sync[F].raiseError(FatalException(fatalMsg, Some(err)))
+    yield Behaviors.stopped
 
   // Actor main behavior definition
-  protected def behavior(): Bhv = Behaviors.setup: ctx =>
+  protected def behavior(using Def): Bhv = Behaviors.setup: ctx =>
     given Ctx = ctx
     setup()
 
-    def fatalErr(msg: Msg, err: Throwable): IO[Bhv] =
-      ctx.log.error(s"Fatal exception, actor will be terminated: at msg = ${msg.getClass.getSimpleName}", err)
-      IO.delay(Behaviors.stopped)
-
-    def handleMsg(msg: Msg): Bhv = receive[IO](msg)
-      .handleErrorWith(err => fatalErr(msg, err))
-      .unsafeRunSync()
-
-    Behaviors.receiveMessage(handleMsg)
+    Behaviors.receiveMessage: m =>
+      handleMsg[IO](m)(
+        msg => receive[IO](msg).as(behavior),
+        (err, msg) => error[IO](msg, err).as(behavior),
+      ).unsafeRunSync()
 
   // Factory method for creating the actor's behavior
-  private[actors] def apply(): Bhv = behavior()
+  private[actors] def apply(definition: Def): Bhv = behavior(using definition)

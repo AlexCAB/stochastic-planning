@@ -13,7 +13,6 @@
 package planning.engine.planner.mpi.actors.guardian.data
 
 import org.apache.pekko.actor.typed.ActorRef
-import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
@@ -29,7 +28,6 @@ private[guardian] object Message:
 
   final case class Initialize(
       variables: IoVars,
-      visualization: Option[Visualization],
       sender: ActorRef[Initialized],
   ) extends Command[Initialized]
 

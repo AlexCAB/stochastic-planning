@@ -32,6 +32,6 @@ private[planner] object Actor extends Stateful with SimpleSyncPlanner with Struc
     case msg: GetState[St]  => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
-    logAndRaiseFatal("Planner actor error", Some(msg), state, err, "Error on message processing")
+    doLogAndRaiseFatal("Planner actor error", Some(msg), state, err, "Error on message processing")
 
   def spawn(definition: Def, make: (Behavior[Msg], String) => Ref): Ref = make(apply(definition, State.init), name)

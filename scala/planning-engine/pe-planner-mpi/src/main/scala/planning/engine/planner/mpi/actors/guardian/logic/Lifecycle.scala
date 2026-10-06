@@ -25,9 +25,9 @@ private[guardian] trait Lifecycle:
   self: Actor.type =>
   import Message.*
 
-  private[guardian] def doInitialize[F[_]: S](msg: Initialize)(using ctx: Ctx): F[Bhv] =
-    def makeViz = msg.visualization match
-      case Some(v) => Visualizer.spawn(v, ctx).map(Some(_))
+  private[guardian] def doInitialize[F[_]: S](msg: Initialize)(using d: Def, ctx: Ctx): F[Bhv] =
+    def makeViz = d.visualization match
+      case Some(v) => Visualizer.spawn(msg.variables, v, ctx).map(Some(_))
       case None    => None.pure
 
     for
@@ -39,11 +39,11 @@ private[guardian] trait Lifecycle:
       _ <- msg.reply(Initialized(manager, planner, visualizer))
     yield Behaviors.same
 
-  private[guardian] def doReset[F[_]: S](msg: Reset)(using ctx: Ctx): F[Bhv] =
+  private[guardian] def doReset[F[_]: S](msg: Reset)(using d: Def, ctx: Ctx): F[Bhv] =
     def cleaned: Bhv =
       ctx.log.info("All child actors cleaned")
       msg.sender ! Cleaned
-      behavior()
+      behavior
 
     def awaitNext(children: Set[ActorRef[Nothing]]): Bhv = Behaviors.receiveSignal[Msg]:
       case (_, Terminated(child)) =>

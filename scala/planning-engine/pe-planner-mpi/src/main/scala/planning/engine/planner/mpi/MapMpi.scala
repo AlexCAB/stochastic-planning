@@ -80,6 +80,6 @@ trait MapMpi[F[_]]:
 object MapMpi:
   def apply[F[_]: {Async, LoggerFactory}](visualization: Option[Visualization]): Resource[F, MapMpi[F]] =
     for
-      (guardian, scheduler) <- Guardian.create()
+      (guardian, scheduler) <- Guardian.create(visualization)
       actors <- Resource.eval(AtomicCell[F].of(Option.empty[MapMpiImpl.MapState]))
-    yield new MapMpiImpl[F](visualization, guardian, scheduler, actors)
+    yield new MapMpiImpl[F](guardian, scheduler, actors)

@@ -17,8 +17,9 @@ import cats.syntax.all.*
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
 
 import scala.concurrent.ExecutionContext
-import org.apache.pekko.actor.typed.scaladsl.ActorContext
-import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
+import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import planning.engine.planner.mpi.model.error.FatalException
 import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Base:
@@ -41,7 +42,8 @@ private[actors] trait Base:
     config = IORuntimeConfig(),
   )
 
-  // Shortcut for actor definition
+  // Shortcut for actor types
+  type Def
   type Msg <: Representable
   type Ctx = ActorContext[Msg]
   type Ref = ActorRef[Msg]
@@ -52,6 +54,10 @@ private[actors] trait Base:
   protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
   // Helper method for logging messages
+  protected def renderRepresentable[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj
+    .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
+    .getOrElse(None.pure)
+  
   protected def logInfo[F[_]: S](msg: String)(using ctx: Ctx): F[Unit] = delay(ctx.log.info(msg))
 
   protected def logMap[F[_]: S, K, V](msg: String, map: Map[K, V])(using ctx: Ctx): F[Unit] =
@@ -63,6 +69,31 @@ private[actors] trait Base:
     logInfo(s"$msg:\n$repr")
 
   protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
+
+  // Handle message
+  protected def handleMsg[F[_]: S](msg: Msg)(
+      receive: Msg => F[Behavior[Msg]],
+      error: (Throwable, Msg) => F[Behavior[Msg]],
+  )(using ctx: Ctx): F[Behavior[Msg]] =
+    def recoverableErr(err: Throwable): F[Behavior[Msg]] =
+      for
+        _ <- logError(s"Error on message, calling error() handler, at msg = ${msg.getClass.getSimpleName}", err)
+        bh <- error(err, msg)
+      yield bh
+
+    def fatalErr(err: Throwable): F[Behavior[Msg]] =
+      for
+        msgRpr <- msg.longAutoStr
+        logMsg = s"Received FatalException or failed to recover after error, actor will terminated: at msg:\n$msgRpr"
+        _ <- logError(logMsg, err)
+      yield Behaviors.stopped
+
+    def handleError(err: Throwable): F[Behavior[Msg]] = err match
+      case fatal: FatalException => fatalErr(fatal)
+      case _                     => recoverableErr(err).handleErrorWith(fatalErr)
+
+    receive(msg)
+      .handleErrorWith(handleError)
 
 private[actors] object Base:
   trait WithSender[R]:

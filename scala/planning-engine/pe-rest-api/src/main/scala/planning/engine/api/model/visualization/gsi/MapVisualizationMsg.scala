@@ -10,9 +10,9 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-29 |||||||||||*/
 
-package planning.engine.api.model.visualization
+package planning.engine.api.model.visualization.gsi
 
-import io.circe.{Decoder, Encoder}
+import planning.engine.api.model.visualization.VisualizationMsg
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.HnId
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
@@ -24,16 +24,9 @@ final case class MapVisualizationMsg(
     concreteNodes: Set[HnId],
     abstractNodes: Set[HnId],
     edgesMapping: Set[(HnId, Set[HnId])],
-)
+) extends VisualizationMsg
 
 object MapVisualizationMsg:
-  import io.circe.generic.semiauto.*
-
-  import planning.engine.api.model.json.values.*
-
-  implicit val decoder: Decoder[MapVisualizationMsg] = deriveDecoder[MapVisualizationMsg]
-  implicit val encoder: Encoder[MapVisualizationMsg] = deriveEncoder[MapVisualizationMsg]
-
   def fromState[F[_]](info: MapInfoState[F], state: MapGraphState[F]): MapVisualizationMsg = MapVisualizationMsg(
     inNodes = info.inNodes.keySet,
     outNodes = info.outNodes.keySet,

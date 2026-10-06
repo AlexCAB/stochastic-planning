@@ -21,7 +21,7 @@ import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.parts.VisualizationRouteConf
-import planning.engine.api.model.visualization.MapVisualizationMsg
+import planning.engine.api.model.visualization.VisualizationMsg
 import planning.engine.api.route.RouteBase
 import planning.engine.api.service.visualization.VisualizationService
 import scodec.bits.ByteVector
@@ -39,7 +39,7 @@ class VisualizationRoute[F[_]: {Concurrent, Temporal, LoggerFactory}](
   private val receiveConvert: Pipe[F, WebSocketFrame, String] = _.collect:
     case WebSocketFrame.Text(t, _) => t
 
-  private def sendConvert(s: Stream[F, MapVisualizationMsg]): Stream[F, WebSocketFrame] =
+  private def sendConvert(s: Stream[F, VisualizationMsg]): Stream[F, WebSocketFrame] =
     s.map(d => WebSocketFrame.Text(d.asJson.noSpaces)).merge(pingStream)
 
   def endpoints(ws: WebSocketBuilder[F]): HttpRoutes[F] = HttpRoutes.of[F]:

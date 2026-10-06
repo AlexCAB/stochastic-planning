@@ -18,7 +18,7 @@ import fs2.concurrent.Topic
 import fs2.{Pipe, Stream}
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.parts.VisualizationServiceConf
-import planning.engine.api.model.visualization.MapVisualizationMsg
+import planning.engine.api.model.visualization.gsi.MapVisualizationMsg
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.visualization.MapVisualization

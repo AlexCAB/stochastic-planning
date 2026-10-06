@@ -30,7 +30,6 @@ class VisualizationRoute[F[_]: {Concurrent, Temporal, LoggerFactory}](
     config: VisualizationRouteConf,
     service: VisualizationService[F],
 ) extends RouteBase[F] with Http4sDsl[F]:
-
   import io.circe.syntax.*
 
   private val pingStream: Stream[F, WebSocketFrame] =

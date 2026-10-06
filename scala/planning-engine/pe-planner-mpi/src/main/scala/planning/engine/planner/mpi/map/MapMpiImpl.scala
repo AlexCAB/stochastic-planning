@@ -51,7 +51,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       for
         _ <- logger.info(s"Init: md = $metadata, in = $inVars, out = $outVars")
         ioVars <- IoVars(inVars, outVars)
-        (manager, planner, visualizer) <- guardian.initialize(ioVars)
+        (manager, planner, visualizer) <- guardian.initialize(metadata, ioVars)
         map = MapState(metadata, ioVars, manager, planner, visualizer)
         _ <- logger.info(s"Initialized: $map")
       yield Some(map)

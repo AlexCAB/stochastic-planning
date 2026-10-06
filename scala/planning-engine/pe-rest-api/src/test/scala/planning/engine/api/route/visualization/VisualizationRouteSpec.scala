@@ -22,7 +22,7 @@ import org.http4s.client.websocket.*
 import org.http4s.implicits.*
 import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.map.TestGsiData
-import planning.engine.api.model.visualization.MapVisualizationMsg
+import planning.engine.api.model.visualization.VisualizationMsg
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 
@@ -39,7 +39,7 @@ class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationService[
     yield (stubService, route)
 
   "GET /visualization/map" should:
-    val testSendStream = Stream.emit[IO, MapVisualizationMsg](testMapVisualizationMsg)
+    val testSendStream = Stream.emit[IO, VisualizationMsg](testMapVisualizationMsg)
 
     val testReceiveStream: Pipe[IO, String, Unit] = _.evalMap: msg =>
       for
@@ -68,9 +68,9 @@ class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationService[
 
         getConnection(route)
           .use(_.receive.logValue("received value").map:
-            case Some(frame: WSFrame.Text) => parse(frame.data).flatMap(_.as[MapVisualizationMsg]) match
+            case Some(frame: WSFrame.Text) => parse(frame.data).flatMap(_.as[VisualizationMsg]) match
                 case Right(msg) => msg mustEqual testMapVisualizationMsg
-                case Left(err)  => fail(s"Failed to parse MapVisualizationMsg: $err")
+                case Left(err)  => fail(s"Failed to parse VisualizationMsg: $err")
             case msg => fail(s"Expected a WebSocketFrame.Text, but got $msg")).await
 
         succeed

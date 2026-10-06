@@ -14,7 +14,7 @@ package planning.engine.api.model.map
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import planning.engine.api.model.visualization.MapVisualizationMsg
+import planning.engine.api.model.visualization.gsi.MapVisualizationMsg
 import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.edges.{Indexies, MeKey}
 import planning.engine.common.graph.io.IoValueMap

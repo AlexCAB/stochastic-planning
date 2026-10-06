@@ -17,6 +17,7 @@ import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
+import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.io.IoVars
 import planning.engine.planner.mpi.repr.Representable
 
@@ -27,6 +28,7 @@ private[guardian] object Message:
   sealed trait Result
 
   final case class Initialize(
+      metadata: Metadata,
       variables: IoVars,
       sender: ActorRef[Initialized],
   ) extends Command[Initialized]

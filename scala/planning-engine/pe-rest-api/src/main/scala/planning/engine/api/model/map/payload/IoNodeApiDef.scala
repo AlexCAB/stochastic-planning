@@ -29,20 +29,18 @@ object IoNodeApiDef:
   import io.circe.generic.auto.*
   import planning.engine.api.model.json.values.*
 
-  given Encoder[IoNodeApiDef] = new Encoder[IoNodeApiDef]:
-    final def apply(data: IoNodeApiDef): Json = data match
-      case bool: BooleanIoNodeDef    => Json.obj("type" -> Json.fromString("BooleanIoNode"), "data" -> bool.asJson)
-      case float: FloatIoNodeDef     => Json.obj("type" -> Json.fromString("FloatIoNode"), "data" -> float.asJson)
-      case int: IntIoNodeDef         => Json.obj("type" -> Json.fromString("IntIoNode"), "data" -> int.asJson)
-      case listStr: ListStrIoNodeDef => Json.obj("type" -> Json.fromString("ListStrIoNode"), "data" -> listStr.asJson)
+  given Encoder[IoNodeApiDef] =
+    case bool: BooleanIoNodeDef    => Json.obj("type" -> Json.fromString("BooleanIoNode"), "data" -> bool.asJson)
+    case float: FloatIoNodeDef     => Json.obj("type" -> Json.fromString("FloatIoNode"), "data" -> float.asJson)
+    case int: IntIoNodeDef         => Json.obj("type" -> Json.fromString("IntIoNode"), "data" -> int.asJson)
+    case listStr: ListStrIoNodeDef => Json.obj("type" -> Json.fromString("ListStrIoNode"), "data" -> listStr.asJson)
 
-  given Decoder[IoNodeApiDef] = new Decoder[IoNodeApiDef]:
-    final def apply(c: HCursor): Decoder.Result[IoNodeApiDef] =
-      for
-        tpe <- c.downField("type").as[String]
-        data <- tpe match
-          case "BooleanIoNode" => c.downField("data").as[BooleanIoNodeDef]
-          case "FloatIoNode"   => c.downField("data").as[FloatIoNodeDef]
-          case "IntIoNode"     => c.downField("data").as[IntIoNodeDef]
-          case "ListStrIoNode" => c.downField("data").as[ListStrIoNodeDef]
-      yield data
+  given Decoder[IoNodeApiDef] = (c: HCursor) =>
+    for
+      tpe <- c.downField("type").as[String]
+      data <- tpe match
+        case "BooleanIoNode" => c.downField("data").as[BooleanIoNodeDef]
+        case "FloatIoNode"   => c.downField("data").as[FloatIoNodeDef]
+        case "IntIoNode"     => c.downField("data").as[IntIoNodeDef]
+        case "ListStrIoNode" => c.downField("data").as[ListStrIoNodeDef]
+    yield data

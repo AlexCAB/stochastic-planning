@@ -23,7 +23,7 @@ private[guardian] object Actor extends Stateless with Lifecycle:
 
   val name = "map-guardian-actor"
 
-  override protected def setup()(using d: Def, ctx: Ctx): Unit = ctx.setLoggerName(name)
+  override protected def setup[F[_]: S]()(using d: Def, ctx: Ctx): F[Unit] = delay(ctx.setLoggerName(name))
 
   override protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv] = msg match
     case msg: Initialize => doInitialize(msg)

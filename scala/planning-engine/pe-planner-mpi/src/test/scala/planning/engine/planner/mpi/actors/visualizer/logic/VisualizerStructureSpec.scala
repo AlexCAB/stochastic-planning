@@ -37,11 +37,18 @@ class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisu
     val keys: Set[MeKey] = Set(linkKey, thenKey)
 
     val visualizationMock: Visualization = mock[Visualization]
+    visualizationMock.init[IO](testMetadata, testVars) returns IO.unit // Called on actor setup, so stub before spawn
+
     val visualizer: TestVisualizer = makeVisualizer(viz = visualizationMock)
 
     val callTimeoutMs = 3000L // Visualization is called asynchronously, so verification waits for it.
 
-  "Visualizer.nodesAdded" should:
+  "Visualizer.init(...)" should:
+    "initialize the visualization with map metadata and variables" in newCase[CaseData]: (_, data) =>
+      import data.*
+      IO(verify(visualizationMock, timeout(callTimeoutMs)).init[IO](testMetadata, testVars)).asserting(_ => succeed)
+
+  "Visualizer.nodesAdded(...)" should:
     "pass the added nodes to the visualization" in newCase[CaseData]: (tn, data) =>
       import data.*
       visualizationMock.nodesAdded[IO](ids) returns IO.unit
@@ -50,7 +57,7 @@ class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisu
         verify(visualizationMock, timeout(callTimeoutMs)).nodesAdded[IO](ids)
         succeed
 
-  "Visualizer.edgesAdded" should:
+  "Visualizer.edgesAdded(...)" should:
     "pass the added edge keys to the visualization" in newCase[CaseData]: (tn, data) =>
       import data.*
       visualizationMock.edgesAdded[IO](keys) returns IO.unit

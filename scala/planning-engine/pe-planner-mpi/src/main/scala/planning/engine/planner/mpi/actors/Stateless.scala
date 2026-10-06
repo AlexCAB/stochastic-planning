@@ -25,7 +25,7 @@ private[actors] trait Stateless extends Base:
   type Bhv = Behavior[Msg]
 
   // Actor setup (called once when the actor is created)
-  protected def setup()(using Def, Ctx): Unit = ()
+  protected def setup[F[_]: S]()(using d: Def, ctx: Ctx): F[Unit] = ().pure
 
   // Abstract method for handling messages
   protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv]
@@ -53,7 +53,7 @@ private[actors] trait Stateless extends Base:
   // Actor main behavior definition
   protected def behavior(using Def): Bhv = Behaviors.setup: ctx =>
     given Ctx = ctx
-    setup()
+    setup[IO]().unsafeRunSync()
 
     Behaviors.receiveMessage: m =>
       handleMsg[IO](m)(

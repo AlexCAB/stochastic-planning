@@ -18,6 +18,7 @@ import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.io.IoVars
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,11 +31,13 @@ final case class TestVisualizer(api: Visualizer):
 object TestVisualizer extends TestActorBase:
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
-  def apply(vars: IoVars, viz: Visualization, name: String)(using tk: ActorTestKit): TestVisualizer =
+  def apply(metadata: Metadata, vars: IoVars, viz: Visualization, name: String)(using
+      tk: ActorTestKit,
+  ): TestVisualizer =
     def spawn(bh: Behavior[Visualizer.Msg], name: String): ActorRef[Visualizer.Msg] =
       tk.spawn(bh, s"test-visualizer-$name-${nameIdCounter.getAndIncrement()}")
 
-    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(vars, viz), spawn)))
+    new TestVisualizer(api = ApiImpl(Actor.spawn(Definition(metadata, vars, viz), spawn)))
 
   extension (api: Visualizer)
     def ref: ActorRef[Visualizer.Msg] = api match

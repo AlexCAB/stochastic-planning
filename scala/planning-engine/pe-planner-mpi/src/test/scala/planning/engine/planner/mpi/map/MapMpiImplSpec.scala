@@ -43,7 +43,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val outVars: Set[Variable.Output] = Set(outVar)
     val ioVars: IoVars = new IoVars(Map(inVar.name -> inVar), Map(outVar.name -> outVar))
 
-    guardianStub.initialize[IO](*) returns IO.pure((managerStub, plannerStub, None))
+    guardianStub.initialize[IO](*, *) returns IO.pure((managerStub, plannerStub, None))
 
     val mapStateCell: AtomicCell[IO, Option[MapMpiImpl.MapState]] = AtomicCell[IO]
       .of(Option.empty[MapMpiImpl.MapState]).unsafeRunSync()
@@ -56,7 +56,7 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
         import data.*
         async[IO]:
           mapMpi.init(metadata, inVars, outVars).logValue(tn).await
-          guardianStub.initialize[IO](ioVars) was called
+          guardianStub.initialize[IO](metadata, ioVars) was called
 
   "MapMpiImpl.reset(...)" should:
     "call Guardian.reset when the map network is initialized" in newCase[CaseData]: (tn, data) =>

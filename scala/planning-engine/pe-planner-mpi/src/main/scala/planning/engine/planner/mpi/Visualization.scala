@@ -15,6 +15,8 @@ package planning.engine.planner.mpi
 import cats.syntax.ext.MT
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.planner.mpi.model.data.map.Metadata
+import planning.engine.planner.mpi.model.io.IoVars
 
 // Map network visualization interface:
 // - External component should provide implementation of this trait to `MapMpi`
@@ -27,6 +29,11 @@ import planning.engine.common.values.node.{HnName, MnId}
 // - Visualizer actor is stateless (it just aggregate map network events and re-directs them to `Visualization`),
 //   so visualization should maintain its own state if needed.
 trait Visualization:
+
+  // Called when visualizer actor initialized, before any other methods called.
+  // Use to configure visualization with map network metadata and variables.
+  def init[F[_]: MT](metadata: Metadata, variables: IoVars): F[Unit]
+
   // Called when new hidden nodes added to the map network structure.
   def nodesAdded[F[_]: MT](ids: Map[MnId, Option[HnName]]): F[Unit]
 

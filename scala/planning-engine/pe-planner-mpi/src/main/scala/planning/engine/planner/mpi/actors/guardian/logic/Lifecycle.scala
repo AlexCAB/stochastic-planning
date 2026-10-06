@@ -27,7 +27,7 @@ private[guardian] trait Lifecycle:
 
   private[guardian] def doInitialize[F[_]: S](msg: Initialize)(using d: Def, ctx: Ctx): F[Bhv] =
     def makeViz = d.visualization match
-      case Some(v) => Visualizer.spawn(msg.variables, v, ctx).map(Some(_))
+      case Some(v) => Visualizer.spawn(msg.metadata, msg.variables, v, ctx).map(Some(_))
       case None    => None.pure
 
     for

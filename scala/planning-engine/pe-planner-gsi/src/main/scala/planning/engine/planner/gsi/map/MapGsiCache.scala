@@ -31,11 +31,11 @@ import planning.engine.planner.gsi.map.dcg.nodes.DcgNode
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.planner.gsi.map.logic.MapBaseLogic
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
-import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
+import planning.engine.planner.gsi.map.visualization.MapVisualization
 
 class MapGsiCache[F[_]: {Async, LoggerFactory}](
     mapGraph: MapGraphLake[F],
-    visualization: MapVisualizationLike[F],
+    visualization: MapVisualization[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     stateCell: AtomicCell[F, MapGraphState[F]],
 ) extends MapBaseLogic[F](visualization, mapInfoCell, stateCell) with MapGsiLike[F]:
@@ -88,7 +88,7 @@ class MapGsiCache[F[_]: {Async, LoggerFactory}](
 object MapGsiCache:
   def apply[F[_]: {Async, LoggerFactory}](
       mapGraph: MapGraphLake[F],
-      visualization: MapVisualizationLike[F],
+      visualization: MapVisualization[F],
   ): F[MapGsiCache[F]] =
     for
       mapInfo <- AtomicCell[F].of(MapInfoState.empty[F])

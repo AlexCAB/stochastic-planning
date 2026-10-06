@@ -19,12 +19,12 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
-import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
+import planning.engine.planner.gsi.map.visualization.MapVisualization
 
 // Base/common logic for MapInMem and MapCache implementations,
 // providing common state management and operations on the map graph state.
 abstract class MapBaseLogic[F[_]: {Async, LoggerFactory}](
-    visualization: MapVisualizationLike[F],
+    visualization: MapVisualization[F],
     mapInfoCell: AtomicCell[F, MapInfoState[F]],
     stateCell: AtomicCell[F, MapGraphState[F]],
 ):

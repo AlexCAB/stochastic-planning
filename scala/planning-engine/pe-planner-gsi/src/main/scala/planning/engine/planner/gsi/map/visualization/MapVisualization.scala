@@ -14,5 +14,5 @@ package planning.engine.planner.gsi.map.visualization
 
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 
-trait MapVisualizationLike[F[_]]:
+trait MapVisualization[F[_]]:
   def stateUpdated(info: MapInfoState[F], state: MapGraphState[F]): F[Unit]

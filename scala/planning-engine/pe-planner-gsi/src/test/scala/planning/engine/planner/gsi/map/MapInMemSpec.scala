@@ -24,12 +24,12 @@ import planning.engine.planner.gsi.config.PlannerMapConfig
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapIdsCountState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.MapTestData
-import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
+import planning.engine.planner.gsi.map.visualization.MapVisualization
 
 class MapInMemSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with MapTestData:
-    lazy val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
+    lazy val visualizationStub: MapVisualization[IO] = mock[MapVisualization[IO]]
     lazy val testConfig = PlannerMapConfig(reprEnabled = true)
 
     lazy val emptyMapInMem: MapGsiInMemGsi[IO] =

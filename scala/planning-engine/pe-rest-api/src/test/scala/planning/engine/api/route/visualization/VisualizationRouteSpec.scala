@@ -23,17 +23,17 @@ import org.http4s.implicits.*
 import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.map.TestGsiData
 import planning.engine.api.model.visualization.MapVisualizationMsg
-import planning.engine.api.service.visualization.VisualizationServiceLike
+import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 
 import scala.concurrent.duration.DurationInt
 
-class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationServiceLike[IO], VisualizationRoute[IO])]
+class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationService[IO], VisualizationRoute[IO])]
     with MockitoWithResource with TestGsiData:
 
-  override val resource: Resource[IO, (VisualizationServiceLike[IO], VisualizationRoute[IO])] =
+  override val resource: Resource[IO, (VisualizationService[IO], VisualizationRoute[IO])] =
     for
-      stubService <- Resource.pure(mock[VisualizationServiceLike[IO]])
+      stubService <- Resource.pure(mock[VisualizationService[IO]])
       config <- Resource.pure(VisualizationRouteConf(pingTimeout = 5.seconds))
       route <- VisualizationRoute(config, stubService)
     yield (stubService, route)
@@ -46,7 +46,7 @@ class VisualizationRouteSpec extends UnitSpecWithResource[(VisualizationServiceL
           _ <- logInfo("Received WebSocket message:", msg)
       yield ()
 
-    def setStubService(service: VisualizationServiceLike[IO]): Unit =
+    def setStubService(service: VisualizationService[IO]): Unit =
       service.mapReceiveWs returns testReceiveStream
       service.mapSendWs returns testSendStream
 

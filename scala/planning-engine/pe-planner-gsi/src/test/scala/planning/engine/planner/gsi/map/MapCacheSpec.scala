@@ -25,13 +25,13 @@ import planning.engine.map.samples.sample.Sample
 import planning.engine.map.subgraph.MapSubGraph
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.MapTestData
-import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
+import planning.engine.planner.gsi.map.visualization.MapVisualization
 
 class MapCacheSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with MapTestData:
     val mapGraphStub: MapGraphLake[IO] = mock[MapGraphLake[IO]]
-    val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
+    val visualizationStub: MapVisualization[IO] = mock[MapVisualization[IO]]
     val mapCache = MapGsiCache[IO](mapGraphStub, visualizationStub).unsafeRunSync()
 
     def setLoadSubgraphForIoValue(

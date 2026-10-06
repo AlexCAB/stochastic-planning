@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-31 |||||||||||*/
 
-package planning.engine.api.service.visualization
+package planning.engine.api.service.visualization.gsi
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -22,13 +22,13 @@ import planning.engine.common.UnitSpecWithData
 
 import scala.concurrent.duration.DurationInt
 
-class VisualizationServiceSpec extends UnitSpecWithData with TestGsiData:
+class VisualizationGsiServiceSpec extends UnitSpecWithData with TestGsiData:
 
   private class CaseData extends Case:
     val config = VisualizationServiceConf(mapEnabled = true)
-    val service = VisualizationService.init[IO](config).unsafeRunSync()
+    val service = VisualizationGsiService.init[IO](config).unsafeRunSync()
 
-  "VisualizationService.mapSendWs" should:
+  "VisualizationGsiService.mapSendWs" should:
     "provide map visualization messages when enabled" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         (IO.sleep(1.second) *> data.service.stateUpdated(testMapInfoState, testDcgState)).start.await
@@ -40,7 +40,7 @@ class VisualizationServiceSpec extends UnitSpecWithData with TestGsiData:
         messages.size mustBe 1
         messages.head mustBe testMapVisualizationMsg
 
-  "VisualizationService.mapReceiveWs" should:
+  "VisualizationGsiService.mapReceiveWs" should:
     "log received ping messages" in newCase[CaseData]: (tn, data) =>
       async[IO]:
         data.service.mapReceiveWs(Stream.emit("test-ping-msg")).compile.drain.await

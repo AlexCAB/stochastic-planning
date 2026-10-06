@@ -22,7 +22,7 @@ import planning.engine.api.route.map.MapRoute
 import planning.engine.api.route.visualization.VisualizationRoute
 import planning.engine.api.service.maintenance.MaintenanceService
 import planning.engine.api.service.map.gsi.MapInMemGsiService
-import planning.engine.api.service.visualization.VisualizationService
+import planning.engine.api.service.visualization.gsi.VisualizationGsiService
 import planning.engine.planner.gsi.map.MapGsiInMemGsi
 
 object GsiMainRestInMem extends AppBase:
@@ -30,7 +30,7 @@ object GsiMainRestInMem extends AppBase:
     for
       mainConf <- MainInMemConf.default[IO]
 
-      visualizationService <- VisualizationService[IO](mainConf.visService)
+      visualizationService <- VisualizationGsiService[IO](mainConf.visService)
       visualizationRoute <- VisualizationRoute[IO](mainConf.visRoute, visualizationService)
 
       map <- MapGsiInMemGsi[IO](mainConf.plannerMap, visualizationService)

@@ -21,12 +21,12 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.gsi.map.dcg.samples.DcgSample
 import planning.engine.planner.gsi.map.state.{MapGraphState, MapInfoState}
 import planning.engine.planner.gsi.map.test.data.DcgStatesTestData
-import planning.engine.planner.gsi.map.visualization.MapVisualizationLike
+import planning.engine.planner.gsi.map.visualization.MapVisualization
 
 class MapBaseLogicSpec extends UnitSpecWithData with AsyncIdiomaticMockito:
 
   private class CaseData extends Case with DcgStatesTestData:
-    lazy val visualizationStub: MapVisualizationLike[IO] = mock[MapVisualizationLike[IO]]
+    lazy val visualizationStub: MapVisualization[IO] = mock[MapVisualization[IO]]
 
     lazy val changedDcgState = initDcgState.copy(ioValues = makeIoValueMap(testIoValue -> Set()))
 

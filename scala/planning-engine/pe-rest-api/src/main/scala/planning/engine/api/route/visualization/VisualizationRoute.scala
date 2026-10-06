@@ -23,12 +23,12 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.api.config.parts.VisualizationRouteConf
 import planning.engine.api.model.visualization.MapVisualizationMsg
 import planning.engine.api.route.RouteBase
-import planning.engine.api.service.visualization.VisualizationServiceLike
+import planning.engine.api.service.visualization.VisualizationService
 import scodec.bits.ByteVector
 
 class VisualizationRoute[F[_]: {Concurrent, Temporal, LoggerFactory}](
     config: VisualizationRouteConf,
-    service: VisualizationServiceLike[F],
+    service: VisualizationService[F],
 ) extends RouteBase[F] with Http4sDsl[F]:
 
   import io.circe.syntax.*
@@ -49,5 +49,5 @@ class VisualizationRoute[F[_]: {Concurrent, Temporal, LoggerFactory}](
 object VisualizationRoute:
   def apply[F[_]: {Sync, Temporal, LoggerFactory}](
       config: VisualizationRouteConf,
-      service: VisualizationServiceLike[F],
+      service: VisualizationService[F],
   ): Resource[F, VisualizationRoute[F]] = Resource.eval(Sync[F].delay(new VisualizationRoute[F](config, service)))

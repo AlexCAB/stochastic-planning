@@ -14,9 +14,9 @@ package planning.engine.api.config.mpi
 
 import cats.effect.IO
 import com.comcast.ip4s.{Host, Port}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import planning.engine.api.config.mpi.MainInMemConf
-import planning.engine.api.config.parts.{ServerConf, VisualizationRouteConf, VisualizationServiceConf}
+import planning.engine.api.config.parts.{ServerConf, VisualizationRouteConf}
 import planning.engine.common.UnitSpecWithData
 
 import scala.concurrent.duration.DurationInt
@@ -24,7 +24,7 @@ import scala.concurrent.duration.DurationInt
 class MainInMemConfSpec extends UnitSpecWithData:
 
   private class CaseData extends Case:
-    val validConfig = ConfigFactory.parseString(
+    val validConfig: Config = ConfigFactory.parseString(
       """
         |api.server {
         |  host = "127.0.0.1"
@@ -34,10 +34,7 @@ class MainInMemConfSpec extends UnitSpecWithData:
         |api.route.visualization {
         |  ping-timeout = 1 minute
         |}
-        |api.service.visualization {
-        |  map-enabled = false
-        |  long-pull-timeout = 1 minute
-        |}
+        |api.visualization.enabled = true
         |""".stripMargin,
     )
 
@@ -48,5 +45,5 @@ class MainInMemConfSpec extends UnitSpecWithData:
         .asserting(_ mustEqual MainInMemConf(
           server = ServerConf(Host.fromString("127.0.0.1").get, Port.fromInt(8080).get, "/api"),
           visRoute = VisualizationRouteConf(pingTimeout = 1.minute),
-          visService = VisualizationServiceConf(mapEnabled = false),
+          visEnabled = true,
         ))

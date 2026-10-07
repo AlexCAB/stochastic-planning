@@ -19,7 +19,7 @@ import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.model.data.map.Metadata
 
 class MpiInitSpec extends UnitSpecWithData:
-  
+
   private class CaseData extends Case with TestMpiData:
     lazy val metadata: Metadata = Metadata(Name("test-map"), Description.some("Test map description"))
 

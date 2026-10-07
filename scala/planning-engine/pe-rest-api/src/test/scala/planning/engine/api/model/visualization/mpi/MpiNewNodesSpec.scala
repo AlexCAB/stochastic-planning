@@ -19,7 +19,7 @@ import planning.engine.common.values.node.{HnId, HnName, MnId}
 import planning.engine.planner.mpi.model.data.node.NodeData
 
 class MpiNewNodesSpec extends UnitSpecWithData:
-  
+
   private class CaseData extends Case:
     lazy val ioNameA: IoName = IoName("ioA")
     lazy val ioNameB: IoName = IoName("ioB")

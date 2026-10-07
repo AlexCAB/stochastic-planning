@@ -19,7 +19,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnId, MnId}
 
 class MpiNewEdgesSpec extends UnitSpecWithData:
-  
+
   private class CaseData extends Case:
     lazy val conId: MnId.Con = MnId.Con(1L)
     lazy val absId: MnId.Abs = MnId.Abs(2L)

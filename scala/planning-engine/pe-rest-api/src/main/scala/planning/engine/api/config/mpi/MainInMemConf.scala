@@ -20,18 +20,18 @@ import planning.engine.api.config.parts.*
 
 final case class MainInMemConf(
     server: ServerConf,
+    visEnabled: Boolean,
     visRoute: VisualizationRouteConf,
-    visService: VisualizationServiceConf,
 )
 
 object MainInMemConf:
   def formConfig[F[_]: {Sync, LoggerFactory}](appConf: Config): F[MainInMemConf] =
     for
       server <- ServerConf.formConfig(appConf.getConfig("api.server"))
+      visEnabled <- Sync[F].delay(appConf.getBoolean("api.visualization.enabled"))
       visRoute <- VisualizationRouteConf.fromConfig(appConf.getConfig("api.route.visualization"))
-      visService <- VisualizationServiceConf.fromConfig(appConf.getConfig("api.service.visualization"))
       _ <- LoggerFactory[F].getLogger.info(s"Loaded configuration: $appConf")
-    yield MainInMemConf(server, visRoute, visService)
+    yield MainInMemConf(server, visEnabled, visRoute)
 
   def default[F[_]: {Sync, LoggerFactory}]: Resource[F, MainInMemConf] =
     Resource.eval(Sync[F].delay(ConfigFactory.load()).flatMap(ac => formConfig[F](ac)))

@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2025-12-25 |||||||||||*/
 
-package planning.engine.api.service.map.inmem
+package planning.engine.api.service.map.gsi
 
 import cats.effect.IO
 import cats.effect.cps.*

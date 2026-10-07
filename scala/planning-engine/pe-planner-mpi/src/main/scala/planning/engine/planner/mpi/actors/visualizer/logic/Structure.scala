@@ -20,6 +20,12 @@ private[visualizer] trait Structure:
   self: Actor.type =>
   import Message.*
 
+  private[visualizer] def doInit[F[_]: S](using d: Def, c: Ctx): F[Unit] =
+    for
+      _ <- logInfo(s"[Init] send visualization init message, metadata: ${d.metadata}, variables: ${d.variables}")
+      _ <- d.visualization.init(d.metadata, d.variables)
+    yield ()
+
   private[visualizer] def doNodesAdded[F[_]: S](msg: ShowNodesAdded)(using d: Def, c: Ctx): F[Bhv] =
     for
       _ <- logMap("[NodesAdded] added nodes", msg.ids)

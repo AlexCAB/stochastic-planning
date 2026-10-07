@@ -23,6 +23,9 @@ import planning.engine.planner.mpi.model.error.FatalException
 import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Base:
+
+  // Actor internal IORuntime
+
   private val context: ExecutionContext = new ExecutionContext:
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
@@ -43,6 +46,7 @@ private[actors] trait Base:
   )
 
   // Shortcut for actor types
+
   type Def
   type Msg <: Representable
   type Ctx = ActorContext[Msg]
@@ -51,9 +55,11 @@ private[actors] trait Base:
   protected type S[F[_]] = Sync[F]
 
   // Cats-effect helpers
+
   protected def delay[F[_]: S, R](f: => R): F[R] = Sync[F].delay(f)
 
   // Helper method for logging messages
+
   protected def renderRepresentable[F[_]: S](prefix: String, obj: Option[Representable]): F[Option[String]] = obj
     .map(_.longAutoRepr.map(r => Some(prefix + "\n" + r.map(s => "    " + s.toString).mkString("\n"))))
     .getOrElse(None.pure)
@@ -70,7 +76,8 @@ private[actors] trait Base:
 
   protected def logError[F[_]: S](msg: String, err: Throwable)(using ctx: Ctx): F[Unit] = delay(ctx.log.error(msg, err))
 
-  // Handle message
+  // Handle messages
+
   protected def handleMsg[F[_]: S](msg: Msg)(
       receive: Msg => F[Behavior[Msg]],
       error: (Throwable, Msg) => F[Behavior[Msg]],

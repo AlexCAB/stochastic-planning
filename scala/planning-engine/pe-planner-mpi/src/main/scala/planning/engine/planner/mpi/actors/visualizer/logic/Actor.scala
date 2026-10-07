@@ -28,7 +28,7 @@ private[visualizer] object Actor extends Stateless with Structure:
   override protected def setup[F[_]: S]()(using d: Def, ctx: Ctx): F[Unit] =
     for
       _ <- delay(ctx.setLoggerName(name))
-      _ <- d.visualization.init(d.metadata, d.variables)
+      _ <- doInit
     yield ()
 
   override protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv] = msg match

@@ -26,7 +26,7 @@ class VisualizationGsiServiceSpec extends UnitSpecWithData with TestGsiData:
 
   private class CaseData extends Case:
     val config = VisualizationServiceConf(mapEnabled = true)
-    val service = VisualizationGsiService.init[IO](config).unsafeRunSync()
+    val service: VisualizationGsiService[IO] = VisualizationGsiService.init[IO](config).unsafeRunSync()
 
   "VisualizationGsiService.mapSendWs" should:
     "provide map visualization messages when enabled" in newCase[CaseData]: (tn, data) =>

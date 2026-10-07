@@ -252,6 +252,16 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Refactor `VisualizerStructureSpec`: do mock `Visualization` instead of using `vizProbe`
 
+❯ In `VisualizationMpiService` how to correctly implement `def init` method which should call `topic.publish1` method inside, so there will no conflict in between `IORuntime` passed as `def init` implicit parameter and other `IORuntime` passed via `VisualizationMpiService` implicit parameter?
+
+❯ In `scala/planning/engine/api/model/visualization/mpi` add tests for `MpiInit.apply`, `MpiNewEdges.formMeKeys`, `MpiNewNodes.apply`
+
+❯ In `scala/planning/engine/api/service/visualization/mpi` add tests for `VisualizationMpiService`
+
+❯ Refactor `VisualizationMpiServiceSpec` to use `UnitSpecWithResource` instead of `UnitSpecWithData`, similar as it done in `MaintenanceRouteSpec`
+
+
+
 
 
 ##### TODO: 

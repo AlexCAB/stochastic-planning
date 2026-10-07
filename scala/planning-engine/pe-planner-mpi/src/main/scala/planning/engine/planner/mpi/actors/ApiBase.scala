@@ -26,7 +26,7 @@ trait ApiBase[M]:
   given Timeout = Timeout(5.seconds)
 
   extension (ref: ActorRef[M])
-    protected def tellF[F[_]: MT](msg: M): F[Unit] = MonadThrow[F].catchNonFatal(ref ! msg).void
+    protected def tellF[F[_]: MT](msg: M): F[Unit] = MT(ref ! msg).void
 
     protected def askF[F[_]: Async, R](makeMsg: ActorRef[R] => M)(using Scheduler): F[R] =
       Async[F].fromFuture(Async[F].delay(ref.ask(makeMsg)))

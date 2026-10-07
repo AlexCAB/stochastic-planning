@@ -17,7 +17,5 @@ import cats.syntax.ext.MT
 import fansi.Str
 
 trait Representable:
-  def longAutoRepr[F[_]: MT]: F[List[Str]] = MonadThrow[F]
-    .catchNonFatal(pprint.apply(this).toString.split("\n").toList.map(Str(_)))
-
-  def longAutoStr[F[_]: MT]: F[Str] = MonadThrow[F].catchNonFatal(pprint.apply(this))
+  def longAutoRepr[F[_]: MT]: F[List[Str]] = MT(pprint.apply(this).toString.split("\n").toList.map(Str(_)))
+  def longAutoStr[F[_]: MT]: F[Str] = MT(pprint.apply(this))

@@ -32,17 +32,17 @@ object VisualizationMsg:
 
   given Encoder[VisualizationMsg] =
     case m: GsiVisualizationMsg => Json.obj(typeKey -> Json.fromString(mapMsg), dataKey -> m.asJson)
-    case m: MpiInit => Json.obj(typeKey -> Json.fromString(mpiInit), dataKey -> m.asJson)
-    case m: MpiNewNodes => Json.obj(typeKey -> Json.fromString(mpiNewNodes), dataKey -> m.asJson)
-    case m: MpiNewEdges => Json.obj(typeKey -> Json.fromString(mpiNewEdges), dataKey -> m.asJson)
+    case m: MpiInit             => Json.obj(typeKey -> Json.fromString(mpiInit), dataKey -> m.asJson)
+    case m: MpiNewNodes         => Json.obj(typeKey -> Json.fromString(mpiNewNodes), dataKey -> m.asJson)
+    case m: MpiNewEdges         => Json.obj(typeKey -> Json.fromString(mpiNewEdges), dataKey -> m.asJson)
 
   given Decoder[VisualizationMsg] = (c: HCursor) =>
     for
       tpe <- c.downField(typeKey).as[String]
       data <- tpe match
-        case `mapMsg` => c.downField(dataKey).as[GsiVisualizationMsg]
-        case `mpiInit` => c.downField(dataKey).as[MpiInit]
+        case `mapMsg`      => c.downField(dataKey).as[GsiVisualizationMsg]
+        case `mpiInit`     => c.downField(dataKey).as[MpiInit]
         case `mpiNewNodes` => c.downField(dataKey).as[MpiNewNodes]
         case `mpiNewEdges` => c.downField(dataKey).as[MpiNewEdges]
-        case t            => Left(io.circe.DecodingFailure(s"Unknown visualization message type: $t", c.history))
+        case t             => Left(io.circe.DecodingFailure(s"Unknown visualization message type: $t", c.history))
     yield data

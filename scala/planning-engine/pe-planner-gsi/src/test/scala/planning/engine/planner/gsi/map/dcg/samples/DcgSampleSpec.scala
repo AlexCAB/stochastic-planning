@@ -34,7 +34,7 @@ class DcgSampleSpec extends UnitSpecWithData:
     lazy val sampleData = makeSampleData()
 
     lazy val edges = Set(MeKey.Link(n1, n2), MeKey.Then(n2, n3), MeKey.Link(n1, n4))
-    lazy val structure = GraphStructure[IO](edges)
+    lazy val structure = GraphStructure(edges)
     lazy val indexMap = IndexMap(Map(n1 -> HnIndex(11), n2 -> HnIndex(12), n3 -> HnIndex(13), n4 -> HnIndex(14)))
 
     lazy val dcgSample = new DcgSample[IO](sampleData, structure)
@@ -67,5 +67,5 @@ class DcgSampleSpec extends UnitSpecWithData:
       import data.sampleData
       val invalidEdges = Set(MeKey.Link(data.n1, data.n2), MeKey.Then(MnId.Con(5), MnId.Con(6)))
 
-      DcgSample[IO](sampleData, GraphStructure[IO](invalidEdges)).logValue(tn)
+      DcgSample[IO](sampleData, GraphStructure(invalidEdges)).logValue(tn)
         .assertThrowsError(_.getMessage must include("DcgSample edges must form a connected graph"))

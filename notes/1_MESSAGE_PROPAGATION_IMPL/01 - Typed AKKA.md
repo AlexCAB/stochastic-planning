@@ -260,14 +260,17 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Refactor `VisualizationMpiServiceSpec` to use `UnitSpecWithResource` instead of `UnitSpecWithData`, similar as it done in `MaintenanceRouteSpec`
 
+❯ Consider implementation of `gsi.map.repr.DcgSampleRepr.repr` method. Write similar method in `mpi.repr.SampleRepr.repr` to build text representation for  `mpi.model.data.samples.Sample`. Same a for `DcgSampleRepr` add unit test which will print built representation. 
 
+❯ Now `StructureReprBase` and `GraphStructure` helpers are not bound to effect type `F`, so:
+1. Update it usages overall the code for fix compilation and tests
+2. Refactor `SampleRepr`
 
 
 
 ##### TODO: 
-1. Integration with REST API (test with loading script)
-2. Implement graph representation (using colored text)
-3. Implement basic visualization API and integrate with Python
+1. Implement graph representation (using colored text)
+2. Implement basic visualization API and integrate with Python
 
 
 

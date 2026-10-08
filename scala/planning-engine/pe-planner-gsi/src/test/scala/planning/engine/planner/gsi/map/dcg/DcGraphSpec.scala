@@ -34,7 +34,7 @@ class DcGraphSpec extends UnitSpecWithData:
     val nodesMap = allNodes.map(n => n.id -> n).toMap
     val edgesMap = dcgEdges.map(e => e.key -> e).toMap
     val samplesMap = sampleData.map(s => s.id -> s).toMap
-    val structureMap = GraphStructure[IO](dcgEdges.map(_.key).toSet)
+    val structureMap = GraphStructure(dcgEdges.map(_.key).toSet)
 
   "DcGraph.mnIds" should:
     "return all MnIds" in newCase[CaseData]: (tn, data) =>
@@ -376,7 +376,7 @@ class DcGraphSpec extends UnitSpecWithData:
       import data.*
       val srcMap = graphWithEdges.structure.srcMap + (nuHnId -> Set(MeKey.Link.End(mnId1)))
       val trgMap = graphWithEdges.structure.trgMap + (mnId1 -> Set(MeKey.Link.End(nuHnId)))
-      val invalidStructure = graphWithEdges.structure.copy[IO](srcMap = srcMap, trgMap = trgMap)
+      val invalidStructure = graphWithEdges.structure.copy(srcMap = srcMap, trgMap = trgMap)
 
       DcGraph[IO](nodesMap, edgesMap, samplesMap, invalidStructure).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Graph structure refers to unknown MnIds"))
@@ -384,7 +384,7 @@ class DcGraphSpec extends UnitSpecWithData:
     "return error when graph structure refers to unknown edge key" in newCase[CaseData]: (tn, data) =>
       import data.*
       val keys = graphWithEdges.structure.keys + MeKey.Link(mnId1, mnId5)
-      val invalidStructure = graphWithEdges.structure.copy[IO](keys = keys)
+      val invalidStructure = graphWithEdges.structure.copy(keys = keys)
 
       DcGraph[IO](nodesMap, edgesMap, samplesMap, invalidStructure).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Graph structure refers to unknown edge key"))

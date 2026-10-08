@@ -12,10 +12,9 @@
 
 package planning.engine.common.repr
 
-import cats.syntax.ext.MT
 import planning.engine.common.graph.paths.MapPath
 
-trait StructureReprBase[F[_]: MT]:
+trait StructureReprBase:
   import MapPath.{Direct, Loop, Noose}
 
   type Column = List[String]

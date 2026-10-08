@@ -25,13 +25,13 @@ import scala.annotation.tailrec
 
 // Set of algorithms for tracing of graph structure,
 // e.g. for finding paths between nodes, finding cycles, etc.
-trait GraphTracing[F[_]: MT]:
-  self: GraphStructure[F] =>
+trait GraphTracing:
+  self: GraphStructure =>
 
   private[graph] def findInEdgeMap[E <: MeKey.End](srcIds: Set[MnId], edgeMap: Map[MnId, Set[E]]): Set[(MnId, E)] =
     srcIds.flatMap(id => edgeMap.get(id).toSet.flatMap(_.map(trgId => (id, trgId))))
 
-  def traceAbsDagLayers(conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =
+  def traceAbsDagLayers[F[_]: MT](conIds: Set[Con], filterForward: Link => Boolean): F[List[Set[Link]]] =
     @tailrec def trace(next: Set[MnId], visited: Set[(MnId, Link.End)], acc: List[Set[Link]]): F[List[Set[Link]]] =
       val forward = findInEdgeMap(next, srcLinkMap).filter((src, end) => filterForward(end.asSrcKey(src)))
       val intersect = visited.intersect(forward)
@@ -49,7 +49,7 @@ trait GraphTracing[F[_]: MT]:
 
     trace(conIds.map(_.asMnId), Set.empty, List.empty).map(_.reverse)
 
-  def traceThenPaths(beginHnIds: Set[MnId]): F[(Set[MapPath], Set[MnId])] =
+  def traceThenPaths[F[_]: MT](beginHnIds: Set[MnId]): F[(Set[MapPath], Set[MnId])] =
     def reduce(res: List[(Set[MapPath], Set[MnId])]): (Set[MapPath], Set[MnId]) =
       res.reduce((a, b) => (a._1 ++ b._1, a._2 ++ b._2))
 
@@ -71,7 +71,7 @@ trait GraphTracing[F[_]: MT]:
       .traverse(id => trace(id, Set.empty, Vector.empty))
       .map(ps => if ps.nonEmpty then reduce(ps) else (Set.empty, Set.empty))
 
-  private[graph] def traceThenCyclesPaths(visited: Set[MnId], acc: Set[MapPath]): F[Set[MapPath]] =
+  private[graph] def traceThenCyclesPaths[F[_]: MT](visited: Set[MnId], acc: Set[MapPath]): F[Set[MapPath]] =
     val notVisited = mnIds -- visited
 
     if notVisited.isEmpty then acc.pure
@@ -79,7 +79,7 @@ trait GraphTracing[F[_]: MT]:
       traceThenPaths(Set(notVisited.minBy(_.value)))
         .flatMap((paths, vis) => traceThenCyclesPaths(visited ++ vis, acc ++ paths))
 
-  lazy val allThenPaths: F[Set[MapPath]] =
+  def allThenPaths[F[_]: MT]: F[Set[MapPath]] =
     for
       (rootedPaths, visited) <- traceThenPaths(thenRoots)
       cyclesPaths <- traceThenCyclesPaths(visited, Set.empty)

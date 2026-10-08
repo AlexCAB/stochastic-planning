@@ -39,7 +39,7 @@ trait MapInference[F[_]: {Async, LoggerFactory}] extends MapInferenceLike[F]:
     for
       graph <- getMapState.map(_.graph)
       activeSampleIds <- graph.findActiveSampleIds(activeIds.map(_.asMnId)).pure
-      linkKeys <- graph.structure.traceAbsDagLayers(activeIds, graph.activeLinksFilter(activeSampleIds))
+      linkKeys <- graph.structure.traceAbsDagLayers[F](activeIds, graph.activeLinksFilter(activeSampleIds))
       mnIds = linkKeys.toSet.flatMap(_.flatMap(_.mnIds)) ++ activeIds
       linkEdges <- graph.getEdges[MeKey.Link](linkKeys.flatten.toSet)
       backThenKeys = graph.structure.findBackwardThenEdges(mnIds)

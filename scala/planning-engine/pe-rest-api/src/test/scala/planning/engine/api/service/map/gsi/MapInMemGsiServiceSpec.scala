@@ -70,7 +70,7 @@ class MapInMemGsiServiceSpec extends UnitSpecWithData with AsyncIdiomaticMockito
   "MapService.addSamples(...)" should:
     "add new samples to the map" in newCase[CaseData]: (tn, data) =>
       val addedSamples: Map[SampleId, DcgSample[IO]] = testResponse.addedSamples
-        .map(s => s.id -> testDcgSample.copy(data = testSampleData.copy(id = s.id, name = s.name)))
+        .map(s => s.id -> testDcgSample.copy[IO](data = testSampleData.copy(id = s.id, name = s.name)))
         .toMap
 
       data.mapInMemStub.getIoNode(testConNodeListStrDef.ioNodeName) returns IO.pure(

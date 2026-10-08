@@ -20,7 +20,7 @@ import planning.engine.common.repr.StructureReprBase
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.gsi.map.dcg.DcGraph
 
-class DcGraphRepr[F[_]: MT] extends StructureReprBase[F]:
+class DcGraphRepr[F[_]: MT] extends StructureReprBase:
   self: DcGraph[F] =>
 
   private[repr] def srcNode(id: MnId): String = nodes.get(id).map(_.repr).getOrElse(id.reprNode)
@@ -42,7 +42,7 @@ class DcGraphRepr[F[_]: MT] extends StructureReprBase[F]:
 
   lazy val reprAbsLayers: F[List[String]] =
     for
-      layers <- structure.traceAbsDagLayers(structure.conMnId, allLinksFilter)
+      layers <- structure.traceAbsDagLayers[F](structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
       terminalLayer = builtTerminalLayer(layers).tab4
       formatedLayers = builtLayers.map(l => formatLayerRepr(l))
@@ -55,7 +55,7 @@ class DcGraphRepr[F[_]: MT] extends StructureReprBase[F]:
 
   lazy val reprPlanningPath: F[List[String]] =
     for
-      paths <- structure.allThenPaths
+      paths <- structure.allThenPaths[F]
       (directs, loops, nooses) = groupPaths(paths)
     yield List(
       List("PLANING PATHS:", "  Direct:"),

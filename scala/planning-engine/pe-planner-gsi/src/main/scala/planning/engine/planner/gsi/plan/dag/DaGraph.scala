@@ -26,7 +26,7 @@ import planning.engine.planner.gsi.plan.repr.DaGraphRepr
 
 import scala.annotation.tailrec
 
-// Planning DAG, here algorithms for building and tracing (similar to GraphStructure[F])
+// Planning DAG, here algorithms for building and tracing (similar to GraphStructure)
 // It represent whole general plan-graph structure, so context node and plan node are together in this graph.
 final case class DaGraph[F[_]: MT](
     nodes: Map[PnId, DagNode[F]],

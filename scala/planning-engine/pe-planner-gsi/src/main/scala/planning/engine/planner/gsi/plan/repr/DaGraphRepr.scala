@@ -20,7 +20,7 @@ import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.PnId
 import planning.engine.planner.gsi.plan.dag.DaGraph
 
-trait DaGraphRepr[F[_]: MT] extends StructureReprBase[F]:
+trait DaGraphRepr[F[_]: MT] extends StructureReprBase:
   self: DaGraph[F] =>
 
   private[repr] def renderSrc(id: PnId): String = nodes.get(id).map(_.repr).getOrElse(id.repr)

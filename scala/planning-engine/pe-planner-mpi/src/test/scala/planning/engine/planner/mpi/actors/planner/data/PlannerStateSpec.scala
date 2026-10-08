@@ -18,9 +18,9 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.NodeTestData
 
-class PlannerStateSpec extends UnitSpecWithData with MapNodeTestData:
+class PlannerStateSpec extends UnitSpecWithData with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     val name1: IoName = IoName("boolInputNode")
     val name2: IoName = IoName("intInputNode")

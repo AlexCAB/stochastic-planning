@@ -18,7 +18,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.model.data.samples.Sample
 
-trait MapEdgeTestData:
+trait EdgeTestData:
   self: UnitSpecWithData =>
 
   trait WithMapEdge:

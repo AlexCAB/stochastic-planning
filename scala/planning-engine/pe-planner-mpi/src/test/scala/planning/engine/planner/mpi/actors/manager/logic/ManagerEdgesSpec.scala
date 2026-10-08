@@ -20,9 +20,9 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
-import planning.engine.planner.mpi.test.data.MapEdgeTestData
+import planning.engine.planner.mpi.test.data.EdgeTestData
 
-class ManagerEdgesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with MapEdgeTestData:
+class ManagerEdgesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with EdgeTestData:
   private class CaseData extends Case with WithManager with WithMapEdge
 
   "Manager.addEdge(...)" should:

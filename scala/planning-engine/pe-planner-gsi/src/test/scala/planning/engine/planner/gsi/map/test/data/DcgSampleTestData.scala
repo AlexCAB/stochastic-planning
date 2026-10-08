@@ -42,7 +42,7 @@ trait DcgSampleTestData extends DcgNodeTestData:
 
   def makeDcgSample(id: SampleId, name: Option[String] = None)(keys: MeKey*): DcgSample[IO] = new DcgSample[IO](
     data = makeDcgSampleData(id, name),
-    structure = GraphStructure[IO](keys.toSet),
+    structure = GraphStructure(keys.toSet),
   )
 
   def makeDcgIndexMap(sId: SampleId, mnIds: Set[MnId]): IndexMap =

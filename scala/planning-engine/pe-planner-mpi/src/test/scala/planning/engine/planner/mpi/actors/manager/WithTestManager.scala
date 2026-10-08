@@ -15,9 +15,9 @@ package planning.engine.planner.mpi.actors.manager
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.actors.planner.FakePlanner
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.NodeTestData
 
-trait WithTestManager extends MapNodeTestData:
+trait WithTestManager extends NodeTestData:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithManager extends WithMapNode:

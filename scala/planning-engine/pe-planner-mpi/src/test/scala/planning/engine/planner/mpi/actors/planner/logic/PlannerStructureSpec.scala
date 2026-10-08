@@ -17,9 +17,9 @@ import cats.effect.cps.*
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.planner.TestPlanner
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.NodeTestData
 
-class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with MapNodeTestData:
+class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     lazy val planner: TestPlanner = TestPlanner(
       "structure-spec",

@@ -8,26 +8,29 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2026-02-25 |||||||||||*/
+| created: 2026-10-08 |||||||||||*/
 
-package planning.engine.planner.gsi.map.repr
+package planning.engine.planner.mpi.repr
 
 import cats.syntax.all.*
-import cats.syntax.ext.*
+import cats.syntax.ext.MT
+import planning.engine.common.graph.GraphStructure
 import planning.engine.common.graph.GraphTracing.allLinksFilter
 import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.repr.StructureReprBase
-import planning.engine.planner.gsi.map.dcg.samples.DcgSample
+import planning.engine.planner.mpi.model.data.samples.Sample
 
-trait DcgSampleRepr[F[_]: MT] extends StructureReprBase:
-  self: DcgSample[F] =>
+trait SampleRepr extends Representable with StructureReprBase:
+  self: Sample =>
 
-  protected def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer
+  private lazy val structure: GraphStructure = GraphStructure(edges.map(_.key))
+
+  private def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer
     .groupBy(_.src)
     .toList.sortBy(_._1.value)
     .map((src, ls) => src.reprNode +: ls.toList.sortBy(_.trg.value).map(l => s"|${l.reprArrow}${l.trg.reprNode}"))
 
-  lazy val repr: F[String] =
+  def repr[F[_]: MT]: F[String] =
     for
       layers <- structure.traceAbsDagLayers[F](structure.conMnId, allLinksFilter)
       builtLayers = layers.map(buildLayerRepr)
@@ -35,7 +38,7 @@ trait DcgSampleRepr[F[_]: MT] extends StructureReprBase:
       paths <- structure.allThenPaths[F]
       (directs, loops, nooses) = groupPaths(paths)
     yield List(
-      List(s"DcgSample(${data.id.vStr}${data.name.map(n => ", " + n.value).getOrElse("")}):", "  ABSTRACT LAYERS:"),
+      List(s"Sample(${id.vStr}${info.map(i => ", " + i.name.value).getOrElse("")}):", "  ABSTRACT LAYERS:"),
       renderLayerRepr(formatedLayers).tab4,
       List("  PLANING PATHS:", "    Direct:"),
       renderPathRepr(directs).tab6,

@@ -24,11 +24,11 @@ import scala.reflect.ClassTag
 
 // GraphStructure represents the structure of the graph, providing algorithms
 // for tracing and analysis of graph structure.
-final case class GraphStructure[F[_]: MT](
+final case class GraphStructure(
     keys: Set[MeKey],
     srcMap: Map[MnId, Set[End]],
     trgMap: Map[MnId, Set[End]],
-) extends GraphTracing[F]:
+) extends GraphTracing:
   lazy val mnIds: Set[MnId] = srcMap.keySet ++ trgMap.keySet
   lazy val conMnId: Set[MnId.Con] = mnIds.filterCon
   lazy val absMnId: Set[MnId.Abs] = mnIds.filterAbs
@@ -56,15 +56,15 @@ final case class GraphStructure[F[_]: MT](
     if neighbours.isEmpty then true
     else findConnected(neighbours.keys.head, Set()) == neighbours.keySet
 
-  def add(ends: Iterable[MeKey]): F[GraphStructure[F]] =
+  def add[F[_]: MT](ends: Iterable[MeKey]): F[GraphStructure] =
     for
         _ <- this.keys.assertContainsNoneOf(ends, "Can't add Edges that already exist")
     yield GraphStructure(this.keys ++ ends)
 
 object GraphStructure:
-  def empty[F[_]: MT]: GraphStructure[F] = GraphStructure(Set.empty, Map.empty, Map.empty)
+  def empty: GraphStructure = GraphStructure(Set.empty, Map.empty, Map.empty)
 
-  def apply[F[_]: MT](keys: Set[MeKey]): GraphStructure[F] = GraphStructure(
+  def apply(keys: Set[MeKey]): GraphStructure = GraphStructure(
     keys = keys,
     srcMap = keys.groupBy(_.src).view.mapValues(_.map(_.trgEnd).toSet).toMap,
     trgMap = keys.groupBy(_.trg).view.mapValues(_.map(_.srcEnd).toSet).toMap,

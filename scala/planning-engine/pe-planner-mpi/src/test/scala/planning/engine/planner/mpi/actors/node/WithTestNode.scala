@@ -19,9 +19,9 @@ import planning.engine.planner.mpi.actors.manager.FakeManager
 import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.actors.planner.FakePlanner
 import planning.engine.planner.mpi.model.data.edge.MeRef
-import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
+import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}
 
-trait WithTestNode extends MapNodeTestData with MapEdgeTestData:
+trait WithTestNode extends NodeTestData with EdgeTestData:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithNodes extends WithMapNode with WithMapEdge:

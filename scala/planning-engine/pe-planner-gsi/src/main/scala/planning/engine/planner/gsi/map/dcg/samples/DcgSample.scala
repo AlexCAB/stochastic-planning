@@ -24,7 +24,7 @@ import planning.engine.planner.gsi.map.repr.DcgSampleRepr
 
 final case class DcgSample[F[_]: MT](
     data: SampleData,
-    structure: GraphStructure[F],
+    structure: GraphStructure,
 ) extends DcgSampleRepr[F]:
   override lazy val toString: String =
     s"DcgSample(${data.id.vStr}${data.name.repr}, edges sizes: ${structure.keys.size})"
@@ -51,7 +51,7 @@ object DcgSample:
       structure = GraphStructure(keys.toSet)
     yield new DcgSample(data, structure)
 
-  def apply[F[_]: MT](data: SampleData, structure: GraphStructure[F]): F[DcgSample[F]] =
+  def apply[F[_]: MT](data: SampleData, structure: GraphStructure): F[DcgSample[F]] =
     for
       _ <- data.probabilityCount.assertPositive("Sample probability count must be positive")
       _ <- structure.isConnected.assertTrue("DcgSample edges must form a connected graph")

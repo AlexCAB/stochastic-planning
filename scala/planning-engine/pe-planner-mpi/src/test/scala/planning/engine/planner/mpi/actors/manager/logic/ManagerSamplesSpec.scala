@@ -22,11 +22,11 @@ import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
 import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.planner.mpi.test.data.MapEdgeTestData
+import planning.engine.planner.mpi.test.data.EdgeTestData
 
 import scala.concurrent.duration.*
 
-class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with MapEdgeTestData:
+class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with EdgeTestData:
   private class CaseData extends Case with WithManager with WithMapEdge:
     lazy val nim99: MnId.Nim = MnId.Nim(99L)
     lazy val conIoValue: IoValue = IoValue(inVar.name, IoIndex(0))

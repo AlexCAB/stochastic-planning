@@ -55,7 +55,7 @@ trait DcGraphTestData extends DcgNodeTestData with DcgEdgeTestData with DcgSampl
   lazy val graphWithEdges: DcGraph[IO] = graphWithNodes.copy(
     edges = dcgEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
-    structure = GraphStructure[IO](dcgEdges.map(_.key).toSet),
+    structure = GraphStructure(dcgEdges.map(_.key).toSet),
   )
 
   extension (graph: DcGraph[IO])

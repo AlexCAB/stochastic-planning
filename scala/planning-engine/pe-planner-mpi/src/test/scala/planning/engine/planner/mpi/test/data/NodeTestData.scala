@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.io.{Type, Variable}
 
-trait MapNodeTestData extends AsyncIdiomaticMockito:
+trait NodeTestData extends AsyncIdiomaticMockito:
   self: UnitSpecWithData =>
 
   trait WithMapNode:

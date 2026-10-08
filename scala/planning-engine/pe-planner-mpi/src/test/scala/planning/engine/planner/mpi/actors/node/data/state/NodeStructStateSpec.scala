@@ -22,9 +22,9 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.test.data.{MapEdgeTestData, MapNodeTestData}
+import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}
 
-class NodeStructStateSpec extends UnitSpecWithData with MapNodeTestData with MapEdgeTestData:
+class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:
     val srcMnId1: MnId.Con = MnId.Con(1L)
     val trgMnId1: MnId.Abs = MnId.Abs(2L)

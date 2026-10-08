@@ -118,7 +118,7 @@ class GraphStructureSpec extends UnitSpecWithData:
       import data.{c2, c3, a4, simpleGraph}
       async[IO]:
         val newEdges = Set(Link(c2, a4), Link(c3, a4))
-        val newGraph: GraphStructure[IO] = simpleGraph.add(newEdges).await
+        val newGraph: GraphStructure = simpleGraph.add[IO](newEdges).await
         newGraph.keys mustBe (simpleGraph.keys ++ newEdges)
 
   "GraphStructure.linkRoots" should:
@@ -144,7 +144,7 @@ class GraphStructureSpec extends UnitSpecWithData:
   "GraphStructure.empty" should:
     "construct empty GraphStructure" in newCase[CaseData]: (tn, data) =>
       async[IO]:
-        val graph = GraphStructure.empty[IO]
+        val graph = GraphStructure.empty
         graph.keys mustBe Set.empty
         graph.srcMap mustBe Map.empty
         graph.trgMap mustBe Map.empty
@@ -152,7 +152,7 @@ class GraphStructureSpec extends UnitSpecWithData:
   "GraphStructure.apply(Set[Edge])" should:
     "construct GraphStructure from edges" in newCase[CaseData]: (tn, data) =>
       import data.*
-      val graph = GraphStructure[IO](simpleEnds)
+      val graph = GraphStructure(simpleEnds)
       async[IO]:
         graph.keys mustBe simpleEnds
 

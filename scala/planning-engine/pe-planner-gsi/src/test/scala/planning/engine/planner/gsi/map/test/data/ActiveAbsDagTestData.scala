@@ -29,7 +29,7 @@ trait ActiveAbsDagTestData extends DcGraphTestData:
     nodes = graphWithNodes.nodes ++ List(mn11, mn12).map(n => n.id -> n).toMap,
     edges = linkEdges.map(e => e.key -> e).toMap,
     samples = sampleData.map(s => s.id -> s).toMap,
-    structure = GraphStructure[IO](linkEdges.map(_.key).toSet),
+    structure = GraphStructure(linkEdges.map(_.key).toSet),
   )
 
   lazy val backwordKeys = MeKeySet[Then](

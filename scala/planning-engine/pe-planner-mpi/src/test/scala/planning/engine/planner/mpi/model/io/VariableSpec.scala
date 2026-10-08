@@ -17,9 +17,9 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.NodeTestData
 
-class VariableSpec extends UnitSpecWithData with MapNodeTestData:
+class VariableSpec extends UnitSpecWithData with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     val outOfRangeNode: Node.Con = makeConNodeStub(MnId.Con(9L), inVarName, IoIndex(1000))
 

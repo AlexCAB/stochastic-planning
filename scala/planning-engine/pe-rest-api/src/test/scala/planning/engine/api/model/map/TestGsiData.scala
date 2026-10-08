@@ -76,7 +76,7 @@ trait TestGsiData extends TestApiData:
   )
 
   lazy val testSample = Sample(data = testSampleData, edges = Set())
-  lazy val testDcgSample = new DcgSample[IO](data = testSampleData, structure = GraphStructure.empty[IO])
+  lazy val testDcgSample = new DcgSample[IO](data = testSampleData, structure = GraphStructure.empty)
 
   lazy val testMnIdMap: Map[HnName, MnId] = Map(
     testConNodeBoolDef.name -> MnId.Con(101L),

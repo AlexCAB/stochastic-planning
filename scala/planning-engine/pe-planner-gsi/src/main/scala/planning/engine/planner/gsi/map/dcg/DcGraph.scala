@@ -36,7 +36,7 @@ final case class DcGraph[F[_]: MT](
     nodes: Map[MnId, DcgNode[F]],
     edges: Map[MeKey, DcgEdge[F]],
     samples: Map[SampleId, SampleData],
-    structure: GraphStructure[F],
+    structure: GraphStructure,
 ) extends DcGraphRepr[F]:
 
   lazy val mnIds: Set[MnId] = nodes.keySet
@@ -108,7 +108,7 @@ final case class DcGraph[F[_]: MT](
       sampleIdsByKeys = samples.flatMap(_.idsByKey).groupBy(_._1).view.mapValues(_.map(_._2).toMap).toList
       updatedEdges <- sampleIdsByKeys.traverse((k, ids) => updateOrAddEdge(k, ids).map(e => k -> e)).map(_.toMap)
       addedSamples = samples.map(s => s.sample.data.id -> s.sample.data).toMap
-      newStructure <- structure.add(updatedEdges.keySet.filterNot(k => edges.contains(k)))
+      newStructure <- structure.add[F](updatedEdges.keySet.filterNot(k => edges.contains(k)))
     yield this.copy(
       edges = this.edges ++ updatedEdges,
       samples = this.samples ++ addedSamples,
@@ -164,7 +164,7 @@ object DcGraph:
       nodes: Map[MnId, DcgNode[F]],
       edges: Map[MeKey, DcgEdge[F]],
       samples: Map[SampleId, SampleData],
-      structure: GraphStructure[F],
+      structure: GraphStructure,
   ): F[DcGraph[F]] =
     for
       mnIds <- nodes.keySet.pure

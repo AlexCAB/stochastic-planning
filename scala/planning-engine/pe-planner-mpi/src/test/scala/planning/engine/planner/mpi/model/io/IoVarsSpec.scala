@@ -17,9 +17,9 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.test.data.MapNodeTestData
+import planning.engine.planner.mpi.test.data.NodeTestData
 
-class IoVarsSpec extends UnitSpecWithData with MapNodeTestData:
+class IoVarsSpec extends UnitSpecWithData with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     val undefinedNode: Node.Con = makeConNodeStub(MnId.Con(3L), IoName("undefinedName"), IoIndex(0))
     val ioVars: IoVars = IoVars[IO](Map(inVarName -> inVar), Map(outVarName -> outVar)).unsafeRunSync()

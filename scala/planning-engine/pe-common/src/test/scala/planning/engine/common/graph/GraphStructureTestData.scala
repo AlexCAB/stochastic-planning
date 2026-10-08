@@ -13,7 +13,6 @@
 package planning.engine.common.graph
 
 import cats.data.NonEmptyChain
-import cats.effect.IO
 import org.scalatest.matchers.must.Matchers.*
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
@@ -34,7 +33,7 @@ trait GraphStructureTestData:
   lazy val a9 = Abs(9)
   lazy val a10 = Abs(10)
 
-  def graphStructure(edges: MeKey*): GraphStructure[IO] = GraphStructure[IO](edges.toSet)
+  def graphStructure(edges: MeKey*): GraphStructure = GraphStructure(edges.toSet)
 
   lazy val conGraph = graphStructure(Link(c1, a4), Link(a4, a5))
   lazy val nonConGraph = graphStructure(Link(c1, a4), Link(c2, a5))
@@ -48,7 +47,7 @@ trait GraphStructureTestData:
     Then(c1, c3),
   )
 
-  lazy val simpleGraph = GraphStructure[IO](simpleEnds)
+  lazy val simpleGraph = GraphStructure(simpleEnds)
 
   lazy val complexGraph = graphStructure(
     Link(c1, a4),

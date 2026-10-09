@@ -38,6 +38,14 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
+  override def linkActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(LinkActivation(prev, next))
+
+  override def thenActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(ThenActivation(prev, next))
+
+  override def inference[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(Inference(prev, next))
+
+  override def planning[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(Planning(prev, next))
+
   override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"
 
 private[node] object ApiImpl:

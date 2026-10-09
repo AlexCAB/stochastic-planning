@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.node.data
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.model.data.edge.MeRef
+import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
 
@@ -32,3 +33,16 @@ private[node] object Message:
   final case class UpsertEdgeSrc(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
 
   final case class UpsertEdgeTrg(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
+
+  // Messages which propagate activation/planning signals through the Plan Tree (from prev step to next step).
+  sealed trait StepMessage extends Message:
+    def prev: StepKey
+    def next: StepKey
+
+  final case class LinkActivation(prev: StepKey, next: StepKey) extends StepMessage
+
+  final case class ThenActivation(prev: StepKey, next: StepKey) extends StepMessage
+
+  final case class Inference(prev: StepKey, next: StepKey) extends StepMessage
+
+  final case class Planning(prev: StepKey, next: StepKey) extends StepMessage

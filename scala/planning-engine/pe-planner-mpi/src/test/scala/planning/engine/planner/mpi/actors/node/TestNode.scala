@@ -25,7 +25,7 @@ import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
-import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.node.{NodeData, StepKey}
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -50,7 +50,7 @@ object TestNode extends TestActorBase:
       Long,
   )
 
-  type NodePlan = (Int, Int)
+  type NodePlan = (Map[StepKey, Plan.Step], Long)
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 

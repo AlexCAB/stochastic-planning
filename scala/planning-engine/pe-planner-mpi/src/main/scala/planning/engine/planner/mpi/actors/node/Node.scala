@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.node
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
+import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
@@ -68,7 +69,13 @@ private[mpi] trait Node:
   //  - The sequence tree expends in all possible forward directions, not just fallowing planned paths.
   //  - 1, 2, 3, 4, 5 is the activation signal propagation part.
   //  - 6, 7 is the context cleanup part.
-  def activation[F[_]: MT](bottom: StepKey, up: StepKey, time: IoTime): F[Unit]
+  def activation[F[_]: MT](
+      bottom: StepKey, // The bottom node step key (node where the activation signal was generated).
+      up: StepKey, // The upper node step key (node where the activation signal is processed).
+      time: IoTime, // Current world time, used to find Next steps that expected to happen exactly the next.
+      pu: PU, // P(N) * U(N), Probability and utility of the `bottom` node
+      sampleIds: Set[SampleId], // Active sample Ids, used to find active edges.
+  ): F[Unit]
 
   // Move context boundary one step forward:
   //  1. If Planned steps exist in this node plan state then replace it with Next step.

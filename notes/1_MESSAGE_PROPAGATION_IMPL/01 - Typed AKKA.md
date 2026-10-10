@@ -270,6 +270,11 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ A `mpi.actors.node.Node` trait trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively.
 
+❯ Fix `NodeStructStateSpec` and add test for `Struct.buildLookup` method
+
+❯ Update `NodeStructStateSpec` regard changed implementation of `Struct` (method `buildLookup` was replaced with `lazy val lookup`)
+
+
 ##### TODO: 
 1. Implement basic visualization API and integrate with Python
 

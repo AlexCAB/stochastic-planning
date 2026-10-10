@@ -12,6 +12,7 @@
 
 package planning.engine.planner.mpi.actors.node.data
 
+import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
@@ -36,8 +37,13 @@ private[node] object Message:
 
   final case class UpsertEdgeTrg(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
 
-  // Messages which propagate activation and planning signals through the Plan Tree.
-  final case class Activation(bottom: StepKey, up: StepKey, time: IoTime) extends Message
+  final case class Activation(
+      bottom: StepKey,
+      up: StepKey,
+      time: IoTime,
+      pu: PU,
+      sampleIds: Set[SampleId],
+  ) extends Message
 
   final case class ContextExtend(prev: StepKey, next: StepKey, nextTime: IoTime) extends Message
 

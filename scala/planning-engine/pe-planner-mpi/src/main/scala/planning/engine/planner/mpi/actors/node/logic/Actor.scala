@@ -17,8 +17,11 @@ import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.node.data.*
 import planning.engine.planner.mpi.actors.node.data.State
+import planning.engine.planner.mpi.actors.node.logic.structure.*
+import planning.engine.planner.mpi.actors.node.logic.plan.*
 
-private[node] object Actor extends Stateful with Structure with Planning:
+private[node] object Actor extends Stateful with Structure
+    with ActiveForest with Context with InferenceAndPlanning with Cleanup:
   import Message.*, Stateful.GetState
 
   override type Def = Definition

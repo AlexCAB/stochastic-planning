@@ -23,6 +23,7 @@ import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.*
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.common.errors.*
+import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.plan.Depth
 
@@ -39,8 +40,13 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
-  override def activation[F[_]: MT](bottom: StepKey, up: StepKey, time: IoTime): F[Unit] =
-    actor.tellF(Activation(bottom, up, time))
+  override def activation[F[_]: MT](
+      bottom: StepKey,
+      up: StepKey,
+      time: IoTime,
+      pu: PU,
+      sampleIds: Set[SampleId],
+  ): F[Unit] = actor.tellF(Activation(bottom, up, time, pu, sampleIds))
 
   override def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit] =
     actor.tellF(ContextExtend(prev, next, nextTime))

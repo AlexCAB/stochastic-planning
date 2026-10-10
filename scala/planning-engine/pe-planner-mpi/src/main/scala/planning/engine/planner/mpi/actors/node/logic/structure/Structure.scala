@@ -10,13 +10,15 @@
 | website: github.com/alexcab |||||
 | created: 05.07.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.logic
+package planning.engine.planner.mpi.actors.node.logic.structure
 
 import cats.syntax.all.*
-import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.Message
+import planning.engine.planner.mpi.actors.node.logic.Actor
 
 private[node] trait Structure:
   self: Actor.type =>
+  import Message.*
 
   private[node] def doUpsertEdgeSrc[F[_]: S](msg: UpsertEdgeSrc, state: St)(using d: Def, ctx: Ctx): F[St] =
     for

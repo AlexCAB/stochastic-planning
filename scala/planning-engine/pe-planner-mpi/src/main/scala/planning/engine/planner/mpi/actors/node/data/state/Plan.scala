@@ -25,18 +25,20 @@ private[node] object Plan:
   // Structure (edges) of the plan tree (plan tree is the composition of abstraction tree and sequence tree):
   // - `up` and `bottom`: upper (more abstract) and lower (more concrete) steps in abstraction tree.
   // - `prev` and `next`: previous and next steps in the sequence tree.
-  final case class Struct(up: StepKey, bottom: Set[StepKey], prev: Set[StepKey], next: Set[StepKey])
+  final case class Struct(up: StepKey, bottom: Set[StepKey], prev: StepKey, next: Set[StepKey])
 
   // Step is the vertex of the plan tree.
   // Plan tree can be decomposed into set of plan paths, where each path is a sequence of steps.
   // Each path is a basically a timeline, which can be split into three parts:
-  // - Done steps, is the actions or observations (events) that already happened in the past.
-  // - Next step, is the events that expected to happen next (or in the present).
+  // - Occurred steps, is the actions or observations (events) that already happened in the past.
+  // - Active step, the present events (observed by the agent now).
+  // - Next step, is the events that expected to happen exactly the next.
   // - Planned steps, is the events that are possibly (or planned to) happen in the future (i.e. after the next step).
   sealed trait Step:
     def struct: Struct
 
-  final case class Done(struct: Struct) extends Step
+  final case class Occurred(struct: Struct) extends Step
+  final case class Active(struct: Struct) extends Step
   final case class Next(struct: Struct) extends Step
   final case class Planned(struct: Struct) extends Step
 

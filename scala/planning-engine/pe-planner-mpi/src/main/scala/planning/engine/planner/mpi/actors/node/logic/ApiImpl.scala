@@ -23,7 +23,8 @@ import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.*
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.common.errors.*
-import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.io.{IoTime, IoValue}
+import planning.engine.common.values.plan.Depth
 
 private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   import Message.*
@@ -38,13 +39,21 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
-  override def linkActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(LinkActivation(prev, next))
+  override def activation[F[_]: MT](bottom: StepKey, up: StepKey, time: IoTime): F[Unit] =
+    actor.tellF(Activation(bottom, up, time))
 
-  override def thenActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(ThenActivation(prev, next))
+  override def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit] =
+    actor.tellF(ContextExtend(prev, next, nextTime))
+
+  override def contextShrink[F[_]: MT](prev: StepKey, depth: Depth): F[Unit] = actor.tellF(ContextShrink(prev, depth))
+
+  override def pathCut[F[_]: MT](prev: StepKey): F[Unit] = actor.tellF(PathCut(prev))
+
+  override def treeCut[F[_]: MT](next: StepKey): F[Unit] = actor.tellF(TreeCut(next))
 
   override def inference[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(Inference(prev, next))
 
-  override def planning[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(Planning(prev, next))
+  override def planExtend[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(PlanExtend(prev, next))
 
   override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"
 

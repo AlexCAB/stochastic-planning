@@ -15,8 +15,9 @@ package planning.engine.planner.mpi.actors.node
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
-import planning.engine.common.values.io.IoValue
+import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
@@ -41,28 +42,55 @@ private[mpi] trait Node:
 
   // Propagate the activation signal from concrete node (leafs of abstraction tree)
   // to higher abstract node (to the roots):
-  //  1. Propagate link activation signal in the abstraction tree: Send LinkActivation message
-  //     to target nodes if all outcoming LINK edges, if there is some.
-  //  2. Search for Next steps in this node plan state and replace them with the Done steps.
-  //  3. In case of no Next steps found, then add one Done steps, which will be a root of new plan tree. In some Next
-  //     steps found (at 2), do not add a new Done steps (all possible plan paths should be covered by existing steps).
-  //  4. Propagate then activation signal in the sequence tree: For each found or created Done steps (in 2 or 3),
-  //     send the ThenActivation message to the target node of each none empty (i.e. that have samples) THEN
-  //     outgoing edge from this node.
-  def linkActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit]
+  //  1. Calculate and save in plan state this node P(N) * U(N) base one received from the previous
+  //     node and prior values.
+  //  2. Propagate further link activation signal in the abstraction tree: Send Activation
+  //     message (with the new P(N) * U(N)) further to target nodes if all outcoming LINK edges,
+  //     if there is some, and they not empty (i.e. have samples).
+  //  3. For Next steps, which expected time is current time + 1, replace in this node plan state with the Active steps.
+  //  4. In case of no Next steps found, then add one new Active steps, which will be a root of new plan tree.
+  //     If some Next steps found (at 2), do not add a new Active steps (all possible plan paths should be covered
+  //     by existing steps).
+  //  5. Propagate context extension signal in the sequence tree: For each found or created Active
+  //     steps (in 2 or 3), send the ContextExtend message to the target node of each none
+  //     empty (i.e. that have samples) THEN outgoing edge from this node.
+  //  6. Propagate context shrinking signal in the sequence tree: For each Active step,
+  //     send the ContextShrank message to its source node of the THEN incoming edge (there should be only
+  //     one THEN incoming edge per step).
+  //  7. For found but not activated Next steps (in 2), send the PathCut message to its
+  //     source node of the THEN incoming edge. Then send the TreeCut message to the target node of
+  //     each THEN outgoing edge from this node.
+  // Notes:
+  //  - This signal is sent from the planner actor on it receive Step message.
+  //  - The activation signal will be terminated on highest abstraction nodes, which not have outcoming LINK edges,
+  //    i.e. it will propagate from bottom (from concrete nodes) to top of map network and will generate
+  //    forest of active trees.
+  //  - The sequence tree expends in all possible forward directions, not just fallowing planned paths.
+  //  - 1, 2, 3, 4, 5 is the activation signal propagation part.
+  //  - 6, 7 is the context cleanup part.
+  def activation[F[_]: MT](bottom: StepKey, up: StepKey, time: IoTime): F[Unit]
 
-  // Propagate the activation signal from the current active node (which was activated by LinkActivation message),
-  // to the next node in the sequence tree (i.e. to the nodes which likely will be activated
-  // on the next world tick/step). Or in other words, move context boundary one step forward:
+  // Move context boundary one step forward:
   //  1. If Planned steps exist in this node plan state then replace it with Next step.
-  //  2. If no Planned steps exist, then build and add new one.
-  def thenActivation[F[_]: MT](prev: StepKey, next: StepKey): F[Unit]
+  //  2. If no Planned steps exist, then build and add new Next step.
+  // Notes:
+  // - This signal is sent from the previous node in the sequence tree, on processing of Activation message.
+  def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit]
+
+  // TODO
+  def contextShrink[F[_]: MT](prev: StepKey, depth: Depth): F[Unit]
+
+  // TODO
+  def pathCut[F[_]: MT](prev: StepKey): F[Unit]
+
+  // TODO
+  def treeCut[F[_]: MT](next: StepKey): F[Unit]
 
   // TODO
   def inference[F[_]: MT](prev: StepKey, next: StepKey): F[Unit]
 
   // TODO
-  def planning[F[_]: MT](prev: StepKey, next: StepKey): F[Unit]
+  def planExtend[F[_]: MT](prev: StepKey, next: StepKey): F[Unit]
 
   override def toString: String = repr
 

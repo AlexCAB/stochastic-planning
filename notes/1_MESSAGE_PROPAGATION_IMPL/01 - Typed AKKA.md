@@ -268,6 +268,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Write boilerplate code for methods `linkActivation`, `thenActivation`, `inference`, `planning` of `mpi.actors.node.Node` trait. In `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning`. In `Planning` leave implementation empty.
 
+❯ A `mpi.actors.node.Node` trait trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively.
 
 ##### TODO: 
 1. Implement basic visualization API and integrate with Python
@@ -286,6 +287,7 @@ def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = t
 
 "During processing message:\n"
 
+[MP Planner]
 
 
 unorderedTraverse

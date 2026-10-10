@@ -27,7 +27,12 @@ private[mpi] trait Planner:
   // Notify the planner that a new concrete node was added to the map network.
   def conNodesAdded[F[_]: MT](nodes: Set[Node.Con]): F[Unit]
 
-  // Compute the next action for the given observation.
+  // Compute the next action for the given observation:
+  // Processing of the step can be split into several phases:
+  //  1. Find set of concrete nodes base on observed IO values.
+  //  2. Activation: find active abstract forest, starting from found concrete nodes.
+  //  3. Context update: extend context base active forest, and cleanup inactive part of it.
+  //  4. TODO
   def step[F[_]: Async](observation: Observation)(using Scheduler): F[Action]
 
 private[mpi] object Planner:

@@ -276,6 +276,9 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ A `mpi.actors.node.Node` trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively. The `mpi.actors.planner.Planner` trait also changed, updated `mpi.actors.node.planner.ApiImpl`, `mpi.actors.planner.data.Message`, `mpi.actors.planner.logic.Actor` and `mpi.actors.planner.logic.SimpleSyncPlanner` respectively.
 
+❯ In `LookupSpec` write test for `Lookup.findInLinks`, `Lookup.findOutLinks`, `Lookup.findInThen`, `Lookup.findOutThen` 
+
+
 
 
 ##### TODO: 

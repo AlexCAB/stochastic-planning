@@ -27,8 +27,11 @@ private[planner] object Actor extends Stateful with SimpleSyncPlanner with Struc
   val name = "map-planner-actor"
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
-    case msg: Step          => doStep(msg, state)
+    case msg: Tick          => doTick(msg, state)
     case msg: ConNodesAdded => doConNodesAdded(msg, state)
+    case msg: ActiveSteps   => doActiveSteps(msg, state)
+    case msg: NextSteps     => doNextSteps(msg, state)
+    case msg: RootSteps     => doRootSteps(msg, state)
     case msg: GetState[St]  => doGetState(msg, state)
 
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =

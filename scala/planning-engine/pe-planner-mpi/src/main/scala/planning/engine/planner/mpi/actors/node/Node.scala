@@ -47,28 +47,15 @@ private[mpi] trait Node:
   //     node and prior values.
   //  2. Propagate further link activation signal in the abstraction tree: Send Activation
   //     message (with the new P(N) * U(N)) further to target nodes if all outcoming LINK edges,
-  //     if there is some, and they not empty (i.e. have samples).
+  //     if there is some, and they not empty (i.e. have active samples).
   //  3. For Next steps, which expected time is current time + 1, replace in this node plan state with the Active steps.
-  //  4. In case of no Next steps found, then add one new Active steps, which will be a root of new plan tree.
-  //     If some Next steps found (at 2), do not add a new Active steps (all possible plan paths should be covered
-  //     by existing steps).
-  //  5. Propagate context extension signal in the sequence tree: For each found or created Active
-  //     steps (in 2 or 3), send the ContextExtend message to the target node of each none
-  //     empty (i.e. that have samples) THEN outgoing edge from this node.
-  //  6. Propagate context shrinking signal in the sequence tree: For each Active step,
-  //     send the ContextShrank message to its source node of the THEN incoming edge (there should be only
-  //     one THEN incoming edge per step).
-  //  7. For found but not activated Next steps (in 2), send the PathCut message to its
-  //     source node of the THEN incoming edge. Then send the TreeCut message to the target node of
-  //     each THEN outgoing edge from this node.
+  //  4. If no upper node found (i.e. this node is the root of abstraction tree), then send collected active steps
+  //     to the planner, using `ActiveSteps` message.
   // Notes:
-  //  - This signal is sent from the planner actor on it receive Step message.
+  //  - This signal is sent from the planner actor on it receive Tick message.
   //  - The activation signal will be terminated on highest abstraction nodes, which not have outcoming LINK edges,
   //    i.e. it will propagate from bottom (from concrete nodes) to top of map network and will generate
   //    forest of active trees.
-  //  - The sequence tree expends in all possible forward directions, not just fallowing planned paths.
-  //  - 1, 2, 3, 4, 5 is the activation signal propagation part.
-  //  - 6, 7 is the context cleanup part.
   def activation[F[_]: MT](
       bottom: StepKey, // The bottom node step key (node where the activation signal was generated).
       up: StepKey, // The upper node step key (node where the activation signal is processed).
@@ -77,15 +64,29 @@ private[mpi] trait Node:
       sampleIds: Set[SampleId], // Active sample Ids, used to find active edges.
   ): F[Unit]
 
+  // Move context window one step forward in plan forest:
+  //  1. Propagate context extension signal in the sequence tree: For each found in plan state Active
+  //     steps, send the ContextExtend message to the target node of each none
+  //     empty (i.e. that have active samples) THEN outgoing edge from this node.
+  //  2. Propagate context shrinking signal in the sequence tree: For each Active step,
+  //     send the ContextShrank message to its source node of the THEN incoming edge (there should be only
+  //     one THEN incoming edge per step).
+  def contextMove[F[_]: MT](active: StepKey): F[Unit]
+
   // Move context boundary one step forward:
   //  1. If Planned steps exist in this node plan state then replace it with Next step.
   //  2. If no Planned steps exist, then build and add new Next step.
+  //  3. Notify planner about new Next step, using `NextStep` message.
   // Notes:
   // - This signal is sent from the previous node in the sequence tree, on processing of Activation message.
+  // - The sequence tree expends in all possible forward directions, not just fallowing planned paths.
   def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit]
 
   // TODO
   def contextShrink[F[_]: MT](prev: StepKey, depth: Depth): F[Unit]
+
+  // TODO
+  def pathCleanup[F[_]: MT](prev: StepKey): F[Unit]
 
   // TODO
   def pathCut[F[_]: MT](prev: StepKey): F[Unit]

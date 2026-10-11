@@ -268,11 +268,14 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Write boilerplate code for methods `linkActivation`, `thenActivation`, `inference`, `planning` of `mpi.actors.node.Node` trait. In `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning`. In `Planning` leave implementation empty.
 
-❯ A `mpi.actors.node.Node` trait trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively.
+❯ A `mpi.actors.node.Node` trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively.
 
 ❯ Fix `NodeStructStateSpec` and add test for `Struct.buildLookup` method
 
 ❯ Update `NodeStructStateSpec` regard changed implementation of `Struct` (method `buildLookup` was replaced with `lazy val lookup`)
+
+❯ A `mpi.actors.node.Node` trait changed, updated `mpi.actors.node.logic.ApiImpl`, `mpi.actors.node.data.Message`, `mpi.actors.node.logic.Actor` and `mpi.actors.node.logic.Planning` respectively. The `mpi.actors.planner.Planner` trait also changed, updated `mpi.actors.node.planner.ApiImpl`, `mpi.actors.planner.data.Message`, `mpi.actors.planner.logic.Actor` and `mpi.actors.planner.logic.SimpleSyncPlanner` respectively.
+
 
 
 ##### TODO: 

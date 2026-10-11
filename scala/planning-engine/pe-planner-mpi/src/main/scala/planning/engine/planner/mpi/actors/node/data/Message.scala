@@ -45,9 +45,13 @@ private[node] object Message:
       sampleIds: Set[SampleId],
   ) extends Message
 
+  final case class ContextMove(active: StepKey) extends Message
+
   final case class ContextExtend(prev: StepKey, next: StepKey, nextTime: IoTime) extends Message
 
   final case class ContextShrink(prev: StepKey, depth: Depth) extends Message
+
+  final case class PathCleanup(prev: StepKey) extends Message
 
   final case class PathCut(prev: StepKey) extends Message
 

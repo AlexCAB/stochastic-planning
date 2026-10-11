@@ -12,7 +12,8 @@
 
 package planning.engine.planner.mpi.actors.planner.logic
 
-import planning.engine.planner.mpi.actors.planner.data.Message.Step
+import cats.syntax.all.*
+import planning.engine.planner.mpi.actors.planner.data.Message.{ActiveSteps, NextSteps, RootSteps, Tick}
 
 // Synchronous planner have 2 key concepts (compared to asynchronous):
 //   1. Each step is strictly bound to world time (step time), so plan path locking like:
@@ -34,4 +35,13 @@ private[planner] trait SimpleSyncPlanner:
   self: Actor.type =>
 
   // TODO
-  private[planner] def doStep[F[_]: S](msg: Step, state: St)(using Def, Ctx): F[St] = ???
+  private[planner] def doTick[F[_]: S](msg: Tick, state: St)(using Def, Ctx): F[St] = ???
+
+  // TODO
+  private[planner] def doActiveSteps[F[_]: S](msg: ActiveSteps, state: St)(using Def, Ctx): F[St] = state.pure
+
+  // TODO
+  private[planner] def doNextSteps[F[_]: S](msg: NextSteps, state: St)(using Def, Ctx): F[St] = state.pure
+
+  // TODO
+  private[planner] def doRootSteps[F[_]: S](msg: RootSteps, state: St)(using Def, Ctx): F[St] = state.pure

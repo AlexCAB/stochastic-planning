@@ -48,10 +48,14 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
       sampleIds: Set[SampleId],
   ): F[Unit] = actor.tellF(Activation(bottom, up, time, pu, sampleIds))
 
+  override def contextMove[F[_]: MT](active: StepKey): F[Unit] = actor.tellF(ContextMove(active))
+
   override def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit] =
     actor.tellF(ContextExtend(prev, next, nextTime))
 
   override def contextShrink[F[_]: MT](prev: StepKey, depth: Depth): F[Unit] = actor.tellF(ContextShrink(prev, depth))
+
+  override def pathCleanup[F[_]: MT](prev: StepKey): F[Unit] = actor.tellF(PathCleanup(prev))
 
   override def pathCut[F[_]: MT](prev: StepKey): F[Unit] = actor.tellF(PathCut(prev))
 

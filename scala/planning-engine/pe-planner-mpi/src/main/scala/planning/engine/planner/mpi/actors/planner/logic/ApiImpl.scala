@@ -21,6 +21,7 @@ import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.planner.data.Message
+import planning.engine.planner.mpi.model.data.node.StepKey
 
 private[planner] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Actor.Msg] with Planner:
   import Message.*
@@ -28,7 +29,13 @@ private[planner] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Acto
   override def conNodesAdded[F[_]: MT](nodes: Set[Node.Con]): F[Unit] = ifNonEmpty((), nodes):
     actor.tellF(ConNodesAdded(nodes))
 
-  override def step[F[_]: Async](observation: Observation)(using Scheduler): F[Action] =
-    actor.askF[F, StepDone](ref => Step(observation, ref)).map(_.action)
+  override def tick[F[_]: Async](observation: Observation)(using Scheduler): F[Action] =
+    actor.askF[F, TickDone](ref => Tick(observation, ref)).map(_.action)
+
+  override def activeSteps[F[_]: MT](steps: Set[StepKey]): F[Unit] = actor.tellF(ActiveSteps(steps))
+
+  override def nextSteps[F[_]: MT](steps: Set[StepKey]): F[Unit] = actor.tellF(NextSteps(steps))
+
+  override def rootSteps[F[_]: MT](steps: Set[StepKey]): F[Unit] = actor.tellF(RootSteps(steps))
 
   override lazy val toString: String = s"Planner(path = ${actor.path})"

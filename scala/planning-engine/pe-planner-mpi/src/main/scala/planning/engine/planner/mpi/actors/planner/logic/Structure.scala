@@ -21,7 +21,7 @@ private[planner] trait Structure:
   private[planner] def doConNodesAdded[F[_]: S](msg: ConNodesAdded, state: St)(using d: Def, c: Ctx): F[St] =
     for
       (inNodes, outNodes) <- d.variables.conNodesByIo(msg.nodes)
-      stWithInNodes <- state.withNewInNodes(inNodes)
-      stWithOutNodes <- stWithInNodes.withNewOutNodes(outNodes)
+      stWithInNodes <- state.mapStruct(_.withNewInNodes(inNodes))
+      stWithOutNodes <- stWithInNodes.mapStruct(_.withNewOutNodes(outNodes))
       _ <- logSeq("[ConNodesAdded] con nodes added", msg.nodes.map(_.repr))
     yield stWithOutNodes

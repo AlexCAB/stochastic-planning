@@ -33,24 +33,24 @@ class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
       async[IO]:
         planner.api.conNodesAdded[IO](Set(inConNode)).logValue(tn).await
 
-        planner.state.inputNodes mustBe Map(inVarName -> Map(IoIndex(0) -> Set(inConNode)))
-        planner.state.outputNodes mustBe Map.empty
+        planner.state.struct.inputNodes mustBe Map(inVarName -> Map(IoIndex(0) -> Set(inConNode)))
+        planner.state.struct.outputNodes mustBe Map.empty
 
     "register a new output node under its mnId" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         planner.api.conNodesAdded[IO](Set(outConNode)).logValue(tn).await
 
-        planner.state.inputNodes mustBe Map.empty
-        planner.state.outputNodes mustBe Map(outConNode.mnId -> outConNode)
+        planner.state.struct.inputNodes mustBe Map.empty
+        planner.state.struct.outputNodes mustBe Map(outConNode.mnId -> outConNode)
 
     "register both input and output nodes from a mixed set in a single call" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         planner.api.conNodesAdded[IO](Set(inConNode, outConNode)).logValue(tn).await
 
-        planner.state.inputNodes mustBe Map(inVarName -> Map(IoIndex(0) -> Set(inConNode)))
-        planner.state.outputNodes mustBe Map(outConNode.mnId -> outConNode)
+        planner.state.struct.inputNodes mustBe Map(inVarName -> Map(IoIndex(0) -> Set(inConNode)))
+        planner.state.struct.outputNodes mustBe Map(outConNode.mnId -> outConNode)
 
     "accumulate nodes across multiple calls without removing previous ones" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -58,7 +58,7 @@ class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
         planner.api.conNodesAdded[IO](Set(inConNode)).logValue(tn).await
         planner.api.conNodesAdded[IO](Set(otherInConNode, outConNode)).logValue(tn).await
 
-        planner.state.inputNodes mustBe Map(
+        planner.state.struct.inputNodes mustBe Map(
           inVarName -> Map(IoIndex(0) -> Set(inConNode), IoIndex(1) -> Set(otherInConNode)),
         )
-        planner.state.outputNodes mustBe Map(outConNode.mnId -> outConNode)
+        planner.state.struct.outputNodes mustBe Map(outConNode.mnId -> outConNode)

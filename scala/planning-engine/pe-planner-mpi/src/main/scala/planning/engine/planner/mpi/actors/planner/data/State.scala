@@ -12,42 +12,20 @@
 
 package planning.engine.planner.mpi.actors.planner.data
 
+import cats.Monad
 import cats.syntax.all.*
-import cats.syntax.ext.*
-import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.planner.data.state.*
 import planning.engine.planner.mpi.repr.Representable
 
 private[planner] final case class State(
-    // Concrete nodes known to represent each value (HnIndex) of each input variable.
-    inputNodes: State.InNodes,
+    // Contain information related to map network structure and connectivity.
+    struct: Struct,
 
-    // Concrete node used for each output variable, along with its IoIndex.
-    outputNodes: State.OutNodes,
+    // Current plan graph data
+    tick: Tick,
 ) extends Representable:
-  import State.*
-
-  def withNewInNodes[F[_]: MT](nodes: Set[Node.Con]): F[State] =
-    def addNode(acc: InNodes, node: Node.Con): InNodes =
-      val index = node.ioValue.index
-      val name = node.ioValue.name
-
-      acc.get(name) match
-        case Some(atIndex) => atIndex.get(index) match
-            case Some(nodesAtIndex) => acc.updated(name, atIndex.updated(index, nodesAtIndex + node))
-            case None               => acc.updated(name, atIndex.updated(index, Set(node)))
-        case None => acc.updated(name, Map(index -> Set(node)))
-
-    copy(inputNodes = nodes.foldLeft(inputNodes)(addNode)).pure
-
-  def withNewOutNodes[F[_]: MT](nodes: Set[Node.Con]): F[State] =
-    def addNode(acc: OutNodes, node: Node.Con): OutNodes = acc.updated(node.mnId, node)
-
-    copy(outputNodes = nodes.foldLeft(outputNodes)(addNode)).pure
+  def mapStruct[F[_]: Monad](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
+  def mapTick[F[_]: Monad](f: Tick => F[Tick]): F[State] = f(tick).map(nt => copy(tick = nt))
 
 private[planner] object State:
-  type InNodes = Map[IoName, Map[IoIndex, Set[Node.Con]]]
-  type OutNodes = Map[MnId.Con, Node.Con]
-
-  val init: State = State(Map.empty, Map.empty)
+  val init: State = State(Struct.init, Tick.init)

@@ -12,8 +12,7 @@
 
 package planning.engine.planner.mpi.actors.planner.logic
 
-import cats.syntax.all.*
-import planning.engine.planner.mpi.actors.planner.data.Message.{ActiveSteps, NextSteps, RootSteps, Tick}
+import planning.engine.planner.mpi.actors.planner.data.Message
 
 // Synchronous planner have 2 key concepts (compared to asynchronous):
 //   1. Each step is strictly bound to world time (step time), so plan path locking like:
@@ -33,15 +32,15 @@ import planning.engine.planner.mpi.actors.planner.data.Message.{ActiveSteps, Nex
 // where each observation is a sensor reading and each action is a motor command.
 private[planner] trait SimpleSyncPlanner:
   self: Actor.type =>
+  import Message.*
 
-  // TODO
   private[planner] def doTick[F[_]: S](msg: Tick, state: St)(using Def, Ctx): F[St] = ???
 
   // TODO
-  private[planner] def doActiveSteps[F[_]: S](msg: ActiveSteps, state: St)(using Def, Ctx): F[St] = state.pure
+  private[planner] def doActiveSteps[F[_]: S](msg: ActiveSteps, state: St)(using Def, Ctx): F[St] = ???
 
   // TODO
-  private[planner] def doNextSteps[F[_]: S](msg: NextSteps, state: St)(using Def, Ctx): F[St] = state.pure
+  private[planner] def doNextSteps[F[_]: S](msg: NextSteps, state: St)(using Def, Ctx): F[St] = ???
 
   // TODO
-  private[planner] def doRootSteps[F[_]: S](msg: RootSteps, state: St)(using Def, Ctx): F[St] = state.pure
+  private[planner] def doRootSteps[F[_]: S](msg: RootSteps, state: St)(using Def, Ctx): F[St] = ???

@@ -31,13 +31,15 @@ final case class TestPlanner(api: Planner):
 
   def ref: ActorRef[Planner.Msg] = api.ref
   def state(using ActorTestKit, IORuntime): State = api.state
-  def stateTyped(using ActorTestKit, IORuntime): PlannerState = api.stateTyped
+  def stateTyped(using ActorTestKit, IORuntime): (PlannerStruct, PlannerTick) = api.stateTyped
 
 object TestPlanner extends TestActorBase:
-  type PlannerState = (
+  type PlannerStruct = (
       Map[IoName, Map[IoIndex, Set[Node.Con]]],
       Map[MnId.Con, Node.Con],
   )
+
+  type PlannerTick = EmptyTuple
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
@@ -56,7 +58,13 @@ object TestPlanner extends TestActorBase:
     def ref: ActorRef[Planner.Msg] = api match
       case ApiImpl(ref) => ref
 
-    def state(using ActorTestKit, IORuntime): State = logObj("Planner", getActorState[State](ref))
+    def state(using ActorTestKit, IORuntime): State =
+      val state = getActorState[State](ref)
+      logObj("Planner struct", state.struct)
+      logObj("Planner tick", state.tick)
+      state
 
     // Allow access to the state from outside `mpi.actors.planner` package.
-    def stateTyped(using ActorTestKit, IORuntime): PlannerState = Tuple.fromProductTyped(state)
+    def stateTyped(using ActorTestKit, IORuntime): (PlannerStruct, PlannerTick) =
+      val st = state
+      (Tuple.fromProductTyped(st.struct), Tuple.fromProductTyped(st.tick))

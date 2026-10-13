@@ -278,8 +278,13 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `LookupSpec` write test for `Lookup.findInLinks`, `Lookup.findOutLinks`, `Lookup.findInThen`, `Lookup.findOutThen` 
 
- 
+❯ Fix `PlannerStructStateSpec` and add there test for `Struct.findInNodes(...)` method
 
+❯ In `MapMpiImplSpec` add test for `MapMpiImpl.syncPlannerTick`
+
+❯ Fix `PlannerStructureSpec`
+
+❯ Fallow structure and approach of `PlannerStructureSpec` and implement test for `Planner.tick(...)` method in `PlannerSimpleSyncSpec`
 
 ##### TODO: 
 1. Implement basic visualization API and integrate with Python

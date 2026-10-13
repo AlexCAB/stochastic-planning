@@ -14,40 +14,31 @@ package planning.engine.planner.mpi.actors.planner.data.state
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.repr.Representable
+import planning.engine.common.errors.*
 
 private[planner] final case class Struct(
     // Concrete nodes known to represent each value (HnIndex) of each input variable.
-    inputNodes: Struct.InNodes,
+    inputNodes: Map[IoValue, Node.Con],
 
     // Concrete node used for each output variable, along with its IoIndex.
-    outputNodes: Struct.OutNodes,
+    outputNodes: Map[MnId.Con, Node.Con],
 ) extends Representable:
-  import Struct.*
 
-  def withNewInNodes[F[_]: MT](nodes: Set[Node.Con]): F[Struct] =
-    def addNode(acc: InNodes, node: Node.Con): InNodes =
-      val index = node.ioValue.index
-      val name = node.ioValue.name
+  def withNewInNodes(nodes: Set[Node.Con]): Struct =
+    copy(inputNodes = nodes.foldLeft(inputNodes)((acc, node) => acc.updated(node.ioValue, node)))
 
-      acc.get(name) match
-        case Some(atIndex) => atIndex.get(index) match
-            case Some(nodesAtIndex) => acc.updated(name, atIndex.updated(index, nodesAtIndex + node))
-            case None               => acc.updated(name, atIndex.updated(index, Set(node)))
-        case None => acc.updated(name, Map(index -> Set(node)))
+  def withNewOutNodes(nodes: Set[Node.Con]): Struct =
+    copy(outputNodes = nodes.foldLeft(outputNodes)((acc, node) => acc.updated(node.mnId, node)))
 
-    copy(inputNodes = nodes.foldLeft(inputNodes)(addNode)).pure
-
-  def withNewOutNodes[F[_]: MT](nodes: Set[Node.Con]): F[Struct] =
-    def addNode(acc: OutNodes, node: Node.Con): OutNodes = acc.updated(node.mnId, node)
-
-    copy(outputNodes = nodes.foldLeft(outputNodes)(addNode)).pure
+  def findInNodes[F[_]: MT](values: Set[IoValue]): F[Set[Node.Con]] =
+    for
+      _ <- inputNodes.keySet.assertContainsAllOf(values, s"Struct.findInNodes: missing input nodes")
+      nodes = inputNodes.view.filterKeys(values.contains).values.toSet
+    yield nodes
 
 private[planner] object Struct:
-  type InNodes = Map[IoName, Map[IoIndex, Set[Node.Con]]]
-  type OutNodes = Map[MnId.Con, Node.Con]
-
   val init: Struct = Struct(Map.empty, Map.empty)

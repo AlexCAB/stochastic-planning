@@ -12,6 +12,8 @@
 
 package planning.engine.planner.mpi.actors.planner.logic
 
+import cats.syntax.all.*
+import cats.syntax.ext.*
 import planning.engine.planner.mpi.actors.planner.data.Message
 
 // Synchronous planner have 2 key concepts (compared to asynchronous):
@@ -30,11 +32,16 @@ import planning.engine.planner.mpi.actors.planner.data.Message
 // where each observation is a message from user and each action is a message to user.
 // Asynchronous planner is good for application with asynchronous IO, like robotic/automotive agents,
 // where each observation is a sensor reading and each action is a motor command.
-private[planner] trait SimpleSyncPlanner:
+private[planner] trait SimpleSync:
   self: Actor.type =>
   import Message.*
 
-  private[planner] def doTick[F[_]: S](msg: Tick, state: St)(using Def, Ctx): F[St] = ???
+  private[planner] def doTick[F[_]: S](msg: Tick, state: St)(using d: Def, c: Ctx): F[St] =
+    for
+      _ <- logInfo(s"[doTick] observation = ${msg.observation}")
+      conNodes <- state.struct.findInNodes(msg.observation.values)
+      _ <- conNodes.foreachM(_.activation(msg.observation.time, msg.observation.utility))
+    yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
 
   // TODO
   private[planner] def doActiveSteps[F[_]: S](msg: ActiveSteps, state: St)(using Def, Ctx): F[St] = ???

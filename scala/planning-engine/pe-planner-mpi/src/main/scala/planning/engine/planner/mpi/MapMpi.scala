@@ -15,6 +15,7 @@ package planning.engine.planner.mpi
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.guardian.Guardian
@@ -76,6 +77,10 @@ trait MapMpi[F[_]]:
   // Add manually defined samples to the map network, associating them with the specified nodes.
   // More info in `Manager.addManSamples(...)` description.
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]]
+  
+  // Synchronous planner tick (compute the next action for the given observation)
+  // More info in `Planner.tick(...)` description.
+  def syncPlannerTick(observation: Observation): F[Action]
 
 object MapMpi:
   def apply[F[_]: {Async, LoggerFactory}](visualization: Option[Visualization]): Resource[F, MapMpi[F]] =

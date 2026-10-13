@@ -16,9 +16,10 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
+import org.scalatest.matchers.must.Matchers.mustBe
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import planning.engine.planner.mpi.actors.Stateful.{CurrentState, GetState}
+import planning.engine.planner.mpi.actors.Stateful.{CurrentState, GetState, SetState}
 import planning.engine.planner.mpi.repr.Representable
 
 trait TestActorBase:
@@ -30,7 +31,14 @@ trait TestActorBase:
     val res = probe.expectMessageType[CurrentState[S]]
     probe.stop()
     res.state
-
+    
+  def setActorState[S](actorRef: ActorRef[Stateful.SetState[S]], state: S)(using tk: ActorTestKit): Unit =
+    val probe = tk.createTestProbe[CurrentState[S]]("SetActorStateProbe")
+    actorRef ! SetState(state, probe.ref)
+    val res = probe.expectMessageType[CurrentState[S]]
+    probe.stop()
+    res.state mustBe state
+    
   def logObj[S <: Representable](logName: String, obj: S)(using IORuntime): S =
     obj.longAutoStr[IO].flatMap(srt => Logger[IO].info(s"$logName: $srt")).unsafeRunSync()
     obj

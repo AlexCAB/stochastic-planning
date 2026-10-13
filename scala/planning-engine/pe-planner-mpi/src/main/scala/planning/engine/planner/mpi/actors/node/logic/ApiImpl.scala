@@ -40,14 +40,6 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
-  override def activation[F[_]: MT](
-      bottom: StepKey,
-      up: StepKey,
-      time: IoTime,
-      pu: PU,
-      sampleIds: Set[SampleId],
-  ): F[Unit] = actor.tellF(Activation(bottom, up, time, pu, sampleIds))
-
   override def contextMove[F[_]: MT](active: StepKey): F[Unit] = actor.tellF(ContextMove(active))
 
   override def contextExtend[F[_]: MT](prev: StepKey, next: StepKey, nextTime: IoTime): F[Unit] =
@@ -73,13 +65,25 @@ private[node] object ApiImpl:
       name: Option[HnName],
       ioValue: IoValue,
       actor: Actor.Ref,
-  ) extends ApiImpl with Node.Con
+  ) extends ApiImpl with Node.Con:
+    import Message.*
+
+    def activation[F[_]: MT](time: IoTime, utility: Option[Double]): F[Unit] = actor.tellF(ActivationCon(time, utility))
 
   final case class Abs(
       mnId: MnId.Abs,
       name: Option[HnName],
       actor: Actor.Ref,
-  ) extends ApiImpl with Node.Abs
+  ) extends ApiImpl with Node.Abs:
+    import Message.*
+
+    override def activation[F[_]: MT](
+        bottom: StepKey,
+        up: StepKey,
+        time: IoTime,
+        pu: PU,
+        sampleIds: Set[SampleId],
+    ): F[Unit] = actor.tellF(ActivationAbs(bottom, up, time, pu, sampleIds))
 
   def apply[F[_]: MT](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
     case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure

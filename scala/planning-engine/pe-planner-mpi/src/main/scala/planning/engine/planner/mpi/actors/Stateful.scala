@@ -20,7 +20,7 @@ import planning.engine.planner.mpi.model.error.FatalException
 import planning.engine.planner.mpi.repr.Representable
 
 private[actors] trait Stateful extends Base:
-  import Stateful.GetState
+  import Stateful.{GetState, SetState}
 
   // Shortcut for actor types
   protected type St <: Representable
@@ -60,6 +60,12 @@ private[actors] trait Stateful extends Base:
       _ <- msg.reply(Stateful.CurrentState(state))
     yield state
 
+  protected def doSetState[F[_]: S](msg: SetState[St], state: St)(using ctx: Ctx): F[St] =
+    for
+      _ <- logInfo(s"SetState message received, updating old state: $state to: ${msg.newState}")
+      _ <- msg.reply(Stateful.CurrentState(msg.newState))
+    yield msg.newState
+
   // Actor main behavior definition
   private def behavior(state: St)(using Def): Behavior[Msg] = Behaviors.setup: ctx =>
     given Ctx = ctx
@@ -78,5 +84,13 @@ private[actors] object Stateful:
   import Base.*
 
   // Messages used for testing purposes to get the current state of the Actor.
-  final case class GetState[S](sender: ActorRef[CurrentState[S]]) extends WithSender[CurrentState[S]] with Representable
+  final case class GetState[S](
+      sender: ActorRef[CurrentState[S]],
+  ) extends WithSender[CurrentState[S]] with Representable
+
+  final case class SetState[S](
+      newState: S,
+      sender: ActorRef[CurrentState[S]],
+  ) extends WithSender[CurrentState[S]] with Representable
+
   final case class CurrentState[S](state: S) extends Representable

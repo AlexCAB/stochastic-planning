@@ -16,11 +16,11 @@ import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.planner.data.*
 
-private[planner] object Actor extends Stateful with SimpleSyncPlanner with Structure:
-  import Message.*, Stateful.GetState
+private[planner] object Actor extends Stateful with SimpleSync with Structure:
+  import Message.*, Stateful.{GetState, SetState}
 
   override type Def = Definition
-  override type Msg = Message | GetState[St]
+  override type Msg = Message | GetState[St] | SetState[St]
 
   override protected type St = State
 
@@ -33,7 +33,7 @@ private[planner] object Actor extends Stateful with SimpleSyncPlanner with Struc
     case msg: NextSteps     => doNextSteps(msg, state)
     case msg: RootSteps     => doRootSteps(msg, state)
     case msg: GetState[St]  => doGetState(msg, state)
-
+    case msg: SetState[St]  => doSetState(msg, state)
   override protected def error[F[_]: S](msg: Msg, state: St, err: Throwable)(using Def, Ctx): F[St] =
     doLogAndRaiseFatal("Planner actor error", Some(msg), state, err, "Error on message processing")
 

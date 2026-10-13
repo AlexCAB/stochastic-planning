@@ -21,11 +21,13 @@ private[node] trait ActiveForest:
   self: Actor.type =>
   import Message.*
 
-  private def calcPu[F[_]: S](msg: Activation, state: St): F[PU] =
+  private def calcPu[F[_]: S](msg: ActivationCon, state: St): F[PU] =
     // TODO
     PU.zero.pure
 
-  private[node] def doActivation[F[_]: S](msg: Activation, state: St)(using d: Def, ctx: Ctx): F[St] =
+  private[node] def doActivationCon[F[_]: S](msg: ActivationCon, state: St)(using d: Def, ctx: Ctx): F[St] =
+    ??? // TODO
+    
 
-    // TODO
-    state.pure
+  private[node] def doActivationAbs[F[_] : S](msg: ActivationAbs, state: St)(using d: Def, ctx: Ctx): F[St] =
+    ??? // TODO  

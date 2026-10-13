@@ -16,12 +16,14 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
-import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.planner.data.Message.TickDone
 import planning.engine.planner.mpi.actors.planner.data.{Definition, State}
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,16 +32,25 @@ final case class TestPlanner(api: Planner):
   import TestPlanner.*
 
   def ref: ActorRef[Planner.Msg] = api.ref
-  def state(using ActorTestKit, IORuntime): State = api.state
+  def getState(using ActorTestKit, IORuntime): State = api.getState
+  def setState(newState: State)(using ActorTestKit, IORuntime): Unit = api.setState(newState)
   def stateTyped(using ActorTestKit, IORuntime): (PlannerStruct, PlannerTick) = api.stateTyped
 
 object TestPlanner extends TestActorBase:
   type PlannerStruct = (
-      Map[IoName, Map[IoIndex, Set[Node.Con]]],
+      Map[IoValue, Node.Con],
       Map[MnId.Con, Node.Con],
   )
 
-  type PlannerTick = EmptyTuple
+  type PlannerTick = (
+      IoTime,
+      Option[ActorRef[TickDone]],
+      Set[StepKey],
+      Set[Node.Con],
+      Set[StepKey],
+      Set[StepKey],
+      Set[StepKey],
+  )
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 
@@ -58,13 +69,18 @@ object TestPlanner extends TestActorBase:
     def ref: ActorRef[Planner.Msg] = api match
       case ApiImpl(ref) => ref
 
-    def state(using ActorTestKit, IORuntime): State =
+    def getState(using ActorTestKit, IORuntime): State =
       val state = getActorState[State](ref)
       logObj("Planner struct", state.struct)
       logObj("Planner tick", state.tick)
       state
 
+    def setState(newState: State)(using ActorTestKit, IORuntime): Unit =
+      setActorState(ref, newState)
+      logObj("Planner new struct", newState.struct)
+      logObj("Planner new tick", newState.tick)
+
     // Allow access to the state from outside `mpi.actors.planner` package.
     def stateTyped(using ActorTestKit, IORuntime): (PlannerStruct, PlannerTick) =
-      val st = state
+      val st = getState
       (Tuple.fromProductTyped(st.struct), Tuple.fromProductTyped(st.tick))

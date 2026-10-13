@@ -29,6 +29,7 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.errors.*
+import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.model.data.map.Metadata
 
 private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
@@ -78,6 +79,8 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
 
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
+
+  def syncPlannerTick(observation: Observation): F[Action] = runAt(_.planner.tick(observation))
 
 private[mpi] object MapMpiImpl:
   final case class MapState(

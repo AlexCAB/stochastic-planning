@@ -41,29 +41,6 @@ private[mpi] trait Node:
   // Upsert target end of an edge to this node.
   def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
 
-  // Propagate the activation signal from concrete node (leafs of abstraction tree)
-  // to higher abstract node (to the roots):
-  //  1. Calculate and save in plan state this node P(N) * U(N) base one received from the previous
-  //     node and prior values.
-  //  2. Propagate further link activation signal in the abstraction tree: Send Activation
-  //     message (with the new P(N) * U(N)) further to target nodes if all outcoming LINK edges,
-  //     if there is some, and they not empty (i.e. have active samples).
-  //  3. For Next steps, which expected time is current time + 1, replace in this node plan state with the Active steps.
-  //  4. If no upper node found (i.e. this node is the root of abstraction tree), then send collected active steps
-  //     to the planner, using `ActiveSteps` message.
-  // Notes:
-  //  - This signal is sent from the planner actor on it receive Tick message.
-  //  - The activation signal will be terminated on highest abstraction nodes, which not have outcoming LINK edges,
-  //    i.e. it will propagate from bottom (from concrete nodes) to top of map network and will generate
-  //    forest of active trees.
-  def activation[F[_]: MT](
-      bottom: StepKey, // The bottom node step key (node where the activation signal was generated).
-      up: StepKey, // The upper node step key (node where the activation signal is processed).
-      time: IoTime, // Current world time, used to find Next steps that expected to happen exactly the next.
-      pu: PU, // P(N) * U(N), Probability and utility of the `bottom` node
-      sampleIds: Set[SampleId], // Active sample Ids, used to find active edges.
-  ): F[Unit]
-
   // Move context window one step forward in plan forest:
   //  1. Propagate context extension signal in the sequence tree: For each found in plan state Active
   //     steps, send the ContextExtend message to the target node of each none
@@ -110,11 +87,39 @@ private[mpi] object Node:
     def name: Option[HnName]
     def ioValue: IoValue
 
+    // Start the activation signal propagation from this concrete node (leaf of abstraction tree) 
+    // to higher abstract nodes (to the roots).
+    def activation[F[_] : MT](time: IoTime, utility: Option[Double]): F[Unit]
+
     lazy val repr: String = s"[${mnId.reprValue}, ${name.repr}, ${ioValue.repr}]"
 
   trait Abs extends Node:
     def mnId: MnId.Abs
     def name: Option[HnName]
+
+    // Propagate the activation signal from concrete node (leafs of abstraction tree)
+    // to higher abstract node (to the roots):
+    //  1. Calculate and save in plan state this node P(N) * U(N) base one received from the previous
+    //     node and prior values.
+    //  2. Propagate further link activation signal in the abstraction tree: Send Activation
+    //     message (with the new P(N) * U(N)) further to target nodes if all outcoming LINK edges,
+    //     if there is some, and they not empty (i.e. have active samples).
+    //  3. For Next steps, which expected time is current time + 1, replace in this node plan state 
+    //     with the Active steps.
+    //  4. If no upper node found (i.e. this node is the root of abstraction tree), then send collected active steps
+    //     to the planner, using `ActiveSteps` message.
+    // Notes:
+    //  - This signal is sent from the planner actor on it receive Tick message.
+    //  - The activation signal will be terminated on highest abstraction nodes, which not have outcoming LINK edges,
+    //    i.e. it will propagate from bottom (from concrete nodes) to top of map network and will generate
+    //    forest of active trees.
+    def activation[F[_]: MT](
+        bottom: StepKey, // The bottom node step key (node where the activation signal was generated).
+        up: StepKey, // The upper node step key (node where the activation signal is processed).
+        time: IoTime, // Current world time, used to find Next steps that expected to happen exactly the next.
+        pu: PU, // P(N) * U(N), Probability and utility of the `bottom` node
+        sampleIds: Set[SampleId], // Active sample Ids, used to find active edges.
+    ): F[Unit]
 
     lazy val repr: String = s"(${mnId.reprValue}, ${name.repr})"
 

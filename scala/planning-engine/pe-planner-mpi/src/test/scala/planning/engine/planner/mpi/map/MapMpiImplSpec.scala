@@ -16,7 +16,8 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.effect.std.AtomicCell
 import org.mockito.scalatest.AsyncIdiomaticMockito
-import planning.engine.common.values.io.IoName
+import planning.engine.common.graph.io.{Action, Observation}
+import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
@@ -97,3 +98,22 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
 
         managerStub.addManSamples[IO](samples, nodes) was called
         result mustBe Map.empty
+
+  "MapMpiImpl.syncPlannerTick(...)" should:
+    "call Planner.tick with the given observation and return its action" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      val observation = Observation(IoTime(1L), Set(IoValue(inVar.name, IoIndex(0))), utility = Some(0.5))
+      val action = Action(Set(IoValue(outVar.name, IoIndex(1))))
+      plannerStub.tick[IO](*) returns IO.pure(action)
+
+      async[IO]:
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
+        val result = mapMpi.syncPlannerTick(observation).logValue(tn).await
+
+        plannerStub.tick[IO](observation) was called
+        result mustBe action
+
+    "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.syncPlannerTick(Observation(IoTime(1L), Set.empty, None)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))

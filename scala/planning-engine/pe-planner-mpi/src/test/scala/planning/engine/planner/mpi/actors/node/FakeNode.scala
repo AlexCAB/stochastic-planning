@@ -15,10 +15,10 @@ package planning.engine.planner.mpi.actors.node
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.actors.node.data.Message.{UpsertEdgeSrc, UpsertEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.Message.{ActivationCon, UpsertEdgeSrc, UpsertEdgeTrg}
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.NodeData
@@ -26,6 +26,14 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 import org.scalatest.matchers.must.Matchers.fail
 
 final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
+  def conApi: Node.Con = api match
+    case con: Node.Con => con
+    case other         => fail(s"Expected concrete node API, got: $other")
+
+  def expectActivationCon: (IoTime, Option[Double]) =
+    val msg = probe.expectMessageType[ActivationCon]
+    (msg.time, msg.utility)
+
   def expectUpsertEdgeSrc: (MeRef, Map[SampleId, Sample.Props]) =
     val msg = probe.expectMessageType[UpsertEdgeSrc]
     (msg.ref, msg.props)

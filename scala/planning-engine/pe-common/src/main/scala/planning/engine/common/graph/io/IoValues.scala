@@ -21,11 +21,13 @@ final case class Observation(
     time: IoTime, // Monotonically increased value used to track the time of the observation
     values: Set[IoValue], // Set of observed IO variable names to their value indices.
     utility: Option[Double], // Optional utility value associated with the observation
-) extends IoValues
+) extends IoValues:
+  override lazy val toString: String = s"Observation(time = $time, values = ${values.map(_.repr)}, utility = $utility)"
 
 final case class Action(
     values: Set[IoValue],
-) extends IoValues
+) extends IoValues:
+  override lazy val toString: String = s"Action(values = ${values.map(_.repr)})"
 
 object Action:
   val empty: Action = Action(Set.empty)

@@ -24,8 +24,11 @@ private[planner] final case class State(
     // Current plan graph data
     tick: Tick,
 ) extends Representable:
-  def mapStruct[F[_]: Monad](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
-  def mapTick[F[_]: Monad](f: Tick => F[Tick]): F[State] = f(tick).map(nt => copy(tick = nt))
+  def mapStruct(f: Struct => Struct): State = copy(struct = f(struct))
+  def mapStructF[F[_]: Monad](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
+  
+  def mapTickF[F[_]: Monad](f: Tick => F[Tick]): F[State] = f(tick).map(nt => copy(tick = nt))
+  def mapTick(f: Tick => Tick): State = copy(tick = f(tick))
 
 private[planner] object State:
   val init: State = State(Struct.init, Tick.init)

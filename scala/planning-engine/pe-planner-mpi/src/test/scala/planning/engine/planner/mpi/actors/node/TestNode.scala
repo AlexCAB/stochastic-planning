@@ -21,7 +21,8 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.{FakeManager, Manager}
 import planning.engine.planner.mpi.actors.node.data.{Definition, State}
-import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
+import planning.engine.planner.mpi.actors.node.data.state.plan.{Plan, Step}
+import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}
@@ -50,7 +51,7 @@ object TestNode extends TestActorBase:
       Long,
   )
 
-  type NodePlan = (Map[StepKey, Plan.Step], Long)
+  type NodePlan = (Map[StepKey, Step], Long)
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 

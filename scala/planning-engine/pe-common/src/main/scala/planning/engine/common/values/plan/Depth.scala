@@ -16,3 +16,6 @@ import planning.engine.common.values.LongVal
 
 // Depth is used to identify the depth of the path in Plan Tree.
 final case class Depth(value: Long) extends AnyVal with LongVal
+
+object Depth:
+  val init: Depth = new Depth(0L)

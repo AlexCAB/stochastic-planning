@@ -38,7 +38,7 @@ private[node] object Message:
   final case class UpsertEdgeTrg(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
 
   final case class ActivationCon(time: IoTime, utility: Option[Double]) extends Message
-  
+
   final case class ActivationAbs(
       bottom: StepKey,
       up: StepKey,

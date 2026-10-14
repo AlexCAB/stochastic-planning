@@ -21,13 +21,19 @@ private[node] trait ActiveForest:
   self: Actor.type =>
   import Message.*
 
-  private def calcPu[F[_]: S](msg: ActivationCon, state: St): F[PU] =
+  private def calcInitPu[F[_]: S](msg: ActivationCon, state: St): F[PU] =
     // TODO
-    PU.zero.pure
+    PU(
+      p = 1.0, // For active concrete nodes it always 1.0, since they are observed and activated.
+      u = 0.0, // TODO: Calculate utility based on the `msg.utility` value and other factors if needed.
+    ).pure
 
   private[node] def doActivationCon[F[_]: S](msg: ActivationCon, state: St)(using d: Def, ctx: Ctx): F[St] =
-    ??? // TODO
-    
+    for
+      pu <- calcInitPu(msg, state)
+      _ <- logInfo(s"[doActivationCon] time = ${msg.time}, utility = ${msg.utility}, calculated PU = $pu")
 
-  private[node] def doActivationAbs[F[_] : S](msg: ActivationAbs, state: St)(using d: Def, ctx: Ctx): F[St] =
-    ??? // TODO  
+    // TODO
+    yield ???
+
+  private[node] def doActivationAbs[F[_]: S](msg: ActivationAbs, state: St)(using d: Def, ctx: Ctx): F[St] = ??? // TODO

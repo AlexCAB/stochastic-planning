@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 23.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state
+package planning.engine.planner.mpi.actors.node.data.state.structure
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -21,7 +21,7 @@ import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Lookup
-import planning.engine.planner.mpi.actors.node.data.state.Struct
+import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}

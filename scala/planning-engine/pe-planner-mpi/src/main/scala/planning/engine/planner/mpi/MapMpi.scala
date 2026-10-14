@@ -77,7 +77,7 @@ trait MapMpi[F[_]]:
   // Add manually defined samples to the map network, associating them with the specified nodes.
   // More info in `Manager.addManSamples(...)` description.
   def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]]
-  
+
   // Synchronous planner tick (compute the next action for the given observation)
   // More info in `Planner.tick(...)` description.
   def syncPlannerTick(observation: Observation): F[Action]

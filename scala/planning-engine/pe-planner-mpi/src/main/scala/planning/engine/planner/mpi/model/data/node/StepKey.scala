@@ -27,3 +27,6 @@ final case class StepKey(
     // Depth of the step in the sequence tree, where 0 is the root.
     depth: Depth,
 )
+
+object StepKey:
+  def init(mnId: MnId, rawPathId: Long): StepKey = StepKey(mnId, PathId(rawPathId), Depth.init)

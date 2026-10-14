@@ -19,7 +19,7 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.data.State
-import planning.engine.planner.mpi.actors.node.data.state.Struct
+import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
 import planning.engine.planner.mpi.actors.node.{Node, WithTestNode}
 import planning.engine.planner.mpi.model.data.edge.MeRef
 

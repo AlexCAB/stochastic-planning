@@ -286,9 +286,13 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Fallow structure and approach of `PlannerStructureSpec` and implement test for `Planner.tick(...)` method in `PlannerSimpleSyncSpec`
 
-##### TODO: 
-1. Implement basic visualization API and integrate with Python
+❯ In `HuangWeightSpec` write tests for `planning.engine.common.values.plan.HuangWeight`
 
+❯ In `NodePlanStateSpec` write tests for mpi.actors.node.data.state.plan.Plan`
+
+##### TODO: 
+1. Implement `ActiveForest` construction algorithm.
+2. Implement context move algorithm. 
 
 
 

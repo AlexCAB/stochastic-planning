@@ -31,14 +31,14 @@ trait TestActorBase:
     val res = probe.expectMessageType[CurrentState[S]]
     probe.stop()
     res.state
-    
+
   def setActorState[S](actorRef: ActorRef[Stateful.SetState[S]], state: S)(using tk: ActorTestKit): Unit =
     val probe = tk.createTestProbe[CurrentState[S]]("SetActorStateProbe")
     actorRef ! SetState(state, probe.ref)
     val res = probe.expectMessageType[CurrentState[S]]
     probe.stop()
     res.state mustBe state
-    
+
   def logObj[S <: Representable](logName: String, obj: S)(using IORuntime): S =
     obj.longAutoStr[IO].flatMap(srt => Logger[IO].info(s"$logName: $srt")).unsafeRunSync()
     obj

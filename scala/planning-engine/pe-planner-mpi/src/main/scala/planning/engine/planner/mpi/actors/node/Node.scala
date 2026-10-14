@@ -87,9 +87,12 @@ private[mpi] object Node:
     def name: Option[HnName]
     def ioValue: IoValue
 
-    // Start the activation signal propagation from this concrete node (leaf of abstraction tree) 
-    // to higher abstract nodes (to the roots).
-    def activation[F[_] : MT](time: IoTime, utility: Option[Double]): F[Unit]
+    // Start the activation signal propagation from this concrete node (leaf of abstraction tree)
+    // to higher abstract nodes (to the roots):
+    //   1. Calculate concrete node init P(N) * U(N)
+    //   2. Find Next steps and replace with Active. Or add new Active step if no Next steps found.
+    //   3. For each  not empty (i.e. have active samples) outcoming LINK edge, send `ActivationAbs` message
+    def activation[F[_]: MT](time: IoTime, utility: Option[Double]): F[Unit]
 
     lazy val repr: String = s"[${mnId.reprValue}, ${name.repr}, ${ioValue.repr}]"
 
@@ -104,7 +107,7 @@ private[mpi] object Node:
     //  2. Propagate further link activation signal in the abstraction tree: Send Activation
     //     message (with the new P(N) * U(N)) further to target nodes if all outcoming LINK edges,
     //     if there is some, and they not empty (i.e. have active samples).
-    //  3. For Next steps, which expected time is current time + 1, replace in this node plan state 
+    //  3. For Next steps, which expected time is current time + 1, replace in this node plan state
     //     with the Active steps.
     //  4. If no upper node found (i.e. this node is the root of abstraction tree), then send collected active steps
     //     to the planner, using `ActiveSteps` message.

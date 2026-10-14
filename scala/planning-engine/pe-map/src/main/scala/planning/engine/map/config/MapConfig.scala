@@ -12,8 +12,8 @@
 
 package planning.engine.map.config
 
-import cats.syntax.ext.MT
 import cats.effect.Sync
+import cats.syntax.ext.MT
 import com.typesafe.config.Config
 import neotypes.query.QueryArg.Param
 import planning.engine.common.properties.*

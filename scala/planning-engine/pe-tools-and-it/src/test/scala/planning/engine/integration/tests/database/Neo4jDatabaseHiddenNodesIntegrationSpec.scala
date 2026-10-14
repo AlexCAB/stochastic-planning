@@ -12,20 +12,20 @@
 
 package planning.engine.integration.tests.database
 
-import cats.effect.{IO, Resource}
-import planning.engine.common.properties.*
-import planning.engine.common.values.node.{HnId, HnName}
-import planning.engine.common.values.text.Description
-import planning.engine.integration.tests.*
-import planning.engine.common.values.db.Neo4j.*
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import cats.effect.cps.*
+import cats.effect.{IO, Resource}
 import cats.syntax.all.*
 import neotypes.model.types.Node
 import neotypes.syntax.all.*
+import planning.engine.common.properties.*
+import planning.engine.common.values.db.Neo4j.*
 import planning.engine.common.values.io.{IoIndex, IoName}
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
 import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
+import planning.engine.integration.tests.*
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.subgraph.ConcreteWithParentIds
 
 class Neo4jDatabaseHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO])]

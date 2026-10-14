@@ -14,8 +14,8 @@ package planning.engine.planner.mpi.model.io
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
-import planning.engine.common.values.io.IoIndex
 import planning.engine.common.errors.assertionError
+import planning.engine.common.values.io.IoIndex
 
 sealed trait Type[V]:
   def isDefinedAt(index: IoIndex): Boolean

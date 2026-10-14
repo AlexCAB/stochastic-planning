@@ -13,8 +13,8 @@
 package planning.engine.api.service.visualization.mpi
 
 import cats.MonadThrow
-import cats.effect.{Async, Resource}
 import cats.effect.std.Dispatcher
+import cats.effect.{Async, Resource}
 import cats.syntax.all.*
 import cats.syntax.ext.MT
 import fs2.concurrent.Topic

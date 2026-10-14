@@ -12,11 +12,11 @@
 
 package planning.engine.integration.tests.database
 
-import cats.effect.{IO, Resource}
 import cats.effect.cps.*
+import cats.effect.{IO, Resource}
 import cats.syntax.all.*
-import planning.engine.common.values.db.Neo4j.*
 import neotypes.model.types.Node
+import planning.engine.common.values.db.Neo4j.*
 import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.{IntegrationSpecWithResource, WithItDb}
 import planning.engine.map.MapGraphTestData

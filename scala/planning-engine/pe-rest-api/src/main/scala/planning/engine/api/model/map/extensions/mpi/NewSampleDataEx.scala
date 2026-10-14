@@ -15,11 +15,11 @@ package planning.engine.api.model.map.extensions.mpi
 import cats.syntax.all.*
 import cats.syntax.ext.MT
 import planning.engine.api.model.map.payload.{NewSampleData, NewSampleEdge}
+import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.common.errors.*
-import planning.engine.common.graph.edges.MeKey
 
 object NewSampleDataEx:
   extension (data: NewSampleData)

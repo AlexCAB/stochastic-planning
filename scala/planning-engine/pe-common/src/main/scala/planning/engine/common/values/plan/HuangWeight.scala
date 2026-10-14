@@ -12,8 +12,8 @@
 
 package planning.engine.common.values.plan
 
-import cats.syntax.ext.MT
 import cats.syntax.all.*
+import cats.syntax.ext.MT
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.LongVal
 

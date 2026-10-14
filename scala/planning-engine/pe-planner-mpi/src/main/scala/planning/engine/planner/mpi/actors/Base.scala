@@ -13,14 +13,14 @@
 package planning.engine.planner.mpi.actors
 
 import cats.effect.Sync
-import cats.syntax.all.*
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
-
-import scala.concurrent.ExecutionContext
+import cats.syntax.all.*
 import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors}
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import planning.engine.planner.mpi.model.error.FatalException
 import planning.engine.planner.mpi.repr.Representable
+
+import scala.concurrent.ExecutionContext
 
 private[actors] trait Base:
 

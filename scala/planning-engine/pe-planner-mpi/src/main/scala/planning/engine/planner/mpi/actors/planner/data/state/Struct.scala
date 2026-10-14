@@ -14,11 +14,11 @@ package planning.engine.planner.mpi.actors.planner.data.state
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import planning.engine.common.errors.*
 import planning.engine.common.values.io.IoValue
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.repr.Representable
-import planning.engine.common.errors.*
 
 private[planner] final case class Struct(
     // Concrete nodes known to represent each value (HnIndex) of each input variable.
@@ -36,7 +36,7 @@ private[planner] final case class Struct(
 
   def findInNodes[F[_]: MT](values: Set[IoValue]): F[Set[Node.Con]] =
     for
-      _ <- inputNodes.keySet.assertContainsAllOf(values, s"Struct.findInNodes: missing input nodes")
+      _ <- inputNodes.keySet.assertContainsAllOf(values, "Struct.findInNodes: missing input nodes")
       nodes = inputNodes.view.filterKeys(values.contains).values.toSet
     yield nodes
 

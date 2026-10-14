@@ -12,8 +12,8 @@ package cats.syntax
 | website: github.com/alexcab |||||
 | created: 24.08.26 |||||||||||||*/
 
-import cats.{Monad, MonadThrow}
 import cats.syntax.all.*
+import cats.{Monad, MonadThrow}
 
 package object ext:
   type MT[F[_]] = MonadThrow[F]

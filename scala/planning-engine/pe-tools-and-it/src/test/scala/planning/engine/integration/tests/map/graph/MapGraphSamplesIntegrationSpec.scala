@@ -12,16 +12,16 @@
 
 package planning.engine.integration.tests.map.graph
 
-import cats.effect.{IO, Resource}
-import planning.engine.common.values.sample.SampleId
-import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
-import planning.engine.integration.tests.*
-import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import cats.effect.cps.*
+import cats.effect.{IO, Resource}
 import neotypes.model.types.Node
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.properties.PROP
+import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
+import planning.engine.integration.tests.MapGraphIntegrationTestData.TestMapGraph
+import planning.engine.integration.tests.*
+import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdgeMap
 
 class MapGraphSamplesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]

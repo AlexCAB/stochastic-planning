@@ -19,11 +19,11 @@ import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.guardian.Guardian
+import planning.engine.planner.mpi.map.MapMpiImpl
+import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.{IoVars, Variable}
-import planning.engine.planner.mpi.map.MapMpiImpl
-import planning.engine.planner.mpi.model.data.map.Metadata
 
 // Map actor adaptor, main purpose:
 // - Spawn and host actors network

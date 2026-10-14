@@ -13,22 +13,22 @@
 package planning.engine.integration.tests
 
 import cats.effect.{IO, Resource}
+import cats.syntax.all.*
 import com.typesafe.config.ConfigFactory
-import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
-import planning.engine.integration.tests.WithItDb.ItDb
-
-import java.util.UUID
-import scala.concurrent.duration.DurationInt
 import neotypes.cats.effect.implicits.*
 import neotypes.mappers.ResultMapper
 import neotypes.model.types.{Node, Relationship, Value}
 import neotypes.query.DeferredQueryBuilder
-import planning.engine.common.values.db.DbName
 import neotypes.syntax.all.*
-import cats.syntax.all.*
-import planning.engine.common.values.node.HnId
+import neotypes.{AsyncDriver, GraphDatabase, TransactionConfig}
 import planning.engine.common.properties.*
+import planning.engine.common.values.db.DbName
+import planning.engine.common.values.node.HnId
 import planning.engine.database.Neo4jConf
+import planning.engine.integration.tests.WithItDb.ItDb
+
+import java.util.UUID
+import scala.concurrent.duration.DurationInt
 
 trait WithItDb:
   self: IntegrationSpecWithResource[?] =>

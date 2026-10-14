@@ -47,7 +47,7 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error when the index is out of range" in newCase[CaseData]: (tn, d) =>
         d.numType.valueForIndex[IO](IoIndex(11)).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"not in range [-10, 10]"))
+          .assertThrowsError[AssertionError](_.getMessage must include("not in range [-10, 10]"))
 
     "indexForValue(...)" should:
       "return the IoIndex for a value within range" in newCase[CaseData]: (_, d) =>
@@ -78,7 +78,7 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error when the index is out of range" in newCase[CaseData]: (tn, d) =>
         d.realType.valueForIndex[IO](IoIndex(10001)).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"Value 1.0001 not in range [-1.0, 1.0]"))
+          .assertThrowsError[AssertionError](_.getMessage must include("Value 1.0001 not in range [-1.0, 1.0]"))
 
     "indexForValue(...)" should:
       "return the scaled IoIndex for a value within range" in newCase[CaseData]: (_, d) =>
@@ -111,11 +111,11 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error for index 0 when false is not acceptable" in newCase[CaseData]: (tn, d) =>
         d.trueOnlyType.valueForIndex[IO](IoIndex(0)).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"or not in acceptable values"))
+          .assertThrowsError[AssertionError](_.getMessage must include("or not in acceptable values"))
 
       "raise an error for an index other than 0 or 1" in newCase[CaseData]: (tn, d) =>
         d.boolType.valueForIndex[IO](IoIndex(2)).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"Invalid index"))
+          .assertThrowsError[AssertionError](_.getMessage must include("Invalid index"))
 
     "indexForValue(...)" should:
       "return IoIndex(0) for false when acceptable" in newCase[CaseData]: (_, d) =>
@@ -126,7 +126,7 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error when the value is not acceptable" in newCase[CaseData]: (tn, d) =>
         d.trueOnlyType.indexForValue[IO](false).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"Value 'false' not in acceptable values"))
+          .assertThrowsError[AssertionError](_.getMessage must include("Value 'false' not in acceptable values"))
 
   "Type.Opt" should:
     "isDefinedAt(...)" should:
@@ -148,7 +148,7 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error when the index is out of bounds" in newCase[CaseData]: (tn, d) =>
         d.optType.valueForIndex[IO](IoIndex(3)).logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"out of bounds for options list of size 3"))
+          .assertThrowsError[AssertionError](_.getMessage must include("out of bounds for options list of size 3"))
 
     "indexForValue(...)" should:
       "return the IoIndex for an option in the list" in newCase[CaseData]: (_, d) =>
@@ -156,4 +156,4 @@ class TypeSpec extends UnitSpecWithData:
 
       "raise an error when the value is not in the options list" in newCase[CaseData]: (tn, d) =>
         d.optType.indexForValue[IO]("purple").logValue(tn)
-          .assertThrowsError[AssertionError](_.getMessage must include(s"Value purple not in options list"))
+          .assertThrowsError[AssertionError](_.getMessage must include("Value purple not in options list"))

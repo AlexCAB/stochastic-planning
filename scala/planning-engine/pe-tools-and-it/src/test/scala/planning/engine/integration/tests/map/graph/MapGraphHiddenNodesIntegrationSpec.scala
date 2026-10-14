@@ -12,17 +12,17 @@
 
 package planning.engine.integration.tests.map.graph
 
-import cats.effect.{IO, Resource}
-import planning.engine.integration.tests.MapGraphIntegrationTestData.{TestMapGraph, TestSamples}
-import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
 import cats.effect.cps.*
-import planning.engine.common.values.node.{HnId, HnName}
-import planning.engine.common.values.text.Description
-import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
+import cats.effect.{IO, Resource}
 import cats.syntax.all.*
 import neotypes.syntax.all.*
 import planning.engine.common.values.db.Neo4j.*
 import planning.engine.common.values.io.IoIndex
+import planning.engine.common.values.node.{HnId, HnName}
+import planning.engine.common.values.text.Description
+import planning.engine.integration.tests.MapGraphIntegrationTestData.{TestMapGraph, TestSamples}
+import planning.engine.integration.tests.{IntegrationSpecWithResource, MapGraphIntegrationTestData, WithItDb}
+import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode, HiddenNode}
 import planning.engine.map.subgraph.ConcreteWithParentIds
 
 class MapGraphHiddenNodesIntegrationSpec extends IntegrationSpecWithResource[TestMapGraph]

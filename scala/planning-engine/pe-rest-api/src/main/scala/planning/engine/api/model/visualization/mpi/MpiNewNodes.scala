@@ -15,10 +15,10 @@ package planning.engine.api.model.visualization.mpi
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.api.model.visualization.VisualizationMsg
+import planning.engine.common.errors.assertionError
 import planning.engine.common.values.io.IoName
 import planning.engine.common.values.node.{HnId, MnId}
 import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.common.errors.assertionError
 
 final case class MpiNewNodes(
     conIds: Set[HnId],

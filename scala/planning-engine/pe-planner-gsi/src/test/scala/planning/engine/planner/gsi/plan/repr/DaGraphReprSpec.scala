@@ -13,7 +13,7 @@
 package planning.engine.planner.gsi.plan.repr
 
 import cats.effect.IO
-import cats.effect.cps.{async, *}
+import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.planner.gsi.plan.test.data.ChainDagTestData
 

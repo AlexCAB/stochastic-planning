@@ -14,23 +14,23 @@ package planning.engine.planner.mpi.map
 
 import cats.effect.Async
 import cats.effect.kernel.Async
-import cats.syntax.all.*
 import cats.effect.std.AtomicCell
+import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Scheduler
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.common.errors.*
+import planning.engine.common.graph.io.{Action, Observation}
+import planning.engine.common.values.node.MnId
+import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.MapMpi
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
-import planning.engine.planner.mpi.model.io.{IoVars, Variable}
-import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.common.values.node.MnId
-import planning.engine.common.values.sample.SampleId
-import planning.engine.common.errors.*
-import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.model.data.map.Metadata
+import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 
 private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     guardian: Guardian,

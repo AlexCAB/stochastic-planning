@@ -14,8 +14,8 @@ package planning.engine.planner.mpi.model.io
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
-import planning.engine.common.values.io.IoName
 import planning.engine.common.errors.*
+import planning.engine.common.values.io.IoName
 import planning.engine.planner.mpi.actors.node.Node
 
 final case class IoVars(

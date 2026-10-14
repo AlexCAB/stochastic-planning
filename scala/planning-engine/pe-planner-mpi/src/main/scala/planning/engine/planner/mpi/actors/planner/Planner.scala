@@ -12,9 +12,9 @@
 
 package planning.engine.planner.mpi.actors.planner
 
+import cats.effect.Async
 import cats.syntax.all.*
 import cats.syntax.ext.*
-import cats.effect.Async
 import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.io.{Action, Observation}

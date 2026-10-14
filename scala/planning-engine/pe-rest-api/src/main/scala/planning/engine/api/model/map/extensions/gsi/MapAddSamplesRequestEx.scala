@@ -14,6 +14,9 @@ package planning.engine.api.model.map.extensions.gsi
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import planning.engine.api.model.map.MapAddSamplesRequest
+import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
+import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDefEx.toNew
 import planning.engine.api.model.map.payload.*
 import planning.engine.common.errors.assertionError
 import planning.engine.common.values.io.IoName
@@ -21,9 +24,6 @@ import planning.engine.common.values.node.{HnId, HnName}
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.samples.sample.{Sample, SampleEdge}
-import planning.engine.api.model.map.MapAddSamplesRequest
-import planning.engine.api.model.map.extensions.gsi.ConcreteNodeDefEx.toNew
-import planning.engine.api.model.map.extensions.gsi.AbstractNodeDefEx.toNew
 
 object MapAddSamplesRequestEx:
   extension (request: MapAddSamplesRequest)

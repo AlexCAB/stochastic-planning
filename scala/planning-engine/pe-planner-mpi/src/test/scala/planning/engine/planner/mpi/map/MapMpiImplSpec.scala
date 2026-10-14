@@ -20,6 +20,7 @@ import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.guardian.Guardian
 import planning.engine.planner.mpi.actors.manager.Manager
@@ -28,7 +29,6 @@ import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.{IoVars, Type, Variable}
-import planning.engine.common.values.text.Name
 
 class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito:
 

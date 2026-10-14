@@ -35,6 +35,6 @@ private[visualizer] trait Structure:
 
   private[visualizer] def doEdgesAdded[F[_]: S](msg: ShowEdgesAdded)(using d: Def, c: Ctx): F[Bhv] =
     for
-      _ <- logSeq(s"[EdgesAdded] added edges", msg.keys)
+      _ <- logSeq("[EdgesAdded] added edges", msg.keys)
       _ <- d.visualization.edgesAdded(msg.keys)
     yield Behaviors.same

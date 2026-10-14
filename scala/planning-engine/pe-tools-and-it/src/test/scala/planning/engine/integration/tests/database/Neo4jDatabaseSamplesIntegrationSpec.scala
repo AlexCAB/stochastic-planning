@@ -12,21 +12,21 @@
 
 package planning.engine.integration.tests.database
 
-import cats.effect.{IO, Resource}
-import planning.engine.common.properties.*
-import planning.engine.common.values.node.{HnId, HnIndex}
-import planning.engine.integration.tests.*
 import cats.effect.cps.*
+import cats.effect.{IO, Resource}
+import cats.syntax.all.*
 import neotypes.model.types.Node
 import org.scalatest.Assertion
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.properties.*
+import planning.engine.common.values.node.{HnId, HnIndex}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
+import planning.engine.database.Neo4jDatabase
 import planning.engine.integration.tests.MapGraphIntegrationTestData.TestHiddenNodes
+import planning.engine.integration.tests.*
 import planning.engine.map.samples.sample.{Sample, SampleData, SampleEdge}
 import planning.engine.map.subgraph.NextSampleEdge
-import cats.syntax.all.*
-import planning.engine.database.Neo4jDatabase
 
 class Neo4jDatabaseSamplesIntegrationSpec
     extends IntegrationSpecWithResource[(WithItDb.ItDb, Neo4jDatabase[IO], TestHiddenNodes)]
@@ -54,12 +54,12 @@ class Neo4jDatabaseSamplesIntegrationSpec
       .toMap
 
   private class Init(nodes: TestHiddenNodes, neo4jdb: Neo4jDatabase[IO])(implicit db: WithItDb.ItDb):
-    val hnId1 = nodes.allNodeIds(1)
-    val hnId2 = nodes.allNodeIds(3)
-    val hnId3 = nodes.allNodeIds(5)
-    val thenEdge = EdgeType.THEN
-    val linkEdge = EdgeType.LINK
-    val params = makeFourNewSamples(hnId1, hnId2, hnId3)
+    val hnId1: HnId = nodes.allNodeIds(1)
+    val hnId2: HnId = nodes.allNodeIds(3)
+    val hnId3: HnId = nodes.allNodeIds(5)
+    val thenEdge: EdgeType = EdgeType.THEN
+    val linkEdge: EdgeType = EdgeType.LINK
+    val params: Sample.ListNew = makeFourNewSamples(hnId1, hnId2, hnId3)
 
     lazy val nextSampleId: SampleId = SampleId(getNextSampleId.logValue("Init", "nextSampleId").unsafeRunSync())
     lazy val nextHnIndex1: HnIndex = HnIndex(getNextHnIndex(hnId1).logValue("Init", "nextHnIndex1").unsafeRunSync())
@@ -67,7 +67,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
     lazy val nextHnIndex3: HnIndex = HnIndex(getNextHnIndex(hnId3).logValue("Init", "nextHnIndex3").unsafeRunSync())
     lazy val sampleMap: Map[SampleId, Sample.New] = addFourNamedSamples(List(hnId1, hnId2, hnId3), neo4jdb)
 
-    def initIndexies: Unit =
+    def initIndexies(): Unit =
       nextSampleId
       nextHnIndex1
       nextHnIndex2
@@ -127,7 +127,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
             .getOrElse(sample.data.id, fail(s"Sample not found for id: ${sample.data.id}"))
 
           fetchedSample.data mustEqual sample.data
-          fetchedSample.edges.toSet mustEqual sample.edges.toSet
+          fetchedSample.edges mustEqual sample.edges
       .map(_ => succeed)
 
   "Neo4jDatabase.createSamples(...)" should:
@@ -141,7 +141,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId1, init.thenEdge))),
         )
 
-        init.initIndexies
+        init.initIndexies()
 
         val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("loop edge", "result").await
@@ -176,7 +176,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           newSample.copy(edges = Set(SampleEdge.New(init.hnId1, init.hnId2, init.thenEdge))),
         )
 
-        init.initIndexies
+        init.initIndexies()
 
         val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("one edge", "result").await
@@ -214,7 +214,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           ),
         ))
 
-        init.initIndexies
+        init.initIndexies()
 
         val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("two edge", "result").await
@@ -263,7 +263,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           ),
         ))
 
-        init.initIndexies
+        init.initIndexies()
 
         val (samples, edgeIds): (List[Sample], List[String]) = neo4jdb
           .createSamples(params).logValue("two edge", "result").await
@@ -312,7 +312,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
       given WithItDb.ItDb = itDb
       val init = new Init(nodes, neo4jdb)
       async[IO]:
-        init.initIndexies
+        init.initIndexies()
         val sampleId: SampleId = init.sampleMap.keys.toList.head
         val name = init.sampleMap(sampleId).name.getOrElse(fail("Sample name is missing"))
         checkIndexesRise(init, sampleId = 4, hnIndex1 = 4, hnIndex2 = 3, hnIndex3 = 2).await
@@ -343,7 +343,7 @@ class Neo4jDatabaseSamplesIntegrationSpec
           yield edgesMap
 
         def getNewSampleData(edges: Map[SampleId, NextSampleEdge[IO]]): Map[SampleId, Sample.New] = edges
-          .map((id, _) => id -> sampleMap(id)).toMap
+          .map((id, _) => id -> sampleMap(id))
 
         def checkEdgeData(
             sampleIds: List[SampleId],
@@ -454,9 +454,9 @@ class Neo4jDatabaseSamplesIntegrationSpec
           val testEdges = testSample.edges.map(e => (e.source, e.target, e.edgeType))
           val gotEdges = gotSample.edges.map(e => (e.source.hnId, e.target.hnId, e.edgeType))
 
-          testEdges.toSet mustEqual gotEdges.toSet
+          testEdges mustEqual gotEdges
 
-          gotSample.edges.map(_.sampleId).toSet mustEqual Set(id)
+          gotSample.edges.map(_.sampleId) mustEqual Set(id)
 
           val groupedHnIndex = gotSample.edges
             .flatMap(e => List(e.source, e.target))

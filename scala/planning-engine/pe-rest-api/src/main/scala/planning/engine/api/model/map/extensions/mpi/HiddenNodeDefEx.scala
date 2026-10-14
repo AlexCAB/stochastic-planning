@@ -14,12 +14,12 @@ package planning.engine.api.model.map.extensions.mpi
 
 import cats.syntax.all.*
 import cats.syntax.ext.MT
-import io.circe.{Json, Decoder}
+import io.circe.{Decoder, Json}
 import planning.engine.api.model.map.payload.{AbstractNodeDef, ConcreteNodeDef, HiddenNodeDef}
+import planning.engine.common.errors.assertionError
 import planning.engine.common.values.io.IoIndex
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.io.{IoVars, Type}
-import planning.engine.common.errors.assertionError
 
 object HiddenNodeDefEx:
   extension (hnDef: HiddenNodeDef)

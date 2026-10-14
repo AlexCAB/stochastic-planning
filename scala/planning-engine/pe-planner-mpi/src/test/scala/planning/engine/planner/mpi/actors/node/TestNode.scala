@@ -20,9 +20,9 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.{FakeManager, Manager}
-import planning.engine.planner.mpi.actors.node.data.{Definition, State}
 import planning.engine.planner.mpi.actors.node.data.state.plan.{Plan, Step}
 import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
+import planning.engine.planner.mpi.actors.node.data.{Definition, State}
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
 import planning.engine.planner.mpi.actors.visualizer.{FakeVisualizer, Visualizer}

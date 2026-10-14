@@ -14,11 +14,11 @@ package planning.engine.api.model.map.extensions.mpi
 
 import cats.effect.IO
 import cats.effect.cps.*
-import planning.engine.api.model.map.{MapAddSamplesRequest, TestMpiData}
 import planning.engine.api.model.map.extensions.mpi.MapAddSamplesRequestEx.*
+import planning.engine.api.model.map.{MapAddSamplesRequest, TestMpiData}
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.{IoIndex, IoName}
-import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.model.data.node.NodeData
 
 class MapAddSamplesRequestExSpec extends UnitSpecWithData:
@@ -29,7 +29,7 @@ class MapAddSamplesRequestExSpec extends UnitSpecWithData:
       hiddenNodes = List(testConNodeBoolDef, testAbsNodeDef1),
     )
 
-    lazy val expectedNames = Map(
+    lazy val expectedNames: Map[HnName, MnId.Nim] = Map(
       testConNodeBoolDef.name -> MnId.Nim(0L),
       testAbsNodeDef1.name -> MnId.Nim(1L),
     )

@@ -16,8 +16,8 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.FakeManager
-import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.actors.planner.FakePlanner
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}
 

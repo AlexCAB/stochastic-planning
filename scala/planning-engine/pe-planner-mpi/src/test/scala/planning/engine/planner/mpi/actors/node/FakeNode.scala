@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.node
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
+import org.scalatest.matchers.must.Matchers.fail
 import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
@@ -23,7 +24,6 @@ import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
-import org.scalatest.matchers.must.Matchers.fail
 
 final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
   def conApi: Node.Con = api match

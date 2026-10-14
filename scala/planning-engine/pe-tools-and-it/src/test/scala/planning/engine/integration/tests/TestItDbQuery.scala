@@ -13,13 +13,13 @@
 package planning.engine.integration.tests
 
 import cats.effect.IO
-import planning.engine.common.values.db.Neo4j.*
-import planning.engine.common.properties.*
-import neotypes.syntax.all.*
-import planning.engine.common.values.node.HnId
 import neotypes.model.types.{Node, Relationship}
-import planning.engine.common.values.sample.SampleId
+import neotypes.syntax.all.*
 import planning.engine.common.enums.EdgeType
+import planning.engine.common.properties.*
+import planning.engine.common.values.db.Neo4j.*
+import planning.engine.common.values.node.HnId
+import planning.engine.common.values.sample.SampleId
 
 trait TestItDbQuery:
   self: WithItDb =>

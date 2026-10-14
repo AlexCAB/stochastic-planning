@@ -16,9 +16,9 @@ import cats.MonadThrow
 import cats.syntax.ext.MT
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.io.IoVars

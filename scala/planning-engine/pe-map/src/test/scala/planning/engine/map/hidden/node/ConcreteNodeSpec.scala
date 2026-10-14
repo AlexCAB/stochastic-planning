@@ -15,8 +15,9 @@ package planning.engine.map.hidden.node
 import cats.effect.IO
 import cats.syntax.all.*
 import neotypes.model.types.{Node, Value}
+import neotypes.query.QueryArg
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.properties.{PROP, *}
+import planning.engine.common.properties.*
 import planning.engine.common.validation.ValidationCheck
 import planning.engine.common.values.db.Neo4j.{CONCRETE_LABEL, HN_LABEL}
 import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
@@ -29,15 +30,15 @@ class ConcreteNodeSpec extends UnitSpecWithData with ValidationCheck:
 
   private class CaseData extends Case:
     lazy val id = HnId(1234L)
-    lazy val name = HnName.some("TestNode")
-    lazy val description = Description.some("TestNodeDescription")
+    lazy val name: Option[HnName] = HnName.some("TestNode")
+    lazy val description: Option[Description] = Description.some("TestNodeDescription")
     lazy val valueIndex = IoIndex(1L)
     lazy val intInNode = InputNode[IO](IoName("inputNode"), IntIoVariable[IO](0, 10))
     lazy val singleNode = ConcreteNode[IO](id, name, description, intInNode, valueIndex)
     lazy val newNode = ConcreteNode.New(name, description, intInNode.name, valueIndex)
     lazy val initNextHnIndex = 1L
 
-    lazy val nodeProperties = Map(
+    lazy val nodeProperties: Map[String, QueryArg.Param] = Map(
       PROP.HN_ID -> id.toDbParam,
       PROP.NAME -> name.get.toDbParam,
       PROP.DESCRIPTION -> description.get.toDbParam,
@@ -45,7 +46,7 @@ class ConcreteNodeSpec extends UnitSpecWithData with ValidationCheck:
       PROP.NEXT_HN_INDEX -> initNextHnIndex.toDbParam,
     )
 
-    lazy val nodeValues = Map(
+    private lazy val nodeValues: Map[String, Value.SimpleValue] = Map(
       PROP.HN_ID -> Value.Integer(id.value),
       PROP.NAME -> Value.Str(name.get.value),
       PROP.DESCRIPTION -> Value.Str(description.get.value),

@@ -14,7 +14,11 @@ package planning.engine.planner.mpi.actors.node.logic
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import planning.engine.common.errors.*
+import planning.engine.common.graph.inference.PU
+import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
@@ -22,10 +26,6 @@ import planning.engine.planner.mpi.actors.node.data.Message
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.*
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.common.errors.*
-import planning.engine.common.graph.inference.PU
-import planning.engine.common.values.io.{IoTime, IoValue}
-import planning.engine.common.values.plan.Depth
 
 private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   import Message.*

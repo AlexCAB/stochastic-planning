@@ -14,8 +14,8 @@ package planning.engine.map
 
 import cats.effect.cps.*
 import cats.effect.{IO, Resource}
-import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 import planning.engine.common.values.db.DbName
+import planning.engine.common.{MockitoWithResource, UnitSpecWithResource}
 import planning.engine.database.Neo4jDatabaseLike
 
 class MapGraphBuilderSpec

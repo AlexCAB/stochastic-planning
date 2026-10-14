@@ -14,10 +14,10 @@ package planning.engine.planner.mpi.actors.guardian.logic
 
 import cats.effect.IO
 import cats.effect.cps.*
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.guardian.{TestGuardian, WithTestGuardian}
 import planning.engine.planner.mpi.actors.visualizer.WithTestVisualizer
-import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.io.IoVars
 

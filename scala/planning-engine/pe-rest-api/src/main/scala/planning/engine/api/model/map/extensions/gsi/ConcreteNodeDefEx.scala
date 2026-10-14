@@ -16,11 +16,11 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.api.model.map.payload.ConcreteNodeDef
+import planning.engine.common.errors.assertionError
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.map.hidden.node.ConcreteNode
 import planning.engine.map.io.node.IoNode
 import planning.engine.map.io.variable.*
-import planning.engine.common.errors.assertionError
 
 object ConcreteNodeDefEx:
   extension (node: ConcreteNodeDef)

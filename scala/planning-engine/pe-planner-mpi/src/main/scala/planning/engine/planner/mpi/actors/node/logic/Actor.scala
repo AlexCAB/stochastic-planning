@@ -16,7 +16,6 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.node.data.*
-import planning.engine.planner.mpi.actors.node.data.State
 import planning.engine.planner.mpi.actors.node.logic.modules.plan.*
 import planning.engine.planner.mpi.actors.node.logic.modules.structure.*
 

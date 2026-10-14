@@ -15,11 +15,11 @@ package planning.engine.api.model.map.extensions.mpi
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.api.model.map.MapAddSamplesRequest
+import planning.engine.common.errors.assertDistinct
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.IoVars
-import planning.engine.common.errors.assertDistinct
 
 object MapAddSamplesRequestEx:
   import HiddenNodeDefEx.*, NewSampleDataEx.*, MnId.Nim

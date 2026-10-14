@@ -13,8 +13,8 @@
 package planning.engine.planner.mpi.actors.manager
 
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
-import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.actors.planner.FakePlanner
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.test.data.NodeTestData
 
 trait WithTestManager extends NodeTestData:

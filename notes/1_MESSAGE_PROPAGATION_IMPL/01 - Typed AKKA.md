@@ -9,6 +9,7 @@
 **SBT commands:**
 * `sbt compile`
 * `sbt scalafmtAll`
+* `sbt scalafixAll`
 
 
 ## Prompts 

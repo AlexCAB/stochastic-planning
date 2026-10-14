@@ -17,8 +17,8 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.{ActorSystem, Scheduler}
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.guardian.data.Definition
-import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.guardian.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.data.map.Metadata

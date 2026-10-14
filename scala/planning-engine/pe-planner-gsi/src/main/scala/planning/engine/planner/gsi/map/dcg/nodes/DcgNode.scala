@@ -14,8 +14,8 @@ package planning.engine.planner.gsi.map.dcg.nodes
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
-import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.StringVal
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.map.hidden.node.{AbstractNode, ConcreteNode}

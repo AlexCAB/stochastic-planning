@@ -13,9 +13,9 @@
 package planning.engine.api.route.maintenance
 
 import cats.MonadThrow
-import cats.syntax.ext.MT
 import cats.effect.Resource
 import cats.syntax.all.*
+import cats.syntax.ext.MT
 import io.circe.syntax.EncoderOps
 import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.*

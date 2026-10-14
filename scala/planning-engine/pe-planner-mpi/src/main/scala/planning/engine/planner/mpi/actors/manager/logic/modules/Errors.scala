@@ -10,10 +10,11 @@
 | website: github.com/alexcab |||||
 | created: 02.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager.logic
+package planning.engine.planner.mpi.actors.manager.logic.modules
 
 import cats.effect.Sync
 import planning.engine.planner.mpi.actors.manager.data.Message.NodeActorError
+import planning.engine.planner.mpi.actors.manager.logic.Actor
 
 private[manager] trait Errors:
   self: Actor.type =>

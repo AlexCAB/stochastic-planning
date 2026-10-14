@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-10 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.logic.plan
+package planning.engine.planner.mpi.actors.node.logic.modules.plan
 
 import cats.syntax.all.*
 import planning.engine.planner.mpi.actors.node.data.Message

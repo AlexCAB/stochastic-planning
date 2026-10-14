@@ -14,6 +14,7 @@ package planning.engine.planner.mpi.actors.guardian.logic
 
 import planning.engine.planner.mpi.actors.Stateless
 import planning.engine.planner.mpi.actors.guardian.data.{Definition, Message}
+import planning.engine.planner.mpi.actors.guardian.logic.modules.Lifecycle
 
 private[guardian] object Actor extends Stateless with Lifecycle:
   import Message.*

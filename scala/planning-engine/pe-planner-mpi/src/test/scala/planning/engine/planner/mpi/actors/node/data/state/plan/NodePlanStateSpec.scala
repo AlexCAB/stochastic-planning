@@ -103,19 +103,21 @@ class NodePlanStateSpec extends UnitSpecWithData:
         newPlan.steps mustBe plan.steps.updated(stepKey(1L, 1L), Active(time1, struct))
         newPlan.nextPathId mustBe plan.nextPathId
 
-    "return no steps and keep the plan unchanged when no Next step matches the time" in newCase[CaseData]:
-      (tn, data) =>
-        import data.*
-        async[IO]:
-          val nodesRes = plan.withActiveNextSteps[IO](mnId, IoTime(5L)).logValue(tn).await
-          val (nodes, newPlan) = nodesRes
+    "return no steps and keep the plan unchanged when no Next step matches the time" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val nodesRes = plan.withActiveNextSteps[IO](mnId, IoTime(5L)).logValue(tn).await
+        val (nodes, newPlan) = nodesRes
 
-          nodes mustBe Set.empty
-          newPlan mustBe plan
+        nodes mustBe Set.empty
+        newPlan mustBe plan
 
     "fail when matched Next step belongs to another node" in newCase[CaseData]: (tn, data) =>
       import data.*
-      Plan(Map(stepKey(1L, 1L, otherMnId) -> nextAt1), nextPathId = 2L).withActiveNextSteps[IO](mnId, time1).logValue(tn)
+      Plan(
+        Map(stepKey(1L, 1L, otherMnId) -> nextAt1),
+        nextPathId = 2L,
+      ).withActiveNextSteps[IO](mnId, time1).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("StepKey mnId mismatch"))
 
   "Plan.withActiveSteps(...)" should:

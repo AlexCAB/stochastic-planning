@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.planner.logic
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.planner.data.*
+import planning.engine.planner.mpi.actors.planner.logic.modules.{SimpleSync, Structure}
 
 private[planner] object Actor extends Stateful with SimpleSync with Structure:
   import Message.*, Stateful.{GetState, SetState}

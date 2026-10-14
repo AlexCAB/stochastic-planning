@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors.manager.logic
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateful
 import planning.engine.planner.mpi.actors.manager.data.*
-import planning.engine.planner.mpi.actors.manager.logic.{Edges, Errors, Nodes}
+import planning.engine.planner.mpi.actors.manager.logic.modules.*
 
 // Top-level stateful actor for the map network. I.e. parent actor for all NodeActor instances.
 // It responsible for:

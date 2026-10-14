@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 17.08.26 |||||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager.logic
+package planning.engine.planner.mpi.actors.manager.logic.modules
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
@@ -19,6 +19,8 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.data.Message
+import planning.engine.planner.mpi.actors.manager.logic.Actor
+import planning.engine.planner.mpi.actors.manager.logic.modules.{Edges, Nodes}
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample

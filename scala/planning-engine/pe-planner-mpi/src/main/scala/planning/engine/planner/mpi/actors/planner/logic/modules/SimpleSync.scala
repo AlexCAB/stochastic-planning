@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 31.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.planner.logic
+package planning.engine.planner.mpi.actors.planner.logic.modules
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.planner.mpi.actors.planner.data.Message
+import planning.engine.planner.mpi.actors.planner.logic.Actor
 
 // Synchronous planner have 2 key concepts (compared to asynchronous):
 //   1. Each step is strictly bound to world time (step time), so plan path locking like:

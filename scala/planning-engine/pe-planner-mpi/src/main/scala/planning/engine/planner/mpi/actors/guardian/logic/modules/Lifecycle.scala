@@ -10,13 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2026-09-14 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.guardian.logic
+package planning.engine.planner.mpi.actors.guardian.logic.modules
 
 import cats.syntax.all.*
-import planning.engine.common.errors.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ActorRef, Behavior, Terminated}
+import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.guardian.data.Message
+import planning.engine.planner.mpi.actors.guardian.logic.Actor
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer

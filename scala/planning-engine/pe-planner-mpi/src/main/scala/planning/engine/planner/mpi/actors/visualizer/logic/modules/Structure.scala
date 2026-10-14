@@ -10,11 +10,12 @@
 | website: github.com/alexcab |||||
 | created: 05.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer.logic
+package planning.engine.planner.mpi.actors.visualizer.logic.modules
 
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import planning.engine.planner.mpi.actors.visualizer.data.Message
+import planning.engine.planner.mpi.actors.visualizer.logic.Actor
 
 private[visualizer] trait Structure:
   self: Actor.type =>

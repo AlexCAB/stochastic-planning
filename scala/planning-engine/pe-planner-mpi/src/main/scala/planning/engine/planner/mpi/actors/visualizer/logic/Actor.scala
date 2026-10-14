@@ -16,6 +16,7 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateless
 import planning.engine.planner.mpi.actors.visualizer.data.*
+import planning.engine.planner.mpi.actors.visualizer.logic.modules.Structure
 
 private[visualizer] object Actor extends Stateless with Structure:
   import Message.*

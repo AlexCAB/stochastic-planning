@@ -289,11 +289,14 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `HuangWeightSpec` write tests for `planning.engine.common.values.plan.HuangWeight`
 
-❯ In `NodePlanStateSpec` write tests for mpi.actors.node.data.state.plan.Plan`
+❯ In `NodePlanStateSpec` write tests for `mpi.actors.node.data.state.plan.Plan`
+
+❯ Fix `LookupSpec` and update regard new implementation of `mpi.actors.node.data.state.plan.Lookup` 
 
 ##### TODO: 
-1. Implement `ActiveForest` construction algorithm.
-2. Implement context move algorithm. 
+1. Implement call `withTotalSamplesCount`
+2. Implement `ActiveForest` construction algorithm.
+3. Implement context move algorithm. 
 
 
 

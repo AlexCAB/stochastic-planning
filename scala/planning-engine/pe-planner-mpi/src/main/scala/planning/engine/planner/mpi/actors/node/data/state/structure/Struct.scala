@@ -19,7 +19,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.Lookup
+import planning.engine.planner.mpi.actors.node.data.state.plan.Lookup
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
@@ -109,18 +109,7 @@ private[node] final case class Struct(
 
   def withTotalSamplesCount[F[_]: MT](count: Long): F[Struct] = this.copy(totalSamplesCount = count).pure
 
-  private def buildMap(m: Map[MnId, EdgeData], p: EdgeType => Boolean): Map[SampleId, Set[Node]] = m
-    .values.filter(d => p(d.et))
-    .flatMap(d => d.sampleIds.map(_ -> d.neighbor))
-    .groupMap((sId, _) => sId)((_, neighbor) => neighbor)
-    .view.mapValues(_.toSet).toMap
-
-  lazy val lookup: Lookup = Lookup(
-    inLink = buildMap(incomingMap, _.isLink),
-    outLink = buildMap(outgoingMap, _.isLink),
-    inThen = buildMap(incomingMap, _.isThen),
-    outThen = buildMap(outgoingMap, _.isThen),
-  )
+  lazy val lookup: Lookup = Lookup(incomingMap, outgoingMap)
 
 private[node] object Struct:
   final case class EdgeData(neighbor: Node, sampleIds: Set[SampleId], et: EdgeType)

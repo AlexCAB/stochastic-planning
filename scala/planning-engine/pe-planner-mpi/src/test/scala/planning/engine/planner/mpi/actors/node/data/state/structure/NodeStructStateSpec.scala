@@ -20,7 +20,7 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.Lookup
+import planning.engine.planner.mpi.actors.node.data.state.plan.Lookup
 import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -160,10 +160,6 @@ class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTe
         .asserting(_ mustBe Struct.init.copy(totalSamplesCount = 42L))
 
   "State.lookup" should:
-    "be empty for empty state" in newCase[CaseData]: (tn, _) =>
-      IO.pure(Struct.init.lookup).logValue(tn)
-        .asserting(_ mustBe Lookup(Map.empty, Map.empty, Map.empty, Map.empty))
-
     "group sample neighbors by edge direction and type" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:

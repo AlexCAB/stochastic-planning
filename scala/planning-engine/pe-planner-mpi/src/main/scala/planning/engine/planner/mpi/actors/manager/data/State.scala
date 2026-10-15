@@ -18,6 +18,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.MnId.Nim
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
+import planning.engine.planner.mpi.actors.manager.data.parts.SampleData
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -38,10 +39,8 @@ private[manager] final case class State(
 
     // List of all samples in map network.
     // In simple implementation it is in Manager state, but in future there should be some separate storage for it.
-    sampleDataMap: Map[SampleId, State.SampleData],
+    sampleDataMap: Map[SampleId, SampleData],
 ) extends Representable:
-  import State.*
-
   def withNewNodes[F[_]: MT](
       data: Map[Nim, NodeData],
       spawn: (Long, NodeData) => F[(NodeData, Node)],
@@ -101,7 +100,7 @@ private[manager] final case class State(
         _ <- nodeRefMap.keySet.assertContainsAllOf(ids, "Some node IDs not found in state")
     yield nodeRefMap.view.filterKeys(ids.contains).values.toSet
 
-  def getSamples[F[_]: MT](ids: Set[SampleId]): F[Map[SampleId, State.SampleData]] =
+  def getSamples[F[_]: MT](ids: Set[SampleId]): F[Map[SampleId, SampleData]] =
     for
         _ <- sampleDataMap.keySet.assertContainsAllOf(ids, "Some sample IDs not found in state")
     yield sampleDataMap.view.filterKeys(ids.contains).toMap
@@ -112,13 +111,4 @@ private[manager] final case class State(
     case None      => None.pure
 
 private[manager] object State:
-  final case class SampleData(
-      props: Sample.Props,
-      info: Option[Sample.Info],
-
-      // Nodes that are connected to this sample via edges.
-      // This is used for getting full sample data when needed (mostly for visualization).
-      nodes: Set[Node],
-  )
-
   val init: State = State(1L, 1L, Map.empty, Map.empty, Map.empty)

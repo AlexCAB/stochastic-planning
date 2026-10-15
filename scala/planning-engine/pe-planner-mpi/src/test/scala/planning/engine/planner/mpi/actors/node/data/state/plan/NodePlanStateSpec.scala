@@ -18,8 +18,10 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.{Depth, PathId}
-import planning.engine.planner.mpi.actors.node.data.state.plan.Plan.StepNode
-import planning.engine.planner.mpi.actors.node.data.state.plan.Step.{Active, Next, Occurred, Planned}
+import planning.engine.planner.mpi.actors.node.data.parts.StepNode
+import planning.engine.planner.mpi.actors.node.data.parts.Step.{Active, Next, Occurred, Planned}
+import planning.engine.planner.mpi.actors.node.data.parts.Struct
+import planning.engine.planner.mpi.actors.node.data.state.Plan
 import planning.engine.planner.mpi.model.data.node.StepKey
 
 class NodePlanStateSpec extends UnitSpecWithData:

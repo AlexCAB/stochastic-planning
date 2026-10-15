@@ -18,6 +18,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
+import planning.engine.planner.mpi.actors.manager.data.parts.SampleData
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -110,7 +111,7 @@ class ManagerStateSpec extends UnitSpecWithData with NodeTestData with EdgeTestD
 
         samples.values.toSet mustBe Set(manSample1)
         val id = samples.keySet.head
-        state.sampleDataMap mustBe Map(id -> State.SampleData(manSample1.props, Some(manSample1.info), Set(conNode)))
+        state.sampleDataMap mustBe Map(id -> SampleData(manSample1.props, Some(manSample1.info), Set(conNode)))
         state.nextSampleId mustBe 2L
 
     "raise an error when a sample ID already exists in state" in newCase[CaseData]: (_, data) =>
@@ -130,7 +131,7 @@ class ManagerStateSpec extends UnitSpecWithData with NodeTestData with EdgeTestD
 
         samples.values.toSet mustBe Set(genSample1)
         val id = samples.keySet.head
-        state.sampleDataMap mustBe Map(id -> State.SampleData(genSample1.props, None, Set(absNode)))
+        state.sampleDataMap mustBe Map(id -> SampleData(genSample1.props, None, Set(absNode)))
         state.nextSampleId mustBe 2L
 
   "State.getNode(...)" should:
@@ -164,8 +165,8 @@ class ManagerStateSpec extends UnitSpecWithData with NodeTestData with EdgeTestD
         val result = stateWithBoth.getSamples[IO](Set(manId, genId)).await
 
         result mustBe Map(
-          manId -> State.SampleData(manSample1.props, Some(manSample1.info), Set.empty),
-          genId -> State.SampleData(genSample1.props, None, Set.empty),
+          manId -> SampleData(manSample1.props, Some(manSample1.info), Set.empty),
+          genId -> SampleData(genSample1.props, None, Set.empty),
         )
 
     "raise an error when some sample IDs are not found in state" in newCase[CaseData]: (_, _) =>

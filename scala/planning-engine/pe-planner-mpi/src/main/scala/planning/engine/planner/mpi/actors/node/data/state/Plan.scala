@@ -10,13 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 30.08.26 |||||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.plan
+package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
+import planning.engine.planner.mpi.actors.node.data.parts.{Step, StepNode}
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.repr.Representable
 
@@ -24,7 +25,7 @@ private[node] final case class Plan(
     steps: Map[StepKey, Step],
     nextPathId: Long,
 ) extends Representable:
-  import Step.*, Plan.StepNode
+  import Step.*
 
   lazy val nextSteps: Map[StepKey, Next] = steps.collect { case (k, s: Next) => k -> s }
 
@@ -63,6 +64,6 @@ private[node] final case class Plan(
     yield (stepsActive, planSa)
 
 private[node] object Plan:
-  final case class StepNode(key: StepKey, step: Step)
+  
 
   val init = Plan(steps = Map.empty, nextPathId = 1L)

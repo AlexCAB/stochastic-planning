@@ -34,12 +34,13 @@ private[node] trait ActiveForest:
       pu <- calcInitPu(msg, state)
       _ <- logInfo(s"[doActivationCon] time = ${msg.time}, utility = ${msg.utility}, calculated PU = $pu")
       (activeSteps, newState) <- state.mapPlanR(_.withActiveSteps(d.id, msg.time))
-      outLinks = state.struct.lookup.outLink.values.toSet
+      outLinks = state.struct.lookup.outLink.values.toList
       weights <- HuangWeight.init.div(outLinks.size)
       sampleIds = state.struct.sampleMap.keySet  // For active concrete nodes, we select all sample IDs.
 
     // TODO
-      
+
     yield newState
 
-  private[node] def doActivationAbs[F[_]: S](msg: ActivationAbs, state: St)(using d: Def, ctx: Ctx): F[St] = ??? // TODO
+  private[node] def doActivationAbs[F[_]: S](msg: ActivationAbs, state: St)(using d: Def, ctx: Ctx): F[St] =
+    ??? // TODO

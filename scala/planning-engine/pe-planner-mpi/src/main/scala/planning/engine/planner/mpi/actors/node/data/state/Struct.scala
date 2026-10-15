@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 09.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.structure
+package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
@@ -19,7 +19,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.state.plan.Lookup
+import planning.engine.planner.mpi.actors.node.data.parts.{EdgeData, Lookup, SampleData}
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
@@ -31,21 +31,20 @@ private[node] final case class Struct(
     nextHnIndex: Long,
 
     // Map of incoming edges: previous source node -> this node
-    incomingMap: Map[MnId, Struct.EdgeData],
+    incomingMap: Map[MnId, EdgeData],
 
     // Map of outgoing edges: this node -> next target node
-    outgoingMap: Map[MnId, Struct.EdgeData],
+    outgoingMap: Map[MnId, EdgeData],
 
     // Samples that include this node, along with their HnIndex and properties.
     // In more advanced implementation, sample data have to be sored in separate
     // sample data storage and this map can be a cache.
-    sampleMap: Map[SampleId, Struct.SampleData],
+    sampleMap: Map[SampleId, SampleData],
 
     // Total number of samples in the map network (used for probs calculation).
     // In future also should come from separate sample data storage, but for now it is in Manager state.
     totalSamplesCount: Long,
 ) extends Representable:
-  import Struct.*
 
   // TODO: Approximate inference algorithm:
   // TODO:   1. For each outgoingMap:
@@ -112,7 +111,4 @@ private[node] final case class Struct(
   lazy val lookup: Lookup = Lookup(incomingMap, outgoingMap)
 
 private[node] object Struct:
-  final case class EdgeData(neighbor: Node, sampleIds: Set[SampleId], et: EdgeType)
-  final case class SampleData(index: HnIndex, props: Sample.Props)
-
   val init = Struct(1L, Map.empty, Map.empty, Map.empty, 0L)

@@ -20,8 +20,8 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.state.plan.Lookup
-import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
+import planning.engine.planner.mpi.actors.node.data.parts.{EdgeData, Lookup}
+import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}
@@ -82,7 +82,7 @@ class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTe
         val state = Struct.init.upsertEdgeSrc[IO](meRef1, props1).logValue(tn).await
 
         state.incomingMap mustBe Map.empty
-        state.outgoingMap mustBe Map(trgMnId1 -> Struct.EdgeData(trgNode1, props1.keySet, EdgeType.LINK))
+        state.outgoingMap mustBe Map(trgMnId1 -> EdgeData(trgNode1, props1.keySet, EdgeType.LINK))
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         state.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
@@ -98,13 +98,12 @@ class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTe
 
         val allSampleIds = props1.keySet ++ props2.keySet
 
-        state.outgoingMap mustBe Map(trgMnId1 -> Struct.EdgeData(trgNode1, allSampleIds, EdgeType.LINK))
+        state.outgoingMap mustBe Map(trgMnId1 -> EdgeData(trgNode1, allSampleIds, EdgeType.LINK))
         state.sampleMap.keySet mustBe allSampleIds
         state.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
         state.nextHnIndex mustBe 6L
 
     "add edges to multiple distinct target nodes" in newCase[CaseData]: (_, data) =>
-      import Struct.*
       import data.*
       async[IO]:
         val state = Struct
@@ -147,7 +146,7 @@ class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTe
       async[IO]:
         val state = Struct.init.upsertEdgeTrg[IO](meRef1, props1).await
 
-        state.incomingMap mustBe Map(srcMnId1 -> Struct.EdgeData(srcNode1, props1.keySet, EdgeType.LINK))
+        state.incomingMap mustBe Map(srcMnId1 -> EdgeData(srcNode1, props1.keySet, EdgeType.LINK))
         state.outgoingMap mustBe Map.empty
         state.sampleMap.keySet mustBe props1.keySet
         state.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
@@ -171,17 +170,17 @@ class NodeStructStateSpec extends UnitSpecWithData with NodeTestData with EdgeTe
 
         val lookup = IO.pure(state.lookup).logValue(tn).await
 
-        lookup.inLink mustBe props1.keySet.map(_ -> Set(inLinkNode)).toMap
-        lookup.outLink mustBe props1.keySet.map(_ -> Set(outLinkNode)).toMap
-        lookup.inThen mustBe props2.keySet.map(_ -> Set(inThenNode)).toMap
-        lookup.outThen mustBe props2.keySet.map(_ -> Set(outThenNode)).toMap
+        lookup.inLinkSampleId mustBe props1.keySet.map(_ -> Set(inLinkNode)).toMap
+        lookup.outLinkSampleId mustBe props1.keySet.map(_ -> Set(outLinkNode)).toMap
+        lookup.inThenSampleId mustBe props2.keySet.map(_ -> Set(inThenNode)).toMap
+        lookup.outThenSampleId mustBe props2.keySet.map(_ -> Set(outThenNode)).toMap
 
     "collect all neighbors when a sample has multiple edges" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
         val lookup = Struct.init.upsertEdgeSrc[IO](outLinkRef1, props1)
           .flatMap(_.upsertEdgeSrc[IO](outLinkRef2, props1))
-          .map(_.lookup.outLink)
+          .map(_.lookup.outLinkSampleId)
           .logValue(tn).await
 
         lookup mustBe props1.keySet.map(_ -> Set(outLinkNode, outThenNode)).toMap

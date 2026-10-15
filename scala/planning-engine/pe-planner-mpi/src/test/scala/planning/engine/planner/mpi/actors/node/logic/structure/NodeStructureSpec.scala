@@ -19,7 +19,8 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnIndex, MnId}
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.data.State
-import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
+import planning.engine.planner.mpi.actors.node.data.parts.EdgeData
+import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.actors.node.{Node, WithTestNode}
 import planning.engine.planner.mpi.model.data.edge.MeRef
 
@@ -34,7 +35,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props1)
 
         val State(struct, _) = srcNode.state
-        struct.outgoingMap mustBe Map(trgNodeMnId -> Struct.EdgeData(trgNodeFake.api, props1.keySet, EdgeType.LINK))
+        struct.outgoingMap mustBe Map(trgNodeMnId -> EdgeData(trgNodeFake.api, props1.keySet, EdgeType.LINK))
         struct.sampleMap.keySet mustBe props1.keySet
         struct.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         struct.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))
@@ -52,7 +53,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNodeFake.expectUpsertEdgeTrg mustBe (meRefSrc, props2)
 
         val State(struct, _) = srcNode.state
-        struct.outgoingMap mustBe Map(trgNodeMnId -> Struct.EdgeData(trgNodeFake.api, allSampleIds, EdgeType.LINK))
+        struct.outgoingMap mustBe Map(trgNodeMnId -> EdgeData(trgNodeFake.api, allSampleIds, EdgeType.LINK))
         struct.sampleMap.keySet mustBe allSampleIds
         struct.sampleMap.values.map(_.props).toSet mustBe (props1.values.toSet ++ props2.values.toSet)
         struct.nextHnIndex mustBe 6L
@@ -76,7 +77,7 @@ class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         trgNode.api.upsertEdgeTrg[IO](meRefTrg, props1).await
 
         val State(struct, _) = trgNode.state
-        struct.incomingMap mustBe Map(srcNodeMnId -> Struct.EdgeData(srcNodeFake.api, props1.keySet, EdgeType.LINK))
+        struct.incomingMap mustBe Map(srcNodeMnId -> EdgeData(srcNodeFake.api, props1.keySet, EdgeType.LINK))
         struct.sampleMap.keySet mustBe props1.keySet
         struct.sampleMap.values.map(_.props).toSet mustBe props1.values.toSet
         struct.sampleMap.values.map(_.index).toSet mustBe Set(1, 2, 3).map(HnIndex(_))

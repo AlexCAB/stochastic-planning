@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-15 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.plan
+package planning.engine.planner.mpi.actors.node.data.parts
 
 import planning.engine.common.values.io.IoTime
 

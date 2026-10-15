@@ -20,8 +20,8 @@ import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.manager.{FakeManager, Manager}
-import planning.engine.planner.mpi.actors.node.data.state.plan.{Plan, Step}
-import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
+import planning.engine.planner.mpi.actors.node.data.parts.{Actors, EdgeData, SampleData, Step}
+import planning.engine.planner.mpi.actors.node.data.state.{Plan, Struct}
 import planning.engine.planner.mpi.actors.node.data.{Definition, State}
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.{FakePlanner, Planner}
@@ -45,9 +45,9 @@ final case class TestNode(
 object TestNode extends TestActorBase:
   type NodeStruct = (
       Long,
-      Map[MnId, Struct.EdgeData],
-      Map[MnId, Struct.EdgeData],
-      Map[SampleId, Struct.SampleData],
+      Map[MnId, EdgeData],
+      Map[MnId, EdgeData],
+      Map[SampleId, SampleData],
       Long,
   )
 
@@ -65,7 +65,7 @@ object TestNode extends TestActorBase:
     def spawn(b: Behavior[Node.Msg], name: String): ActorRef[Node.Msg] =
       testKit.spawn(b, s"test-node-$name-${nameIdCounter.getAndIncrement()}")
 
-    val definition = Definition[IO](id, data, Definition.Actors(manager, visualizer, planner)).unsafeRunSync()
+    val definition = Definition[IO](id, data, Actors(manager, visualizer, planner)).unsafeRunSync()
     ApiImpl[IO](id, data, Actor.spawn(definition, spawn)).unsafeRunSync()
 
   def apply(

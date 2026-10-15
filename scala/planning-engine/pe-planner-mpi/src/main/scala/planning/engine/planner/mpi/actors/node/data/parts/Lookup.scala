@@ -10,19 +10,14 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-11 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.plan
+package planning.engine.planner.mpi.actors.node.data.parts
 
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.state.structure.Struct
-import planning.engine.planner.mpi.actors.node.data.state.structure.Struct.EdgeData
 
-final case class Lookup(
-    incoming: Map[MnId, Struct.EdgeData],
-    outgoing: Map[MnId, Struct.EdgeData],
-):
+final case class Lookup(incoming: Map[MnId, EdgeData], outgoing: Map[MnId, EdgeData]):
   private def buildNodeMap(m: Map[MnId, EdgeData], p: EdgeType => Boolean): Map[MnId, Node] = m
     .values.filter(d => p(d.et)).map(d => d.neighbor.mnId -> d.neighbor).toMap
 

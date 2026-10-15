@@ -20,6 +20,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.State
+import planning.engine.planner.mpi.actors.manager.data.parts.SampleData
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.test.data.EdgeTestData
@@ -55,7 +56,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
 
-        state.sampleDataMap mustBe Map(sampleId -> State.SampleData(
+        state.sampleDataMap mustBe Map(sampleId -> SampleData(
           sample.props,
           Some(sample.info),
           Set(state.nodeRefMap(conMnId), state.nodeRefMap(absMnId)),
@@ -146,7 +147,7 @@ class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager w
           val state = managerOneConNode.state
           state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
 
-          state.sampleDataMap mustBe Map(sampleId -> State.SampleData(
+          state.sampleDataMap mustBe Map(sampleId -> SampleData(
             sample.props,
             None,
             Set(state.nodeRefMap(conMnId), state.nodeRefMap(absMnId)),

@@ -103,15 +103,14 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val State(_, plan) = srcNode.state
         plan mustBe activePlan
 
-    "report an error to the manager when outgoing LINK neighbor is not abstract node" in newCase[CaseData]:
-      (_, data) =>
-        import data.*
-        async[IO]:
-          addLink(conTrgNodeFake).await
-          srcNode.conApi.activation[IO](time, utility).await
+    "report an error to the manager when outgoing LINK neighbor is not abstract node" in newCase[CaseData]: (_, data) =>
+      import data.*
+      async[IO]:
+        addLink(conTrgNodeFake).await
+        srcNode.conApi.activation[IO](time, utility).await
 
-          val (source, err) = fakeManager.expectReportedError
-          conTrgNodeFake.probe.expectNoMessage()
+        val (source, err) = fakeManager.expectReportedError
+        conTrgNodeFake.probe.expectNoMessage()
 
-          source mustBe srcNode.api
-          err.getMessage must include("Expected MnId.Abs and  Node.Abs")
+        source mustBe srcNode.api
+        err.getMessage must include("Expected MnId.Abs and  Node.Abs")

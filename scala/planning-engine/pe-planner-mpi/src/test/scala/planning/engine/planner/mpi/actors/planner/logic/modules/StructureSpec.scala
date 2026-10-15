@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 03.09.26 |||||||||||||*/
 
-package planning.engine.planner.mpi.actors.planner.logic
+package planning.engine.planner.mpi.actors.planner.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -18,7 +18,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.planner.TestPlanner
 import planning.engine.planner.mpi.test.data.NodeTestData
 
-class PlannerStructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
+class StructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     lazy val planner: TestPlanner = TestPlanner(
       "structure-spec",

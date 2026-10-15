@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 14.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.visualizer.logic
+package planning.engine.planner.mpi.actors.visualizer.logic.modules
 
 import cats.effect.IO
 import org.mockito.Mockito.{timeout, verify}
@@ -24,7 +24,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.visualizer.{TestVisualizer, WithTestVisualizer}
 import planning.engine.planner.mpi.model.data.node.NodeData
 
-class VisualizerStructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer with AsyncIdiomaticMockito:
+class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer with AsyncIdiomaticMockito:
   private class CaseData extends Case with WithVisualizer:
     val conId: MnId.Con = MnId.Con(1L)
     val absId: MnId.Abs = MnId.Abs(2L)

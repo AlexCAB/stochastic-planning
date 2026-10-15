@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-14 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.planner.logic
+package planning.engine.planner.mpi.actors.planner.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -24,7 +24,7 @@ import planning.engine.planner.mpi.actors.planner.data.Message.{Tick, TickDone}
 import planning.engine.planner.mpi.actors.planner.data.state.Tick as TickState
 import planning.engine.planner.mpi.test.data.NodeTestData
 
-class PlannerSimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
+class SimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     lazy val planner: TestPlanner = TestPlanner(
       "simple-sync-spec",

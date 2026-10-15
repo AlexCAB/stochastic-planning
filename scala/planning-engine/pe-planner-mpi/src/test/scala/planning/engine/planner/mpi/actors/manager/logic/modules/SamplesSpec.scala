@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 29.08.26 |||||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager.logic
+package planning.engine.planner.mpi.actors.manager.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -27,7 +27,7 @@ import planning.engine.planner.mpi.test.data.EdgeTestData
 
 import scala.concurrent.duration.*
 
-class ManagerSamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with EdgeTestData:
+class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with EdgeTestData:
   private class CaseData extends Case with WithManager with WithMapEdge:
     lazy val nim99: MnId.Nim = MnId.Nim(99L)
     lazy val conIoValue: IoValue = IoValue(inVar.name, IoIndex(0))

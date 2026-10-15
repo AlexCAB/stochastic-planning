@@ -24,7 +24,7 @@ import planning.engine.planner.mpi.actors.node.data.state.Struct
 import planning.engine.planner.mpi.actors.node.{Node, WithTestNode}
 import planning.engine.planner.mpi.model.data.edge.MeRef
 
-class NodeStructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
+class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
   private class CaseData extends Case with WithNodes
 
   "State.upsertEdgeSrc(...)" should:

@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-09-14 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.guardian.logic
+package planning.engine.planner.mpi.actors.guardian.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.visualizer.WithTestVisualizer
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.io.IoVars
 
-class GuardianLifecycleSpec extends UnitSpecWithIOAndTestKit with WithTestGuardian with WithTestVisualizer:
+class LifecycleSpec extends UnitSpecWithIOAndTestKit with WithTestGuardian with WithTestVisualizer:
   private class CaseData extends Case with WithGuardian with WithVisualizer:
     val metadata: Metadata = Metadata(Name("test-map"), None)
     val emptyVars: IoVars = new IoVars(Map.empty, Map.empty)

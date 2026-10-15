@@ -24,7 +24,7 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.{EdgeTestData, NodeTestData}
 
-class ManagerStateSpec extends UnitSpecWithData with NodeTestData with EdgeTestData:
+class StateSpec extends UnitSpecWithData with NodeTestData with EdgeTestData:
   private class CaseData extends Case with WithMapNode with WithMapEdge:
     lazy val stateEmpty: State = State.init
 

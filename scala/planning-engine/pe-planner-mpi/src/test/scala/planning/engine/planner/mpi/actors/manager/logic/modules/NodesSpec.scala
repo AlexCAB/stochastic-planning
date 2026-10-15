@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 09.06.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager.logic
+package planning.engine.planner.mpi.actors.manager.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.manager.{TestManager, WithTestManager}
 
 import scala.concurrent.duration.*
 
-class ManagerNodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
+class NodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
   private class CaseData extends Case with WithManager:
     def checkManagerState(manager: TestManager, expNodes: Map[MnId, Option[HnName]], expNextId: Long): Assertion =
       val state = manager.state

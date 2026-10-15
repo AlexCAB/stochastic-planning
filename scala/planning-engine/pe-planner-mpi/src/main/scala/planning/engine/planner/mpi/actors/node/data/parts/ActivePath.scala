@@ -36,8 +36,8 @@ final case class ActivePath(
 
 object ActivePath:
   def init(leaf: Node, steps: Set[StepNode], pu: PU, weight: HuangWeight): ActivePath = ActivePath(
-    linkPath = List(leaf.mnId), 
-    activeNodes = Map(leaf -> steps.map(_.key)), 
-    pu = pu, 
-    weight = weight
+    linkPath = List(leaf.mnId),
+    activeNodes = Map(leaf -> steps.map(_.key)),
+    pu = pu,
+    weight = weight,
   )

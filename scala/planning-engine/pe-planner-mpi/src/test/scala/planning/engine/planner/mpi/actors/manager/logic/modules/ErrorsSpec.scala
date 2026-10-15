@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 03.08.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.manager.logic
+package planning.engine.planner.mpi.actors.manager.logic.modules
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -21,7 +21,7 @@ import planning.engine.planner.mpi.actors.manager.data.Message.{AddNode, NodeAdd
 import planning.engine.planner.mpi.actors.node.FakeNode
 import planning.engine.planner.mpi.model.data.node.NodeData
 
-class ManagerErrorsSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
+class ErrorsSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
   private class CaseData extends Case with WithManager
 
   "ManagerActor.doHandleNodeError" should:

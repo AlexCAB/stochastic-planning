@@ -12,11 +12,11 @@
 
 package planning.engine.planner.mpi.actors.node.data
 
-import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.Base.WithSender
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -39,13 +39,7 @@ private[node] object Message:
 
   final case class ActivationCon(time: IoTime, utility: Option[Double]) extends Message
 
-  final case class ActivationAbs(
-      bottom: StepKey,
-      up: StepKey,
-      time: IoTime,
-      pu: PU,
-      sampleIds: Set[SampleId],
-  ) extends Message
+  final case class ActivationAbs(time: IoTime, sampleIds: Set[SampleId], path: ActivePath) extends Message
 
   final case class ContextMove(active: StepKey) extends Message
 

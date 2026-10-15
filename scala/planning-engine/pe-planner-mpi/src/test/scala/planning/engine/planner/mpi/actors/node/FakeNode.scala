@@ -19,7 +19,8 @@ import org.scalatest.matchers.must.Matchers.fail
 import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.actors.node.data.Message.{ActivationCon, UpsertEdgeSrc, UpsertEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.Message.{ActivationAbs, ActivationCon, UpsertEdgeSrc, UpsertEdgeTrg}
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.node.logic.ApiImpl
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.NodeData
@@ -33,6 +34,10 @@ final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
   def expectActivationCon: (IoTime, Option[Double]) =
     val msg = probe.expectMessageType[ActivationCon]
     (msg.time, msg.utility)
+
+  def expectActivationAbs: (IoTime, Set[SampleId], ActivePath) =
+    val msg = probe.expectMessageType[ActivationAbs]
+    (msg.time, msg.sampleIds, msg.path)
 
   def expectUpsertEdgeSrc: (MeRef, Map[SampleId, Sample.Props]) =
     val msg = probe.expectMessageType[UpsertEdgeSrc]

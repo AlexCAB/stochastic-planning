@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-11 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.plan
+package planning.engine.planner.mpi.actors.node.data.parts
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -19,8 +19,7 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.parts.Lookup
-import planning.engine.planner.mpi.actors.node.data.parts.EdgeData
+import planning.engine.planner.mpi.actors.node.data.parts.{EdgeData, Lookup}
 import planning.engine.planner.mpi.test.data.NodeTestData
 
 class LookupSpec extends UnitSpecWithData with NodeTestData:
@@ -59,6 +58,21 @@ class LookupSpec extends UnitSpecWithData with NodeTestData:
 
     val emptyLookup: Lookup = Lookup(Map.empty, Map.empty)
 
+    val absNode1: Node.Abs = makeAbsNodeStub(MnId.Abs(6L))
+    val absNode2: Node.Abs = makeAbsNodeStub(MnId.Abs(7L))
+    val absNode3: Node.Abs = makeAbsNodeStub(MnId.Abs(8L))
+
+    // Outgoing LINK edges lead only to abstract nodes, THEN and incoming edges have to be ignored.
+    val absLookup: Lookup = Lookup(
+      incoming = Map(edge(node1, EdgeType.LINK, sId1)),
+      outgoing = Map(
+        edge(absNode1, EdgeType.LINK, sId1),
+        edge(absNode2, EdgeType.LINK, sId2),
+        edge(absNode3, EdgeType.THEN, sId3),
+        edge(node1, EdgeType.THEN, sId1),
+      ),
+    )
+
   "Lookup node maps" should:
     "map neighbor mnId to node, split by edge direction and type" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -75,6 +89,21 @@ class LookupSpec extends UnitSpecWithData with NodeTestData:
         emptyLookup.outLink mustBe Map.empty
         emptyLookup.inThen mustBe Map.empty
         emptyLookup.outThen mustBe Map.empty
+
+  "Lookup.outAbsLink" should:
+    "return outgoing LINK neighbors typed as abstract nodes" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      absLookup.outAbsLink[IO].logValue(tn)
+        .asserting(_ mustBe Map(absNode1.mnId -> absNode1, absNode2.mnId -> absNode2))
+
+    "return empty map for empty lookup" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      emptyLookup.outAbsLink[IO].logValue(tn).asserting(_ mustBe Map.empty)
+
+    "fail if some outgoing LINK neighbor is not an abstract node" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      lookup.outAbsLink[IO].logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Expected MnId.Abs and  Node.Abs"))
 
   "Lookup sample ID maps" should:
     "group neighbor nodes by sample ID, split by edge direction and type" in newCase[CaseData]: (_, data) =>

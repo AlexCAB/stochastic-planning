@@ -64,6 +64,5 @@ private[node] final case class Plan(
     yield (stepsActive, planSa)
 
 private[node] object Plan:
-  
 
   val init = Plan(steps = Map.empty, nextPathId = 1L)

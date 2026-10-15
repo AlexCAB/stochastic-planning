@@ -12,6 +12,9 @@
 
 package planning.engine.planner.mpi.actors.node.data.parts
 
+import cats.syntax.ext.*
+import cats.syntax.all.*
+import planning.engine.common.errors.*
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
@@ -25,6 +28,10 @@ final case class Lookup(incoming: Map[MnId, EdgeData], outgoing: Map[MnId, EdgeD
   lazy val outLink: Map[MnId, Node] = buildNodeMap(outgoing, _.isLink)
   lazy val inThen: Map[MnId, Node] = buildNodeMap(incoming, _.isThen)
   lazy val outThen: Map[MnId, Node] = buildNodeMap(outgoing, _.isThen)
+
+  def outAbsLink[F[_]: MT]: F[Map[MnId.Abs, Node.Abs]] = outLink.traverse:
+    case (mnId: MnId.Abs, node: Node.Abs) => (mnId, node).pure
+    case (id, node)                       => s"Expected MnId.Abs and  Node.Abs, but got: $id and $node".assertionError
 
   private def buildSampleMap(m: Map[MnId, EdgeData], p: EdgeType => Boolean): Map[SampleId, Set[Node]] = m
     .values.filter(d => p(d.et))

@@ -21,7 +21,7 @@ final case class StepKey(
     mnId: MnId,
 
     // Unique ID generated base on path count (local for the node), in the node where it started.
-    // Path can start from empty or by split exist one.
+    // Path can start from   empty or by split exist one.
     pathId: PathId,
 
     // Depth of the step in the sequence tree, where 0 is the root.

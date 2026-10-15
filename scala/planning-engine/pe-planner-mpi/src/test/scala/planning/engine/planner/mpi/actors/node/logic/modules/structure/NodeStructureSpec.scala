@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 05.07.2026 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.logic.structure
+package planning.engine.planner.mpi.actors.node.logic.modules.structure
 
 import cats.effect.IO
 import cats.effect.cps.*

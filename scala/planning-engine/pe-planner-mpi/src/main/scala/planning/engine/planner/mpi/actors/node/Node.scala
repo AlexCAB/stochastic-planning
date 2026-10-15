@@ -15,14 +15,13 @@ package planning.engine.planner.mpi.actors.node
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
-import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
-import planning.engine.planner.mpi.actors.node.data.parts.Actors
+import planning.engine.planner.mpi.actors.node.data.parts.{ActivePath, Actors}
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
@@ -118,11 +117,9 @@ private[mpi] object Node:
     //    i.e. it will propagate from bottom (from concrete nodes) to top of map network and will generate
     //    forest of active trees.
     def activation[F[_]: MT](
-        bottom: StepKey, // The bottom node step key (node where the activation signal was generated).
-        up: StepKey, // The upper node step key (node where the activation signal is processed).
         time: IoTime, // Current world time, used to find Next steps that expected to happen exactly the next.
-        pu: PU, // P(N) * U(N), Probability and utility of the `bottom` node
         sampleIds: Set[SampleId], // Active sample Ids, used to find active edges.
+        path: ActivePath,
     ): F[Unit]
 
     lazy val repr: String = s"(${mnId.reprValue}, ${name.repr})"

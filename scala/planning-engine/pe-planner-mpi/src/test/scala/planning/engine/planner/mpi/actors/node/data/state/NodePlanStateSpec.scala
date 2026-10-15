@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-15 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.state.plan
+package planning.engine.planner.mpi.actors.node.data.state
 
 import cats.effect.IO
 import cats.effect.cps.*
@@ -18,9 +18,8 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.{Depth, PathId}
-import planning.engine.planner.mpi.actors.node.data.parts.StepNode
 import planning.engine.planner.mpi.actors.node.data.parts.Step.{Active, Next, Occurred, Planned}
-import planning.engine.planner.mpi.actors.node.data.parts.Struct
+import planning.engine.planner.mpi.actors.node.data.parts.{StepNode, Struct}
 import planning.engine.planner.mpi.actors.node.data.state.Plan
 import planning.engine.planner.mpi.model.data.node.StepKey
 

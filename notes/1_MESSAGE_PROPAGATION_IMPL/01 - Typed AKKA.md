@@ -293,6 +293,15 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Fix `LookupSpec` and update regard new implementation of `mpi.actors.node.data.state.plan.Lookup` 
 
+❯ In `LookupSpec` add test for `outAbsLink` method
+
+❯ In `ActivePathSpec` write tests for `mpi.actors.node.data.parts.ActivePath`, for `init` method
+
+❯ Consider `NodeStructureSpec` as example. In `ActiveForestSpec` write tests for `Node.Con.activation` 
+
+❯ In `PuCalculationSpec` write tests for `mpi.actors.node.logic.math.PuCalculation`
+
+
 ##### TODO: 
 1. Implement call `withTotalSamplesCount`
 2. Implement `ActiveForest` construction algorithm.

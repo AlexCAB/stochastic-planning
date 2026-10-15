@@ -24,6 +24,9 @@ import planning.engine.planner.mpi.model.io.{Type, Variable}
 trait NodeTestData extends AsyncIdiomaticMockito:
   self: UnitSpecWithData =>
 
+  abstract class AbsNodeStub extends Node.Abs:
+    override def mnId: MnId.Abs = throw new UnsupportedOperationException("mnId must be stubbed")
+
   trait WithMapNode:
     lazy val inVarName: IoName = IoName("boolInputNode")
     lazy val outVarName: IoName = IoName("boolOutputNode")
@@ -69,4 +72,10 @@ trait NodeTestData extends AsyncIdiomaticMockito:
       val st = mock[Node]
       st.mnId returns id
       st.name returns name
+      st
+
+    def makeAbsNodeStub(id: MnId.Abs): Node.Abs =
+      val st = mock[AbsNodeStub]
+      st.mnId returns id
+      st.name returns None
       st

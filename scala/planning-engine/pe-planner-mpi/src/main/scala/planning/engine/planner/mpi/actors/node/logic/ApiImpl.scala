@@ -15,7 +15,6 @@ package planning.engine.planner.mpi.actors.node.logic
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
-import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
@@ -23,6 +22,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Message
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.model.data.edge.MeRef
 import planning.engine.planner.mpi.model.data.node.*
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -77,13 +77,8 @@ private[node] object ApiImpl:
   ) extends ApiImpl with Node.Abs:
     import Message.*
 
-    override def activation[F[_]: MT](
-        bottom: StepKey,
-        up: StepKey,
-        time: IoTime,
-        pu: PU,
-        sampleIds: Set[SampleId],
-    ): F[Unit] = actor.tellF(ActivationAbs(bottom, up, time, pu, sampleIds))
+    override def activation[F[_]: MT](time: IoTime, sampleIds: Set[SampleId], path: ActivePath): F[Unit] =
+      actor.tellF(ActivationAbs(time, sampleIds, path))
 
   def apply[F[_]: MT](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
     case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure

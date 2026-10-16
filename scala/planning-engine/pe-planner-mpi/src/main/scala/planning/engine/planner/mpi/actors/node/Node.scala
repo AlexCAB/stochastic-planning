@@ -41,6 +41,9 @@ private[mpi] trait Node:
   // Upsert target end of an edge to this node.
   def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit]
 
+  // Set the total count of samples (used for calculated P(N)) for this node.
+  def setSampleTotalCount[F[_] : MT](count: Long): F[Unit]
+
   // Move context window one step forward in plan forest:
   //  1. Propagate context extension signal in the sequence tree: For each found in plan state Active
   //     steps, send the ContextExtend message to the target node of each none

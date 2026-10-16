@@ -32,6 +32,10 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
     lazy val nim99: MnId.Nim = MnId.Nim(99L)
     lazy val conIoValue: IoValue = IoValue(inVar.name, IoIndex(0))
 
+    // Total samples count set on each node by the SetSampleTotalCount message.
+    def totalSamplesCounts(state: State): Map[MnId, Long] = state.nodeRefMap
+      .map((mnId, node) => mnId -> node.stateTyped._1._5)
+
   "Manager.addManSamples(...)" should:
     "create nodes from the given Nim ids, store the sample, and link its edges" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -70,6 +74,8 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
         trgIncoming.keySet mustBe Set(conMnId)
         trgIncoming(conMnId).sampleIds mustBe Set(sampleId)
 
+        totalSamplesCounts(state) mustBe Map(conMnId -> 1L, absMnId -> 1L)
+
     "reuse an existing node found by name instead of creating a new one" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
@@ -88,6 +94,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
         val state = managerOneConNode.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
         state.nextMnId mustBe 3L
+        totalSamplesCounts(state) mustBe Map(conMnId -> 1L, absMnId -> 1L)
 
     "add only nodes when samples is empty" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -103,6 +110,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId)
         state.sampleDataMap mustBe Map.empty
+        totalSamplesCounts(state) mustBe Map(conMnId -> 0L)
 
     "terminate when a sample edge references a Nim id not present in the nodes map" in newCase[CaseData]: (tn, data) =>
       import data.*
@@ -157,6 +165,8 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
           srcOutgoing.keySet mustBe Set(absMnId)
           srcOutgoing(absMnId).sampleIds mustBe Set(sampleId)
 
+          totalSamplesCounts(state) mustBe Map(conMnId -> 1L, absMnId -> 1L)
+
     "add only nodes when samples is empty" in newCase[CaseData]: (tn, data) =>
       import data.*
       async[IO]:
@@ -170,6 +180,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
 
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId)
+        totalSamplesCounts(state) mustBe Map(conMnId -> 0L)
 
     "terminate when a sample edge references a Nim id not present in newNodes" in newCase[CaseData]: (tn, data) =>
       import data.*

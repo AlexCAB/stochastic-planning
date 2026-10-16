@@ -29,9 +29,12 @@ final case class Lookup(incoming: Map[MnId, EdgeData], outgoing: Map[MnId, EdgeD
   lazy val inThen: Map[MnId, Node] = buildNodeMap(incoming, _.isThen)
   lazy val outThen: Map[MnId, Node] = buildNodeMap(outgoing, _.isThen)
 
-  def outAbsLink[F[_]: MT]: F[Map[MnId.Abs, Node.Abs]] = outLink.traverse:
-    case (mnId: MnId.Abs, node: Node.Abs) => (mnId, node).pure
-    case (id, node)                       => s"Expected MnId.Abs and  Node.Abs, but got: $id and $node".assertionError
+  // For out edges with LINK type, target nodes must always have type Node.Abs.
+  private def allAbsSet[F[_]: MT](m: Set[Node]): F[Set[Node.Abs]] = m.traverse:
+    case node: Node.Abs => node.pure
+    case node           => s"Expected Node.Abs, but got: $node".assertionError
+
+  def allOutAbsLink[F[_]: MT]: F[Set[Node.Abs]] = allAbsSet(outLink.values.toSet)
 
   private def buildSampleMap(m: Map[MnId, EdgeData], p: EdgeType => Boolean): Map[SampleId, Set[Node]] = m
     .values.filter(d => p(d.et))
@@ -44,10 +47,14 @@ final case class Lookup(incoming: Map[MnId, EdgeData], outgoing: Map[MnId, EdgeD
   lazy val inThenSampleId: Map[SampleId, Set[Node]] = buildSampleMap(incoming, _.isThen)
   lazy val outThenSampleId: Map[SampleId, Set[Node]] = buildSampleMap(outgoing, _.isThen)
 
-  private def find(m: Map[SampleId, Set[Node]], sId: Set[SampleId]): Set[Node] =
-    m.filter(kv => sId.contains(kv._1)).values.flatten.toSet
+  // Active edges is the edges that have active samples
+  private def findActive(m: Map[SampleId, Set[Node]], activeSampleIds: Set[SampleId]): Set[Node] =
+    m.filter(kv => activeSampleIds.contains(kv._1)).values.flatten.toSet
 
-  def findInLinks(sampleId: Set[SampleId]): Set[Node] = find(inLinkSampleId, sampleId)
-  def findOutLinks(sampleId: Set[SampleId]): Set[Node] = find(outLinkSampleId, sampleId)
-  def findInThen(sampleId: Set[SampleId]): Set[Node] = find(inThenSampleId, sampleId)
-  def findOutThen(sampleId: Set[SampleId]): Set[Node] = find(outThenSampleId, sampleId)
+  def findInLink(sampleId: Set[SampleId]): Set[Node] = findActive(inLinkSampleId, sampleId)
+  
+  def findOutAbsLink[F[_]: MT](sampleId: Set[SampleId]): F[Set[Node.Abs]] = 
+    allAbsSet(findActive(outLinkSampleId, sampleId))
+  
+  def findInThen(sampleId: Set[SampleId]): Set[Node] = findActive(inThenSampleId, sampleId)
+  def findOutThen(sampleId: Set[SampleId]): Set[Node] = findActive(outThenSampleId, sampleId)

@@ -28,6 +28,7 @@ private[node] final case class Plan(
   import Step.*
 
   lazy val nextSteps: Map[StepKey, Next] = steps.collect { case (k, s: Next) => k -> s }
+  lazy val activeSteps: Map[StepKey, Active] = steps.collect { case (k, s: Active) => k -> s }
 
   // Add new Active step, which is the root of the new sequence tree.
   // One map network can have not more than one active root.

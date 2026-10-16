@@ -34,3 +34,9 @@ private[node] trait Structure:
       newState <- state.mapStruct(_.upsertEdgeTrg(msg.ref, msg.props))
       _ <- logInfo(s"[AddEdgeTrg] Added incoming edge from ref = ${msg.ref}")
     yield newState
+
+  private[node] def doSetSampleTotalCount[F[_]: S](msg: SetSampleTotalCount, state: St)(using Ctx): F[St] =
+    for
+      _ <- logInfo(s"[SetSampleTotalCount] Setting total sample count to ${msg.count}")
+      newState <- state.mapStruct(_.withTotalSamplesCount(msg.count))
+    yield newState

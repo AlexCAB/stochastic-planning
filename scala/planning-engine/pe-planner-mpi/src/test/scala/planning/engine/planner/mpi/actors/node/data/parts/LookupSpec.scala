@@ -90,20 +90,19 @@ class LookupSpec extends UnitSpecWithData with NodeTestData:
         emptyLookup.inThen mustBe Map.empty
         emptyLookup.outThen mustBe Map.empty
 
-  "Lookup.outAbsLink" should:
+  "Lookup.allOutAbsLink" should:
     "return outgoing LINK neighbors typed as abstract nodes" in newCase[CaseData]: (tn, data) =>
       import data.*
-      absLookup.outAbsLink[IO].logValue(tn)
-        .asserting(_ mustBe Map(absNode1.mnId -> absNode1, absNode2.mnId -> absNode2))
+      absLookup.allOutAbsLink[IO].logValue(tn).asserting(_ mustBe Set(absNode1, absNode2))
 
-    "return empty map for empty lookup" in newCase[CaseData]: (tn, data) =>
+    "return empty set for empty lookup" in newCase[CaseData]: (tn, data) =>
       import data.*
-      emptyLookup.outAbsLink[IO].logValue(tn).asserting(_ mustBe Map.empty)
+      emptyLookup.allOutAbsLink[IO].logValue(tn).asserting(_ mustBe Set.empty)
 
     "fail if some outgoing LINK neighbor is not an abstract node" in newCase[CaseData]: (tn, data) =>
       import data.*
-      lookup.outAbsLink[IO].logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include("Expected MnId.Abs and  Node.Abs"))
+      lookup.allOutAbsLink[IO].logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Expected Node.Abs"))
 
   "Lookup sample ID maps" should:
     "group neighbor nodes by sample ID, split by edge direction and type" in newCase[CaseData]: (_, data) =>
@@ -122,23 +121,28 @@ class LookupSpec extends UnitSpecWithData with NodeTestData:
         emptyLookup.inThenSampleId mustBe Map.empty
         emptyLookup.outThenSampleId mustBe Map.empty
 
-  "Lookup.findInLinks(...)" should:
+  "Lookup.findInLink(...)" should:
     "return union of nodes of incoming LINK edges for multiple samples" in newCase[CaseData]: (tn, data) =>
       import data.*
-      IO.pure(lookup.findInLinks(allSIds)).logValue(tn).asserting(_ mustBe Set(node1, node2))
+      IO.pure(lookup.findInLink(allSIds)).logValue(tn).asserting(_ mustBe Set(node1, node2))
 
     "return only nodes of the requested samples" in newCase[CaseData]: (tn, data) =>
       import data.*
-      IO.pure(lookup.findInLinks(Set(sId1))).logValue(tn).asserting(_ mustBe Set(node1))
+      IO.pure(lookup.findInLink(Set(sId1))).logValue(tn).asserting(_ mustBe Set(node1))
 
-  "Lookup.findOutLinks(...)" should:
-    "return union of nodes of outgoing LINK edges for multiple samples" in newCase[CaseData]: (tn, data) =>
+  "Lookup.findOutAbsLink(...)" should:
+    "return union of abstract nodes of outgoing LINK edges for multiple samples" in newCase[CaseData]: (tn, data) =>
       import data.*
-      IO.pure(lookup.findOutLinks(allSIds)).logValue(tn).asserting(_ mustBe Set(node2, node3))
+      absLookup.findOutAbsLink[IO](allSIds).logValue(tn).asserting(_ mustBe Set(absNode1, absNode2))
 
     "return only nodes of the requested samples" in newCase[CaseData]: (tn, data) =>
       import data.*
-      IO.pure(lookup.findOutLinks(Set(sId3))).logValue(tn).asserting(_ mustBe Set(node3))
+      absLookup.findOutAbsLink[IO](Set(sId2)).logValue(tn).asserting(_ mustBe Set(absNode2))
+
+    "fail if some active outgoing LINK neighbor is not an abstract node" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      lookup.findOutAbsLink[IO](Set(sId3)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Expected Node.Abs"))
 
   "Lookup.findInThen(...)" should:
     "return union of nodes of incoming THEN edges for multiple samples" in newCase[CaseData]: (tn, data) =>
@@ -162,15 +166,15 @@ class LookupSpec extends UnitSpecWithData with NodeTestData:
     "return empty set for unknown or empty sample IDs" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        lookup.findInLinks(Set(unknownSId)) mustBe Set.empty
-        lookup.findOutLinks(Set(unknownSId)) mustBe Set.empty
+        lookup.findInLink(Set(unknownSId)) mustBe Set.empty
+        lookup.findOutAbsLink[IO](Set(unknownSId)).await mustBe Set.empty
         lookup.findInThen(Set.empty) mustBe Set.empty
         lookup.findOutThen(Set.empty) mustBe Set.empty
 
     "return empty set for empty lookup" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        emptyLookup.findInLinks(allSIds) mustBe Set.empty
-        emptyLookup.findOutLinks(allSIds) mustBe Set.empty
+        emptyLookup.findInLink(allSIds) mustBe Set.empty
+        emptyLookup.findOutAbsLink[IO](allSIds).await mustBe Set.empty
         emptyLookup.findInThen(allSIds) mustBe Set.empty
         emptyLookup.findOutThen(allSIds) mustBe Set.empty

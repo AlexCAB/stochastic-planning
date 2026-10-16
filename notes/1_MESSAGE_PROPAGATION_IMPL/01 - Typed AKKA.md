@@ -301,11 +301,16 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `PuCalculationSpec` write tests for `mpi.actors.node.logic.math.PuCalculation`
 
+❯ In `StructureSpec` add test for `StructureSpec.setSampleTotalCount(...)` method
+
+❯ In `mpi.actors.manager.logic.modules.SamplesSpec` for `Manager.addManSamples(...)` and `Manager.addGenSamples(...)` add verification if `SetSampleTotalCount` message sent.
+
+❯ Update `mpi.actors.node.data.parts.LookupSpec` regard new implementation `mpi.actors.node.data.parts.Lookup`
+
 
 ##### TODO: 
-1. Implement call `withTotalSamplesCount`
-2. Implement `ActiveForest` construction algorithm.
-3. Implement context move algorithm. 
+1. Implement `ActiveForest` construction algorithm.
+2. Implement context move algorithm. 
 
 
 
@@ -378,17 +383,7 @@ Params for Idea ScalaTest runnner:
   -javaagent:C:\Users\cabem\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\org\mockito\mockito-core\5.23.0\mockito-core-5.23.0.jar
   -Xshare:off
 
-
-
 ```
-
-
-
-
-
-
-
-
 
 
 

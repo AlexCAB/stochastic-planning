@@ -17,6 +17,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoTime
 import planning.engine.planner.mpi.actors.node.data.Message.ActivationCon
+import planning.engine.planner.mpi.actors.node.data.State
 
 class PuCalculationSpec extends UnitSpecWithData:
   private object TestPuCalculation extends PuCalculation
@@ -28,8 +29,12 @@ class PuCalculationSpec extends UnitSpecWithData:
   "PuCalculation.calcInitPu(...)" should:
     "return probability 1.0 and zero utility for activation with utility" in newCase[CaseData]: (tn, data) =>
       import data.*
-      TestPuCalculation.calcInitPu[IO](ActivationCon(time, Some(0.5))).logValue(tn).asserting(_ mustBe expectedPu)
+      TestPuCalculation
+        .calcInitPu[IO](ActivationCon(time, Some(0.5)), State.init).logValue(tn)
+        .asserting(_ mustBe expectedPu)
 
     "return probability 1.0 and zero utility for activation without utility" in newCase[CaseData]: (tn, data) =>
       import data.*
-      TestPuCalculation.calcInitPu[IO](ActivationCon(time, None)).logValue(tn).asserting(_ mustBe expectedPu)
+      TestPuCalculation
+        .calcInitPu[IO](ActivationCon(time, None), State.init).logValue(tn)
+        .asserting(_ mustBe expectedPu)

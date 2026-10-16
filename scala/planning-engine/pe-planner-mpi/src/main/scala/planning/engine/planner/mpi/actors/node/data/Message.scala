@@ -36,6 +36,8 @@ private[node] object Message:
   final case class UpsertEdgeSrc(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
 
   final case class UpsertEdgeTrg(ref: MeRef, props: Map[SampleId, Sample.Props]) extends AddEdge
+  
+  final case class SetSampleTotalCount(count: Long) extends Message
 
   final case class ActivationCon(time: IoTime, utility: Option[Double]) extends Message
 

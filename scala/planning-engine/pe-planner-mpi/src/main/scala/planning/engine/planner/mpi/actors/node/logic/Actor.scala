@@ -33,6 +33,7 @@ private[node] object Actor extends Stateful with Structure
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
     case msg: UpsertEdgeSrc => doUpsertEdgeSrc(msg, state)
     case msg: UpsertEdgeTrg => doUpsertEdgeTrg(msg, state)
+    case msg: SetSampleTotalCount => doSetSampleTotalCount(msg, state)
     case msg: ActivationCon => doActivationCon(msg, state)
     case msg: ActivationAbs => doActivationAbs(msg, state)
     case msg: ContextMove   => doContextMove(msg, state)

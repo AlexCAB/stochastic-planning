@@ -16,6 +16,7 @@ import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.repr.Representable
 
@@ -35,7 +36,7 @@ private[planner] object Message:
   final case class ConNodesAdded(nodes: Set[Node.Con]) extends Message
 
   // Sent from the highest abstract nodes (roots of abstraction trees) with collected active steps.
-  final case class ActiveSteps(steps: Set[StepKey]) extends Message
+  final case class AddActivePath(path: ActivePath) extends Message
 
   // Sent from nodes with new Next steps, generated on context extension.
   final case class NextSteps(steps: Set[StepKey]) extends Message

@@ -45,7 +45,7 @@ private[planner] trait SimpleSync:
     yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
 
   // TODO
-  private[planner] def doActiveSteps[F[_]: S](msg: ActiveSteps, state: St)(using Def, Ctx): F[St] = ???
+  private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using Def, Ctx): F[St] = ???
 
   // TODO
   private[planner] def doNextSteps[F[_]: S](msg: NextSteps, state: St)(using Def, Ctx): F[St] = ???

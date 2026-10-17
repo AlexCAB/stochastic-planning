@@ -307,6 +307,9 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Update `mpi.actors.node.data.parts.LookupSpec` regard new implementation `mpi.actors.node.data.parts.Lookup`
 
+❯ Update `mpi.actors.node.data.parts.ActivePathSpec` regard new implementation `ActivePath`
+
+❯ Update `mpi.actors.node.logic.modules.plan.ActiveForestSpec` regard new implementation of `ActiveForest` trait 
 
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.

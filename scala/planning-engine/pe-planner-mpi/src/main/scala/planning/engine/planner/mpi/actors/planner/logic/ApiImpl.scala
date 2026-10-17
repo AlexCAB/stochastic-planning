@@ -19,6 +19,7 @@ import org.apache.pekko.actor.typed.Scheduler
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.planner.data.Message
 import planning.engine.planner.mpi.model.data.node.StepKey
@@ -32,7 +33,7 @@ private[planner] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Acto
   override def tick[F[_]: Async](observation: Observation)(using Scheduler): F[Action] =
     actor.askF[F, TickDone](ref => Tick(observation, ref)).map(_.action)
 
-  override def activeSteps[F[_]: MT](steps: Set[StepKey]): F[Unit] = actor.tellF(ActiveSteps(steps))
+  override def addActivePath[F[_]: MT](path: ActivePath): F[Unit] = actor.tellF(AddActivePath(path))
 
   override def nextSteps[F[_]: MT](steps: Set[StepKey]): F[Unit] = actor.tellF(NextSteps(steps))
 

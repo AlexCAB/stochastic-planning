@@ -17,6 +17,7 @@ import cats.effect.unsafe.IORuntime
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.scalatest.matchers.must.Matchers.fail
+import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.TestActorBase
@@ -43,6 +44,10 @@ final case class TestNode(
     case con: Node.Con => con
     case other         => fail(s"Expected concrete node API, got: $other")
 
+  def absApi: Node.Abs = api match
+    case abs: Node.Abs => abs
+    case other         => fail(s"Expected abstract node API, got: $other")
+
   def ref: ActorRef[Node.Msg] = api.ref
   def state(using ActorTestKit, IORuntime): State = api.state
   def stateTyped(using ActorTestKit, IORuntime): (NodeStruct, NodePlan) = api.stateTyped
@@ -56,7 +61,7 @@ object TestNode extends TestActorBase:
       Long,
   )
 
-  type NodePlan = (Map[StepKey, Step], Long)
+  type NodePlan = (Map[StepKey, Step], Long, Option[PU])
 
   private val nameIdCounter: AtomicInteger = AtomicInteger(1)
 

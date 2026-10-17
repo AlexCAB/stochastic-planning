@@ -49,6 +49,7 @@ class NodePlanStateSpec extends UnitSpecWithData:
         stepKey(3L, 2L) -> planned,
       ),
       nextPathId = 4L,
+      pu = None,
     )
 
   "Plan.init" should:
@@ -90,7 +91,8 @@ class NodePlanStateSpec extends UnitSpecWithData:
 
     "fail when the plan already contains a step with the new root key" in newCase[CaseData]: (tn, data) =>
       import data.*
-      Plan(Map(stepKey(1L, 0L) -> occurred), nextPathId = 1L).withNewActiveRoot[IO](mnId, time1).logValue(tn)
+      Plan(Map(stepKey(1L, 0L) -> occurred), nextPathId = 1L, pu = None).withNewActiveRoot[IO](mnId, time1)
+        .logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Plan already contains step with key"))
 
   "Plan.withActiveNextSteps(...)" should:
@@ -118,6 +120,7 @@ class NodePlanStateSpec extends UnitSpecWithData:
       Plan(
         Map(stepKey(1L, 1L, otherMnId) -> nextAt1),
         nextPathId = 2L,
+        pu = None,
       ).withActiveNextSteps[IO](mnId, time1).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("StepKey mnId mismatch"))
 
@@ -150,4 +153,4 @@ class NodePlanStateSpec extends UnitSpecWithData:
         val (nodes, newPlan) = nodesRes
 
         nodes mustBe Set(StepNode(stepKey(1L, 0L), Active.init(time1)))
-        newPlan mustBe Plan(Map(stepKey(1L, 0L) -> Active.init(time1)), nextPathId = 2L)
+        newPlan mustBe Plan(Map(stepKey(1L, 0L) -> Active.init(time1)), nextPathId = 2L, pu = None)

@@ -25,7 +25,8 @@ private[node] final case class State(
     plan: Plan,
 ) extends Representable:
   def mapStruct[F[_]: Monad](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
-  def mapPlan[F[_]: Monad](f: Plan => F[Plan]): F[State] = f(plan).map(np => copy(plan = np))
+  def mapPlan(f: Plan => Plan): State = copy(plan = f(plan))
+  def mapPlanF[F[_]: Monad](f: Plan => F[Plan]): F[State] = f(plan).map(np => copy(plan = np))
   def mapPlanR[F[_]: Monad, R](f: Plan => F[(R, Plan)]): F[(R, State)] = f(plan).map((r, np) => (r, copy(plan = np)))
 
 private[node] object State:

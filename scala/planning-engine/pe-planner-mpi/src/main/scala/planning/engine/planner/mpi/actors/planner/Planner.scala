@@ -19,6 +19,7 @@ import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.planner.data.Definition
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.data.node.StepKey
@@ -74,11 +75,11 @@ private[mpi] trait Planner:
   //       7.1. TODO
   def tick[F[_]: Async](observation: Observation)(using Scheduler): F[Action]
 
-  // Aggregate active steps that represent the active forest:
-  //  1. Updated plan state, with the active steps.
+  // Aggregate active paths found during tracing of active forest:
+  //  1. Updated plan state, with the found active steps.
   //  2. Check if all active steps are collected (it is done by tracking a concrete node IDs).
   //  3. If all are collected, then trigger next phase (which is Context Update).
-  def activeSteps[F[_]: MT](steps: Set[StepKey]): F[Unit]
+  def addActivePath[F[_]: MT](path: ActivePath): F[Unit]
 
   // TODO
   def nextSteps[F[_]: MT](steps: Set[StepKey]): F[Unit]

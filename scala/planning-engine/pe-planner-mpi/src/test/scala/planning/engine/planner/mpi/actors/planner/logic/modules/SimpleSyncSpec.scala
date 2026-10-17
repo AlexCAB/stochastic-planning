@@ -21,6 +21,7 @@ import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.FakeNode
 import planning.engine.planner.mpi.actors.planner.TestPlanner
 import planning.engine.planner.mpi.actors.planner.data.Message.{Tick, TickDone}
+import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.planner.data.state.Tick as TickState
 import planning.engine.planner.mpi.test.data.NodeTestData
 
@@ -84,4 +85,5 @@ class SimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
           sender = Some(sender.ref),
           prevNextSteps = prevNextSteps,
           activeConNodes = Set(fakeInNode1.conApi),
+          activeSteps = ActiveSteps(Set(fakeInNode1.conApi.mnId)),
         )

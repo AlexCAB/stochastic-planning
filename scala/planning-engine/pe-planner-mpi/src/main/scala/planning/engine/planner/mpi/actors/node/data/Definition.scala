@@ -28,6 +28,14 @@ private[node] sealed trait Definition:
 
   def self[F[_]: MT](using ctx: Actor.Ctx): F[Node] = ApiImpl(id, data, ctx.self).map(_.asInstanceOf[Node])
 
+  def selfCon[F[_]: MT](using ctx: Actor.Ctx): F[Node.Con] = self.flatMap:
+    case node: Node.Con => node.pure
+    case _              => "Node is not a concrete node".assertionError
+
+  def selfAbs[F[_]: MT](using ctx: Actor.Ctx): F[Node.Abs] = self.flatMap:
+    case node: Node.Abs => node.pure
+    case _              => "Node is not an abstract node".assertionError
+
   def checkIdAndNode[F[_]: MT](id: MnId, node: Node)(using ctx: Actor.Ctx): F[Unit] =
     for
       _ <- id.assertEquals(this.id, "Given ID does not match this node's ID")

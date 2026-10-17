@@ -16,6 +16,7 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.inference.PU
+import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.HuangWeight
 import planning.engine.planner.mpi.actors.node.Node
@@ -25,10 +26,10 @@ import planning.engine.planner.mpi.test.data.NodeTestData
 class ActivePathSpec extends UnitSpecWithData with NodeTestData:
   private class CaseData extends Case with WithMapNode:
     val leafMnId: MnId.Con = MnId.Con(1L)
-    val leaf: Node = makeNodeStub(leafMnId)
+    val leaf: Node.Con = makeConNodeStub(leafMnId, inVarName, IoIndex(0))
 
     val parentMnId: MnId.Abs = MnId.Abs(2L)
-    val parent: Node = makeNodeStub(parentMnId)
+    val parent: Node.Abs = makeAbsNodeStub(parentMnId)
 
     val key1: StepKey = StepKey.init(leafMnId, 1L)
     val key2: StepKey = StepKey.init(leafMnId, 2L)
@@ -41,28 +42,29 @@ class ActivePathSpec extends UnitSpecWithData with NodeTestData:
     lazy val initPath: ActivePath = ActivePath.init(leaf, Set(key1, key2), pu)
 
   "ActivePath.init(...)" should:
-    "start path from the leaf node with its step keys, PU and initial Huang weight" in newCase[CaseData]:
-      (tn, data) =>
-        import data.*
-        async[IO]:
-          val path = IO.pure(initPath).logValue(tn).await
+    "start path from the leaf node with its step keys, PU and initial Huang weight" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val path = IO.pure(initPath).logValue(tn).await
 
-          path.linkPath mustBe List(leafMnId)
-          path.activeNodes mustBe Map(leaf -> Set(key1, key2))
-          path.pu mustBe pu
-          path.weight mustBe HuangWeight.init
+        path.pathRoot mustBe leafMnId
+        path.linkPath mustBe List.empty
+        path.activeNodes mustBe Map(leaf -> Set(key1, key2))
+        path.pu mustBe pu
+        path.weight mustBe HuangWeight.init
 
     "map leaf to empty step key set if no steps given" in newCase[CaseData]: (tn, data) =>
       import data.*
       IO.pure(ActivePath.init(leaf, Set.empty, pu)).logValue(tn)
-        .asserting(_ mustBe ActivePath(List(leafMnId), Map(leaf -> Set.empty), pu, HuangWeight.init))
+        .asserting(_ mustBe ActivePath(leafMnId, List.empty, Map(leaf -> Set.empty), pu, HuangWeight.init))
 
   "ActivePath.append(...)" should:
     "prepend node to link path, add its steps to active nodes and replace PU" in newCase[CaseData]: (tn, data) =>
       import data.*
 
       val expected = ActivePath(
-        linkPath = List(parentMnId, leafMnId),
+        pathRoot = leafMnId,
+        linkPath = List(parentMnId),
         activeNodes = Map(leaf -> Set(key1, key2), parent -> Set(parentKey)),
         pu = parentPu,
         weight = HuangWeight.init,
@@ -72,8 +74,11 @@ class ActivePathSpec extends UnitSpecWithData with NodeTestData:
 
     "fail if node already exists in the link path" in newCase[CaseData]: (tn, data) =>
       import data.*
-      initPath.append[IO](leaf, Set(key1), parentPu).logValue(tn)
-        .assertThrowsError[AssertionError](_.getMessage must include(s"Node $leafMnId already exists in the link path"))
+      initPath.append[IO](parent, Set(parentKey), parentPu)
+        .flatMap(_.append[IO](parent, Set(parentKey), parentPu)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include(
+          s"Node $parentMnId already exists in the link path",
+        ))
 
   "ActivePath.withNextWeight(...)" should:
     "replace only the weight" in newCase[CaseData]: (tn, data) =>

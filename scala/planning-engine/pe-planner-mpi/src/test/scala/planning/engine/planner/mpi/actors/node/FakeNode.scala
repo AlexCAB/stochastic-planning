@@ -31,6 +31,10 @@ final case class FakeNode(api: Node, probe: TestProbe[Node.Msg]):
     case con: Node.Con => con
     case other         => fail(s"Expected concrete node API, got: $other")
 
+  def absApi: Node.Abs = api match
+    case abs: Node.Abs => abs
+    case other         => fail(s"Expected abstract node API, got: $other")
+
   def expectActivationCon: (IoTime, Option[Double]) =
     val msg = probe.expectMessageType[ActivationCon]
     (msg.time, msg.utility)

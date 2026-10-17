@@ -21,6 +21,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.TestActorBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.planner.data.Message.TickDone
+import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.planner.data.{Definition, State}
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.data.node.StepKey
@@ -47,7 +48,7 @@ object TestPlanner extends TestActorBase:
       Option[ActorRef[TickDone]],
       Set[StepKey],
       Set[Node.Con],
-      Set[StepKey],
+      ActiveSteps,
       Set[StepKey],
       Set[StepKey],
   )

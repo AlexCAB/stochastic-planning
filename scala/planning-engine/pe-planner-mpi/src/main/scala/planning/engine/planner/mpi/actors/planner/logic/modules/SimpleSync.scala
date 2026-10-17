@@ -14,6 +14,7 @@ package planning.engine.planner.mpi.actors.planner.logic.modules
 
 import cats.syntax.all.*
 import cats.syntax.ext.*
+import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.planner.data.Message
 import planning.engine.planner.mpi.actors.planner.logic.Actor
 
@@ -41,11 +42,18 @@ private[planner] trait SimpleSync:
     for
       _ <- logInfo(s"[doTick] observation = ${msg.observation}")
       conNodes <- state.struct.findInNodes(msg.observation.values)
+      _ <- conNodes.assertNonEmpty(s"No concrete nodes found for observation = ${msg.observation}")
       _ <- conNodes.foreachM(_.activation(msg.observation.time, msg.observation.utility))
     yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
 
-  // TODO
-  private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using Def, Ctx): F[St] = ???
+  private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using Def, Ctx): F[St] =
+    for
+      _ <- logInfo(s"[doAddActivePath] Adding active path = ${msg.path}")
+      (isBuilt, newState) <- state.mapTickR(_.withActivePath(msg.path))
+
+    // TODO: If isBuilt is true, then send visualisation message and run next phase.
+
+    yield newState
 
   // TODO
   private[planner] def doNextSteps[F[_]: S](msg: NextSteps, state: St)(using Def, Ctx): F[St] = ???

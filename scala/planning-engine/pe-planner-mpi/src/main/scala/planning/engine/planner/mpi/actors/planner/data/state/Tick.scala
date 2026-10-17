@@ -12,10 +12,14 @@
 
 package planning.engine.planner.mpi.actors.planner.data.state
 
+import cats.syntax.all.*
+import cats.syntax.ext.MT
 import org.apache.pekko.actor.typed.ActorRef
 import planning.engine.common.values.io.IoTime
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.planner.data.Message.TickDone
+import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.repr.Representable
 
@@ -35,7 +39,7 @@ private[planner] final case class Tick(
     activeConNodes: Set[Node.Con],
 
     // Active steps found by tracing active forest at activation phase.
-    activeSteps: Set[StepKey],
+    activeSteps: ActiveSteps,
 
     // Next steps collected in context update phase.
     nextSteps: Set[StepKey],
@@ -49,8 +53,15 @@ private[planner] final case class Tick(
       time = time,
       prevNextSteps = nextSteps,
       activeConNodes = conNodes,
+      activeSteps = ActiveSteps(conNodes.map(_.mnId)),
       sender = Some(sender),
     )
+
+  def withActivePath[F[_]: MT](path: ActivePath): F[(Boolean, Tick)] =
+    for
+      newPath <- activeSteps.addPath(path)
+      isBuilt = newPath.isBuilt
+    yield (isBuilt, copy(activeSteps = newPath))
 
   override lazy val toString: String =
     s"""Tick(
@@ -63,4 +74,4 @@ private[planner] final case class Tick(
        |)""".stripMargin
 
 private[planner] object Tick:
-  val init: Tick = Tick(IoTime(0), None, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty)
+  val init: Tick = Tick(IoTime(0), None, Set.empty, Set.empty, ActiveSteps.empty, Set.empty, Set.empty)

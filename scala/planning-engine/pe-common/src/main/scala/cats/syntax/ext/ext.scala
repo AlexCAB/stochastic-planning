@@ -28,8 +28,8 @@ package object ext:
     inline def foldM[F[_]: Monad, R](r: R)(f: (R, E) => F[R]): F[R] =
       it.iterator.foldLeft(r.pure)((acc, e) => acc.flatMap(f(_, e)))
 
-    inline def foreachM[F[_] : Monad, B](f: E => F[B]): F[Unit] =
-      it.iterator.foldLeft(().pure)((acc, e) => acc.flatMap(u => f(e).as(u)))  
+    inline def foreachM[F[_]: Monad, B](f: E => F[B]): F[Unit] =
+      it.iterator.foldLeft(().pure)((acc, e) => acc.flatMap(u => f(e).as(u)))
 
   extension [A](it: Set[A])
     inline def traverse[F[_]: Monad, B](f: A => F[B]): F[Set[B]] =

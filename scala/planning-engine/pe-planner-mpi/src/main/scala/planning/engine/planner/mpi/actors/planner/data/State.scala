@@ -12,7 +12,7 @@
 
 package planning.engine.planner.mpi.actors.planner.data
 
-import cats.Monad
+import cats.syntax.ext.MT
 import cats.syntax.all.*
 import planning.engine.planner.mpi.actors.planner.data.state.*
 import planning.engine.planner.mpi.repr.Representable
@@ -25,9 +25,10 @@ private[planner] final case class State(
     tick: Tick,
 ) extends Representable:
   def mapStruct(f: Struct => Struct): State = copy(struct = f(struct))
-  def mapStructF[F[_]: Monad](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
+  def mapStructF[F[_]: MT](f: Struct => F[Struct]): F[State] = f(struct).map(ns => copy(struct = ns))
 
-  def mapTickF[F[_]: Monad](f: Tick => F[Tick]): F[State] = f(tick).map(nt => copy(tick = nt))
+  def mapTickF[F[_]: MT](f: Tick => F[Tick]): F[State] = f(tick).map(nt => copy(tick = nt))
+  def mapTickR[F[_]: MT, R](f: Tick => F[(R, Tick)]): F[(R, State)] = f(tick).map((r, nt) => (r, copy(tick = nt)))
   def mapTick(f: Tick => Tick): State = copy(tick = f(tick))
 
 private[planner] object State:

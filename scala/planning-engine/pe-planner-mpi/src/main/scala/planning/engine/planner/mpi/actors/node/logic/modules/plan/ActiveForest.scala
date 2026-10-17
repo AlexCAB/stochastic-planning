@@ -58,7 +58,7 @@ private[node] trait ActiveForest extends PuCalculation:
       (activeSteps, newState) <- state.mapPlanR(_.withActiveSteps(d.id, msg.time))
       sampleIds = state.struct.sampleMap.keySet // For active concrete nodes, we select all sample IDs.
       outLinks <- state.struct.lookup.allOutAbsLink.map(_.toList)
-      self <- d.self
+      self <- d.selfCon
       path = ActivePath.init(self, activeSteps.map(_.key), pu)
       _ <- logInfo(s"[doActivationCon] steps = $activeSteps, outLinks = $outLinks, path = $path")
       _ <- if outLinks.nonEmpty then propagateFurther(outLinks, path, msg.time, sampleIds) else rootFound(path)
@@ -70,7 +70,7 @@ private[node] trait ActiveForest extends PuCalculation:
       _ <- logInfo(s"[doActivationAbs] time = ${msg.time}, sampleIds = ${msg.sampleIds}")
       (activeSteps, newState) <- state.mapPlanR(_.withActiveStepsIfNotActivated(d.id, msg.time))
       outLinks <- state.struct.lookup.findOutAbsLink(msg.sampleIds).map(_.toList)
-      self <- d.self
+      self <- d.selfAbs
       path <- msg.path.append(self, activeSteps.map(_.key), pu)
       _ <- logInfo(s"[doActivationAbs] steps = $activeSteps, outLinks = $outLinks, path = ${msg.path} -> $path")
       _ <- if outLinks.nonEmpty then propagateFurther(outLinks, path, msg.time, msg.sampleIds) else rootFound(path)

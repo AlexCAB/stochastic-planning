@@ -311,6 +311,11 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Update `mpi.actors.node.logic.modules.plan.ActiveForestSpec` regard new implementation of `ActiveForest` trait 
 
+❯ In `mpi.actors.planner.data.parts.ActiveStepsSpec` add tests for `mpi.actors.planner.data.parts.ActiveSteps` method
+
+❯ In `mpi.actors.planner.data.state.TickSpec` add tests for `mpi.actors.planner.data.state.Tick` methods
+
+
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.
 2. Implement context move algorithm. 

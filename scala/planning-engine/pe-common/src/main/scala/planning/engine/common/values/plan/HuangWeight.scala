@@ -33,6 +33,7 @@ final case class HuangWeight(value: Long) extends AnyVal with LongVal:
 
 object HuangWeight:
   val init: HuangWeight = new HuangWeight(Long.MaxValue)
+  val zero: HuangWeight = new HuangWeight(0)
 
   def apply[F[_]: MT](value: Long): F[HuangWeight] =
     if value > 0 then new HuangWeight(value).pure

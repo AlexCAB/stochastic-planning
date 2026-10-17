@@ -40,8 +40,7 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   override def upsertEdgeTrg[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
     actor.tellF(UpsertEdgeTrg(ref, props))
 
-  override def setSampleTotalCount[F[_] : MT](totalCount: Long): F[Unit] = 
-    actor.tellF(SetSampleTotalCount(totalCount))
+  override def setSampleTotalCount[F[_]: MT](totalCount: Long): F[Unit] = actor.tellF(SetSampleTotalCount(totalCount))
 
   override def contextMove[F[_]: MT](active: StepKey): F[Unit] = actor.tellF(ContextMove(active))
 

@@ -113,18 +113,17 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val State(struct, _) = srcNode.state
         struct.totalSamplesCount mustBe 42L
 
-    "overwrite previous total samples count and leave other struct fields unchanged" in newCase[CaseData]:
-      (_, data) =>
-        import data.*
-        async[IO]:
-          srcNode.api.upsertEdgeSrc[IO](meRefSrc, props1).await
-          trgNodeFake.expectUpsertEdgeTrg
+    "overwrite previous total samples count and leave other struct fields unchanged" in newCase[CaseData]: (_, data) =>
+      import data.*
+      async[IO]:
+        srcNode.api.upsertEdgeSrc[IO](meRefSrc, props1).await
+        trgNodeFake.expectUpsertEdgeTrg
 
-          srcNode.api.setSampleTotalCount[IO](10L).await
-          val State(before, _) = srcNode.state
+        srcNode.api.setSampleTotalCount[IO](10L).await
+        val State(before, _) = srcNode.state
 
-          srcNode.api.setSampleTotalCount[IO](20L).await
-          val State(after, _) = srcNode.state
+        srcNode.api.setSampleTotalCount[IO](20L).await
+        val State(after, _) = srcNode.state
 
-          before.totalSamplesCount mustBe 10L
-          after mustBe before.copy(totalSamplesCount = 20L)
+        before.totalSamplesCount mustBe 10L
+        after mustBe before.copy(totalSamplesCount = 20L)

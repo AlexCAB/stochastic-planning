@@ -25,7 +25,8 @@ import planning.engine.planner.mpi.model.data.node.StepKey
 final case class ActivePath(
     // Path from leaf (which is concrete node) node to the root node of active tree.
     // Contain only LINK edges.
-    linkPath: List[MnId],
+    pathRoot: MnId.Con,
+    linkPath: List[MnId.Abs],
 
     // Collected active nodes along the path, with their corresponding step keys.
     activeNodes: Map[Node, Set[StepKey]],
@@ -36,7 +37,7 @@ final case class ActivePath(
     // Evaluated Huang weight.
     weight: HuangWeight,
 ):
-  def append[F[_]: MT](node: Node, steps: Set[StepKey], pu: PU): F[ActivePath] =
+  def append[F[_]: MT](node: Node.Abs, steps: Set[StepKey], pu: PU): F[ActivePath] =
     for
         _ <- linkPath.assertNotContain(node.mnId, s"Node ${node.mnId} already exists in the link path: $linkPath")
     yield copy(
@@ -48,8 +49,9 @@ final case class ActivePath(
   def withNextWeight(weight: HuangWeight): ActivePath = copy(weight = weight)
 
 object ActivePath:
-  def init(leaf: Node, steps: Set[StepKey], pu: PU): ActivePath = ActivePath(
-    linkPath = List(leaf.mnId),
+  def init(leaf: Node.Con, steps: Set[StepKey], pu: PU): ActivePath = ActivePath(
+    pathRoot = leaf.mnId,
+    linkPath = List(),
     activeNodes = Map(leaf -> steps),
     pu = pu,
     weight = HuangWeight.init,

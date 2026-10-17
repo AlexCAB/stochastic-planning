@@ -28,7 +28,7 @@ private[node] final case class Plan(
 
     // Next path id is used to generate new unique plan path ID.
     nextPathId: Long,
-    
+
     // Evaluated P(N) * U(N), probability and utility of this map network node.
     pu: Option[PU],
 ) extends Representable:
@@ -70,13 +70,13 @@ private[node] final case class Plan(
       (nextActive, planNa) <- this.withActiveNextSteps(mnId, time)
       (stepsActive, planSa) <- addNewIfNotFound(planNa, nextActive)
     yield (stepsActive, planSa)
-    
-  // If active steps was added earlier (by prev activation message), then return them. 
+
+  // If active steps was added earlier (by prev activation message), then return them.
   // Otherwise, find and activate Next steps if their time matches the given time.
   def withActiveStepsIfNotActivated[F[_]: MT](mnId: MnId, time: IoTime): F[(Set[StepNode], Plan)] =
     if activeSteps.nonEmpty then (activeSteps.map((k, s) => StepNode(k, s)).toSet, this).pure
     else withActiveSteps(mnId, time)
-  
+
   def withPu(pu: PU): Plan = copy(pu = Some(pu))
 
 private[node] object Plan:

@@ -52,9 +52,9 @@ final case class Lookup(incoming: Map[MnId, EdgeData], outgoing: Map[MnId, EdgeD
     m.filter(kv => activeSampleIds.contains(kv._1)).values.flatten.toSet
 
   def findInLink(sampleId: Set[SampleId]): Set[Node] = findActive(inLinkSampleId, sampleId)
-  
-  def findOutAbsLink[F[_]: MT](sampleId: Set[SampleId]): F[Set[Node.Abs]] = 
+
+  def findOutAbsLink[F[_]: MT](sampleId: Set[SampleId]): F[Set[Node.Abs]] =
     allAbsSet(findActive(outLinkSampleId, sampleId))
-  
+
   def findInThen(sampleId: Set[SampleId]): Set[Node] = findActive(inThenSampleId, sampleId)
   def findOutThen(sampleId: Set[SampleId]): Set[Node] = findActive(outThenSampleId, sampleId)

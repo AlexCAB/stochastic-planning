@@ -47,7 +47,7 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
     lazy val absActivePlan: Plan = Plan(Map(absKey -> Active.init(time)), nextPathId = 2L, pu = Some(initPu))
 
     // Path as it comes to the abstract node from the concrete srcNode.
-    lazy val inPath: ActivePath = ActivePath.init(srcNodeFake.api, Set(rootKey), initPu)
+    lazy val inPath: ActivePath = ActivePath.init(srcNodeFake.conApi, Set(rootKey), initPu)
     lazy val activeSIds: Set[SampleId] = props1.keySet
 
     // Add edge from the given src node to the given fake node and consume UpsertEdgeTrg message, sent to the fake node.
@@ -64,25 +64,26 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
     // Expected path after the abstract trgNode appended itself to the `inPath`.
     def appendedPath(weight: HuangWeight): IO[ActivePath] =
-      inPath.append[IO](trgNode.api, Set(absKey), initPu).map(_.withNextWeight(weight))
+      inPath.append[IO](trgNode.absApi, Set(absKey), initPu).map(_.withNextWeight(weight))
 
   "Node.Con.activation(...)" should:
     "add new Active root step and send ActivationAbs to outgoing LINK neighbor" in newCase[CaseData]: (_, data) =>
-     import data.*
-     async[IO]:
-       addLink(trgNodeFake).await
-       srcNode.conApi.activation[IO](time, utility).await
+      import data.*
+      async[IO]:
+        addLink(trgNodeFake).await
+        srcNode.conApi.activation[IO](time, utility).await
 
-       val (msgTime, sampleIds, path) = trgNodeFake.expectActivationAbs
-       msgTime mustBe time
-       sampleIds mustBe props1.keySet
-       path.linkPath mustBe List(srcNodeMnId)
-       path.activeNodes mustBe Map(srcNode.api -> Set(rootKey))
-       path.pu mustBe initPu
-       path.weight mustBe HuangWeight.init
+        val (msgTime, sampleIds, path) = trgNodeFake.expectActivationAbs
+        msgTime mustBe time
+        sampleIds mustBe props1.keySet
+        path.pathRoot mustBe srcNodeMnId
+        path.linkPath mustBe List.empty
+        path.activeNodes mustBe Map(srcNode.api -> Set(rootKey))
+        path.pu mustBe initPu
+        path.weight mustBe HuangWeight.init
 
-       val State(_, plan) = srcNode.state
-       plan mustBe activePlan
+        val State(_, plan) = srcNode.state
+        plan mustBe activePlan
 
     "split Huang weight between all outgoing abstract LINK neighbors" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -118,7 +119,7 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
           srcNode.conApi.activation[IO](time, utility).await
 
           val path = fakePlanner.expectAddActivePath
-          path mustBe ActivePath.init(srcNode.api, Set(rootKey), initPu)
+          path mustBe ActivePath.init(srcNode.conApi, Set(rootKey), initPu)
 
           val State(_, plan) = srcNode.state
           plan mustBe activePlan
@@ -164,7 +165,8 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
           msgTime mustBe time
           sampleIds mustBe activeSIds
           path mustBe expectedPath
-          path.linkPath mustBe List(trgNodeMnId, srcNodeMnId)
+          path.pathRoot mustBe srcNodeMnId
+          path.linkPath mustBe List(trgNodeMnId)
           path.activeNodes mustBe Map(srcNodeFake.api -> Set(rootKey), trgNode.api -> Set(absKey))
 
           val State(_, plan) = trgNode.state
@@ -182,8 +184,8 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val expectedWeights = inPath.weight.div[IO](2).await
 
         Set(path1.weight, path2.weight) mustBe expectedWeights.toSet
-        path1.linkPath mustBe List(trgNodeMnId, srcNodeMnId)
-        path2.linkPath mustBe List(trgNodeMnId, srcNodeMnId)
+        path1.linkPath mustBe List(trgNodeMnId)
+        path2.linkPath mustBe List(trgNodeMnId)
 
     "send ActivationAbs only to outgoing LINK neighbors with active samples" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -231,7 +233,7 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
     "report an error to the manager when node already exists in the path" in newCase[CaseData]: (_, data) =>
       import data.*
       async[IO]:
-        val loopPath = ActivePath.init(trgNodeFake.api, Set(absKey), initPu)
+        val loopPath = inPath.append[IO](trgNodeFake.absApi, Set(absKey), initPu).await
         trgNode.absApi.activation[IO](time, activeSIds, loopPath).await
 
         val (source, err) = fakeManager.expectReportedError

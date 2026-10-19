@@ -22,6 +22,7 @@ import planning.engine.common.values.plan.HuangWeight
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath.ActiveNode
 import planning.engine.planner.mpi.actors.planner.data.Message.TickDone
 import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.model.data.node.StepKey
@@ -43,7 +44,7 @@ class TickSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
     lazy val halves: List[HuangWeight] = HuangWeight.init.div[IO](2).unsafeRunSync()
 
     def makePath(root: Node.Con, absId: MnId.Abs, weight: HuangWeight): ActivePath =
-      ActivePath(root.mnId, List(absId), Map(root -> Set.empty), pu, weight)
+      ActivePath(root.mnId, List(absId), Map(root.mnId -> ActiveNode(root, pu, Set.empty)), weight)
 
     // Tick with all fields filled, to check that `next` resets them.
     lazy val filledTick: Tick = Tick(
@@ -99,17 +100,16 @@ class TickSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
         .asserting(_.activeSteps mustBe ActiveSteps.empty)
 
   "Tick.withActivePath(...)" should:
-    "add path to active steps and return not built when not all weight collected" in newCase[CaseData]:
-      (tn, data) =>
-        import data.*
-        async[IO]:
-          val path = makePath(conNode1, MnId.Abs(3L), halves.head)
-          val (isBuilt, tick) = activeTick.withActivePath[IO](path).logValue(tn).await
+    "add path to active steps and return not built when not all weight collected" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      async[IO]:
+        val path = makePath(conNode1, MnId.Abs(3L), halves.head)
+        val (isBuilt, tick) = activeTick.withActivePath[IO](path).logValue(tn).await
 
-          isBuilt mustBe false
-          tick.activeSteps.paths mustBe Set(path)
-          tick.activeSteps.weightAcc mustBe Map(conNode1.mnId -> halves.head, conNode2.mnId -> HuangWeight.zero)
-          tick.copy(activeSteps = activeTick.activeSteps) mustBe activeTick
+        isBuilt mustBe false
+        tick.activeSteps.paths mustBe Set(path)
+        tick.activeSteps.weightAcc mustBe Map(conNode1.mnId -> halves.head, conNode2.mnId -> HuangWeight.zero)
+        tick.copy(activeSteps = activeTick.activeSteps) mustBe activeTick
 
     "return not built when only part of concrete nodes collected full weight" in newCase[CaseData]: (tn, data) =>
       import data.*

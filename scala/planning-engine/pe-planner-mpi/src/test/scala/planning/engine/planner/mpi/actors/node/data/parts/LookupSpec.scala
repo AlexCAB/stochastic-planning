@@ -19,7 +19,8 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.parts.{EdgeData, Lookup}
+import planning.engine.planner.mpi.actors.node.data.parts.Lookup
+import planning.engine.planner.mpi.actors.node.data.state.Struct.EdgeData
 import planning.engine.planner.mpi.test.data.NodeTestData
 
 class LookupSpec extends UnitSpecWithData with NodeTestData:

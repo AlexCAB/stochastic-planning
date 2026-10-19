@@ -16,9 +16,9 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Behavior
 import planning.engine.planner.mpi.actors.Stateless
 import planning.engine.planner.mpi.actors.visualizer.data.*
-import planning.engine.planner.mpi.actors.visualizer.logic.modules.Structure
+import planning.engine.planner.mpi.actors.visualizer.logic.modules.{Plan, Structure}
 
-private[visualizer] object Actor extends Stateless with Structure:
+private[visualizer] object Actor extends Stateless with Structure with Plan:
   import Message.*
 
   type Def = Definition
@@ -33,8 +33,9 @@ private[visualizer] object Actor extends Stateless with Structure:
     yield ()
 
   override protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv] = msg match
-    case msg: ShowNodesAdded => doNodesAdded(msg)
-    case msg: ShowEdgesAdded => doEdgesAdded(msg)
+    case msg: ShowNodesAdded       => doNodesAdded(msg)
+    case msg: ShowEdgesAdded       => doEdgesAdded(msg)
+    case msg: ShowActiveStepsFound => doActiveStepsFound(msg)
 
   override protected def error[F[_]: S](msg: Msg, err: Throwable)(using Def, Ctx): F[Bhv] =
     doLogAndRaiseFatal("Visualizer actor error", Some(msg), err, "Error on message processing")

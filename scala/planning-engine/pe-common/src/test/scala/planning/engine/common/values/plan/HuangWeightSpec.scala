@@ -95,3 +95,17 @@ class HuangWeightSpec extends UnitSpecWithData:
       import data.*
       HuangWeight.init.add[IO](w1).logValue(tn)
         .assertThrowsError[ArithmeticException](_.getMessage must include("long overflow"))
+
+    "allow adding to a zero weight" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      HuangWeight.zero.add[IO](w3).logValue(tn).asserting(_ mustBe w3)
+
+    "fail when the added weight is zero" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      w10.add[IO](HuangWeight.zero).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("HuangWeight value must be positive, got: 0"))
+
+    "fail when the added weight is negative" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      w10.add[IO](new HuangWeight(-1L)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("HuangWeight value must be positive, got: -1"))

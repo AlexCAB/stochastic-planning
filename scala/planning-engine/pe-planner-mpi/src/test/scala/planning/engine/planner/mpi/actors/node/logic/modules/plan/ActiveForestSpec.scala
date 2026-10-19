@@ -23,6 +23,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.data.State
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath.ActiveNode
 import planning.engine.planner.mpi.actors.node.data.parts.Step.Active
 import planning.engine.planner.mpi.actors.node.data.state.Plan
 import planning.engine.planner.mpi.actors.node.{FakeNode, TestNode, WithTestNode}
@@ -39,12 +40,13 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
     lazy val time: IoTime = IoTime(1L)
     lazy val utility: Option[Double] = Some(0.5)
     lazy val initPu: PU = PU(p = 1.0, u = 0.0)
+    lazy val nextPu: PU = PU.zero
 
     lazy val rootKey: StepKey = StepKey.init(srcNodeMnId, 1L)
     lazy val activePlan: Plan = Plan(Map(rootKey -> Active.init(time)), nextPathId = 2L, pu = Some(initPu))
 
     lazy val absKey: StepKey = StepKey.init(trgNodeMnId, 1L)
-    lazy val absActivePlan: Plan = Plan(Map(absKey -> Active.init(time)), nextPathId = 2L, pu = Some(initPu))
+    lazy val absActivePlan: Plan = Plan(Map(absKey -> Active.init(time)), nextPathId = 2L, pu = Some(nextPu))
 
     // Path as it comes to the abstract node from the concrete srcNode.
     lazy val inPath: ActivePath = ActivePath.init(srcNodeFake.conApi, Set(rootKey), initPu)
@@ -64,7 +66,7 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
 
     // Expected path after the abstract trgNode appended itself to the `inPath`.
     def appendedPath(weight: HuangWeight): IO[ActivePath] =
-      inPath.append[IO](trgNode.absApi, Set(absKey), initPu).map(_.withNextWeight(weight))
+      inPath.append[IO](trgNode.absApi, Set(absKey), nextPu).map(_.withNextWeight(weight))
 
   "Node.Con.activation(...)" should:
     "add new Active root step and send ActivationAbs to outgoing LINK neighbor" in newCase[CaseData]: (_, data) =>
@@ -76,10 +78,9 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val (msgTime, sampleIds, path) = trgNodeFake.expectActivationAbs
         msgTime mustBe time
         sampleIds mustBe props1.keySet
-        path.pathRoot mustBe srcNodeMnId
-        path.linkPath mustBe List.empty
-        path.activeNodes mustBe Map(srcNode.api -> Set(rootKey))
-        path.pu mustBe initPu
+        path.root mustBe srcNodeMnId
+        path.path mustBe List.empty
+        path.activeNodes mustBe Map(srcNodeMnId -> ActiveNode(srcNode.api, initPu, Set(rootKey)))
         path.weight mustBe HuangWeight.init
 
         val State(_, plan) = srcNode.state
@@ -97,8 +98,8 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val expectedWeights = HuangWeight.init.div[IO](2).await
 
         Set(path1.weight, path2.weight) mustBe expectedWeights.toSet
-        path1.activeNodes mustBe Map(srcNode.api -> Set(rootKey))
-        path2.activeNodes mustBe Map(srcNode.api -> Set(rootKey))
+        path1.activeNodes mustBe Map(srcNodeMnId -> ActiveNode(srcNode.api, initPu, Set(rootKey)))
+        path2.activeNodes mustBe Map(srcNodeMnId -> ActiveNode(srcNode.api, initPu, Set(rootKey)))
 
     "not send ActivationAbs to outgoing THEN neighbor" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -165,9 +166,12 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
           msgTime mustBe time
           sampleIds mustBe activeSIds
           path mustBe expectedPath
-          path.pathRoot mustBe srcNodeMnId
-          path.linkPath mustBe List(trgNodeMnId)
-          path.activeNodes mustBe Map(srcNodeFake.api -> Set(rootKey), trgNode.api -> Set(absKey))
+          path.root mustBe srcNodeMnId
+          path.path mustBe List(trgNodeMnId)
+          path.activeNodes mustBe Map(
+            srcNodeMnId -> ActiveNode(srcNodeFake.api, initPu, Set(rootKey)),
+            trgNodeMnId -> ActiveNode(trgNode.api, nextPu, Set(absKey)),
+          )
 
           val State(_, plan) = trgNode.state
           plan mustBe absActivePlan
@@ -184,8 +188,8 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val expectedWeights = inPath.weight.div[IO](2).await
 
         Set(path1.weight, path2.weight) mustBe expectedWeights.toSet
-        path1.linkPath mustBe List(trgNodeMnId)
-        path2.linkPath mustBe List(trgNodeMnId)
+        path1.path mustBe List(trgNodeMnId)
+        path2.path mustBe List(trgNodeMnId)
 
     "send ActivationAbs only to outgoing LINK neighbors with active samples" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -224,7 +228,7 @@ class ActiveForestSpec extends UnitSpecWithIOAndTestKit with WithTestNode:
         val path1 = fakePlanner.expectAddActivePath
         val path2 = fakePlanner.expectAddActivePath
 
-        path1.activeNodes(trgNode.api) mustBe Set(absKey)
+        path1.activeNodes(trgNodeMnId).steps mustBe Set(absKey)
         path2 mustBe path1
 
         val State(_, plan) = trgNode.state

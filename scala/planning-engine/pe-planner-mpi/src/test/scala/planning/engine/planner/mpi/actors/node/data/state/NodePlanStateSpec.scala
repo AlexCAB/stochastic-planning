@@ -19,8 +19,9 @@ import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.{Depth, PathId}
 import planning.engine.planner.mpi.actors.node.data.parts.Step.{Active, Next, Occurred, Planned}
-import planning.engine.planner.mpi.actors.node.data.parts.{StepNode, Struct}
+import planning.engine.planner.mpi.actors.node.data.parts.PlanStruct
 import planning.engine.planner.mpi.actors.node.data.state.Plan
+import planning.engine.planner.mpi.actors.node.data.state.Plan.StepNode
 import planning.engine.planner.mpi.model.data.node.StepKey
 
 class NodePlanStateSpec extends UnitSpecWithData:
@@ -34,11 +35,11 @@ class NodePlanStateSpec extends UnitSpecWithData:
     def stepKey(pathId: Long, depth: Long, id: MnId = mnId): StepKey = StepKey(id, PathId(pathId), Depth(depth))
 
     val prevKey: StepKey = stepKey(1L, 0L)
-    val struct: Struct = Struct.init.copy(prev = Some(prevKey))
+    val struct: PlanStruct = PlanStruct.init.copy(prev = Some(prevKey))
 
-    val occurred: Occurred = Occurred(IoTime(0L), Struct.init)
+    val occurred: Occurred = Occurred(IoTime(0L), PlanStruct.init)
     val nextAt1: Next = Next(time1, struct)
-    val nextAt2: Next = Next(time2, Struct.init)
+    val nextAt2: Next = Next(time2, PlanStruct.init)
     val planned: Planned = Planned.init(time2)
 
     val plan: Plan = Plan(

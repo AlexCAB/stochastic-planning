@@ -18,7 +18,7 @@ import planning.engine.common.UnitSpecWithData
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
-import planning.engine.planner.mpi.actors.manager.data.parts.SampleData
+import planning.engine.planner.mpi.actors.manager.data.State.SampleData
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample

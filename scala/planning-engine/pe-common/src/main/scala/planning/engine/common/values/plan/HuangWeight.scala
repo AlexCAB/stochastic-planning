@@ -27,7 +27,9 @@ final case class HuangWeight(value: Long) extends AnyVal with LongVal:
         List.fill(r.toInt)(new HuangWeight(q + 1)) ++ List.fill(n - r.toInt)(new HuangWeight(q))
     else s"Value is too small: $n > $value".assertionError
 
-  def add[F[_]: MT](that: HuangWeight): F[HuangWeight] = MT(Math.addExact(value, that.value)).map(new HuangWeight(_))
+  def add[F[_]: MT](that: HuangWeight): F[HuangWeight] =
+    if that.value > 0 then MT(Math.addExact(value, that.value)).map(new HuangWeight(_))
+    else s"HuangWeight value must be positive, got: ${that.value}".assertionError
 
   def isFull: Boolean = value == Long.MaxValue
 

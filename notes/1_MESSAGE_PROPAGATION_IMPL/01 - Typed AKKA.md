@@ -315,6 +315,9 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `mpi.actors.planner.data.state.TickSpec` add tests for `mpi.actors.planner.data.state.Tick` methods
 
+❯ Write boilerplate code for `Visualizer.activeStepsFound` in `visualizer.logic.ApiImpl`, `visualizer.logic.Actor`, `visualizer.data.Message`. Then under `visualizer.logic.modules` add `trait Plan` where implement `doActiveStepsFound` which will covert `ActiveSteps` to `ActiveForest` and call `Visualization.activeStepsFound`.   
+
+❯ In `visualizer.logic.modules.PlanSpec` add tests for `"Visualizer.activeStepsFound(...)"`
 
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.

@@ -20,7 +20,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.manager.WithTestManager
 import planning.engine.planner.mpi.actors.manager.data.State
-import planning.engine.planner.mpi.actors.manager.data.parts.SampleData
+import planning.engine.planner.mpi.actors.manager.data.State.SampleData
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.test.data.EdgeTestData

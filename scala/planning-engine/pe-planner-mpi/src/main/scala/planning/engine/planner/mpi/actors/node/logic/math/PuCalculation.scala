@@ -29,4 +29,4 @@ private[node] trait PuCalculation:
 
   private[node] def calcNextPu[F[_]: MT](msg: ActivationAbs, state: State): F[PU] =
     // TODO Rewrite dummy implementation to calculate the next PU based on the message and state.
-    msg.path.pu.pure
+    PU.zero.pure

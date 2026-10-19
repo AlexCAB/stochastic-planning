@@ -19,40 +19,47 @@ import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.HuangWeight
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath.ActiveNode
 import planning.engine.planner.mpi.model.data.node.StepKey
 
 // Used as accumulator for active path during the active tree traversal.
-final case class ActivePath(
+private[actors] final case class ActivePath(
     // Path from leaf (which is concrete node) node to the root node of active tree.
     // Contain only LINK edges.
-    pathRoot: MnId.Con,
-    linkPath: List[MnId.Abs],
+    root: MnId.Con,
+    path: List[MnId.Abs],
 
     // Collected active nodes along the path, with their corresponding step keys.
-    activeNodes: Map[Node, Set[StepKey]],
-
-    // Evaluated P(N) * U(N), probability and utility
-    pu: PU,
+    activeNodes: Map[MnId, ActiveNode],
 
     // Evaluated Huang weight.
     weight: HuangWeight,
 ):
   def append[F[_]: MT](node: Node.Abs, steps: Set[StepKey], pu: PU): F[ActivePath] =
     for
-        _ <- linkPath.assertNotContain(node.mnId, s"Node ${node.mnId} already exists in the link path: $linkPath")
+      // Activation forest can't have cycles, so we must ensure that the node is not already in the link path.
+      _ <- path.assertNotContain(node.mnId, s"Node ${node.mnId} already exists in the link path: $path")
+      _ <- activeNodes.keySet.assertNotContain(node.mnId, s"Node ${node.mnId} already exists in the active nodes")
     yield copy(
-      linkPath = node.mnId :: linkPath,
-      activeNodes = activeNodes + (node -> steps),
-      pu = pu,
+      path = node.mnId :: path,
+      activeNodes = activeNodes + (node.mnId -> ActiveNode(node, pu, steps)),
     )
 
   def withNextWeight(weight: HuangWeight): ActivePath = copy(weight = weight)
 
-object ActivePath:
+  lazy val nodes: Map[MnId, PU] = activeNodes.view.mapValues(v => v.pu).toMap
+
+  // Splits the path into edges, where each edge is a pair of MnId (from, to).
+  lazy val edges: Set[(MnId, MnId)] =
+    val chain: List[MnId] = root :: path.reverse
+    chain.zip(chain.tail).toSet
+
+private[actors] object ActivePath:
+  final case class ActiveNode(node: Node, pu: PU, steps: Set[StepKey])
+
   def init(leaf: Node.Con, steps: Set[StepKey], pu: PU): ActivePath = ActivePath(
-    pathRoot = leaf.mnId,
-    linkPath = List(),
-    activeNodes = Map(leaf -> steps),
-    pu = pu,
+    root = leaf.mnId,
+    path = List(),
+    activeNodes = Map(leaf.mnId -> ActiveNode(leaf, pu, steps)),
     weight = HuangWeight.init,
   )

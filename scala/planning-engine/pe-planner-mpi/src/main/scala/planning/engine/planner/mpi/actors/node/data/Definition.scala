@@ -16,12 +16,16 @@ import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.MnId
+import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.Node
-import planning.engine.planner.mpi.actors.node.data.parts.Actors
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.planner.Planner
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.data.node.NodeData
 
 private[node] sealed trait Definition:
+  import Definition.Actors
+
   def id: MnId
   def data: NodeData
   def actors: Actors
@@ -46,18 +50,24 @@ private[node] sealed trait Definition:
 private[node] final case class ConDef(
     id: MnId.Con,
     data: NodeData.Con,
-    actors: Actors,
+    actors: Definition.Actors,
 ) extends Definition:
   override lazy val toString: String = s"[${id.reprValue}, ${data.name.repr}]"
 
 private[node] final case class AbsDef(
     id: MnId.Abs,
     data: NodeData.Abs,
-    actors: Actors,
+    actors: Definition.Actors,
 ) extends Definition:
   override lazy val toString: String = s"(${id.reprValue}, ${data.name.repr})"
 
 object Definition:
+  final case class Actors(
+      manager: Manager,
+      visualizer: Option[Visualizer],
+      planner: Planner,
+  )
+
   def apply[F[_]: MT](id: MnId, data: NodeData, actors: Actors): F[Definition] = (id, data) match
     case (id: MnId.Con, data: NodeData.Con) => ConDef(id, data, actors).pure[F]
     case (id: MnId.Abs, data: NodeData.Abs) => AbsDef(id, data, actors).pure[F]

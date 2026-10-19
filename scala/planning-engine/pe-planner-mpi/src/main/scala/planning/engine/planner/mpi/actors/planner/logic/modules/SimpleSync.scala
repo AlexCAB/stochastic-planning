@@ -46,13 +46,12 @@ private[planner] trait SimpleSync:
       _ <- conNodes.foreachM(_.activation(msg.observation.time, msg.observation.utility))
     yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
 
-  private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using Def, Ctx): F[St] =
+  private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using d: Def, c: Ctx): F[St] =
     for
       _ <- logInfo(s"[doAddActivePath] Adding active path = ${msg.path}")
       (isBuilt, newState) <- state.mapTickR(_.withActivePath(msg.path))
 
     // TODO: If isBuilt is true, then send visualisation message and run next phase.
-
     yield newState
 
   // TODO

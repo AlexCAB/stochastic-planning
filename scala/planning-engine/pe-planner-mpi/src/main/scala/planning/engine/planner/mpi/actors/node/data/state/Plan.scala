@@ -18,7 +18,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.node.data.parts.{Step, StepNode}
+import planning.engine.planner.mpi.actors.node.data.parts.Step
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.repr.Representable
 
@@ -32,7 +32,7 @@ private[node] final case class Plan(
     // Evaluated P(N) * U(N), probability and utility of this map network node.
     pu: Option[PU],
 ) extends Representable:
-  import Step.*
+  import Step.*, Plan.*
 
   lazy val nextSteps: Map[StepKey, Next] = steps.collect { case (k, s: Next) => k -> s }
   lazy val activeSteps: Map[StepKey, Active] = steps.collect { case (k, s: Active) => k -> s }
@@ -80,4 +80,6 @@ private[node] final case class Plan(
   def withPu(pu: PU): Plan = copy(pu = Some(pu))
 
 private[node] object Plan:
+  final case class StepNode(key: StepKey, step: Step)
+
   val init = Plan(steps = Map.empty, nextPathId = 1L, pu = None)

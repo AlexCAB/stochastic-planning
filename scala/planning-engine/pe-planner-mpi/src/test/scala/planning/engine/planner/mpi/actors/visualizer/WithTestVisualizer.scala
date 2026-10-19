@@ -15,12 +15,14 @@ package planning.engine.planner.mpi.actors.visualizer
 import cats.MonadThrow
 import cats.syntax.ext.MT
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 import planning.engine.planner.mpi.model.io.IoVars
 
 trait WithTestVisualizer:
@@ -34,6 +36,7 @@ trait WithTestVisualizer:
       override def init[F[_]: MT](metadata: Metadata, variables: IoVars): F[Unit] = MonadThrow[F].unit
       override def nodesAdded[F[_]: MT](ids: Map[MnId, NodeData]): F[Unit] = MonadThrow[F].unit
       override def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit] = MonadThrow[F].unit
+      override def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveForest): F[Unit] = MonadThrow[F].unit
 
     def makeVisualizer(
         metadata: Metadata = testMetadata,

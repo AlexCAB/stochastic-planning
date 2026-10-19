@@ -13,8 +13,10 @@
 package planning.engine.planner.mpi.actors.visualizer.data
 
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.Base.WithSender
+import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.repr.Representable
 
@@ -31,3 +33,6 @@ private[visualizer] object Message:
 
   // Sent from ManagerActor after edges were upserted in the map network.
   final case class ShowEdgesAdded(keys: Set[MeKey]) extends Message
+
+  // Sent from PlannerActor after active steps were found in the map network.
+  final case class ShowActiveStepsFound(time: IoTime, steps: ActiveSteps) extends Message

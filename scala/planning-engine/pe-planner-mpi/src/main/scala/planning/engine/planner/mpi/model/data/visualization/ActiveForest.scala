@@ -8,10 +8,17 @@
 || * * * * * * * * *   ||||||||||||
 | author: CAB |||||||||||||||||||||
 | website: github.com/alexcab |||||
-| created: 2026-10-15 |||||||||||*/
+| created: 2026-10-20 |||||||||||*/
 
-package planning.engine.planner.mpi.actors.node.data.parts
+package planning.engine.planner.mpi.model.data.visualization
 
-import planning.engine.planner.mpi.model.data.node.StepKey
+import planning.engine.common.graph.inference.PU
+import planning.engine.common.values.node.MnId
 
-final case class StepNode(key: StepKey, step: Step)
+// Contain found the active forest for visualization.
+final case class ActiveForest(
+    nodes: Map[MnId, PU],
+    roots: Set[MnId],
+    edges: Set[(MnId, MnId)],
+)
+

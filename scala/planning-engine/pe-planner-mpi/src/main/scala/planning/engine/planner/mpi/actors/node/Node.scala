@@ -21,7 +21,7 @@ import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
-import planning.engine.planner.mpi.actors.node.data.parts.{ActivePath, Actors}
+import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.node.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.actors.planner.Planner
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
@@ -136,6 +136,6 @@ private[mpi] object Node:
       ctx: ActorContext[?],
   ): F[Node] =
     for
-      definition <- Definition(mnId, data, Actors(manager, visualizer, planner))
+      definition <- Definition(mnId, data, Definition.Actors(manager, visualizer, planner))
       api <- ApiImpl(mnId, data, Actor.spawn(definition, (b, n) => ctx.spawn(b, n)))
     yield api

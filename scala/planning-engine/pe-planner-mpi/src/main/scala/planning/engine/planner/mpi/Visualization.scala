@@ -14,9 +14,11 @@ package planning.engine.planner.mpi
 
 import cats.syntax.ext.MT
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 import planning.engine.planner.mpi.model.io.IoVars
 
 // Map network visualization interface:
@@ -40,3 +42,6 @@ trait Visualization:
 
   // Called when new edges added to the map network structure.
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]
+
+  // Called when active steps found in the map network for visualization.
+  def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveForest): F[Unit]

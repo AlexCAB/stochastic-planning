@@ -16,8 +16,10 @@ import cats.MonadThrow
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
+import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.data.map.Metadata
@@ -26,11 +28,14 @@ import planning.engine.planner.mpi.model.io.IoVars
 
 private[mpi] trait Visualizer:
 
-  // Save nodes added to the map network for visualization.
+  // Nodes added to the map network for visualization.
   def nodesAdded[F[_]: MT](ids: Map[MnId, NodeData]): F[Unit]
 
-  // Save edges added to the map network for visualization.
+  // Edges added to the map network for visualization.
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]
+
+  // Active steps found in the map network for visualization.
+  def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveSteps): F[Unit]
 
 private[mpi] object Visualizer:
   type Msg = Actor.Msg

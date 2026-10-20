@@ -44,4 +44,4 @@ trait Visualization:
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]
 
   // Called when active steps found in the map network for visualization.
-  def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveForest): F[Unit]
+  def activeStepsFound[F[_]: MT](time: IoTime, forest: ActiveForest): F[Unit]

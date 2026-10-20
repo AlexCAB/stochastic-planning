@@ -13,9 +13,11 @@
 package planning.engine.planner.mpi.actors.planner
 
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 
 trait WithTestPlanner:
   self: UnitSpecWithIOAndTestKit =>
 
   trait WithPlanner:
-    lazy val planner: TestPlanner = TestPlanner("test-planner")
+    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
+    lazy val planner: TestPlanner = TestPlanner("test-planner", fakeVisualizer)

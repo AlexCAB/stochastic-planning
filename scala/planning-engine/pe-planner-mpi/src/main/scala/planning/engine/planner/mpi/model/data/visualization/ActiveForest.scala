@@ -21,4 +21,3 @@ final case class ActiveForest(
     roots: Set[MnId],
     edges: Set[(MnId, MnId)],
 )
-

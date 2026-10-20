@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
 import planning.engine.planner.mpi.actors.planner.data.Definition
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.model.io.IoVars
 
@@ -91,6 +92,7 @@ private[mpi] object Planner:
   type Msg = Actor.Msg
 
   def spawn[F[_]: MT](
+      visualizer: Option[Visualizer],
       variables: IoVars,
       ctx: ActorContext[?],
-  ): F[Planner] = ApiImpl(Actor.spawn(Definition(variables), (b, n) => ctx.spawn(b, n))).pure
+  ): F[Planner] = ApiImpl(Actor.spawn(Definition(visualizer, variables), (b, n) => ctx.spawn(b, n))).pure

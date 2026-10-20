@@ -16,6 +16,7 @@ import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
 import planning.engine.planner.mpi.actors.planner.data.Message
+import planning.engine.planner.mpi.actors.planner.data.state.Tick
 import planning.engine.planner.mpi.actors.planner.logic.Actor
 
 // Synchronous planner have 2 key concepts (compared to asynchronous):
@@ -38,7 +39,7 @@ private[planner] trait SimpleSync:
   self: Actor.type =>
   import Message.*
 
-  private[planner] def doTick[F[_]: S](msg: Tick, state: St)(using d: Def, c: Ctx): F[St] =
+  private[planner] def doTick[F[_]: S](msg: TickRun, state: St)(using d: Def, c: Ctx): F[St] =
     for
       _ <- logInfo(s"[doTick] observation = ${msg.observation}")
       conNodes <- state.struct.findInNodes(msg.observation.values)
@@ -47,11 +48,21 @@ private[planner] trait SimpleSync:
     yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
 
   private[planner] def doAddActivePath[F[_]: S](msg: AddActivePath, state: St)(using d: Def, c: Ctx): F[St] =
+    def isNotBuilt(newTick: Tick): F[Unit] =
+      logInfo(s"[doAddActivePath] Not all active steps collected yet in ${newTick.activeSteps}.")
+
+    def activeForestBuilt(newTick: Tick): F[Unit] =
+      for
+        _ <- logInfo(s"[doAddActivePath] All active steps collected in ${newTick.activeSteps}.")
+        _ <- d.visualizer.traverse_(_.activeStepsFound[F](newTick.time, newTick.activeSteps))
+
+      // TODO: If isBuilt is true, then send visualisation message and run next phase.
+      yield ()
+
     for
       _ <- logInfo(s"[doAddActivePath] Adding active path = ${msg.path}")
       (isBuilt, newState) <- state.mapTickR(_.withActivePath(msg.path))
-
-    // TODO: If isBuilt is true, then send visualisation message and run next phase.
+      _ <- if isBuilt then activeForestBuilt(newState.tick) else isNotBuilt(newState.tick)
     yield newState
 
   // TODO

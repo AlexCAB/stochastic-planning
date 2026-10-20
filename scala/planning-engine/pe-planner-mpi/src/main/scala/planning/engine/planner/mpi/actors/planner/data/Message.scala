@@ -29,7 +29,7 @@ private[planner] object Message:
   sealed trait Result
 
   // Sent by a client to compute the next action for the given observation.
-  final case class Tick(observation: Observation, sender: ActorRef[TickDone]) extends Command[TickDone]
+  final case class TickRun(observation: Observation, sender: ActorRef[TickDone]) extends Command[TickDone]
   final case class TickDone(action: Action) extends Result
 
   // Sent from ManagerActor after a new concrete node was added to the map network.

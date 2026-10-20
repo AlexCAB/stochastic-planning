@@ -24,10 +24,12 @@ import planning.engine.api.model.visualization.VisualizationMsg
 import planning.engine.api.model.visualization.mpi.*
 import planning.engine.api.service.visualization.VisualizationService
 import planning.engine.common.graph.edges.MeKey
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 import planning.engine.planner.mpi.model.io.IoVars
 
 class VisualizationMpiService[F[_]: {Async, LoggerFactory}](
@@ -58,8 +60,12 @@ class VisualizationMpiService[F[_]: {Async, LoggerFactory}](
   // Visualization interface implementation
 
   override def init[G[_]: MT](mt: Metadata, vars: IoVars): G[Unit] = MpiInit(mt, vars).map(publish)
+
   override def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MpiNewNodes(ids).map(publish)
   override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MpiNewEdges.formMeKeys(keys).map(publish)
+
+  override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] =
+    MpiActiveForest(time, forest).map(publish)
 
 object VisualizationMpiService:
   def apply[F[_]: {Async, LoggerFactory}](): Resource[F, VisualizationMpiService[F]] =

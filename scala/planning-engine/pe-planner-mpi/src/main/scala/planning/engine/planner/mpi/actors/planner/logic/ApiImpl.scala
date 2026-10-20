@@ -31,7 +31,7 @@ private[planner] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Acto
     actor.tellF(ConNodesAdded(nodes))
 
   override def tick[F[_]: Async](observation: Observation)(using Scheduler): F[Action] =
-    actor.askF[F, TickDone](ref => Tick(observation, ref)).map(_.action)
+    actor.askF[F, TickDone](ref => TickRun(observation, ref)).map(_.action)
 
   override def addActivePath[F[_]: MT](path: ActivePath): F[Unit] = actor.tellF(AddActivePath(path))
 

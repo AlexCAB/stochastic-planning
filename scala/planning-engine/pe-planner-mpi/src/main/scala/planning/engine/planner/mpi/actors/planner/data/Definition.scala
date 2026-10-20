@@ -12,8 +12,10 @@
 
 package planning.engine.planner.mpi.actors.planner.data
 
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.io.IoVars
 
 private[planner] final case class Definition(
+    visualizer: Option[Visualizer],
     variables: IoVars,
 )

@@ -319,6 +319,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ In `visualizer.logic.modules.PlanSpec` add tests for `"Visualizer.activeStepsFound(...)"`
 
+❯ In `VisualizationMpiServiceSpec` add test for `"VisualizationMpiService.activeStepsFound(...)"`
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.
 2. Implement context move algorithm. 

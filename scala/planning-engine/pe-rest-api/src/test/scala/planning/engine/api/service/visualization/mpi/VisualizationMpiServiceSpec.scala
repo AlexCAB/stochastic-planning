@@ -19,14 +19,16 @@ import fs2.Stream
 import fs2.concurrent.Topic
 import planning.engine.api.model.map.TestMpiData
 import planning.engine.api.model.visualization.VisualizationMsg
-import planning.engine.api.model.visualization.mpi.{MpiInit, MpiNewEdges, MpiNewNodes}
+import planning.engine.api.model.visualization.mpi.{MpiActiveForest, MpiInit, MpiNewEdges, MpiNewNodes}
 import planning.engine.common.UnitSpecWithResource
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.io.IoIndex
+import planning.engine.common.graph.inference.PU
+import planning.engine.common.values.io.{IoIndex, IoTime}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 
 class VisualizationMpiServiceSpec
     extends UnitSpecWithResource[(VisualizationMpiService[IO], Topic[IO, VisualizationMsg])] with TestMpiData:
@@ -47,6 +49,16 @@ class VisualizationMpiServiceSpec
 
   val testIds: Map[MnId, NodeData] = Map(conId -> conData, absId -> absData)
   val testKeys: Set[MeKey] = Set(MeKey.Link(conId, absId))
+
+  val testTime: IoTime = IoTime(5L)
+  val conPu: PU = PU(p = 1.0, u = 0.0)
+  val absPu: PU = PU(p = 0.5, u = 2.0)
+
+  val testForest: ActiveForest = ActiveForest(
+    nodes = Map(conId -> conPu, absId -> absPu),
+    roots = Set(conId),
+    edges = Set(conId -> absId),
+  )
 
   def receive(service: VisualizationMpiService[IO], topic: Topic[IO, VisualizationMsg], n: Int)(
       publish: IO[Unit],
@@ -85,6 +97,17 @@ class VisualizationMpiServiceSpec
         val messages = receive(service, topic, 1)(service.edgesAdded[IO](testKeys)).logValue("edgesAdded").await
 
         messages mustBe List(expected)
+
+  "VisualizationMpiService.activeStepsFound(...)" should:
+    "publish MpiActiveForest message built from time and active forest" in: (service, topic) =>
+      val expected = MpiActiveForest(testTime, testForest.nodes, testForest.roots, testForest.edges)
+      receive(service, topic, 1)(service.activeStepsFound[IO](testTime, testForest)).logValue("activeStepsFound")
+        .asserting(_ mustBe List(expected))
+
+    "publish empty MpiActiveForest message when active forest is empty" in: (service, topic) =>
+      val emptyForest = ActiveForest(Map.empty, Set.empty, Set.empty)
+      receive(service, topic, 1)(service.activeStepsFound[IO](testTime, emptyForest)).logValue("activeStepsFound")
+        .asserting(_ mustBe List(MpiActiveForest(testTime, Map.empty, Set.empty, Set.empty)))
 
   "VisualizationMpiService.mapSendWs" should:
     "deliver messages in the order they were published" in: (service, topic) =>

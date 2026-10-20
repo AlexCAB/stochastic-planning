@@ -24,6 +24,7 @@ import planning.engine.planner.mpi.actors.planner.data.Message.TickDone
 import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.planner.data.{Definition, State}
 import planning.engine.planner.mpi.actors.planner.logic.{Actor, ApiImpl}
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.model.data.node.StepKey
 import planning.engine.planner.mpi.model.io.{IoVars, Variable}
 
@@ -57,13 +58,14 @@ object TestPlanner extends TestActorBase:
 
   def apply(
       name: String,
+      visualizer: FakeVisualizer,
       inVars: Set[Variable.Input] = Set.empty,
       outVars: Set[Variable.Output] = Set.empty,
   )(using tk: ActorTestKit, r: IORuntime): TestPlanner =
     def spawn(bh: Behavior[Planner.Msg], name: String): ActorRef[Planner.Msg] =
       tk.spawn(bh, s"test-planner-$name-${nameIdCounter.getAndIncrement()}")
 
-    val definition = Definition(IoVars[IO](inVars, outVars).unsafeRunSync())
+    val definition = Definition(Some(visualizer.api), IoVars[IO](inVars, outVars).unsafeRunSync())
     new TestPlanner(api = ApiImpl(Actor.spawn(definition, spawn)))
 
   extension (api: Planner)

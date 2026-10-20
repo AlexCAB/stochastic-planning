@@ -20,15 +20,18 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.node.FakeNode
 import planning.engine.planner.mpi.actors.planner.TestPlanner
-import planning.engine.planner.mpi.actors.planner.data.Message.{Tick, TickDone}
+import planning.engine.planner.mpi.actors.planner.data.Message.{TickRun, TickDone}
 import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.planner.data.state.Tick as TickState
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.test.data.NodeTestData
 
 class SimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
   private class CaseData extends Case with WithMapNode:
+    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
     lazy val planner: TestPlanner = TestPlanner(
       "simple-sync-spec",
+      fakeVisualizer,
       inVars = Set(inVar),
       outVars = Set(outVar),
     )
@@ -43,7 +46,7 @@ class SimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
 
     def sendTick(observation: Observation): Unit =
       val sender = testKit.createTestProbe[TickDone]("tick-sender")
-      planner.ref ! Tick(observation, sender.ref)
+      planner.ref ! TickRun(observation, sender.ref)
 
   "Planner.tick" should:
     "send activation to each concrete node found by observed values" in newCase[CaseData]: (tn, data) =>
@@ -77,7 +80,7 @@ class SimpleSyncSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
         val prevNextSteps = planner.getState.tick.nextSteps
         planner.api.conNodesAdded[IO](Set(fakeInNode1.conApi, fakeInNode2.conApi)).logValue(tn).await
 
-        planner.ref ! Tick(obs, sender.ref)
+        planner.ref ! TickRun(obs, sender.ref)
         val tick = planner.getState.tick
 
         tick mustBe TickState.init.copy(

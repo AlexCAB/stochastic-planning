@@ -16,12 +16,15 @@ import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
 import planning.engine.planner.mpi.actors.planner.TestPlanner
+import planning.engine.planner.mpi.actors.visualizer.FakeVisualizer
 import planning.engine.planner.mpi.test.data.NodeTestData
 
 class StructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
   private class CaseData extends Case with WithMapNode:
+    lazy val fakeVisualizer: FakeVisualizer = FakeVisualizer()
     lazy val planner: TestPlanner = TestPlanner(
       "structure-spec",
+      fakeVisualizer,
       inVars = Set(inVar),
       outVars = Set(outVar),
     )

@@ -28,7 +28,7 @@ private[planner] object Actor extends Stateful with SimpleSync with Structure:
   val name = "map-planner-actor"
 
   override protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St] = msg match
-    case msg: Tick          => doTick(msg, state)
+    case msg: TickRun       => doTick(msg, state)
     case msg: ConNodesAdded => doConNodesAdded(msg, state)
     case msg: AddActivePath => doAddActivePath(msg, state)
     case msg: NextSteps     => doNextSteps(msg, state)

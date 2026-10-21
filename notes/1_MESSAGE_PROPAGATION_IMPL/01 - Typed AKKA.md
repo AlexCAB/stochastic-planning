@@ -325,11 +325,15 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 
 ❯ Implement `MpiMapStructureBuildSpec`:
 1. In `e2e.smoke.planner.mpi.data.MapData` define 2 `Variable.Input` and 3 `Variable.Output` with different types. And `Metadata` 
-2. In `e2e.smoke.planner.mpi.data.ManSamplesData` add 5 defriend sample definition (see example of sample structure in `planner.mpi.test.data.SampleTestData`). Each sample should look like: `final case class ManSample(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData])`.
-3. Use `UnitSpecWithResource` as base class.
-4. In `override val resource: Resource` create mocked `planning.engine.planner.mpi.Visualization` and instance of `planning.engine.planner.mpi.MapMpi`
-5. There will be one long rest case split on several step:
-	* Verify 
+2. In `e2e.smoke.planner.mpi.data.ManSamplesData` add 2 defriend sample definition (see example of sample structure in `planner.mpi.test.data.SampleTestData`). Each sample should look like: `final case class ManSample(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData])`, `NodeData` define in `e2e.smoke.planner.mpi.data.NodesData`.
+3. In `override val resource: Resource` create mocked `planning.engine.planner.mpi.Visualization` and instance of `planning.engine.planner.mpi.MapMpi`
+4. There will be one long rest case split on several step:
+	* Call `MapMpi.init()`, verify `Visualization.init` called with proper data.
+	* Call `MapMpi.nodesAdded()`, verify `Visualization.nodesAdded` called with proper data.
+	* Call `MapMpi.upsertNodesByName()` with new name, verify `Visualization.nodesAdded` called with proper data.
+	* Call `MapMpi.upsertNodesByName()` with exist name, verify `Visualization.nodesAdded` not called.
+	* Call `MapMpi.addSamples()` with 2 samples defined earlier, verify `Visualization.nodesAdded` and `Visualization.edgesAdded` called with proper data.
+	* Call `MapMpi.addEdge()`, verify `Visualization.edgesAdded` called with proper data.
     
 
 

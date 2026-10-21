@@ -19,6 +19,7 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.Scheduler
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
@@ -46,7 +47,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
     case Some(map) => block(map)
     case None      => "Map network not initialized".assertionError
 
-  def init(metadata: Metadata, inVars: Set[Variable.Input], outVars: Set[Variable.Output]): F[Unit] =
+  override def init(metadata: Metadata, inVars: Set[Variable.Input], outVars: Set[Variable.Output]): F[Unit] =
 
     def initMap: F[Option[MapState]] =
       for
@@ -61,7 +62,7 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       case Some(map) => s"Map network already initialized, $map".assertionError
       case None      => initMap
 
-  def reset(): F[Unit] =
+  override def reset(): F[Unit] =
     def cleanup(map: MapState): F[Option[MapState]] =
       for
         _ <- guardian.reset()
@@ -72,15 +73,24 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       case None      => logger.info("Map network not initialized, nothing to do").as(None)
       case Some(map) => cleanup(map)
 
-  def getIoVars: F[IoVars] = runAt: state =>
+  override def getIoVars: F[IoVars] = runAt: state =>
     for
         _ <- logger.info(s"Current IO variables: ${state.ioVars}")
     yield state.ioVars
 
-  def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
+  override def addNode(data: NodeData): F[MnId] =
+    runAt(_.manager.addNode(data))
+
+  override def upsertNodesByName(data: NodeData): F[MnId] = 
+    runAt(_.manager.upsertNodesByName(data))
+
+  override def addEdge(key: MeKey, sampleIds: Set[SampleId]): F[MeKey] = 
+    runAt(_.manager.addEdge(key, sampleIds))
+  
+  override def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
 
-  def syncPlannerTick(observation: Observation): F[Action] = runAt(_.planner.tick(observation))
+  override def syncPlannerTick(observation: Observation): F[Action] = runAt(_.planner.tick(observation))
 
 private[mpi] object MapMpiImpl:
   final case class MapState(

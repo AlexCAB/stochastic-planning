@@ -16,9 +16,10 @@ import cats.effect.IO
 import cats.effect.cps.*
 import cats.effect.std.AtomicCell
 import org.mockito.scalatest.AsyncIdiomaticMockito
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.io.{IoIndex, IoName, IoTime, IoValue}
-import planning.engine.common.values.node.MnId
+import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
@@ -43,6 +44,12 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     val inVars: Set[Variable.Input] = Set(inVar)
     val outVars: Set[Variable.Output] = Set(outVar)
     val ioVars: IoVars = new IoVars(Map(inVar.name -> inVar), Map(outVar.name -> outVar))
+
+    val conId: MnId.Con = MnId.Con(1L)
+    val absId: MnId.Abs = MnId.Abs(2L)
+    val absData: NodeData = NodeData.Abs(Some(HnName("test-abs-node")), None)
+    val linkKey: MeKey = MeKey.Link(conId, absId)
+    val sampleIds: Set[SampleId] = Set(SampleId(1L), SampleId(2L))
 
     guardianStub.initialize[IO](*, *) returns IO.pure((managerStub, plannerStub, None))
 
@@ -83,6 +90,57 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
     "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
       import data.*
       mapMpi.getIoVars.logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
+
+  "MapMpiImpl.addNode(...)" should:
+    "call Manager.addNode with the given node data and return new node ID" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      managerStub.addNode[IO](*) returns IO.pure(absId)
+
+      async[IO]:
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
+        val result = mapMpi.addNode(absData).logValue(tn).await
+
+        managerStub.addNode[IO](absData) was called
+        result mustBe absId
+
+    "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.addNode(absData).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
+
+  "MapMpiImpl.upsertNodesByName(...)" should:
+    "call Manager.upsertNodesByName with the given node data and return node ID" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      managerStub.upsertNodesByName[IO](*) returns IO.pure(absId)
+
+      async[IO]:
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
+        val result = mapMpi.upsertNodesByName(absData).logValue(tn).await
+
+        managerStub.upsertNodesByName[IO](absData) was called
+        result mustBe absId
+
+    "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.upsertNodesByName(absData).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
+
+  "MapMpiImpl.addEdge(...)" should:
+    "call Manager.addEdge with the given edge key and sample IDs and return the key" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      managerStub.addEdge[IO](*, *) returns IO.pure(linkKey)
+
+      async[IO]:
+        mapMpi.init(metadata, inVars, outVars).logValue(tn).await
+        val result = mapMpi.addEdge(linkKey, sampleIds).logValue(tn).await
+
+        managerStub.addEdge[IO](linkKey, sampleIds) was called
+        result mustBe linkKey
+
+    "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.addEdge(linkKey, sampleIds).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
 
   "MapMpiImpl.addSamples(...)" should:

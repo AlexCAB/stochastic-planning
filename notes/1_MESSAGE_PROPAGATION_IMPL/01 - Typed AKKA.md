@@ -320,9 +320,24 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 ❯ In `visualizer.logic.modules.PlanSpec` add tests for `"Visualizer.activeStepsFound(...)"`
 
 ❯ In `VisualizationMpiServiceSpec` add test for `"VisualizationMpiService.activeStepsFound(...)"`
+
+❯ In `MapMpiImplSpec` add tests for new methods: `MapMpi.addNode`, `MapMpi.upsertNodesByName`, `MapMpi.addEdge`
+
+❯ Implement `MpiMapStructureBuildSpec`:
+1. In `e2e.smoke.planner.mpi.data.MapData` define 2 `Variable.Input` and 3 `Variable.Output` with different types. And `Metadata` 
+2. In `e2e.smoke.planner.mpi.data.ManSamplesData` add 5 defriend sample definition (see example of sample structure in `planner.mpi.test.data.SampleTestData`). Each sample should look like: `final case class ManSample(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData])`.
+3. Use `UnitSpecWithResource` as base class.
+4. In `override val resource: Resource` create mocked `planning.engine.planner.mpi.Visualization` and instance of `planning.engine.planner.mpi.MapMpi`
+5. There will be one long rest case split on several step:
+	* Verify 
+    
+
+
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.
 2. Implement context move algorithm. 
+3. Add `derives CanEqual` where needed
+4. Replace `extends AnyVal` with `opaque type ` where have sense
 
 
 

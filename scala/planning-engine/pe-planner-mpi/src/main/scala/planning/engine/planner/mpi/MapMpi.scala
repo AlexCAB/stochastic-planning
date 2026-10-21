@@ -15,6 +15,7 @@ package planning.engine.planner.mpi
 import cats.effect.std.AtomicCell
 import cats.effect.{Async, Resource}
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.io.{Action, Observation}
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
@@ -73,6 +74,15 @@ trait MapMpi[F[_]]:
 
   // Return the current input and output variables of the map network.
   def getIoVars: F[IoVars]
+
+  // Add a new node to the map network, returning its unique identifier.
+  def addNode(data: NodeData): F[MnId]
+  
+  // Add a new node to the map network, or just return ID of an existing node if one with the same name already exists.
+  def upsertNodesByName(data: NodeData): F[MnId]
+  
+  // Add a new edge to the map network, associating it with the specified sample identifiers.
+  def addEdge(key: MeKey, sampleIds: Set[SampleId]): F[MeKey]
 
   // Add manually defined samples to the map network, associating them with the specified nodes.
   // More info in `Manager.addManSamples(...)` description.

@@ -12,7 +12,7 @@
 
 //  Versions
 
-
+val ScalaFxVersion = "27.0.0-R39"
 
 // Subprojects settings
 
@@ -22,6 +22,6 @@ version := "0.0.0-SNAPSHOT"
 
 
 libraryDependencies ++= Seq(
-
+  "org.scalafx" %% "scalafx" % ScalaFxVersion,
 )
 

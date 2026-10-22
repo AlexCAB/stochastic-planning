@@ -78,15 +78,12 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
         _ <- logger.info(s"Current IO variables: ${state.ioVars}")
     yield state.ioVars
 
-  override def addNode(data: NodeData): F[MnId] =
-    runAt(_.manager.addNode(data))
+  override def addNode(data: NodeData): F[MnId] = runAt(_.manager.addNode(data))
 
-  override def upsertNodesByName(data: NodeData): F[MnId] = 
-    runAt(_.manager.upsertNodesByName(data))
+  override def upsertNodesByName(data: NodeData): F[MnId] = runAt(_.manager.upsertNodesByName(data))
 
-  override def addEdge(key: MeKey, sampleIds: Set[SampleId]): F[MeKey] = 
-    runAt(_.manager.addEdge(key, sampleIds))
-  
+  override def addEdge(key: MeKey, sampleIds: Set[SampleId]): F[MeKey] = runAt(_.manager.addEdge(key, sampleIds))
+
   override def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
 

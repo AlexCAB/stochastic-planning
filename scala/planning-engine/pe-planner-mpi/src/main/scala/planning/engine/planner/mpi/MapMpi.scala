@@ -77,10 +77,10 @@ trait MapMpi[F[_]]:
 
   // Add a new node to the map network, returning its unique identifier.
   def addNode(data: NodeData): F[MnId]
-  
+
   // Add a new node to the map network, or just return ID of an existing node if one with the same name already exists.
   def upsertNodesByName(data: NodeData): F[MnId]
-  
+
   // Add a new edge to the map network, associating it with the specified sample identifiers.
   def addEdge(key: MeKey, sampleIds: Set[SampleId]): F[MeKey]
 

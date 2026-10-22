@@ -335,7 +335,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 	* Call `MapMpi.addSamples()` with 2 samples defined earlier, verify `Visualization.nodesAdded` and `Visualization.edgesAdded` called with proper data.
 	* Call `MapMpi.addEdge()`, verify `Visualization.edgesAdded` called with proper data.
     
-
+❯ In `planning.engine.tools.mpi.vizedit` generate hello world ScalaFX application
 
 ##### TODO: 
 1. Implement `ActiveForest` construction algorithm.

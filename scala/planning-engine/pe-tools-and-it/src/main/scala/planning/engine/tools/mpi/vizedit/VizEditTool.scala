@@ -14,15 +14,22 @@ package planning.engine.tools.mpi.vizedit
 
 import cats.effect.*
 import cats.effect.std.Dispatcher
+import planning.engine.planner.mpi.MapMpi
 import planning.engine.tools.GuiApp
 import planning.engine.tools.GuiApp.Exit
+import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAdaptor}
 import planning.engine.tools.mpi.vizedit.config.{ConfigReader, ConfigWriter}
 import planning.engine.tools.mpi.vizedit.gui.Gui
+import planning.engine.tools.mpi.vizedit.gui.visualization.Graphs
 
 object VizEditTool extends GuiApp:
   protected override def build(exit: Exit[IO])(using Dispatcher[IO]): Resource[IO, Unit] =
     for
       guiConf <- ConfigReader.readOrDefault()
-      gui <- Gui(guiConf, exit)
+      graphs <- Graphs[IO]()
+      visualization <- VisualizerAdaptor(graphs)
+      map <- MapMpi(Some(visualization))
+      control <- ControlAdaptor(map)
+      gui <- Gui(guiConf, graphs, control, exit)
       _ <- ConfigWriter[IO](gui)
     yield ()

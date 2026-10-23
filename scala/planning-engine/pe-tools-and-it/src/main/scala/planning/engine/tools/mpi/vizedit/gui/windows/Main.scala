@@ -26,9 +26,13 @@ final case class Main[F[_]: {Async, Dispatcher}](
 )
 
 object Main:
-  def apply[F[_]: {Async, Dispatcher}](samples: Samples[F], planning: Planning[F], exit: Exit[F]): F[Main[F]] =
+  def apply[F[_]: {Async, Dispatcher}](
+      graph: NetworkGraph[F],
+      samples: Samples[F],
+      planning: Planning[F],
+      exit: Exit[F],
+  ): F[Main[F]] =
     for
-      graph <- NetworkGraph()
       control <- MainControl[F](graph, samples, planning)
       window <- Window[F]("Map Network Visual Edit Tool", graph, control, exit.complete(()).void)
     yield new Main(graph, control, window)

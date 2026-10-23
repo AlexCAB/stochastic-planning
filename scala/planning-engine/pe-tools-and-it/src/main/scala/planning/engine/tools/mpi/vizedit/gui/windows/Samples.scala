@@ -25,9 +25,8 @@ final case class Samples[F[_]: {Async, Dispatcher}](
 )
 
 object Samples:
-  def apply[F[_]: {Async, Dispatcher}](): F[Samples[F]] =
+  def apply[F[_]: {Async, Dispatcher}](graph: NetworkGraph[F]): F[Samples[F]] =
     for
-      graph <- NetworkGraph()
       control <- SamplesControl()
       window <- Window[F]("Samples", graph, control)
     yield new Samples(graph, control, window)

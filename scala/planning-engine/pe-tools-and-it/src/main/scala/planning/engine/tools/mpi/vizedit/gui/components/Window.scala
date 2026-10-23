@@ -45,7 +45,7 @@ class Window[F[_]: {Async, Dispatcher}](
       _ <- fx(stage.show())
       _ <- graph.initGraph
     yield ()
-  
+
   private def fixedHeight(content: Node): Node = new BorderPane:
     center = content
     minHeight = Window.ControlAreaHeight

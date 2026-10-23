@@ -10,8 +10,6 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-23 |||||||||||*/
 
-
-
 package planning.engine.tools.mpi.vizedit.config.model
 
 final case class GuiConf()

@@ -16,7 +16,11 @@ import cats.effect.std.Dispatcher
 import cats.effect.{Async, Ref}
 import cats.syntax.all.*
 import com.brunomnsilva.smartgraph.graph.{Digraph, DigraphEdgeList}
-import com.brunomnsilva.smartgraph.graphview.{SmartCircularSortedPlacementStrategy, SmartGraphPanel, SmartGraphProperties}
+import com.brunomnsilva.smartgraph.graphview.{
+  SmartCircularSortedPlacementStrategy,
+  SmartGraphPanel,
+  SmartGraphProperties,
+}
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 
 import java.net.URI

@@ -25,9 +25,8 @@ final case class Planning[F[_]: {Async, Dispatcher}](
 )
 
 object Planning:
-  def apply[F[_]: {Async, Dispatcher}](): F[Planning[F]] =
+  def apply[F[_]: {Async, Dispatcher}](graph: NetworkGraph[F]): F[Planning[F]] =
     for
-      graph <- NetworkGraph()
       control <- PlanningControl()
       window <- Window[F]("Planning", graph, control)
     yield new Planning(graph, control, window)

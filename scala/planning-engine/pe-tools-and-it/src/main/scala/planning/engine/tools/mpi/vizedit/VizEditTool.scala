@@ -13,11 +13,16 @@
 package planning.engine.tools.mpi.vizedit
 
 import cats.effect.*
-import cats.syntax.all.*
 import cats.effect.std.Dispatcher
 import planning.engine.tools.GuiApp
-import planning.engine.tools.mpi.vizedit.gui.windows.Main
+import planning.engine.tools.GuiApp.Exit
+import planning.engine.tools.mpi.vizedit.config.{ConfigReader, ConfigWriter}
+import planning.engine.tools.mpi.vizedit.gui.Gui
 
 object VizEditTool extends GuiApp:
-  protected override def build(closed: Deferred[IO, Unit])(using Dispatcher[IO]): Resource[IO, Unit] =
-    Main[IO](closed).void
+  protected override def build(exit: Exit[IO])(using Dispatcher[IO]): Resource[IO, Unit] =
+    for
+      guiConf <- ConfigReader.readOrDefault()
+      gui <- Gui(guiConf, exit)
+      _ <- ConfigWriter[IO](gui)
+    yield ()

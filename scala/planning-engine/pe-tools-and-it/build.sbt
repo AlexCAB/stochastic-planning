@@ -12,7 +12,8 @@
 
 //  Versions
 
-val ScalaFxVersion = "27.0.0-R39"
+val scalaFxVersion = "27.0.0-R39"
+val smartGraphVersion = "2.3.0"
 
 // Subprojects settings
 
@@ -22,6 +23,7 @@ version := "0.0.0-SNAPSHOT"
 
 
 libraryDependencies ++= Seq(
-  "org.scalafx" %% "scalafx" % ScalaFxVersion,
+  "org.scalafx" %% "scalafx" % scalaFxVersion,
+  "com.brunomnsilva" % "smartgraph" % smartGraphVersion,
 )
 

@@ -337,8 +337,36 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
     
 ❯ In `planning.engine.tools.mpi.vizedit` generate hello world ScalaFX application
 
+❯ `Map Network Visual Edit Tool` GUI app (class `VizEditTool`):
+* Have 3 window `Main`(class `planning.engine.tools.mpi.vizedit.gui.windows.Main`), `Samples`(class `planning.engine.tools.mpi.vizedit.gui.windows.Samples`), `Planning`(class `planning.engine.tools.mpi.vizedit.gui.windows.Planning`). 
+* `Main` is always displayed. 
+* `Samples`, `Planning` windows displayed whin corresponding buttons on `Main` window.
+* Each window split on 2 areas horizontally. 
+* Upper area display graph network (with SmartGraph library) resizable in both directions. 
+* Bottom area is control area, it resizable only in horizontal direction. 
+* Control area of Main window should have buttons: `Reset Map`, `Load Map`, `Show/Hide Samples`, `Show/Hide Planning`
+* Also control area of Main should have table view `I/O variables` with columns `Name`, `Type`, `Range`
+Implement this initial app.
+
+❯ Rewrite `GraphWindow`, wrap it API in cats-effect primitives:
+1. Make `graph`, `graphPanel`, `stage` are private, add access methods if need.
+2. Each public method return `F[some type]`
+3. Use `AsyncFx` methods to isolate javafx tread. 
+4. Replace `private var graphInitialized: Boolean = false` with cats-effect primitive 
+ 
+❯ Instead of having graph defined in `GraphWindow` move it in separate component similar to `IoVariablesTable`. Then inject this component via constructor argument into each of the windows. 
+
+❯ Do the similar for control areas: define 3 classes `MainControl`,  `SamplesControl`,  `PlanningControl` move there definitions from corresponding classes. Then inject control areas via constructor argument.
+
+❯ Now remove `Main`, `Planning`, `Samples` classes. Instead rename `GraphWindow` to `Window` make it not abstract and use 3 times. 
+
+❯ Rename and "Show/Hide Samples" and "Show/Hide Planning" to just "Show Samples" and "Show Planning" and change logic so they will just show windows. 
+
+
+
+
 ##### TODO: 
-1. Implement `ActiveForest` construction algorithm.
+1. Implement VizEditTool tool
 2. Implement context move algorithm. 
 3. Add `derives CanEqual` where needed
 4. Replace `extends AnyVal` with `opaque type ` where have sense

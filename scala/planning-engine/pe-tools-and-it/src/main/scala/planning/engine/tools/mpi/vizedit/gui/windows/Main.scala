@@ -16,6 +16,7 @@ import cats.effect.Async
 import cats.syntax.all.*
 import cats.effect.std.Dispatcher
 import planning.engine.tools.GuiApp.Exit
+import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
 import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.MainControl
 
@@ -29,11 +30,12 @@ object Main:
   def apply[F[_]: {Async, Dispatcher}](
       config: Window.Config,
       graph: NetworkGraph[F],
+      control: ControlAdaptor[F],
       samples: Samples[F],
       planning: Planning[F],
       exit: Exit[F],
   ): F[Main[F]] =
     for
-      control <- MainControl[F](graph, samples, planning)
+      control <- MainControl[F](graph, control, samples, planning)
       window <- Window[F]("Map Network Visual Edit Tool", config, graph, control, exit.complete(()).void)
     yield new Main(graph, control, window)

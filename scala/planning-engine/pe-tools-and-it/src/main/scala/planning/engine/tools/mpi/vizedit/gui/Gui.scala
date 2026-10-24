@@ -48,6 +48,6 @@ object Gui:
     for
       samples <- Samples[F](config.samples, graphs.samples)
       planning <- Planning[F](config.planning, graphs.planning)
-      main <- Main[F](config.main, graphs.map, samples, planning, exit)
+      main <- Main[F](config.main, graphs.map, control, samples, planning, exit)
       _ <- main.window.show
     yield Gui(samples, planning, main)

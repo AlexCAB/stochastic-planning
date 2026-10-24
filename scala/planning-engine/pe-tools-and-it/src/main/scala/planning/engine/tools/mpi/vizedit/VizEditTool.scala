@@ -31,7 +31,7 @@ object VizEditTool extends GuiApp:
       graphs <- Graphs[IO]()
       visualization <- VisualizerAdaptor(graphs)
       map <- MapMpi(Some(visualization))
-      control <- ControlAdaptor(map)
+      control <- ControlAdaptor(args, map)
       gui <- Gui(guiConf, graphs, control, exit)
       _ <- ConfigWriter[IO](gui)
     yield ()

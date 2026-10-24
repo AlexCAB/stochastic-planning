@@ -373,6 +373,15 @@ Implement this initial app.
 ❯ Consider `D:\Projects\AI\Algorithms\StochasticPlanning\python\yed\parsing\yed_class.py` python class. Rewrite it in Scala in `scala/planning/engine/yed` of this project. 
 
 ❯ Implement `Arguments.parse` with using **[scopt](https://github.com/scopt/scopt)** lib: For now it have one optional argument `yedpath`
+
+ 
+
+
+
+
+
+
+
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

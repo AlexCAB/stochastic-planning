@@ -15,6 +15,7 @@ package planning.engine.tools.mpi.vizedit.gui.controls
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all.*
+import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.{IoVariablesTable, NetworkGraph}
 import planning.engine.tools.mpi.vizedit.gui.windows.{Planning, Samples}
@@ -25,6 +26,7 @@ import scalafx.scene.layout.{HBox, Priority, VBox}
 // Control area of the Main window. Must be constructed on the FX thread (see `MainControl.apply`).
 class MainControl[F[_]: {Async, Dispatcher}](
     graph: NetworkGraph[F],
+    control: ControlAdaptor[F],
     samples: Samples[F],
     planning: Planning[F],
 ) extends HBox:
@@ -65,6 +67,7 @@ class MainControl[F[_]: {Async, Dispatcher}](
 object MainControl:
   def apply[F[_]: {Async, Dispatcher}](
       graph: NetworkGraph[F],
+      control: ControlAdaptor[F],
       samples: Samples[F],
       planning: Planning[F],
-  ): F[MainControl[F]] = fx(new MainControl(graph, samples, planning))
+  ): F[MainControl[F]] = fx(new MainControl(graph, control, samples, planning))

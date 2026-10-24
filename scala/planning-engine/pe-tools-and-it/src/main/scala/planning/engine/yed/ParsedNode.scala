@@ -80,7 +80,9 @@ object ParsedNode:
     def minMax[N: Ordering](parse: String => N)(build: (N, N) => IoNodeApiDef): F[IoNodeApiDef] =
       for
         range <- parseAll(parse)
-        _ <- (range.size == 2).assertTrue(s"Invalid value range: $values, expected 2 values (min, max), label = $labelText")
+        _ <- (range.size == 2).assertTrue(
+          s"Invalid value range: $values, expected 2 values (min, max), label = $labelText",
+        )
         _ <- Ordering[N].lt(range.head, range(1)).assertTrue(s"Min should be less than max, label = $labelText")
       yield build(range.head, range(1))
 
@@ -127,6 +129,6 @@ object ParsedNode:
         case "I" | "O" => io(id, nodeType == "I", label)
         case "C"       => concrete(id, label)
         case "A"       => label.field(1, "Node name").map(name => Abstract(id, HnName(name), label.description(2)))
-        case unknown   => s"Unknown node type: $unknown, expected one of: G, S, I, O, C, A, label = $labelText"
+        case unknown => s"Unknown node type: $unknown, expected one of: G, S, I, O, C, A, label = $labelText"
             .assertionError
     yield node

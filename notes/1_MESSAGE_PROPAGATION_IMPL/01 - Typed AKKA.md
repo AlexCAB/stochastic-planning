@@ -374,9 +374,9 @@ Implement this initial app.
 
 ❯ Implement `Arguments.parse` with using **[scopt](https://github.com/scopt/scopt)** lib: For now it have one optional argument `yedpath`
 
- 
+❯ On click on "Load Map" button, standard open file dialog should be opened, with expected file type `*.graphml`. 
 
-
+❯ On click on "Load Map" button, before show open file dialog, check `ControlAdaptor.isMapLoaded` and if so, show message "Map network already loaded, reset the current to load new one" and not show open file dialog.
 
 
 

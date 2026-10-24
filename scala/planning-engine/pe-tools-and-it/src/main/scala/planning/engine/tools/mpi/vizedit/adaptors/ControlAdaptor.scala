@@ -19,9 +19,19 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.planner.mpi.MapMpi
 import planning.engine.tools.mpi.vizedit.arguments.Arguments
 
+import java.nio.file.Path
+
 // Adopt commands send from GUI to map network `MapMpi`
 class ControlAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, map: MapMpi[F]):
   private val logger = LoggerFactory[F].getLogger
+
+  def resetMap: F[Unit] =
+    logger.info("Resetting map") // TODO: Reset map
+
+  def isMapLoaded: F[Boolean] = false.pure // TODO: Implement check if map is loaded
+
+  def loadMap(yedPath: Path): F[Unit] =
+    logger.info(s"Loading map from yEd graph: $yedPath") // TODO: Load map from yEd graph
 
 object ControlAdaptor:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, map: MapMpi[F]): Resource[F, ControlAdaptor[F]] =

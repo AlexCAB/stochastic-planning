@@ -34,7 +34,7 @@ object Arguments:
       opt[String]("yedpath")
         .optional()
         .valueName("<path>")
-        .text("path to the yEd graph (*.graphml) file to load")
+        .text("path to the yEd graph (*.graphml) file to load, if set graph will be loaded automatically on startup")
         .action((path, args) => args.copy(yedPath = Some(Paths.get(path)))),
       help("help").text("prints this usage text"),
     )

@@ -15,19 +15,20 @@ package planning.engine.tools.mpi.vizedit.gui.windows
 import cats.effect.Async
 import cats.syntax.all.*
 import cats.effect.std.Dispatcher
+import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.GuiApp.Exit
 import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
 import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.MainControl
 
-final case class Main[F[_]: {Async, Dispatcher}](
+final case class Main[F[_]: {Async, Dispatcher, LoggerFactory}](
     graph: NetworkGraph[F],
     control: MainControl[F],
     window: Window[F],
 )
 
 object Main:
-  def apply[F[_]: {Async, Dispatcher}](
+  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
       config: Window.Config,
       graph: NetworkGraph[F],
       control: ControlAdaptor[F],

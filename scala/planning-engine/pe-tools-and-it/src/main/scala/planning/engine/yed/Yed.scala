@@ -75,9 +75,12 @@ final class Yed[F[_]: {MonadThrow, LoggerFactory}] private (
     case None => acc.updated(node.name, node).pure
     case Some(existing) =>
       val (isSame, merged) = (existing, node) match
-        case (e: AbstractNodeDef, n: AbstractNodeDef) => (true, e.copy(description = e.description.orElse(n.description)))
-        case (e: ConcreteNodeDef, n: ConcreteNodeDef) =>
-          (e.ioNodeName == n.ioNodeName && e.value == n.value, e.copy(description = e.description.orElse(n.description)))
+        case (e: AbstractNodeDef, n: AbstractNodeDef) =>
+          (true, e.copy(description = e.description.orElse(n.description)))
+        case (e: ConcreteNodeDef, n: ConcreteNodeDef) => (
+            e.ioNodeName == n.ioNodeName && e.value == n.value,
+            e.copy(description = e.description.orElse(n.description)),
+          )
         case _ => (false, existing)
 
       isSame
@@ -87,7 +90,7 @@ final class Yed[F[_]: {MonadThrow, LoggerFactory}] private (
   private def hnNameOf(node: ParsedNode): F[(String, HnName)] = node match
     case n: ParsedNode.Abstract => (n.id -> n.name).pure
     case n: ParsedNode.Concrete => (n.id -> n.name).pure
-    case n                      => s"All nodes in the sample should be abstract or concrete nodes, found: $n".assertionError
+    case n => s"All nodes in the sample should be abstract or concrete nodes, found: $n".assertionError
 
   private def edgeTypeOf(edge: ParsedEdge): F[EdgeType] = edge.edgeType match
     case ParsedEdgeType.Link    => EdgeType.LINK.pure

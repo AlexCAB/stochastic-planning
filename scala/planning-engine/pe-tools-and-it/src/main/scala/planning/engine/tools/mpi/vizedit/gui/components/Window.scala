@@ -27,14 +27,20 @@ import scalafx.stage.Stage
 // Must be constructed on the FX thread (see `Window.apply`).
 class Window[F[_]: {Async, Dispatcher}](
     windowTitle: String,
+    config: Window.Config,
     graph: NetworkGraph[F],
     control: Node,
     onWindowHidden: F[Unit],
 ):
 
+  // Position and size are of the whole stage (including window decorations), so `getConfig` returns the same values.
   private val stage: Stage = new Stage:
     title = windowTitle
-    scene = new Scene(Window.WindowWidth, Window.WindowHeight):
+    x = config.x
+    y = config.y
+    width = config.width
+    height = config.height
+    scene = new Scene:
       root = new BorderPane:
         center = graph
         bottom = fixedHeight(control)
@@ -45,6 +51,15 @@ class Window[F[_]: {Async, Dispatcher}](
       _ <- fx(stage.show())
       _ <- graph.initGraph
     yield ()
+    
+  // Stage keeps its last position and size after being hidden, so this also works on application exit.
+  def getConfig: F[Window.Config] = fx:
+    Window.Config(
+      x = stage.x.value,
+      y = stage.y.value,
+      width = stage.width.value,
+      height = stage.height.value,
+    )
 
   private def fixedHeight(content: Node): Node = new BorderPane:
     center = content
@@ -54,16 +69,16 @@ class Window[F[_]: {Async, Dispatcher}](
     maxWidth = Double.MaxValue
 
 object Window:
-  val WindowWidth: Double = 1024
-  val WindowHeight: Double = 768
+  final case class Config(x: Double, y: Double, width: Double, height: Double)
+  
+  val DefaultWidth: Double = 1024
+  val DefaultHeight: Double = 768
   val ControlAreaHeight: Double = 220
 
   def apply[F[_]: {Async, Dispatcher}](
       windowTitle: String,
+      config: Window.Config,
       graph: NetworkGraph[F],
       control: Node,
       onWindowHidden: F[Unit],
-  ): F[Window[F]] = fx(new Window(windowTitle, graph, control, onWindowHidden))
-
-  def apply[F[_]: {Async, Dispatcher}](windowTitle: String, graph: NetworkGraph[F], control: Node): F[Window[F]] =
-    apply(windowTitle, graph, control, Async[F].unit)
+  ): F[Window[F]] = fx(new Window(windowTitle, config, graph, control, onWindowHidden))

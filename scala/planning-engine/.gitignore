@@ -40,3 +40,6 @@ pe-common/src/main/resources/db.conf
 
 # Claude
 .claude/
+
+# Temporary files
+viz-edit-gui.json

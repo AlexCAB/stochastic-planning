@@ -362,6 +362,13 @@ Implement this initial app.
 
 ❯ Rename and "Show/Hide Samples" and "Show/Hide Planning" to just "Show Samples" and "Show Planning" and change logic so they will just show windows. 
 
+❯ In `mpi.vizedit.gui.components.Window`, implement:
+1. Set window parameters from `Window.Config`
+2. On call `def getConfig` get current window parameters and return as `Window.Config`
+
+❯ Implement:
+1. `ConfigReader.readOrDefault` - it should try to read config, if JSON file not found then generate default. If JSON file found, parse it to `GuiConf` and return.  
+2. `ConfigWriter.write()` - it should get current config by `gui.getConfig`, convert it to JSON and save it to application folder, so it can be read by `readOrDefault`
 
 
 

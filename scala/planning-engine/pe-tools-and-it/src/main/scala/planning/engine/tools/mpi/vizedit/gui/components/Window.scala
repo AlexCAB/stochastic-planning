@@ -51,8 +51,7 @@ class Window[F[_]: {Async, Dispatcher}](
       _ <- fx(stage.show())
       _ <- graph.initGraph
     yield ()
-    
-  // Stage keeps its last position and size after being hidden, so this also works on application exit.
+  
   def getConfig: F[Window.Config] = fx:
     Window.Config(
       x = stage.x.value,
@@ -63,17 +62,17 @@ class Window[F[_]: {Async, Dispatcher}](
 
   private def fixedHeight(content: Node): Node = new BorderPane:
     center = content
-    minHeight = Window.ControlAreaHeight
-    prefHeight = Window.ControlAreaHeight
-    maxHeight = Window.ControlAreaHeight
+    minHeight = Window.controlAreaHeight
+    prefHeight = Window.controlAreaHeight
+    maxHeight = Window.controlAreaHeight
     maxWidth = Double.MaxValue
 
 object Window:
   final case class Config(x: Double, y: Double, width: Double, height: Double)
-  
-  val DefaultWidth: Double = 1024
-  val DefaultHeight: Double = 768
-  val ControlAreaHeight: Double = 220
+
+  def defaultConf(offset: Double): Config = Config(offset, offset, width = 1024, height = 768)
+
+  val controlAreaHeight: Double = 220
 
   def apply[F[_]: {Async, Dispatcher}](
       windowTitle: String,

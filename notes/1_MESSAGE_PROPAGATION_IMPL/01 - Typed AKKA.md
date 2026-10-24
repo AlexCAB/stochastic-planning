@@ -370,7 +370,7 @@ Implement this initial app.
 1. `ConfigReader.readOrDefault` - it should try to read config, if JSON file not found then generate default. If JSON file found, parse it to `GuiConf` and return.  
 2. `ConfigWriter.write()` - it should get current config by `gui.getConfig`, convert it to JSON and save it to application folder, so it can be read by `readOrDefault`
 
-
+❯ Consider `D:\Projects\AI\Algorithms\StochasticPlanning\python\yed\parsing\yed_class.py` python class. Rewrite it in Scala in `scala/planning/engine/yed` of this project. 
 
 ##### TODO: 
 1. Implement VizEditTool tool

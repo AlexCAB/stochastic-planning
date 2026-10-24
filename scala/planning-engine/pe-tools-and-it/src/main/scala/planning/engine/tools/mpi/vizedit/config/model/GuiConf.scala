@@ -24,7 +24,7 @@ final case class GuiConf(
 )
 
 object GuiConf:
-  import io.circe.generic.semiauto.*
+  import io.circe.generic.semiauto.*, Window.defaultConf
 
   implicit val windowConfigDecoder: Decoder[Window.Config] = deriveDecoder[Window.Config]
   implicit val windowConfigEncoder: Encoder[Window.Config] = deriveEncoder[Window.Config]
@@ -33,11 +33,9 @@ object GuiConf:
   implicit val encoder: Encoder[GuiConf] = deriveEncoder[GuiConf]
 
   // Config file in the application (working) directory.
-  val FileName: String = "viz-edit-gui.json"
-  def filePath: Path = Paths.get(System.getProperty("user.dir"), FileName)
+  val fileName: String = "viz-edit-gui.json"
+  
+  def filePath: Path = Paths.get(System.getProperty("user.dir"), fileName)
 
   // Used when no config file exists yet: windows of the default size, cascaded from the top-left corner.
-  val default: GuiConf =
-    def window(offset: Double): Window.Config = Window.Config(offset, offset, Window.DefaultWidth, Window.DefaultHeight)
-
-    GuiConf(main = window(50), samples = window(100), planning = window(150))
+  val default: GuiConf = GuiConf(main = defaultConf(50), samples = defaultConf(100), planning = defaultConf(150))

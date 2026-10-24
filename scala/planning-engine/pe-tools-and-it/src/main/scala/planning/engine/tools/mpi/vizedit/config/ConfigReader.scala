@@ -46,4 +46,3 @@ object ConfigReader:
 
     Resource.eval(readConf.handleErrorWith: err =>
       logger.warn(err)(s"Failed to read GUI config, using default config").as(GuiConf.default))
-

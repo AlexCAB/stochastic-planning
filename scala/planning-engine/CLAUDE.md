@@ -85,6 +85,7 @@ The object's `receive`/`error` just pattern-match on `Msg` and delegate to the `
   }
   ```
 - Constants are named in lowerCamelCase, not UpperCamelCase: `val constant: Int = 1`, not `val Constant: Int = 1`.
+- Follow the define-before-use order where possible: a member (val, def, nested class) is placed above the members that use it, rather than grouping members by visibility (don't put all public members first and private ones after). The same applies to top-level definitions in a file: a class/trait/enum/object is defined before the definitions that use it.
 - Don't use `case (a, b) =>` to destructure a tuple parameter when a plain `(a, b) =>` works — reserve `case` for actual pattern matching (guards, sealed-trait matches).
 - When a method body is a chain of calls on one value, keep the receiver on the `def`/`=` line and indent each subsequent call on its own line starting with `.`:
   ```scala

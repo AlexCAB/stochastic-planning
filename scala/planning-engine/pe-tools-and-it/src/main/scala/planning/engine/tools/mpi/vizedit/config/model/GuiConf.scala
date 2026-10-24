@@ -34,7 +34,7 @@ object GuiConf:
 
   // Config file in the application (working) directory.
   val fileName: String = "viz-edit-gui.json"
-  
+
   def filePath: Path = Paths.get(System.getProperty("user.dir"), fileName)
 
   // Used when no config file exists yet: windows of the default size, cascaded from the top-left corner.

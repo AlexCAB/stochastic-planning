@@ -51,7 +51,7 @@ class Window[F[_]: {Async, Dispatcher}](
       _ <- fx(stage.show())
       _ <- graph.initGraph
     yield ()
-  
+
   def getConfig: F[Window.Config] = fx:
     Window.Config(
       x = stage.x.value,

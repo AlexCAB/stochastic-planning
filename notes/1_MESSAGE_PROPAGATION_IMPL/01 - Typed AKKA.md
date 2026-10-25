@@ -394,9 +394,17 @@ y#######
 3. There will be only 2 IO vars: cell `number: 'C'` and `action: 'A'`
 4. There should be 2 samples: firs is walk to (5,1), second is  walk to (5,5)
 
+❯ In `VisualizerAdaptor.init`, it should:
+1. Update main window title with metadata.name
+2. Update `MainControl.ioVariablesTable` with list of variables from `IoVars`
 
+❯ Rewrite `IoVariablesTable` similarly to `NetworkGraph`. Construct it in `object Main` and inject in to `MainControl` as constructor argument.
 
+❯ In `IoVariablesTable` replace `def setRows(rows: Seq[IoVariableRow]): F[Unit]` with `def update(vars: IoVars): F[Unit]` and move all conversions to `IoVariablesTable` from `VisualizerAdaptor`
 
+❯ Remove `runF` from `withGui` method. Avoid of leakage of GUI thread out of GUI classes.    
+
+❯ Finish saving of work directory of MainControl to JSON config
 
 
 ##### TODO: 

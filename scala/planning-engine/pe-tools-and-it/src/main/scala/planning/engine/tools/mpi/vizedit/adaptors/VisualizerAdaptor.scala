@@ -30,10 +30,31 @@ import planning.engine.tools.mpi.vizedit.gui.Gui
 // Adopt visualization data for map network `MapMpi` to GUI
 class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCell[F, Option[Gui[F]]])
     extends Visualization:
-  
+
+  private val logger = LoggerFactory[F].getLogger
+
+  private def withGui[G[_]: MT](event: String)(fa: Gui[F] => F[Unit]): G[Unit] = MT[G, Unit]:
+    summon[Dispatcher[F]].unsafeRunAndForget:
+      gui.get.flatMap:
+        case Some(gui) => fa(gui)
+        case None      => logger.warn(s"GUI is not set yet, skip visualization of: $event")
+
   def setGui(gui: Gui[F]): F[Unit] = this.gui.set(Some(gui))
 
-  def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = MT.void[G]
+  def reset(): F[Unit] = withGui("reset"): gui =>
+    for
+      _ <- gui.main.window.setTitle(None)
+      _ <- gui.main.ioVarsTable.clear
+      _ <- List(gui.main.graph.clear, gui.samples.graph.clear, gui.planning.graph.clear).sequence_
+      _ <- logger.info(s"Visualizer GUI reset")
+    yield ()
+
+  def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui("init"): gui =>
+    for
+      _ <- gui.main.window.setTitle(Some(metadata.name.value))
+      _ <- gui.main.ioVarsTable.update(variables)
+      _ <- logger.info(s"GUI initialized for map: $metadata, variables: $variables")
+    yield ()
 
   def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MT.void[G]
 

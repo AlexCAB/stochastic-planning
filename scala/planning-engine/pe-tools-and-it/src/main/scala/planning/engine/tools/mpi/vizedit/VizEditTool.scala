@@ -32,4 +32,5 @@ object VizEditTool extends GuiApp:
       control <- ControlAdaptor(args, map)
       gui <- Gui(guiConf, control, visualization, exit)
       _ <- ConfigWriter[IO](gui)
+      _ <- Resource.eval(control.init)
     yield ()

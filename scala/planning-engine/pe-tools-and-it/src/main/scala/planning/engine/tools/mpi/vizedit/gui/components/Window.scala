@@ -26,7 +26,7 @@ import scalafx.stage.Stage
 // control area at the bottom (fixed height, resizable only horizontally).
 // Must be constructed on the FX thread (see `Window.apply`).
 class Window[F[_]: {Async, Dispatcher}](
-    windowTitle: String,
+    baseTitle: String,
     config: Window.Config,
     graph: NetworkGraph[F],
     control: Node,
@@ -35,7 +35,7 @@ class Window[F[_]: {Async, Dispatcher}](
 
   // Position and size are of the whole stage (including window decorations), so `getConfig` returns the same values.
   private val stage: Stage = new Stage:
-    title = windowTitle
+    title = baseTitle
     x = config.x
     y = config.y
     width = config.width
@@ -45,6 +45,8 @@ class Window[F[_]: {Async, Dispatcher}](
         center = graph
         bottom = fixedHeight(control)
     onHidden = _ => runF(onWindowHidden)
+
+  def setTitle(title: Option[String]): F[Unit] = fx(stage.title = baseTitle + title.map(t => s" - $t").getOrElse(""))
 
   def show: F[Unit] =
     for

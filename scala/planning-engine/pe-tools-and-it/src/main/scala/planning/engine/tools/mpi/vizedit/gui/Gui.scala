@@ -28,7 +28,7 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
 ):
   def getConfig: F[GuiConf] =
     for
-      main <- main.window.getConfig
+      main <- main.getConfig
       samples <- samples.window.getConfig
       planning <- planning.window.getConfig
     yield GuiConf(
@@ -47,7 +47,7 @@ object Gui:
     for
       samples <- Samples[F](config.samples)
       planning <- Planning[F](config.planning)
-      main <- Main[F](config.main, control, samples, planning, exit)
+      main <- Main[F](config.main, control, visualization, samples, planning, exit)
       gui = Gui(samples, planning, main)
       _ <- visualization.setGui(gui)
       _ <- main.window.show

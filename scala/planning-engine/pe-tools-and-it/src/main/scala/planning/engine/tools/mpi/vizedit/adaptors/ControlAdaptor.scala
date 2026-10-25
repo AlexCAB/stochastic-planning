@@ -38,10 +38,10 @@ class ControlAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, 
       _ <- args.yedPath.map(p => loadMap(p)).getOrElse(().pure)
     yield ()
 
-  def resetMap: F[Unit] =
+  def reset(): F[Unit] =
     for
-      _ <- logger.info("Resetting map")
       _ <- map.reset()
+      _ <- logger.info("MapMpi reset")
     yield ()
 
   def isMapLoaded: F[Boolean] =
@@ -80,11 +80,5 @@ class ControlAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, 
     yield ()
 
 object ControlAdaptor:
-  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
-      args: Arguments,
-      map: MapMpi[F],
-  ): Resource[F, ControlAdaptor[F]] = Resource.eval:
-    for
-      adaptor <- new ControlAdaptor(args, map).pure
-      _ <- adaptor.init
-    yield adaptor
+  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, map: MapMpi[F]): Resource[F, ControlAdaptor[F]] =
+    Resource.eval(new ControlAdaptor(args, map).pure)

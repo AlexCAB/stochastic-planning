@@ -21,17 +21,15 @@ import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAda
 import planning.engine.tools.mpi.vizedit.arguments.Arguments
 import planning.engine.tools.mpi.vizedit.config.{ConfigReader, ConfigWriter}
 import planning.engine.tools.mpi.vizedit.gui.Gui
-import planning.engine.tools.mpi.vizedit.gui.visualization.Graphs
 
 object VizEditTool extends GuiApp:
   protected override def build(argStr: List[String], exit: Exit[IO])(using Dispatcher[IO]): Resource[IO, Unit] =
     for
       args <- Arguments.parse(argStr)
       guiConf <- ConfigReader.readOrDefault()
-      graphs <- Graphs[IO]()
-      visualization <- VisualizerAdaptor(graphs)
+      visualization <- VisualizerAdaptor()
       map <- MapMpi(Some(visualization))
       control <- ControlAdaptor(args, map)
-      gui <- Gui(guiConf, graphs, control, exit)
+      gui <- Gui(guiConf, control, visualization, exit)
       _ <- ConfigWriter[IO](gui)
     yield ()

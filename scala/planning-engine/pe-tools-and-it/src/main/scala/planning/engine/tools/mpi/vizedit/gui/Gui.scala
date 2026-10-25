@@ -17,9 +17,8 @@ import cats.syntax.all.*
 import cats.effect.std.Dispatcher
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.GuiApp.Exit
-import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
+import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAdaptor}
 import planning.engine.tools.mpi.vizedit.config.model.GuiConf
-import planning.engine.tools.mpi.vizedit.gui.visualization.Graphs
 import planning.engine.tools.mpi.vizedit.gui.windows.{Main, Planning, Samples}
 
 final case class Gui[F[_]: {Async, LoggerFactory}](
@@ -41,13 +40,15 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
 object Gui:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
       config: GuiConf,
-      graphs: Graphs[F],
       control: ControlAdaptor[F],
+      visualization: VisualizerAdaptor[F],
       exit: Exit[F],
   ): Resource[F, Gui[F]] = Resource.eval:
     for
-      samples <- Samples[F](config.samples, graphs.samples)
-      planning <- Planning[F](config.planning, graphs.planning)
-      main <- Main[F](config.main, graphs.map, control, samples, planning, exit)
+      samples <- Samples[F](config.samples)
+      planning <- Planning[F](config.planning)
+      main <- Main[F](config.main, control, samples, planning, exit)
+      gui = Gui(samples, planning, main)
+      _ <- visualization.setGui(gui)
       _ <- main.window.show
-    yield Gui(samples, planning, main)
+    yield gui

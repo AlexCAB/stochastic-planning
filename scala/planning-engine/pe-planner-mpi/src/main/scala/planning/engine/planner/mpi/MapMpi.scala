@@ -72,6 +72,9 @@ trait MapMpi[F[_]]:
   // Clean up the map network, stopping all actors and releasing resources.
   def reset(): F[Unit]
 
+  // Check if the map network is initialized and ready to use.
+  def isInitialized: F[Boolean]
+
   // Return the current input and output variables of the map network.
   def getIoVars: F[IoVars]
 

@@ -73,6 +73,8 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
       case None      => logger.info("Map network not initialized, nothing to do").as(None)
       case Some(map) => cleanup(map)
 
+  override def isInitialized: F[Boolean] = mapState.get.map(_.isDefined)
+
   override def getIoVars: F[IoVars] = runAt: state =>
     for
         _ <- logger.info(s"Current IO variables: ${state.ioVars}")

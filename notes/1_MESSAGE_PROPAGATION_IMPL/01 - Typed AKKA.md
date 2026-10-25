@@ -378,6 +378,23 @@ Implement this initial app.
 
 ❯ On click on "Load Map" button, before show open file dialog, check `ControlAdaptor.isMapLoaded` and if so, show message "Map network already loaded, reset the current to load new one" and not show open file dialog.
 
+❯ Rewrite `vizedit/yed/two-way-walk.graphml`, it should have same structure and content, but:
+1. Maze look like:
+```
+ x12345  
+y#######  
+1##### #  
+2##### #  
+3#     #  
+4##### #  
+5##### #  
+ #######
+```
+2. Agent starts form (1,3) and walk to (5,1) or (5,5). 
+3. There will be only 2 IO vars: cell `number: 'C'` and `action: 'A'`
+4. There should be 2 samples: firs is walk to (5,1), second is  walk to (5,5)
+
+
 
 
 
@@ -397,6 +414,11 @@ Implement this initial app.
 ```
 def traverse_[G[_], B](f: A => G[B])(implicit G: Applicative[G]): G[Unit] =  traverseVoid[G, B](f)
 def  traverse[G[_], B](f: A => G[B])(implicit ev$1: Applicative[G]): G[F[B]] = typeClassInstance.traverse[G, A, B](self)(f)
+
+
+--yedpath pe-tools-and-it/src/main/resources/vizedit/yed/two-way-walk.graphml
+
+ 
 
 
 "During processing message:\n"

@@ -15,12 +15,13 @@ package planning.engine.tools.mpi.vizedit.gui.windows
 import cats.effect.Async
 import cats.syntax.all.*
 import cats.effect.std.Dispatcher
-import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, Window}
+import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, SamplesTable, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.SamplesControl
 
 final case class Samples[F[_]: {Async, Dispatcher}](
     graph: NetworkGraph[F],
-    control: SamplesControl,
+    samplesTable: SamplesTable[F],
+    control: SamplesControl[F],
     window: Window[F],
 )
 
@@ -28,6 +29,7 @@ object Samples:
   def apply[F[_]: {Async, Dispatcher}](config: Window.Config): F[Samples[F]] =
     for
       graph <- NetworkGraph[F]()
-      control <- SamplesControl()
+      samplesTable <- SamplesTable[F]()
+      control <- SamplesControl[F](samplesTable)
       window <- Window[F]("Samples", config, graph, control, Async[F].unit)
-    yield new Samples(graph, control, window)
+    yield new Samples(graph, samplesTable, control, window)

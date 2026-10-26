@@ -410,6 +410,13 @@ y#######
 
 ❯ In `mpi.actors.visualizer.logic.Actor` and in `mpi.actors.visualizer.logic.modules.Structure` add handling of `ShowSamplesAdded`. I should convert `Set[Sample]` to `Set[SampleViz]` and call `Visualization.samplesAdded` with it. Also add test in `mpi.actors.visualizer.logic.modules.StructureSpec`.
 
+❯ Implement samples list:
+1. Similar to `IoVarsTable` write `SamplesTable` with columns `ID`, `name`, `Params` in formats `PN($probabilityCount), U($utility)`. Then add it to `SamplesControl`.
+2. `SamplesControl` should have `State` to accumulate added samples on each call of `VisualizerAdaptor.samplesAdded`. On adding new samples `SamplesTable` should be updated.
+3. One reset `State` and `SamplesTable` should be cleaned. 
+
+❯ Fix error: `Exception in thread "JavaFX Application Thread" java.lang.IllegalStateException: Dispatcher already closed` it happens when closing main window when samples windows is shown. 
+
 
 ##### TODO: 
 1. Implement VizEditTool tool

@@ -45,6 +45,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCel
     for
       _ <- gui.main.window.setTitle(None)
       _ <- gui.main.ioVarsTable.clear
+      _ <- gui.samples.control.reset
       _ <- List(gui.main.graph.clear, gui.samples.graph.clear, gui.planning.graph.clear).sequence_
       _ <- logger.info(s"Visualizer GUI reset")
     yield ()
@@ -60,7 +61,11 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCel
 
   override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MT.void[G]
 
-  override def samplesAdded[G[_]: MT](samples: Set[SampleViz]): G[Unit] = MT.void[G]
+  override def samplesAdded[G[_]: MT](samples: Set[SampleViz]): G[Unit] = withGui("samplesAdded"): gui =>
+    for
+      _ <- gui.samples.control.samplesAdded(samples)
+      _ <- logger.info(s"GUI samples added: ${samples.map(_.id)}")
+    yield ()
 
   override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] = MT.void[G]
 

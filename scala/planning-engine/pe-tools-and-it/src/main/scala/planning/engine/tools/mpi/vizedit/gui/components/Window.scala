@@ -54,6 +54,9 @@ class Window[F[_]: {Async, Dispatcher}](
       _ <- graph.initGraph
     yield ()
 
+  // No-op if the window is already hidden.
+  def close: F[Unit] = fx(stage.close())
+
   def getConfig: F[Window.Config] = fx:
     Window.Config(
       x = stage.x.value,

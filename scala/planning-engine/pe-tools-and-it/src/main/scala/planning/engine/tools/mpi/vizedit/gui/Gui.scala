@@ -37,18 +37,25 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
       planning = planning,
     )
 
+  // Windows' `onHidden` callbacks run through the `Dispatcher`, so all windows must be closed while it is still open,
+  // otherwise `Platform.exit()` hides the remaining ones after the dispatcher is closed.
+  def close: F[Unit] = List(samples.window.close, planning.window.close, main.window.close).sequence_
+
 object Gui:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
       config: GuiConf,
       control: ControlAdaptor[F],
       visualization: VisualizerAdaptor[F],
       exit: Exit[F],
-  ): Resource[F, Gui[F]] = Resource.eval:
-    for
-      samples <- Samples[F](config.samples)
-      planning <- Planning[F](config.planning)
-      main <- Main[F](config.main, control, visualization, samples, planning, exit)
-      gui = Gui(samples, planning, main)
-      _ <- visualization.setGui(gui)
-      _ <- main.window.show
-    yield gui
+  ): Resource[F, Gui[F]] =
+    val acquire =
+      for
+        samples <- Samples[F](config.samples)
+        planning <- Planning[F](config.planning)
+        main <- Main[F](config.main, control, visualization, samples, planning, exit)
+        gui = Gui(samples, planning, main)
+        _ <- visualization.setGui(gui)
+        _ <- main.window.show
+      yield gui
+
+    Resource.make(acquire)(_.close)

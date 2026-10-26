@@ -23,7 +23,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.planner.mpi.model.data.visualization.ActiveForest
+import planning.engine.planner.mpi.model.data.visualization.{ActiveForest, SampleViz}
 import planning.engine.planner.mpi.model.io.IoVars
 import planning.engine.tools.mpi.vizedit.gui.Gui
 
@@ -49,18 +49,20 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCel
       _ <- logger.info(s"Visualizer GUI reset")
     yield ()
 
-  def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui("init"): gui =>
+  override def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui("init"): gui =>
     for
       _ <- gui.main.window.setTitle(Some(metadata.name.value))
       _ <- gui.main.ioVarsTable.update(variables)
       _ <- logger.info(s"GUI initialized for map: $metadata, variables: $variables")
     yield ()
 
-  def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MT.void[G]
+  override def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MT.void[G]
 
-  def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MT.void[G]
+  override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MT.void[G]
 
-  def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] = MT.void[G]
+  override def samplesAdded[G[_]: MT](samples: Set[SampleViz]): G[Unit] = MT.void[G]
+
+  override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] = MT.void[G]
 
 object VisualizerAdaptor:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](): Resource[F, VisualizerAdaptor[F]] = Resource.eval:

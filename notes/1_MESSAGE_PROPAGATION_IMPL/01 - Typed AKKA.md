@@ -406,6 +406,7 @@ y#######
 
 ❯ Finish saving of work directory of MainControl to JSON config
 
+❯ Fix exist tests. Add test for: `Sample.apply[F[_]: MT](id: SampleId, raw: New, nodes: Set[Node]): F[Sample]`. Verify `ShowSamplesAdded` sent on `doAddManSamples` and `doAddGenSamples` in `mpi.actors.manager.logic.modules.SamplesSpec`
 
 ##### TODO: 
 1. Implement VizEditTool tool

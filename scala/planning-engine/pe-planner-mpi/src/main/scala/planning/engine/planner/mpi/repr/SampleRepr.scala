@@ -23,7 +23,7 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 trait SampleRepr extends Representable with StructureReprBase:
   self: Sample =>
 
-  private lazy val structure: GraphStructure = GraphStructure(edges.map(_.key))
+  private lazy val structure: GraphStructure = GraphStructure(edges)
 
   private def buildLayerRepr(layer: Set[Link]): List[List[String]] = layer
     .groupBy(_.src)

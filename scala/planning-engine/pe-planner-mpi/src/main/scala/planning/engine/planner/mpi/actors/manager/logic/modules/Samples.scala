@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.actors.manager.data.Message
 import planning.engine.planner.mpi.actors.manager.logic.Actor
 import planning.engine.planner.mpi.actors.manager.logic.modules.{Edges, Nodes}
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.samples.Sample
 
@@ -53,6 +54,30 @@ private[manager] trait Samples extends Nodes with Edges:
       _ <- logInfo(s"[updateTotalCount] Updated total sample count to $totalCount for all nodes.")
     yield ()
 
+  private def notifyVisualizer[F[_]: S](
+      visualizer: Visualizer,
+      sampleMap: Map[SampleId, Sample.New],
+      newNodeMap: Map[Nim, Node],
+      foundNodes: Set[Node],
+  )(using d: Def, ctx: Ctx): F[Unit] =
+    // Nim ids in sample edges are replaced with MnIds of the created nodes, before building the sample.
+    def build(id: SampleId, raw: Sample.New, allNodes: Set[Node]): F[Sample] =
+      for
+        idsMap <- newNodeMap.view.mapValues(_.mnId).toMap.pure
+        edgeKeys <- raw.edges.traverse(_.resolve(idsMap))
+        resolved = raw match
+          case m: Sample.Man => m.copy(edges = edgeKeys)
+          case g: Sample.Gen => g.copy(edges = edgeKeys)
+        sample <- Sample(id, resolved, allNodes.filter(n => resolved.mnIds.contains(n.mnId)))
+      yield sample
+
+    for
+      allNodes <- (newNodeMap.values.toSet ++ foundNodes).pure
+      samples <- sampleMap.traverseToSet((id, raw) => build(id, raw, allNodes))
+      _ <- visualizer.samplesAdded(samples)
+      _ <- logInfo(s"Notified visualizer about ${samples.size} new samples.")
+    yield ()
+
   private[manager] def doAddManSamples[F[_]: S](msg: AddManSamples, state: St)(using d: Def, ctx: Ctx): F[St] =
     def validate: F[Unit] =
       for
@@ -64,12 +89,13 @@ private[manager] trait Samples extends Nodes with Edges:
     for
       _ <- validate
       (foundNodes, newNodes, stateWithNodes) <- upsertNodesByName(msg.nodes, state)
-      allNodes = foundNodes ++ newNodes
-      (sampleMap, stateWithSamples) <- stateWithNodes.withNewManSamples(msg.samples, allNodes.values.toSet)
-      addedKeys <- addAllEdges(sampleMap, allNodes, stateWithSamples)
+      allNodesMap = foundNodes ++ newNodes
+      (sampleMap, stateWithSamples) <- stateWithNodes.withNewManSamples(msg.samples, allNodesMap.values.toSet)
+      addedKeys <- addAllEdges(sampleMap, allNodesMap, stateWithSamples)
       _ <- updateTotalCount(stateWithSamples)
       _ <- logMap("[AddManSamples] Added samples", sampleMap)
       _ <- msg.reply(ManSamplesAdded(sampleMap))
+      _ <- d.visualizer.traverse_(notifyVisualizer(_, sampleMap, allNodesMap, foundNodes = Set()))
     yield stateWithSamples
 
   private[manager] def doAddGenSamples[F[_]: S](msg: AddGenSamples, state: St)(using d: Def, ctx: Ctx): F[St] =
@@ -84,4 +110,5 @@ private[manager] trait Samples extends Nodes with Edges:
       _ <- updateTotalCount(stateWithSamples)
       _ <- logMap("[AddGenSamples] Added samples", sampleMap)
       _ <- msg.reply(GenSamplesAdded(sampleMap))
+      _ <- d.visualizer.traverse_(notifyVisualizer(_, sampleMap, newNodeMap, oldNodes))
     yield stateWithSamples

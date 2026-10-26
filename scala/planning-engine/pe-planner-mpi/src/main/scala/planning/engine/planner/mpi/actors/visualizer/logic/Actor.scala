@@ -35,6 +35,7 @@ private[visualizer] object Actor extends Stateless with Structure with Plan:
   override protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv] = msg match
     case msg: ShowNodesAdded       => doNodesAdded(msg)
     case msg: ShowEdgesAdded       => doEdgesAdded(msg)
+    case msg: ShowSamplesAdded     => doSamplesAdded(msg)
     case msg: ShowActiveStepsFound => doActiveStepsFound(msg)
 
   override protected def error[F[_]: S](msg: Msg, err: Throwable)(using Def, Ctx): F[Bhv] =

@@ -14,7 +14,7 @@ package planning.engine.planner.mpi.test.data
 
 import planning.engine.common.UnitSpecWithData
 import planning.engine.common.graph.edges.MeKey
-import planning.engine.common.values.node.{HnIndex, MnId}
+import planning.engine.common.values.node.MnId
 import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.model.data.samples.Sample
@@ -133,5 +133,6 @@ trait SampleTestData:
       id = SampleId(1001),
       props = Sample.Props(probabilityCount = 10, utility = 0.5),
       info = Some(Sample.Info(Name("complexSample"), None)),
-      edges = allKeys.map(k => Sample.Edge(k, HnIndex(0), HnIndex(0))),
+      edges = allKeys,
+      nodes = Map.empty,
     )

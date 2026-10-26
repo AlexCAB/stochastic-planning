@@ -15,14 +15,17 @@ package planning.engine.planner.mpi.actors.visualizer
 import org.apache.pekko.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.values.node.MnId
-import planning.engine.planner.mpi.actors.visualizer.data.Message.{ShowEdgesAdded, ShowNodesAdded}
+import planning.engine.planner.mpi.actors.visualizer.data.Message.{ShowEdgesAdded, ShowNodesAdded, ShowSamplesAdded}
 import planning.engine.planner.mpi.actors.visualizer.logic.ApiImpl
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 
 final case class FakeVisualizer(api: Visualizer, probe: TestProbe[Visualizer.Msg]):
   def expectShowNodesAdded: Map[MnId, NodeData] = probe.expectMessageType[ShowNodesAdded].ids
 
   def expectShowEdgesAdded: Set[MeKey] = probe.expectMessageType[ShowEdgesAdded].keys
+
+  def expectShowSamplesAdded: Set[Sample] = probe.expectMessageType[ShowSamplesAdded].samples
 
 object FakeVisualizer:
   def apply()(using testKit: ActorTestKit): FakeVisualizer =

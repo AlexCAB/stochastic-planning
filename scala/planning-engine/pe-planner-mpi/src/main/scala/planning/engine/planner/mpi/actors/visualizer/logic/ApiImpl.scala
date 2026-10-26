@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.actors.visualizer.Visualizer
 import planning.engine.planner.mpi.actors.visualizer.data.Message
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 
 private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[Actor.Msg] with Visualizer:
   import Message.*
@@ -31,6 +32,9 @@ private[visualizer] final case class ApiImpl(actor: Actor.Ref) extends ApiBase[A
 
   override def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit] = ifNonEmpty((), keys):
     actor.tellF(ShowEdgesAdded(keys))
+
+  override def samplesAdded[F[_]: MT](samples: Set[Sample]): F[Unit] = ifNonEmpty((), samples):
+    actor.tellF(ShowSamplesAdded(samples))
 
   override def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveSteps): F[Unit] =
     actor.tellF(ShowActiveStepsFound(time, steps))

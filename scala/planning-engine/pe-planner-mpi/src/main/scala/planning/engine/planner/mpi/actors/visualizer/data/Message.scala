@@ -18,6 +18,7 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.actors.Base.WithSender
 import planning.engine.planner.mpi.actors.planner.data.parts.ActiveSteps
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.repr.Representable
 
 private[visualizer] sealed trait Message extends Representable
@@ -33,6 +34,9 @@ private[visualizer] object Message:
 
   // Sent from ManagerActor after edges were upserted in the map network.
   final case class ShowEdgesAdded(keys: Set[MeKey]) extends Message
+
+  // Sent from ManagerActor after new samples were added to the map network.
+  final case class ShowSamplesAdded(samples: Set[Sample]) extends Message
 
   // Sent from PlannerActor after active steps were found in the map network.
   final case class ShowActiveStepsFound(time: IoTime, steps: ActiveSteps) extends Message

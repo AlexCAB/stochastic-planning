@@ -23,6 +23,7 @@ import planning.engine.planner.mpi.actors.manager.data.State
 import planning.engine.planner.mpi.actors.manager.data.State.SampleData
 import planning.engine.planner.mpi.actors.node.TestNode.stateTyped
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.test.data.EdgeTestData
 
 import scala.concurrent.duration.*
@@ -52,6 +53,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(conMnId -> conNodeData, absMnId -> absNodeData)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+        val shownSamples = fakeVisualizer.expectShowSamplesAdded
         fakeVisualizer.probe.expectNoMessage(200.millis)
 
         fakePlanner.expectConNodeAdded.map(_.mnId) mustBe Set(conMnId)
@@ -59,6 +61,14 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
 
         val state = manager.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
+
+        shownSamples mustBe Set(Sample(
+          id = sampleId,
+          props = sample.props,
+          info = Some(sample.info),
+          edges = Set(MeKey.Link(conMnId, absMnId)),
+          nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+        ))
 
         state.sampleDataMap mustBe Map(sampleId -> SampleData(
           sample.props,
@@ -88,11 +98,20 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
 
         fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> absNodeData)
         fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+        val shownSamples = fakeVisualizer.expectShowSamplesAdded
         fakeVisualizer.probe.expectNoMessage(200.millis)
         fakePlanner.probe.expectNoMessage(200.millis)
 
         val state = managerOneConNode.state
         state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
+
+        shownSamples mustBe Set(Sample(
+          id = added.keySet.head,
+          props = sample.props,
+          info = Some(sample.info),
+          edges = Set(MeKey.Link(conMnId, absMnId)),
+          nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+        ))
         state.nextMnId mustBe 3L
         totalSamplesCounts(state) mustBe Map(conMnId -> 1L, absMnId -> 1L)
 
@@ -149,11 +168,20 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
 
           fakeVisualizer.expectShowNodesAdded mustBe Map(absMnId -> NodeData(None))
           fakeVisualizer.expectShowEdgesAdded mustBe Set(MeKey.Link(conMnId, absMnId))
+          val shownSamples = fakeVisualizer.expectShowSamplesAdded
           fakeVisualizer.probe.expectNoMessage(200.millis)
           fakePlanner.probe.expectNoMessage(200.millis)
 
           val state = managerOneConNode.state
           state.nodeRefMap.keySet mustBe Set(conMnId, absMnId)
+
+          shownSamples mustBe Set(Sample(
+            id = sampleId,
+            props = sample.props,
+            info = None,
+            edges = Set(MeKey.Link(conMnId, absMnId)),
+            nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+          ))
 
           state.sampleDataMap mustBe Map(sampleId -> SampleData(
             sample.props,

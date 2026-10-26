@@ -35,6 +35,7 @@ class EdgesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with EdgeT
         val srcId = manager.srcMnId
         val trgId = manager.trgMnId
         val meKey = MeKey.Link(srcId, trgId)
+        fakeVisualizer.expectShowSamplesAdded.map(_.id) mustBe Set(sampleId)
 
         val gotKey = manager.api.addEdge[IO](meKey, Set(sampleId)).logValue(tn).await
         gotKey mustBe meKey

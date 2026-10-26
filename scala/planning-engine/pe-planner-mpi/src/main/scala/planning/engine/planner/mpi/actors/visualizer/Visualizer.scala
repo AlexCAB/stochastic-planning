@@ -24,6 +24,7 @@ import planning.engine.planner.mpi.actors.visualizer.data.Definition
 import planning.engine.planner.mpi.actors.visualizer.logic.{Actor, ApiImpl}
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.planner.mpi.model.io.IoVars
 
 private[mpi] trait Visualizer:
@@ -33,6 +34,9 @@ private[mpi] trait Visualizer:
 
   // Edges added to the map network for visualization.
   def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit]
+
+  // Called when new samples added to the map network structure.
+  def samplesAdded[F[_]: MT](samples: Set[Sample]): F[Unit]
 
   // Active steps found in the map network for visualization.
   def activeStepsFound[F[_]: MT](time: IoTime, steps: ActiveSteps): F[Unit]

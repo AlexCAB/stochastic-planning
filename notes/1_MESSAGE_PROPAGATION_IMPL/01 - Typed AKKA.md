@@ -408,6 +408,9 @@ y#######
 
 ❯ Fix exist tests. Add test for: `Sample.apply[F[_]: MT](id: SampleId, raw: New, nodes: Set[Node]): F[Sample]`. Verify `ShowSamplesAdded` sent on `doAddManSamples` and `doAddGenSamples` in `mpi.actors.manager.logic.modules.SamplesSpec`
 
+❯ In `mpi.actors.visualizer.logic.Actor` and in `mpi.actors.visualizer.logic.modules.Structure` add handling of `ShowSamplesAdded`. I should convert `Set[Sample]` to `Set[SampleViz]` and call `Visualization.samplesAdded` with it. Also add test in `mpi.actors.visualizer.logic.modules.StructureSpec`.
+
+
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

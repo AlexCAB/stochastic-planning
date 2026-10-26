@@ -19,10 +19,15 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.{HnName, MnId}
+import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Name
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.actors.UnitSpecWithIOAndTestKit
+import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.visualizer.{TestVisualizer, WithTestVisualizer}
 import planning.engine.planner.mpi.model.data.node.NodeData
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.data.visualization.SampleViz
 
 class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer with AsyncIdiomaticMockito:
   private class CaseData extends Case with WithVisualizer:
@@ -38,12 +43,39 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer wit
     val ids: Map[MnId, NodeData] = Map(conId -> conData, absId -> absData)
     val keys: Set[MeKey] = Set(linkKey, thenKey)
 
+    def makeNode(id: MnId, name: Option[HnName]): Node =
+      val node = mock[Node]
+      node.mnId returns id
+      node.name returns name
+      node
+
+    val conNode: Node = makeNode(conId, conData.name)
+    val absNode: Node = makeNode(absId, absData.name)
+
+    val sample: Sample = Sample(
+      id = SampleId(1L),
+      props = Sample.Props(probabilityCount = 10L, utility = 0.5),
+      info = Some(Sample.Info(Name("test-sample"), None)),
+      edges = keys,
+      nodes = Map(conId -> conNode, absId -> absNode),
+    )
+
+    val sampleViz: SampleViz = SampleViz(
+      id = SampleId(1L),
+      name = Some(Name("test-sample")),
+      probabilityCount = 10L,
+      utility = 0.5,
+      nodes = Set(conId -> conData.name, absId -> None),
+      edges = Set(conId -> absId, absId -> conId),
+    )
+
     // All stubbing must be done before the actor spawned: the actor calls the mock from its own thread
     // (starting with `init` on setup), which races with Mockito stubbing done from the test thread.
     val visualizationMock: Visualization = mock[Visualization]
     visualizationMock.init[IO](testMetadata, testVars) returns IO.unit
     visualizationMock.nodesAdded[IO](ids) returns IO.unit
     visualizationMock.edgesAdded[IO](keys) returns IO.unit
+    visualizationMock.samplesAdded[IO](Set(sampleViz)) returns IO.unit
 
     val visualizer: TestVisualizer = makeVisualizer(viz = visualizationMock)
 
@@ -66,4 +98,11 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer wit
       import data.*
       visualizer.api.edgesAdded[IO](keys).logValue(tn).asserting: _ =>
         verify(visualizationMock, timeout(callTimeoutMs)).edgesAdded[IO](keys)
+        succeed
+
+  "Visualizer.samplesAdded(...)" should:
+    "convert the added samples to SampleViz and pass them to the visualization" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      visualizer.api.samplesAdded[IO](Set(sample)).logValue(tn).asserting: _ =>
+        verify(visualizationMock, timeout(callTimeoutMs)).samplesAdded[IO](Set(sampleViz))
         succeed

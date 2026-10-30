@@ -12,9 +12,10 @@
 
 package planning.engine.planner.mpi.model.data.visualization
 
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Name
+import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.model.data.samples.Sample
 
 final case class SampleViz(
@@ -22,9 +23,10 @@ final case class SampleViz(
     name: Option[Name],
     probabilityCount: Long,
     utility: Double,
-    nodes: Set[(MnId, Option[HnName])],
-    edges: Set[(MnId, MnId)],
-)
+    nodes: Set[(MnId, Option[HnName], Option[Description])],
+    edges: Set[(MnId, MnId, EdgeType)],
+):
+  lazy val mnId: Set[MnId] = nodes.map(_._1)
 
 object SampleViz:
   def apply(sample: Sample): SampleViz = SampleViz(
@@ -32,6 +34,6 @@ object SampleViz:
     name = sample.info.map(_.name),
     probabilityCount = sample.props.probabilityCount,
     utility = sample.props.utility,
-    nodes = sample.nodes.map((mnId, node) => mnId -> node.name).toSet,
-    edges = sample.edges.map(key => key.src -> key.trg),
+    nodes = sample.nodes.map((mnId, node) => (mnId, node.name, node.description)).toSet,
+    edges = sample.edges.map(key => (key.src, key.trg, key.asEdgeType)),
   )

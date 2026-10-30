@@ -23,11 +23,11 @@ import planning.engine.tools.mpi.vizedit.gui.controls.MainControl
 
 import java.nio.file.Path
 
-final case class Main[F[_]: {Async, Dispatcher, LoggerFactory}](
-    graph: NetworkGraph[F],
-    ioVarsTable: IoVarsTable[F],
-    control: MainControl[F],
-    window: Window[F],
+class Main[F[_]: {Async, Dispatcher, LoggerFactory}](
+    val graph: NetworkGraph[F],
+    val ioVarsTable: IoVarsTable[F],
+    val control: MainControl[F],
+    val window: Window[F],
 ):
   def getConfig: F[Main.Config] =
     for

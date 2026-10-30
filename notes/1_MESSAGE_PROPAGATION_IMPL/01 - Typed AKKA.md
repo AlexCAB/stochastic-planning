@@ -423,7 +423,9 @@ y#######
 2. On start of application apply `isShown` to samples and planning window.
 3. On terminate read and save `isShown to JSON.
 
+❯ In `SampleGraph` add `def render(sample: SampleViz)`, which will draw the graph network, use nodes and edges style similar to `resources/vizedit/yed/two-way-walk.graphml`. Call render method in `SamplesControl.samplesAdded` when first sample added. 
 
+❯ In `SamplesTable` implement call of `control.showSample` on click in sample table row.
 
 
 ##### TODO: 

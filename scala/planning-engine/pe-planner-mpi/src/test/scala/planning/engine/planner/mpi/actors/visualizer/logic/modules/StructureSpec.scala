@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.visualizer.logic.modules
 import cats.effect.IO
 import org.mockito.Mockito.{timeout, verify}
 import org.mockito.scalatest.AsyncIdiomaticMockito
+import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.edges.MeKey.{Link, Then}
 import planning.engine.common.values.io.{IoIndex, IoName}
@@ -65,8 +66,8 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer wit
       name = Some(Name("test-sample")),
       probabilityCount = 10L,
       utility = 0.5,
-      nodes = Set(conId -> conData.name, absId -> None),
-      edges = Set(conId -> absId, absId -> conId),
+      nodes = Set((conId, conData.name, conData.description), (absId, absData.name, absData.description)),
+      edges = Set((conId, absId, EdgeType.LINK), (absId, conId, EdgeType.THEN)),
     )
 
     // All stubbing must be done before the actor spawned: the actor calls the mock from its own thread

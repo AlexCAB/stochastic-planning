@@ -18,10 +18,10 @@ import cats.effect.std.Dispatcher
 import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.PlanningControl
 
-final case class Planning[F[_]: {Async, Dispatcher}](
-    graph: NetworkGraph[F],
-    control: PlanningControl,
-    window: Window[F],
+class Planning[F[_]: {Async, Dispatcher}](
+    val graph: NetworkGraph[F],
+    val control: PlanningControl,
+    val window: Window[F],
 ):
   def getConfig: F[Planning.Config] =
     for

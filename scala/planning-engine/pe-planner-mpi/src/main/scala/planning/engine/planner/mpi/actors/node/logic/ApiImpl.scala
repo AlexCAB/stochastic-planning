@@ -19,6 +19,7 @@ import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Message
@@ -30,8 +31,6 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
   import Message.*
 
-  def mnId: MnId
-  def name: Option[HnName]
   def actor: Actor.Ref
 
   override def upsertEdgeSrc[F[_]: MT](ref: MeRef, props: Map[SampleId, Sample.Props]): F[Unit] =
@@ -65,6 +64,7 @@ private[node] object ApiImpl:
   final case class Con(
       mnId: MnId.Con,
       name: Option[HnName],
+      description: Option[Description],
       ioValue: IoValue,
       actor: Actor.Ref,
   ) extends ApiImpl with Node.Con:
@@ -75,6 +75,7 @@ private[node] object ApiImpl:
   final case class Abs(
       mnId: MnId.Abs,
       name: Option[HnName],
+      description: Option[Description],
       actor: Actor.Ref,
   ) extends ApiImpl with Node.Abs:
     import Message.*
@@ -83,6 +84,6 @@ private[node] object ApiImpl:
       actor.tellF(ActivationAbs(time, sampleIds, path))
 
   def apply[F[_]: MT](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
-    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.ioValue, actor).pure
-    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, actor).pure
+    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.description, data.ioValue, actor).pure
+    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, data.description, actor).pure
     case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError

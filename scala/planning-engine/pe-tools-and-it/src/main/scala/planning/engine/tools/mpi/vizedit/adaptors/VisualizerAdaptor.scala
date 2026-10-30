@@ -12,8 +12,8 @@
 
 package planning.engine.tools.mpi.vizedit.adaptors
 
-import cats.effect.{Async, Resource}
-import cats.effect.std.{AtomicCell, Dispatcher}
+import cats.effect.{Async, Deferred, Resource}
+import cats.effect.std.Dispatcher
 import cats.syntax.ext.MT
 import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
@@ -28,25 +28,22 @@ import planning.engine.planner.mpi.model.io.IoVars
 import planning.engine.tools.mpi.vizedit.gui.Gui
 
 // Adopt visualization data for map network `MapMpi` to GUI
-class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCell[F, Option[Gui[F]]])
+class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferred[F, Gui[F]])
     extends Visualization:
 
   private val logger = LoggerFactory[F].getLogger
 
   private def withGui[G[_]: MT](event: String)(fa: Gui[F] => F[Unit]): G[Unit] = MT[G, Unit]:
-    summon[Dispatcher[F]].unsafeRunAndForget:
-      gui.get.flatMap:
-        case Some(gui) => fa(gui)
-        case None      => logger.warn(s"GUI is not set yet, skip visualization of: $event")
+    summon[Dispatcher[F]].unsafeRunAndForget(guiDef.get.flatMap(fa(_)))
 
-  def setGui(gui: Gui[F]): F[Unit] = this.gui.set(Some(gui))
+  def setGui(gui: Gui[F]): F[Unit] = this.guiDef.complete(gui).void
 
   def reset(): F[Unit] = withGui("reset"): gui =>
     for
       _ <- gui.main.window.setTitle(None)
       _ <- gui.main.ioVarsTable.clear
       _ <- gui.samples.control.reset
-      _ <- List(gui.main.graph.clear, gui.samples.graph.clear, gui.planning.graph.clear).sequence_
+      _ <- List(gui.main.graph.clear, gui.samples.sampleGraph.clear, gui.planning.graph.clear).sequence_
       _ <- logger.info(s"Visualizer GUI reset")
     yield ()
 
@@ -72,5 +69,5 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](gui: AtomicCel
 object VisualizerAdaptor:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](): Resource[F, VisualizerAdaptor[F]] = Resource.eval:
     for
-        gui <- AtomicCell[F].of[Option[Gui[F]]](None)
-    yield new VisualizerAdaptor(gui)
+        guiDef <- Deferred[F, Gui[F]]
+    yield new VisualizerAdaptor(guiDef)

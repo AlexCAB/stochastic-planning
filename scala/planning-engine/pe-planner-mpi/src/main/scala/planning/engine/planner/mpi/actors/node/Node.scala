@@ -19,6 +19,7 @@ import planning.engine.common.values.io.{IoTime, IoValue}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
+import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
@@ -32,6 +33,7 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 private[mpi] trait Node:
   def mnId: MnId
   def name: Option[HnName]
+  def description: Option[Description]
 
   def repr: String
 

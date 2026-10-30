@@ -9,6 +9,21 @@
     -fx-fill: #B1DFF7;
 }
 
+/* Sample graph: same style as in the yEd maps, see vizedit/yed/two-way-walk.graphml */
+.vertex-concrete {
+    -fx-stroke-width: 1;
+    -fx-stroke: #000000;
+    -fx-stroke-type: inside;
+    -fx-fill: #C0C0C0;
+}
+
+.vertex-abstract {
+    -fx-stroke-width: 1;
+    -fx-stroke: #000000;
+    -fx-stroke-type: inside;
+    -fx-fill: #FFFFFF;
+}
+
 .vertex-label {
     -fx-font: bold 8pt "sans-serif";
 }
@@ -19,6 +34,20 @@
     -fx-fill: transparent;
     -fx-stroke-line-cap: round;
     -fx-opacity: 0.8;
+}
+
+.edge-link {
+    -fx-stroke-width: 3;
+    -fx-stroke: #00FF00;
+    -fx-fill: transparent;
+    -fx-stroke-line-cap: round;
+}
+
+.edge-then {
+    -fx-stroke-width: 1;
+    -fx-stroke: #FF0000;
+    -fx-fill: transparent;
+    -fx-stroke-line-cap: round;
 }
 
 .edge-label {

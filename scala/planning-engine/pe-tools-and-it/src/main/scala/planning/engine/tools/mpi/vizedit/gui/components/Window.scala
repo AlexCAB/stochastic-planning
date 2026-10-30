@@ -57,6 +57,8 @@ class Window[F[_]: {Async, Dispatcher}](
   // No-op if the window is already hidden.
   def close: F[Unit] = fx(stage.close())
 
+  def isShown: F[Boolean] = fx(stage.showing.value)
+
   def getConfig: F[Window.Config] = fx:
     Window.Config(
       x = stage.x.value,

@@ -29,8 +29,8 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
   def getConfig: F[GuiConf] =
     for
       main <- main.getConfig
-      samples <- samples.window.getConfig
-      planning <- planning.window.getConfig
+      samples <- samples.getConfig
+      planning <- planning.getConfig
     yield GuiConf(
       main = main,
       samples = samples,
@@ -55,7 +55,9 @@ object Gui:
         main <- Main[F](config.main, control, visualization, samples, planning, exit)
         gui = Gui(samples, planning, main)
         _ <- visualization.setGui(gui)
-        _ <- main.window.show
+        _ <- samples.window.show.whenA(config.samples.isShown)
+        _ <- planning.window.show.whenA(config.planning.isShown)
+        _ <- main.window.show // Shown last, to be on top of the other windows.
       yield gui
 
     Resource.make(acquire)(_.close)

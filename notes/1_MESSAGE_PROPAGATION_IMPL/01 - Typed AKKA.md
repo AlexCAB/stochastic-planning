@@ -418,6 +418,14 @@ y#######
 ❯ Fix error: `Exception in thread "JavaFX Application Thread" java.lang.IllegalStateException: Dispatcher already closed` it happens when closing main window when samples windows is shown. 
 
 
+❯ Find `isShown` flag in `mpi.vizedit.gui.windows.Samples.Config` and in `mpi.vizedit.gui.windows.Planning.Config`:
+1. Save it in JSON config along with the window parameters.
+2. On start of application apply `isShown` to samples and planning window.
+3. On terminate read and save `isShown to JSON.
+
+
+
+
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

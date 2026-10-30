@@ -14,15 +14,15 @@ package planning.engine.tools.mpi.vizedit.config.model
 
 import io.circe.{Decoder, Encoder}
 import planning.engine.tools.mpi.vizedit.gui.components.Window
-import planning.engine.tools.mpi.vizedit.gui.windows.Main
+import planning.engine.tools.mpi.vizedit.gui.windows.{Main, Planning, Samples}
 
 import java.nio.file.{Path, Paths}
 import scala.util.Try
 
 final case class GuiConf(
     main: Main.Config,
-    samples: Window.Config,
-    planning: Window.Config,
+    samples: Samples.Config,
+    planning: Planning.Config,
 )
 
 object GuiConf:
@@ -37,6 +37,12 @@ object GuiConf:
   implicit val mainConfigDecoder: Decoder[Main.Config] = deriveDecoder[Main.Config]
   implicit val mainConfigEncoder: Encoder[Main.Config] = deriveEncoder[Main.Config]
 
+  implicit val samplesConfigDecoder: Decoder[Samples.Config] = deriveDecoder[Samples.Config]
+  implicit val samplesConfigEncoder: Encoder[Samples.Config] = deriveEncoder[Samples.Config]
+
+  implicit val planningConfigDecoder: Decoder[Planning.Config] = deriveDecoder[Planning.Config]
+  implicit val planningConfigEncoder: Encoder[Planning.Config] = deriveEncoder[Planning.Config]
+
   implicit val decoder: Decoder[GuiConf] = deriveDecoder[GuiConf]
   implicit val encoder: Encoder[GuiConf] = deriveEncoder[GuiConf]
 
@@ -48,9 +54,9 @@ object GuiConf:
   def filePath: Path = appDir.resolve(fileName)
 
   // Used when no config file exists yet: windows of the default size, cascaded from the top-left corner,
-  // and the application directory as work directory.
+  // the Samples and Planning windows hidden, and the application directory as work directory.
   def default: GuiConf = GuiConf(
     main = Main.Config(window = defaultConf(50), workDir = appDir),
-    samples = defaultConf(100),
-    planning = defaultConf(150),
+    samples = Samples.Config(isShown = false, window = defaultConf(100)),
+    planning = Planning.Config(isShown = false, window = defaultConf(150)),
   )

@@ -22,12 +22,22 @@ final case class Planning[F[_]: {Async, Dispatcher}](
     graph: NetworkGraph[F],
     control: PlanningControl,
     window: Window[F],
-)
+):
+  def getConfig: F[Planning.Config] =
+    for
+      isShown <- window.isShown
+      window <- window.getConfig
+    yield Planning.Config(isShown = isShown, window = window)
 
 object Planning:
-  def apply[F[_]: {Async, Dispatcher}](config: Window.Config): F[Planning[F]] =
+  final case class Config(
+      isShown: Boolean,
+      window: Window.Config,
+  )
+
+  def apply[F[_]: {Async, Dispatcher}](config: Config): F[Planning[F]] =
     for
       graph <- NetworkGraph[F]()
       control <- PlanningControl()
-      window <- Window[F]("Planning", config, graph, control, Async[F].unit)
+      window <- Window[F]("Planning", config.window, graph, control, Async[F].unit)
     yield new Planning(graph, control, window)

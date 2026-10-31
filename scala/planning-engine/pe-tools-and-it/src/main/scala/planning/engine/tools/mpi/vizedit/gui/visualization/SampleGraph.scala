@@ -21,6 +21,7 @@ import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.model.data.visualization.SampleViz
+import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
 
 final case class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](graph: NetworkGraph[F]):
@@ -36,13 +37,18 @@ final case class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](graph: Ne
     case EdgeType.LINK => "edge-link"
     case EdgeType.THEN => "edge-then"
 
+  private def arrowStyle(edgeType: EdgeType): Option[String] = edgeType match
+    case EdgeType.LINK => None
+    case EdgeType.THEN => Some("arrow-then")
+
   private def toView(sample: SampleViz): NetworkGraph.View =
     val labels = sample.nodes.map((id, name, description) => id -> nodeLabel(id, name, description)).toMap
+    val positions = SampleLayout(sample.mnId, sample.edges)
 
     NetworkGraph.View(
-      vertices = sample.nodes.toList.map((id, _, _) => NetworkGraph.Vertex(labels(id), nodeStyle(id))),
+      vertices = sample.nodes.toList.map((id, _, _) => NetworkGraph.Vertex(labels(id), nodeStyle(id), positions(id))),
       edges = sample.edges.toList.map: (src, trg, edgeType) =>
-        NetworkGraph.Edge(s"$src-$edgeType->$trg", labels(src), labels(trg), edgeStyle(edgeType)),
+        NetworkGraph.Edge(s"$src-$edgeType->$trg", labels(src), labels(trg), edgeStyle(edgeType), arrowStyle(edgeType)),
     )
 
   def render(sample: SampleViz): F[Unit] =
@@ -63,4 +69,5 @@ object SampleGraph:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](): F[SampleGraph[F]] =
     for
       graph <- NetworkGraph[F]()
+      _ <- fx(graph.getStyleClass.add("sample-graph"))
     yield new SampleGraph(graph)

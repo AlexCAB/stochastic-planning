@@ -10,6 +10,10 @@
 }
 
 /* Sample graph: same style as in the yEd maps, see vizedit/yed/two-way-walk.graphml */
+.sample-graph {
+    -fx-background-color: #FFFFFF;
+}
+
 .vertex-concrete {
     -fx-stroke-width: 1;
     -fx-stroke: #000000;
@@ -48,6 +52,10 @@
     -fx-stroke: #FF0000;
     -fx-fill: transparent;
     -fx-stroke-line-cap: round;
+}
+
+.arrow-then {
+    -fx-fill: #FF0000;
 }
 
 .edge-label {

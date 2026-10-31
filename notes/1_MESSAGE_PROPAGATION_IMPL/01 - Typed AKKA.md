@@ -427,6 +427,11 @@ y#######
 
 ❯ In `SamplesTable` implement call of `control.showSample` on click in sample table row.
 
+❯ For the `SampleGraph` write layout, which will group nodes by layers, so on bottom layer concrete nodes will be placed, on the next layers abstract nodes. Similar as it shown in `resources/vizedit/yed/two-way-walk.graphml`.    
+
+❯ Make `SampleGraph` background white and red arrow ends filled.  
+
+
 
 ##### TODO: 
 1. Implement VizEditTool tool

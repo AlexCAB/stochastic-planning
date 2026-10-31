@@ -102,6 +102,16 @@ private[actors] trait Base:
     receive(msg)
       .handleErrorWith(handleError)
 
+  // Handle signals
+
+  protected def handlePostStop[F[_]: S](stopped: => F[Unit])(using d: Def, ctx: Ctx): F[Behavior[Msg]] =
+    def error(err: Throwable): F[Unit] = logError(s"Error while stopping actor ${ctx.self.path.name}", err)
+
+    for
+      _ <- logInfo(s"Stopping actor ${ctx.self.path.name}")
+      _ <- stopped.handleErrorWith(error)
+    yield Behaviors.same
+
 private[actors] object Base:
   trait WithSender[R]:
     def sender: ActorRef[R]

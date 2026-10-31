@@ -61,6 +61,7 @@ class VisualizationMpiService[F[_]: {Async, LoggerFactory}](
   // Visualization interface implementation
 
   override def init[G[_]: MT](mt: Metadata, vars: IoVars): G[Unit] = MpiInit(mt, vars).map(publish)
+  override def reset[G[_]: MT](): G[Unit] =  ().pure[G]
 
   override def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MpiNewNodes(ids).map(publish)
   override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MpiNewEdges.formMeKeys(keys).map(publish)

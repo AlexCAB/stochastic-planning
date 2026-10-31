@@ -23,8 +23,9 @@ import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.layouts.SampleLayout
 
-final case class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](graph: NetworkGraph[F]):
+class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](val graph: NetworkGraph[F]):
   private val logger = LoggerFactory[F].getLogger
 
   // Node ID is part of the label, since node name is optional and not guaranteed to be unique.

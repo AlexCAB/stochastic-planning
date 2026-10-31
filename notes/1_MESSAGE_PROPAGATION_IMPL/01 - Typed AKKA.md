@@ -431,7 +431,7 @@ y#######
 
 ❯ Make `SampleGraph` background white and red arrow ends filled.  
 
-
+❯ In `StructureSpec` add `Visualizer.reset()` test to verify reset method called on actor stop. 
 
 ##### TODO: 
 1. Implement VizEditTool tool

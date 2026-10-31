@@ -27,6 +27,12 @@ private[visualizer] trait Structure:
       _ <- d.visualization.init(d.metadata, d.variables)
     yield ()
 
+  private[visualizer] def doReset[F[_]: S](using d: Def, c: Ctx): F[Unit] =
+    for
+      _ <- logInfo(s"[Reset] send visualization reset message, metadata: ${d.metadata}, variables: ${d.variables}")
+      _ <- d.visualization.reset()
+    yield ()
+
   private[visualizer] def doNodesAdded[F[_]: S](msg: ShowNodesAdded)(using d: Def, c: Ctx): F[Bhv] =
     for
       _ <- logMap("[NodesAdded] added nodes", msg.ids)

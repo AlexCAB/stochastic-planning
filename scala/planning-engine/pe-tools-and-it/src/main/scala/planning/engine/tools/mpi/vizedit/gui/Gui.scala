@@ -37,6 +37,14 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
       planning = planning,
     )
 
+  def reset(): F[Unit] =  
+    for
+      _ <- main.window.setTitle(None)
+      _ <- main.ioVarsTable.clear
+      _ <- samples.control.reset
+      _ <- List(main.mapGraph.clear, samples.sampleGraph.clear, planning.graph.clear).sequence_
+    yield ()  
+
   // Windows' `onHidden` callbacks run through the `Dispatcher`, so all windows must be closed while it is still open,
   // otherwise `Platform.exit()` hides the remaining ones after the dispatcher is closed.
   def close: F[Unit] = List(samples.window.close, planning.window.close, main.window.close).sequence_

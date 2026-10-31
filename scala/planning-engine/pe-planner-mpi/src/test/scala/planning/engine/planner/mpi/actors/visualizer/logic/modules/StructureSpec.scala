@@ -53,6 +53,7 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer wit
     // (starting with `init` on setup), which races with Mockito stubbing done from the test thread.
     val visualizationMock: Visualization = mock[Visualization]
     visualizationMock.init[IO](testMetadata, testVars) returns IO.unit
+    visualizationMock.reset[IO]() returns IO.unit
     visualizationMock.nodesAdded[IO](ids) returns IO.unit
     visualizationMock.edgesAdded[IO](keys) returns IO.unit
     visualizationMock.samplesAdded[IO](Set(sample)) returns IO.unit
@@ -65,6 +66,13 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with WithTestVisualizer wit
     "initialize the visualization with map metadata and variables" in newCase[CaseData]: (_, data) =>
       import data.*
       IO(verify(visualizationMock, timeout(callTimeoutMs)).init[IO](testMetadata, testVars)).asserting(_ => succeed)
+
+  "Visualizer.reset()" should:
+    "reset the visualization on actor stop" in newCase[CaseData]: (_, data) =>
+      import data.*
+      IO(testKit.stop(visualizer.ref)).asserting: _ =>
+        verify(visualizationMock, timeout(callTimeoutMs)).reset[IO]()
+        succeed
 
   "Visualizer.nodesAdded(...)" should:
     "pass the added nodes to the visualization" in newCase[CaseData]: (tn, data) =>

@@ -18,7 +18,7 @@ import cats.syntax.all.*
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAdaptor}
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
-import planning.engine.tools.mpi.vizedit.gui.components.{IoVarsTable, NetworkGraph}
+import planning.engine.tools.mpi.vizedit.gui.components.IoVarsTable
 import planning.engine.tools.mpi.vizedit.gui.windows.{Planning, Samples}
 import scalafx.Includes.*
 import scalafx.geometry.Insets
@@ -29,10 +29,11 @@ import scalafx.stage.FileChooser
 
 import java.nio.file.{Files, Path}
 import MainControl.State
+import planning.engine.tools.mpi.vizedit.gui.visualization.MapGraph
 
 // Control area of the Main window. Must be constructed on the FX thread (see `MainControl.apply`).
 class MainControl[F[_]: {Async, Dispatcher, LoggerFactory}](
-    graph: NetworkGraph[F],
+    mapGraph: MapGraph[F],
     ioVariablesTable: IoVarsTable[F],
     control: ControlAdaptor[F],
     visualization: VisualizerAdaptor[F],
@@ -65,7 +66,7 @@ class MainControl[F[_]: {Async, Dispatcher, LoggerFactory}](
   private def resetMap: F[Unit] =
     for
       _ <- control.reset()
-      _ <- visualization.reset()
+      _ <- logger.info("Run map network reset")
     yield ()
 
   // Standard open file dialog, modal to the Main window; `None` if the user cancels it.
@@ -109,7 +110,7 @@ object MainControl:
 
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
       workDir: Path,
-      graph: NetworkGraph[F],
+      mapGraph: MapGraph[F],
       ioVariablesTable: IoVarsTable[F],
       control: ControlAdaptor[F],
       visualization: VisualizerAdaptor[F],
@@ -118,5 +119,5 @@ object MainControl:
   ): F[MainControl[F]] =
     for
       state <- AtomicCell[F].of(State(workDir))
-      control <- fx(new MainControl(graph, ioVariablesTable, control, visualization, samples, planning, state))
+      control <- fx(new MainControl(mapGraph, ioVariablesTable, control, visualization, samples, planning, state))
     yield control

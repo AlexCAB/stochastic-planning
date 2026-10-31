@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-10-31 |||||||||||*/
 
-package planning.engine.tools.mpi.vizedit.gui.visualization
+package planning.engine.tools.mpi.vizedit.gui.visualization.layouts
 
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId

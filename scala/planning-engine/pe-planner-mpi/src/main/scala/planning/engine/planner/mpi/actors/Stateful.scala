@@ -15,7 +15,7 @@ package planning.engine.planner.mpi.actors
 import cats.effect.{IO, Sync}
 import cats.syntax.all.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
-import org.apache.pekko.actor.typed.{ActorRef, Behavior}
+import org.apache.pekko.actor.typed.{ActorRef, Behavior, PostStop}
 import planning.engine.planner.mpi.model.error.FatalException
 import planning.engine.planner.mpi.repr.Representable
 
@@ -28,6 +28,7 @@ private[actors] trait Stateful extends Base:
 
   // Actor setup (called once when the actor is created)
   protected def setup(state: St)(using Def, Ctx): Unit = ()
+  protected def stopped[F[_]: S](state: St)(using d: Def, ctx: Ctx): F[Unit] = ().pure
 
   // Abstract method for handling messages
   protected def receive[F[_]: S](msg: Msg, state: St)(using Def, Ctx): F[St]
@@ -71,11 +72,14 @@ private[actors] trait Stateful extends Base:
     given Ctx = ctx
     setup(state)
 
-    Behaviors.receiveMessage: m =>
-      handleMsg[IO](m)(
-        msg => receive[IO](msg, state).map(behavior),
-        (err, msg) => error[IO](msg, state, err).map(behavior),
-      ).unsafeRunSync()
+    Behaviors
+      .receiveMessage[Msg]: msg =>
+        handleMsg[IO](msg)(
+          msg => receive[IO](msg, state).map(behavior),
+          (err, msg) => error[IO](msg, state, err).map(behavior),
+        ).unsafeRunSync()
+      .receiveSignal:
+        case (ctx, PostStop) => handlePostStop(stopped[IO](state)).unsafeRunSync()
 
   // Factory method for creating the actor's behavior
   protected def apply(definition: Def, state: St): Behavior[Msg] = behavior(state)(using definition)

@@ -38,21 +38,18 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
     summon[Dispatcher[F]].unsafeRunAndForget(guiDef.get.flatMap(fa(_)))
 
   def setGui(gui: Gui[F]): F[Unit] = this.guiDef.complete(gui).void
-
-  def reset(): F[Unit] = withGui: gui =>
-    for
-      _ <- gui.main.window.setTitle(None)
-      _ <- gui.main.ioVarsTable.clear
-      _ <- gui.samples.control.reset
-      _ <- List(gui.main.graph.clear, gui.samples.sampleGraph.clear, gui.planning.graph.clear).sequence_
-      _ <- logger.info(s"Visualizer GUI reset")
-    yield ()
-
+  
   override def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui: gui =>
     for
       _ <- gui.main.window.setTitle(Some(metadata.name.value))
       _ <- gui.main.ioVarsTable.update(variables)
       _ <- logger.info(s"GUI initialized for map: $metadata, variables: $variables")
+    yield ()
+
+  override def reset[G[_] : MT](): G[Unit] = withGui: gui =>
+    for
+      _ <- gui.reset()
+      _ <- logger.info(s"Visualizer GUI reset")
     yield ()
 
   override def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MT.void[G]

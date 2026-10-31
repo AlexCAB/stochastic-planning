@@ -18,13 +18,14 @@ import cats.effect.std.Dispatcher
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.GuiApp.Exit
 import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAdaptor}
-import planning.engine.tools.mpi.vizedit.gui.components.{IoVarsTable, NetworkGraph, Window}
+import planning.engine.tools.mpi.vizedit.gui.components.{IoVarsTable, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.MainControl
+import planning.engine.tools.mpi.vizedit.gui.visualization.MapGraph
 
 import java.nio.file.Path
 
 class Main[F[_]: {Async, Dispatcher, LoggerFactory}](
-    val graph: NetworkGraph[F],
+    val mapGraph: MapGraph[F],
     val ioVarsTable: IoVarsTable[F],
     val control: MainControl[F],
     val window: Window[F],
@@ -52,8 +53,8 @@ object Main:
       exit: Exit[F],
   ): F[Main[F]] =
     for
-      graph <- NetworkGraph[F]()
+      mapGraph <- MapGraph[F]()
       ioVarsTable <- IoVarsTable[F]()
-      control <- MainControl[F](config.workDir, graph, ioVarsTable, control, visualization, samples, planning)
-      window <- Window[F](title, config.window, graph, control, exit.complete(()).void)
-    yield new Main(graph, ioVarsTable, control, window)
+      control <- MainControl[F](config.workDir, mapGraph, ioVarsTable, control, visualization, samples, planning)
+      window <- Window[F](title, config.window, mapGraph.graph, control, exit.complete(()).void)
+    yield new Main(mapGraph, ioVarsTable, control, window)

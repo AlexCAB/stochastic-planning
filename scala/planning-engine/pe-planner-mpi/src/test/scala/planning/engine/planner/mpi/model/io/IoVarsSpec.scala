@@ -66,4 +66,4 @@ class IoVarsSpec extends UnitSpecWithData with NodeTestData:
     "raise an error when a node's IoName is not a known input or output variable" in newCase[CaseData]: (tn, data) =>
       import data.*
       ioVars.conNodesByIo[IO](Set(undefinedNode)).logValue(tn).assertThrowsError[AssertionError](_
-        .getMessage must include(s"Undefined IO name ${undefinedNode.ioValue.name}"))
+        .getMessage must include(s"Undefined IO name ${undefinedNode.data.ioValue.name}"))

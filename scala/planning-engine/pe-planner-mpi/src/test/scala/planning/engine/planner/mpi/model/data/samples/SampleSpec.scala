@@ -36,7 +36,7 @@ class SampleSpec extends UnitSpecWithData with NodeTestData with EdgeTestData:
         props = raw.props,
         info = Some(raw.info),
         edges = Set(edge),
-        nodes = Map(conMnId -> conNode, absMnId -> absNode),
+        nodes = Map(conMnId -> conNode.data, absMnId -> absNode.data),
       ))
 
     "build a sample from a generated sample, without info" in newCase[CaseData]: (_, data) =>
@@ -48,7 +48,7 @@ class SampleSpec extends UnitSpecWithData with NodeTestData with EdgeTestData:
         props = raw.props,
         info = None,
         edges = Set(edge),
-        nodes = Map(conMnId -> conNode, absMnId -> absNode),
+        nodes = Map(conMnId -> conNode.data, absMnId -> absNode.data),
       ))
 
     "raise an error when a node used in the sample edges is not given" in newCase[CaseData]: (_, data) =>

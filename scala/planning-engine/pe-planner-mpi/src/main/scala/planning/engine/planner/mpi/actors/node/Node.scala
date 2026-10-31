@@ -15,11 +15,10 @@ package planning.engine.planner.mpi.actors.node
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
-import planning.engine.common.values.io.{IoTime, IoValue}
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.manager.Manager
 import planning.engine.planner.mpi.actors.node.data.Definition
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
@@ -32,9 +31,7 @@ import planning.engine.planner.mpi.model.data.samples.Sample
 
 private[mpi] trait Node:
   def mnId: MnId
-  def name: Option[HnName]
-  def description: Option[Description]
-
+  def data: NodeData
   def repr: String
 
   // Upsert source end of an edge to this node.
@@ -89,8 +86,7 @@ private[mpi] object Node:
 
   trait Con extends Node:
     def mnId: MnId.Con
-    def name: Option[HnName]
-    def ioValue: IoValue
+    def data: NodeData.Con
 
     // Start the activation signal propagation from this concrete node (leaf of abstraction tree)
     // to higher abstract nodes (to the roots):
@@ -99,11 +95,11 @@ private[mpi] object Node:
     //   3. For each  not empty (i.e. have active samples) outcoming LINK edge, send `ActivationAbs` message
     def activation[F[_]: MT](time: IoTime, utility: Option[Double]): F[Unit]
 
-    lazy val repr: String = s"[${mnId.reprValue}, ${name.repr}, ${ioValue.repr}]"
+    lazy val repr: String = s"[${mnId.reprValue}, ${data.name.repr}, ${data.ioValue.repr}]"
 
   trait Abs extends Node:
     def mnId: MnId.Abs
-    def name: Option[HnName]
+    def data: NodeData.Abs
 
     // Propagate the activation signal from concrete node (leafs of abstraction tree)
     // to higher abstract node (to the roots):
@@ -127,7 +123,7 @@ private[mpi] object Node:
         path: ActivePath,
     ): F[Unit]
 
-    lazy val repr: String = s"(${mnId.reprValue}, ${name.repr})"
+    lazy val repr: String = s"(${mnId.reprValue}, ${data.name.repr})"
 
   def spawn[F[_]: MT](
       mnId: MnId,

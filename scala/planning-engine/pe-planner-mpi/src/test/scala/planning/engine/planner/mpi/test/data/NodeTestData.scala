@@ -14,7 +14,7 @@ package planning.engine.planner.mpi.test.data
 
 import org.mockito.scalatest.AsyncIdiomaticMockito
 import planning.engine.common.UnitSpecWithData
-import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
+import planning.engine.common.values.io.{IoIndex, IoName}
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.node.Node
@@ -40,8 +40,7 @@ trait NodeTestData extends AsyncIdiomaticMockito:
     def makeConNodeStub(mnId: MnId.Con, name: IoName, index: IoIndex): Node.Con =
       val st = mock[Node.Con]
       st.mnId returns mnId
-      st.name returns None
-      st.ioValue returns IoValue(name, index)
+      st.data returns NodeData.Con(None, None, name, index)
       st
 
     lazy val inConNode: Node.Con = makeConNodeStub(MnId.Con(1L), inVarName, IoIndex(0))
@@ -71,11 +70,11 @@ trait NodeTestData extends AsyncIdiomaticMockito:
     def makeNodeStub(id: MnId, name: Option[HnName]): Node =
       val st = mock[Node]
       st.mnId returns id
-      st.name returns name
+      st.data returns NodeData.Abs(name, None)
       st
 
     def makeAbsNodeStub(id: MnId.Abs): Node.Abs =
       val st = mock[AbsNodeStub]
       st.mnId returns id
-      st.name returns None
+      st.data returns NodeData.Abs(None, None)
       st

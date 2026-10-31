@@ -21,6 +21,7 @@ import planning.engine.common.values.sample.SampleId
 import planning.engine.common.values.text.{Description, Name}
 import planning.engine.planner.mpi.repr.{Representable, SampleRepr}
 import planning.engine.planner.mpi.actors.node.Node
+import planning.engine.planner.mpi.model.data.node.NodeData
 
 // Fully defined sample data, as they will read from map graph.
 final case class Sample(
@@ -28,7 +29,7 @@ final case class Sample(
     props: Sample.Props,
     info: Option[Sample.Info],
     edges: Set[MeKey],
-    nodes: Map[MnId, Node],
+    nodes: Map[MnId, NodeData],
 ) extends SampleRepr
 
 object Sample:
@@ -56,7 +57,7 @@ object Sample:
 
   def apply[F[_]: MT](id: SampleId, raw: New, nodes: Set[Node]): F[Sample] =
     for
-      nodeMap <- nodes.map(n => n.mnId -> n).toMap.pure
+      nodeMap <- nodes.map(n => n.mnId -> n.data).toMap.pure
       _ <- nodeMap.keySet.assertContainsAllOf(raw.mnIds, s"Sample $id has edges with MnIds not found in given nodes")
     yield Sample(
       id = id,

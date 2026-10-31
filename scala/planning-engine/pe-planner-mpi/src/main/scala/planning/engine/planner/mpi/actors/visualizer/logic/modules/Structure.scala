@@ -16,7 +16,6 @@ import cats.syntax.all.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import planning.engine.planner.mpi.actors.visualizer.data.Message
 import planning.engine.planner.mpi.actors.visualizer.logic.Actor
-import planning.engine.planner.mpi.model.data.visualization.SampleViz
 
 private[visualizer] trait Structure:
   self: Actor.type =>
@@ -43,5 +42,5 @@ private[visualizer] trait Structure:
   private[visualizer] def doSamplesAdded[F[_]: S](msg: ShowSamplesAdded)(using d: Def, c: Ctx): F[Bhv] =
     for
       _ <- logSeq("[SamplesAdded] added samples", msg.samples)
-      _ <- d.visualization.samplesAdded(msg.samples.map(SampleViz.apply))
+      _ <- d.visualization.samplesAdded(msg.samples)
     yield Behaviors.same

@@ -40,7 +40,7 @@ object SampleLayout:
   private def spread(preferred: List[(MnId, Double)]): List[(MnId, Double)] = preferred
     .sortBy((id, column) => (column, id.value))
     .foldLeft(List.empty[(MnId, Double)]):
-      case (Nil, node)                         => List(node)
+      case (Nil, node)                          => List(node)
       case (acc @ (_, last) :: _, (id, column)) => (id -> column.max(last + 1.0)) :: acc
 
   def apply(ids: Set[MnId], edges: Set[(MnId, MnId, EdgeType)]): Map[MnId, Position] =
@@ -52,7 +52,7 @@ object SampleLayout:
       val linked = links.collect { case (src, `id`) if placed.contains(src) => placed(src) }
       id -> (if id.isCon || linked.isEmpty then order(id).toDouble else (linked.min + linked.max) / 2.0)
 
-    val columns = layers.groupMap(_._2)(_._1).toList.sortBy(_._1).foldLeft(Map.empty[MnId, Double]):
-      (placed, layer) => placed ++ spread(layer._2.toList.map(preferredColumn(placed)))
+    val columns = layers.groupMap(_._2)(_._1).toList.sortBy(_._1).foldLeft(Map.empty[MnId, Double]): (placed, layer) =>
+      placed ++ spread(layer._2.toList.map(preferredColumn(placed)))
 
     ids.map(id => id -> Position(columns(id), layers(id))).toMap

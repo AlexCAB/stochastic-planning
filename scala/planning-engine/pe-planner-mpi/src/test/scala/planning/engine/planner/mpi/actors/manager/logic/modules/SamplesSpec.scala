@@ -67,7 +67,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
           props = sample.props,
           info = Some(sample.info),
           edges = Set(MeKey.Link(conMnId, absMnId)),
-          nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+          nodes = Map(conMnId -> state.nodeRefMap(conMnId).data, absMnId -> state.nodeRefMap(absMnId).data),
         ))
 
         state.sampleDataMap mustBe Map(sampleId -> SampleData(
@@ -110,7 +110,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
           props = sample.props,
           info = Some(sample.info),
           edges = Set(MeKey.Link(conMnId, absMnId)),
-          nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+          nodes = Map(conMnId -> state.nodeRefMap(conMnId).data, absMnId -> state.nodeRefMap(absMnId).data),
         ))
         state.nextMnId mustBe 3L
         totalSamplesCounts(state) mustBe Map(conMnId -> 1L, absMnId -> 1L)
@@ -180,7 +180,7 @@ class SamplesSpec extends UnitSpecWithIOAndTestKit with WithTestManager with Edg
             props = sample.props,
             info = None,
             edges = Set(MeKey.Link(conMnId, absMnId)),
-            nodes = Map(conMnId -> state.nodeRefMap(conMnId), absMnId -> state.nodeRefMap(absMnId)),
+            nodes = Map(conMnId -> state.nodeRefMap(conMnId).data, absMnId -> state.nodeRefMap(absMnId).data),
           ))
 
           state.sampleDataMap mustBe Map(sampleId -> SampleData(

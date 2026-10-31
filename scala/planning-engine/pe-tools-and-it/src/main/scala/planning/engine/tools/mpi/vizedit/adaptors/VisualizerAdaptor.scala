@@ -23,7 +23,8 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.planner.mpi.model.data.visualization.{ActiveForest, SampleViz}
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 import planning.engine.planner.mpi.model.io.IoVars
 import planning.engine.tools.mpi.vizedit.gui.Gui
 
@@ -33,12 +34,12 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
 
   private val logger = LoggerFactory[F].getLogger
 
-  private def withGui[G[_]: MT](event: String)(fa: Gui[F] => F[Unit]): G[Unit] = MT[G, Unit]:
+  private def withGui[G[_]: MT](fa: Gui[F] => F[Unit]): G[Unit] = MT[G, Unit]:
     summon[Dispatcher[F]].unsafeRunAndForget(guiDef.get.flatMap(fa(_)))
 
   def setGui(gui: Gui[F]): F[Unit] = this.guiDef.complete(gui).void
 
-  def reset(): F[Unit] = withGui("reset"): gui =>
+  def reset(): F[Unit] = withGui: gui =>
     for
       _ <- gui.main.window.setTitle(None)
       _ <- gui.main.ioVarsTable.clear
@@ -47,7 +48,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
       _ <- logger.info(s"Visualizer GUI reset")
     yield ()
 
-  override def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui("init"): gui =>
+  override def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui: gui =>
     for
       _ <- gui.main.window.setTitle(Some(metadata.name.value))
       _ <- gui.main.ioVarsTable.update(variables)
@@ -58,7 +59,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
 
   override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MT.void[G]
 
-  override def samplesAdded[G[_]: MT](samples: Set[SampleViz]): G[Unit] = withGui("samplesAdded"): gui =>
+  override def samplesAdded[G[_]: MT](samples: Set[Sample]): G[Unit] = withGui: gui =>
     for
       _ <- gui.samples.control.samplesAdded(samples)
       _ <- logger.info(s"GUI samples added: ${samples.map(_.id)}")

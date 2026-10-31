@@ -15,11 +15,10 @@ package planning.engine.planner.mpi.actors.node.logic
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
-import planning.engine.common.values.io.{IoTime, IoValue}
+import planning.engine.common.values.io.IoTime
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.plan.Depth
 import planning.engine.common.values.sample.SampleId
-import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.actors.ApiBase
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.Message
@@ -58,14 +57,12 @@ private[node] abstract class ApiImpl extends ApiBase[Actor.Msg] with Node:
 
   override def planExtend[F[_]: MT](prev: StepKey, next: StepKey): F[Unit] = actor.tellF(PlanExtend(prev, next))
 
-  override lazy val toString: String = s"Node(id = $mnId, name = ${name.repr}, path = ${actor.path})"
+  override lazy val toString: String = s"Node(id = $mnId, name = ${data.name.repr}, path = ${actor.path})"
 
 private[node] object ApiImpl:
   final case class Con(
       mnId: MnId.Con,
-      name: Option[HnName],
-      description: Option[Description],
-      ioValue: IoValue,
+      data: NodeData.Con,
       actor: Actor.Ref,
   ) extends ApiImpl with Node.Con:
     import Message.*
@@ -74,8 +71,7 @@ private[node] object ApiImpl:
 
   final case class Abs(
       mnId: MnId.Abs,
-      name: Option[HnName],
-      description: Option[Description],
+      data: NodeData.Abs,
       actor: Actor.Ref,
   ) extends ApiImpl with Node.Abs:
     import Message.*
@@ -84,6 +80,6 @@ private[node] object ApiImpl:
       actor.tellF(ActivationAbs(time, sampleIds, path))
 
   def apply[F[_]: MT](mnId: MnId, data: NodeData, actor: Actor.Ref): F[ApiImpl] = (mnId, data) match
-    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data.name, data.description, data.ioValue, actor).pure
-    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data.name, data.description, actor).pure
+    case (mnId: MnId.Con, data: NodeData.Con) => Con(mnId, data, actor).pure
+    case (mnId: MnId.Abs, data: NodeData.Abs) => Abs(mnId, data, actor).pure
     case _ => "Invalid combination of MnId and NodeData for ApiImpl creation".assertionError

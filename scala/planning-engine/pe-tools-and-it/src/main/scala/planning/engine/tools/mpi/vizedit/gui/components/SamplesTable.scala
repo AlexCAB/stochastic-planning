@@ -16,12 +16,12 @@ import cats.effect.{Async, Deferred}
 import cats.effect.std.Dispatcher
 import cats.syntax.all.*
 import planning.engine.common.values.sample.SampleId
-import planning.engine.planner.mpi.model.data.visualization.SampleViz
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.{Label, TableColumn, TableRow, TableView}
 import SamplesTable.Row
+import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.tools.mpi.vizedit.gui.controls.SamplesControl
 
 // Table of the map samples. Must be constructed on the FX thread (see `SamplesTable.apply`).
@@ -48,16 +48,16 @@ class SamplesTable[F[_]: {Async, Dispatcher}] private (control: Deferred[F, Samp
     column("Params", _.paramsProp),
   )
 
-  private def toRow(sample: SampleViz): Row = Row(
+  private def toRow(sample: Sample): Row = Row(
     id = sample.id,
-    name = sample.name.map(_.value).getOrElse(""),
-    params = s"PN(${sample.probabilityCount}), U(${sample.utility})",
+    name = sample.info.map(_.name.value).getOrElse(""),
+    params = s"PN(${sample.props.probabilityCount}), U(${sample.props.utility})",
   )
 
   def setControl(control: SamplesControl[F]): F[Unit] = this.control.complete(control).void
 
   // Sorted by sample ID.
-  def update(samples: Iterable[SampleViz]): F[Unit] =
+  def update(samples: Iterable[Sample]): F[Unit] =
     val rows = samples.toList.sortBy(_.id.value).map(toRow)
     fx(items.value.setAll(rows*))
 

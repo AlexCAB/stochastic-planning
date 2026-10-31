@@ -20,7 +20,7 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.errors.*
 import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
-import planning.engine.planner.mpi.model.data.visualization.SampleViz
+import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
 
@@ -41,20 +41,22 @@ final case class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](graph: Ne
     case EdgeType.LINK => None
     case EdgeType.THEN => Some("arrow-then")
 
-  private def toView(sample: SampleViz): NetworkGraph.View =
-    val labels = sample.nodes.map((id, name, description) => id -> nodeLabel(id, name, description)).toMap
-    val positions = SampleLayout(sample.mnId, sample.edges)
+  private def toView(sample: Sample): NetworkGraph.View =
+    val labels = sample.nodes.map((id, data) => id -> nodeLabel(id, data.name, data.description))
+    val positions = SampleLayout(sample.nodes.keySet, sample.edges.map(k => (k.src, k.trg, k.asEdgeType)))
 
     NetworkGraph.View(
-      vertices = sample.nodes.toList.map((id, _, _) => NetworkGraph.Vertex(labels(id), nodeStyle(id), positions(id))),
-      edges = sample.edges.toList.map: (src, trg, edgeType) =>
-        NetworkGraph.Edge(s"$src-$edgeType->$trg", labels(src), labels(trg), edgeStyle(edgeType), arrowStyle(edgeType)),
+      vertices = sample.nodes.toList.map((id, _) => NetworkGraph.Vertex(labels(id), nodeStyle(id), positions(id))),
+      edges = sample.edges.toList.map: key =>
+        val edgeType = key.asEdgeType
+        val element = s"${key.src}-$edgeType->${key.trg}"
+        NetworkGraph.Edge(element, labels(key.src), labels(key.trg), edgeStyle(edgeType), arrowStyle(edgeType)),
     )
 
-  def render(sample: SampleViz): F[Unit] =
+  def render(sample: Sample): F[Unit] =
     for
-      edgeMnId <- sample.edges.flatMap((src, trg, _) => Set(src, trg)).pure
-      _ <- sample.mnId.assertContainsAllOf(edgeMnId, s"Sample ${sample.id} has edges with unknown nodes")
+      edgeMnId <- sample.edges.flatMap(_.mnIds).pure
+      _ <- sample.nodes.keySet.assertContainsAllOf(edgeMnId, s"Sample ${sample.id} has edges with unknown nodes")
       _ <- graph.render(toView(sample))
       _ <- logger.info(s"SampleGraph rendered sample ${sample.id}")
     yield ()

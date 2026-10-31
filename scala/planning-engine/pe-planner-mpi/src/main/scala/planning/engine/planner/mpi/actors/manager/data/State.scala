@@ -50,7 +50,7 @@ private[manager] final case class State(
       data.zipWithIndex.toList.traverse((e, i) => spawn(nextMnId + i, e._2).map(n => e._1 -> (n._1, n._2)))
 
     def extractNames(nodes: List[Node]): Map[HnName, Set[MnId]] = nodes
-      .collect { case n if n.name.isDefined => n.name.get -> n.mnId }
+      .collect { case n if n.data.name.isDefined => n.data.name.get -> n.mnId }
       .groupBy(_._1).map((name, ids) => name -> (ids.map(_._2).toSet ++ nodeNameMap.getOrElse(name, Set.empty)))
 
     def updateState(nodes: List[Node]): State = this.copy(

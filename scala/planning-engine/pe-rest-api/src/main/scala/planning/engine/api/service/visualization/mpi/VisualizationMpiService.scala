@@ -29,7 +29,8 @@ import planning.engine.common.values.node.MnId
 import planning.engine.planner.mpi.Visualization
 import planning.engine.planner.mpi.model.data.map.Metadata
 import planning.engine.planner.mpi.model.data.node.NodeData
-import planning.engine.planner.mpi.model.data.visualization.{ActiveForest, SampleViz}
+import planning.engine.planner.mpi.model.data.samples.Sample
+import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 import planning.engine.planner.mpi.model.io.IoVars
 
 class VisualizationMpiService[F[_]: {Async, LoggerFactory}](
@@ -65,7 +66,7 @@ class VisualizationMpiService[F[_]: {Async, LoggerFactory}](
   override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MpiNewEdges.formMeKeys(keys).map(publish)
 
   // TODO: Implement samplesAdded to publish MpiNewSamples messages
-  override def samplesAdded[G[_]: MT](samples: Set[SampleViz]): G[Unit] = ().pure[G]
+  override def samplesAdded[G[_]: MT](samples: Set[Sample]): G[Unit] = ().pure[G]
 
   override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] =
     MpiActiveForest(time, forest).map(publish)

@@ -25,12 +25,13 @@ final case class IoVars(
   // Do split nodes into input and output sets based on their related IO var names
   def conNodesByIo[F[_]: MT](nodes: Set[Node.Con]): F[(Set[Node.Con], Set[Node.Con])] = nodes
     .foldM((Set[Node.Con](), Set[Node.Con]())):
-      case ((inNs, outNs), n) if in.contains(n.ioValue.name) => in(n.ioValue.name).validateNode(n).as((inNs + n, outNs))
+      case ((inNs, outNs), n) if in.contains(n.data.ioValue.name) =>
+        in(n.data.ioValue.name).validateNode(n).as((inNs + n, outNs))
 
-      case ((inNs, outNs), n) if out.contains(n.ioValue.name) =>
-        out(n.ioValue.name).validateNode(n).as((inNs, outNs + n))
+      case ((inNs, outNs), n) if out.contains(n.data.ioValue.name) =>
+        out(n.data.ioValue.name).validateNode(n).as((inNs, outNs + n))
 
-      case (_, n) => s"Undefined IO name ${n.ioValue.name}".assertionError
+      case (_, n) => s"Undefined IO name ${n.data.ioValue.name}".assertionError
 
   def get[F[_]: MT](name: IoName): F[Variable] = in.get(name).orElse(out.get(name)) match
     case Some(v) => v.pure

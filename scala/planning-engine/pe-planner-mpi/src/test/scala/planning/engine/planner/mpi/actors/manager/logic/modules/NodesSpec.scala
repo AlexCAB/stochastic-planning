@@ -27,7 +27,7 @@ class NodesSpec extends UnitSpecWithIOAndTestKit with WithTestManager:
       val state = manager.state
 
       state.nodeRefMap.keySet mustBe expNodes.keySet
-      expNodes.foreach((id, name) => state.nodeRefMap(id).name mustBe name)
+      expNodes.foreach((id, name) => state.nodeRefMap(id).data.name mustBe name)
 
       state.nodeNameMap mustBe expNodes.toList
         .collect { case (id, Some(name)) => name -> id }

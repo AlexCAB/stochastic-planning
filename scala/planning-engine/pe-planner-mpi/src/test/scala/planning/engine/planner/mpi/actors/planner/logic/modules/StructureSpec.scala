@@ -35,7 +35,7 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
       async[IO]:
         planner.api.conNodesAdded[IO](Set(inConNode)).logValue(tn).await
 
-        planner.getState.struct.inputNodes mustBe Map(inConNode.ioValue -> inConNode)
+        planner.getState.struct.inputNodes mustBe Map(inConNode.data.ioValue -> inConNode)
         planner.getState.struct.outputNodes mustBe Map.empty
 
     "register a new output node under its mnId" in newCase[CaseData]: (tn, data) =>
@@ -51,7 +51,7 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
       async[IO]:
         planner.api.conNodesAdded[IO](Set(inConNode, outConNode)).logValue(tn).await
 
-        planner.getState.struct.inputNodes mustBe Map(inConNode.ioValue -> inConNode)
+        planner.getState.struct.inputNodes mustBe Map(inConNode.data.ioValue -> inConNode)
         planner.getState.struct.outputNodes mustBe Map(outConNode.mnId -> outConNode)
 
     "accumulate nodes across multiple calls without removing previous ones" in newCase[CaseData]: (tn, data) =>
@@ -61,7 +61,7 @@ class StructureSpec extends UnitSpecWithIOAndTestKit with NodeTestData:
         planner.api.conNodesAdded[IO](Set(otherInConNode, outConNode)).logValue(tn).await
 
         planner.getState.struct.inputNodes mustBe Map(
-          inConNode.ioValue -> inConNode,
-          otherInConNode.ioValue -> otherInConNode,
+          inConNode.data.ioValue -> inConNode,
+          otherInConNode.data.ioValue -> otherInConNode,
         )
         planner.getState.struct.outputNodes mustBe Map(outConNode.mnId -> outConNode)

@@ -16,4 +16,4 @@ import planning.engine.common.graph.edges.MeKey
 import planning.engine.planner.mpi.actors.node.Node
 
 final case class MeRef(key: MeKey, srcNode: Node, trgNode: Node):
-  override lazy val toString: String = s"MeRef(${key.toString} | ${srcNode.name} --> ${trgNode.name})"
+  override lazy val toString: String = s"MeRef(${key.toString} | ${srcNode.data.name} --> ${trgNode.data.name})"

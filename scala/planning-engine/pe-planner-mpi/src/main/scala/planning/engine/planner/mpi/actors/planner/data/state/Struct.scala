@@ -29,7 +29,7 @@ private[planner] final case class Struct(
 ) extends Representable:
 
   def withNewInNodes(nodes: Set[Node.Con]): Struct =
-    copy(inputNodes = nodes.foldLeft(inputNodes)((acc, node) => acc.updated(node.ioValue, node)))
+    copy(inputNodes = nodes.foldLeft(inputNodes)((acc, node) => acc.updated(node.data.ioValue, node)))
 
   def withNewOutNodes(nodes: Set[Node.Con]): Struct =
     copy(outputNodes = nodes.foldLeft(outputNodes)((acc, node) => acc.updated(node.mnId, node)))

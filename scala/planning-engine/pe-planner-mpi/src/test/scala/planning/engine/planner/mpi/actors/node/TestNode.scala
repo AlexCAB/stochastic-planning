@@ -93,8 +93,8 @@ object TestNode extends TestActorBase:
 
   extension (api: Node)
     def ref: ActorRef[Node.Msg] = api match
-      case ApiImpl.Con(_, _, _, _, ref) => ref
-      case ApiImpl.Abs(_, _, _, ref)    => ref
+      case ApiImpl.Con(_, _, ref) => ref
+      case ApiImpl.Abs(_, _, ref) => ref
 
     def state(using ActorTestKit, IORuntime): State =
       val state = getActorState[State](ref)

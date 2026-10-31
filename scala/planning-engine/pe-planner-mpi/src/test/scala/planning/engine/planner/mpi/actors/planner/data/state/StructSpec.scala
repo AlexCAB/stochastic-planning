@@ -42,12 +42,12 @@ class StructSpec extends UnitSpecWithData with NodeTestData:
     "add a node under its IoValue when empty" in newCase[CaseData]: (_, data) =>
       import data.*
       Struct.init.withNewInNodes(Set(node1)).pure[IO]
-        .asserting(_.inputNodes mustBe Map(node1.ioValue -> node1))
+        .asserting(_.inputNodes mustBe Map(node1.data.ioValue -> node1))
 
     "add nodes under different IoIndex within the same IoName" in newCase[CaseData]: (_, data) =>
       import data.*
       Struct.init.withNewInNodes(Set(node1, node2)).pure[IO]
-        .asserting(_.inputNodes mustBe Map(node1.ioValue -> node1, node2.ioValue -> node2))
+        .asserting(_.inputNodes mustBe Map(node1.data.ioValue -> node1, node2.data.ioValue -> node2))
 
     "replace the entry when a node with the same IoValue is added again" in newCase[CaseData]: (_, data) =>
       import data.*
@@ -64,7 +64,7 @@ class StructSpec extends UnitSpecWithData with NodeTestData:
         val state1 = Struct.init.withNewInNodes(Set(node1))
         val state2 = state1.withNewInNodes(Set(node3))
 
-        state2.inputNodes mustBe Map(node1.ioValue -> node1, node3.ioValue -> node3)
+        state2.inputNodes mustBe Map(node1.data.ioValue -> node1, node3.data.ioValue -> node3)
 
   "Struct.withNewOutNodes(...)" should:
     "register a node under its mnId" in newCase[CaseData]: (_, data) =>
@@ -92,10 +92,10 @@ class StructSpec extends UnitSpecWithData with NodeTestData:
   "Struct.findInNodes(...)" should:
     "return nodes for all requested IoValues" in newCase[CaseData]: (_, data) =>
       import data.*
-      struct.findInNodes[IO](Set(node1.ioValue, node3.ioValue))
+      struct.findInNodes[IO](Set(node1.data.ioValue, node3.data.ioValue))
         .asserting(_ mustBe Set(node1, node3))
 
     "fail when some requested IoValue is not known" in newCase[CaseData]: (_, data) =>
       import data.*
-      struct.findInNodes[IO](Set(node1.ioValue, IoValue(name2, IoIndex(7))))
+      struct.findInNodes[IO](Set(node1.data.ioValue, IoValue(name2, IoIndex(7))))
         .assertThrowsError[AssertionError](_.getMessage must include("Struct.findInNodes: missing input nodes"))

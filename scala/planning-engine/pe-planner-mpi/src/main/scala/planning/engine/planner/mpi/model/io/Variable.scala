@@ -24,8 +24,9 @@ sealed trait Variable:
 
   def validateNode[F[_]: MT](node: Node.Con): F[Node.Con] =
     for
-      _ <- node.ioValue.name.assertEquals(name, s"Node ${node.mnId} has invalid name for variable $name")
-      _ <- varType.isDefinedAt(node.ioValue.index).assertTrue(s"Node ${node.mnId} has invalid index for variable $name")
+      _ <- node.data.ioValue.name.assertEquals(name, s"Node ${node.mnId} has invalid name for variable $name")
+      isDefine = varType.isDefinedAt(node.data.ioValue.index)
+      _ <- isDefine.assertTrue(s"Node ${node.mnId} has invalid index for variable $name")
     yield node
 
 object Variable:

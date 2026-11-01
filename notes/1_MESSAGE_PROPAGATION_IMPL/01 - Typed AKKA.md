@@ -433,6 +433,10 @@ y#######
 
 ❯ In `StructureSpec` add `Visualizer.reset()` test to verify reset method called on actor stop. 
 
+❯ In `MapGraph`, implement `def nodesAdded` and `def edgesAdded`, which will visualize added nodes and edges. Graph visualization should look similar, to `SampleGraph`. 
+
+
+
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

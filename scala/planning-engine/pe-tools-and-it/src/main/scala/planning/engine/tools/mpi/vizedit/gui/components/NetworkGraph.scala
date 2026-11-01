@@ -37,17 +37,41 @@ class NetworkGraph[F[_]: {Async, Dispatcher}] private (
     ):
 
   // Grid is centered in the panel, with steps reduced if needed to fit it (layer 0 is at the bottom).
-  private def placeVertices(vertices: List[NetworkGraph.Vertex]): Unit =
-    val panelVertices = graph.vertices().asScala.map(v => v.element -> v).toMap
+  private def panelPositions(vertices: List[NetworkGraph.Vertex]): Map[String, (Double, Double)] =
     val maxColumn = vertices.map(_.position.column).maxOption.getOrElse(0.0)
     val maxLayer = vertices.map(_.position.layer.toDouble).maxOption.getOrElse(0.0)
     val columnStep = NetworkGraph.columnStep.min((getWidth - 2 * NetworkGraph.margin) / maxColumn.max(1.0))
     val layerStep = NetworkGraph.layerStep.min((getHeight - 2 * NetworkGraph.margin) / maxLayer.max(1.0))
 
-    vertices.foreach: v =>
-      val x = getWidth / 2 + (v.position.column - maxColumn / 2) * columnStep
-      val y = getHeight / 2 + (maxLayer / 2 - v.position.layer) * layerStep
-      setVertexPosition(panelVertices(v.element), x, y)
+    vertices
+      .map: v =>
+        val x = getWidth / 2 + (v.position.column - maxColumn / 2) * columnStep
+        val y = getHeight / 2 + (maxLayer / 2 - v.position.layer) * layerStep
+        v.element -> (x, y)
+      .toMap
+
+  private def placeVertices(vertices: List[NetworkGraph.Vertex]): Unit =
+    val positions = panelPositions(vertices)
+    graph.vertices().asScala.foreach(v => setVertexPosition(v, positions(v.element)._1, positions(v.element)._2))
+
+  private def clearModel(): Unit = graph.vertices().asScala.toList.foreach(graph.removeVertex)
+
+  private def insertEdges(edges: List[NetworkGraph.Edge]): Unit =
+    edges.foreach(e => graph.insertEdge(e.src, e.trg, e.element))
+
+  // Panel spawns a new vertex near the top-left of the existing ones, and fails with a negative position when no free
+  // place is found around (0, 0). So each vertex is moved to its position, inside the margin, before adding the next.
+  // Must be called on the FX thread, after the panel was initialized.
+  private def insertSpawned(newView: NetworkGraph.View): Unit =
+    updateAndWait() // Old vertices must be removed from the panel first.
+    val positions = panelPositions(newView.vertices)
+
+    newView.vertices.foreach: v =>
+      val vertex = graph.insertVertex(v.element)
+      updateAndWait()
+      setVertexPosition(vertex, positions(v.element)._1, positions(v.element)._2)
+
+    insertEdges(newView.edges)
 
   // SmartArrow is drawn as two separate lines, which enclose no area, so it must be made a closed triangle to be filled.
   private def fillArrow(arrow: SmartStylableNode, styleClass: String): Unit = arrow match
@@ -91,11 +115,13 @@ class NetworkGraph[F[_]: {Async, Dispatcher}] private (
   def render(newView: NetworkGraph.View): F[Unit] = onFx:
     for
       _ <- view.set(newView)
-      _ <- Async[F].delay:
-        graph.vertices().asScala.toList.foreach(graph.removeVertex)
-        newView.vertices.foreach(v => graph.insertVertex(v.element))
-        newView.edges.foreach(e => graph.insertEdge(e.src, e.trg, e.element))
       isInitialized <- initialized.get
+      _ <- Async[F].delay:
+        clearModel()
+        if isInitialized then insertSpawned(newView)
+        else
+          newView.vertices.foreach(v => graph.insertVertex(v.element))
+          insertEdges(newView.edges)
       _ <- displayView.whenA(isInitialized)
     yield ()
 

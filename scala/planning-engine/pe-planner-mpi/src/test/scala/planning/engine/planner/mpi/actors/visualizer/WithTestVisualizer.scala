@@ -36,7 +36,7 @@ trait WithTestVisualizer:
     lazy val noOpVisualization: Visualization = new Visualization:
       override def init[F[_]: MT](metadata: Metadata, variables: IoVars): F[Unit] = MonadThrow[F].unit
       override def reset[F[_]: MT](): F[Unit] = MonadThrow[F].unit
-      override def nodesAdded[F[_]: MT](ids: Map[MnId, NodeData]): F[Unit] = MonadThrow[F].unit
+      override def nodesAdded[F[_]: MT](nodes: Map[MnId, NodeData]): F[Unit] = MonadThrow[F].unit
       override def edgesAdded[F[_]: MT](keys: Set[MeKey]): F[Unit] = MonadThrow[F].unit
       override def samplesAdded[F[_]: MT](samples: Set[Sample]): F[Unit] = MonadThrow[F].unit
       override def activeStepsFound[F[_]: MT](time: IoTime, forest: ActiveForest): F[Unit] = MonadThrow[F].unit

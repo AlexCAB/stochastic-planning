@@ -38,7 +38,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
     summon[Dispatcher[F]].unsafeRunAndForget(guiDef.get.flatMap(fa(_)))
 
   def setGui(gui: Gui[F]): F[Unit] = this.guiDef.complete(gui).void
-  
+
   override def init[G[_]: MT](metadata: Metadata, variables: IoVars): G[Unit] = withGui: gui =>
     for
       _ <- gui.main.window.setTitle(Some(metadata.name.value))
@@ -52,9 +52,17 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
       _ <- logger.info(s"Visualizer GUI reset")
     yield ()
 
-  override def nodesAdded[G[_]: MT](ids: Map[MnId, NodeData]): G[Unit] = MT.void[G]
+  override def nodesAdded[G[_]: MT](nodes: Map[MnId, NodeData]): G[Unit] = withGui: gui =>
+    for
+      _ <- gui.main.mapGraph.nodesAdded(nodes)
+      _ <- logger.info(s"Map nodes added: ${nodes.map { case (id, data) => s"$id -> $data" }}")
+    yield ()
 
-  override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = MT.void[G]
+  override def edgesAdded[G[_]: MT](keys: Set[MeKey]): G[Unit] = withGui: gui =>
+    for
+      _ <- gui.main.mapGraph.edgesAdded(keys)
+      _ <- logger.info(s"Map edges added: ${keys.map(_.toString)}")
+    yield ()
 
   override def samplesAdded[G[_]: MT](samples: Set[Sample]): G[Unit] = withGui: gui =>
     for

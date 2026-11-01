@@ -435,7 +435,7 @@ y#######
 
 ❯ In `MapGraph`, implement `def nodesAdded` and `def edgesAdded`, which will visualize added nodes and edges. Graph visualization should look similar, to `SampleGraph`. 
 
-
+❯ Make `MapGraph` and `SampleGraph` re-render graph (update it layout) on window re-size. 
 
 ##### TODO: 
 1. Implement VizEditTool tool

@@ -20,6 +20,7 @@ import planning.engine.common.errors.*
 import planning.engine.planner.mpi.model.data.samples.Sample
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.layouts.NodesView
 
 class SampleGraph[F[_]: {Async, Dispatcher, LoggerFactory}](val graph: NetworkGraph[F]):
   private val logger = LoggerFactory[F].getLogger

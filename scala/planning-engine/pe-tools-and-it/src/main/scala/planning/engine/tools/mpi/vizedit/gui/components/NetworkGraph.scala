@@ -102,6 +102,17 @@ class NetworkGraph[F[_]: {Async, Dispatcher}] private (
         styleEdges(current.edges)
     yield ()
 
+  // Panel positions depend on the panel size, so vertices are placed again on its change. Edges follow their vertices.
+  private def replaceVertices: F[Unit] = onFx:
+    for
+      isInitialized <- initialized.get
+      current <- view.get
+      _ <- Async[F].delay(placeVertices(current.vertices)).whenA(isInitialized)
+    yield ()
+
+  widthProperty.addListener((_, _, _) => runF(replaceVertices))
+  heightProperty.addListener((_, _, _) => runF(replaceVertices))
+
   // Steps inside `onFx` run on the single FX thread without interleaving,
   // so the `initialized` check and the panel call it guards are atomic.
   // Must be called after the window containing this panel was shown.

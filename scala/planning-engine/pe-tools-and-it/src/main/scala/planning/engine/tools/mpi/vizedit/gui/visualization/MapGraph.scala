@@ -22,6 +22,7 @@ import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
 import MapGraph.State
+import planning.engine.tools.mpi.vizedit.gui.visualization.layouts.NodesView
 
 class MapGraph[F[_]: {Async, Dispatcher, LoggerFactory}](val graph: NetworkGraph[F], state: AtomicCell[F, State]):
   private val logger = LoggerFactory[F].getLogger

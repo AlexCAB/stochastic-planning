@@ -16,11 +16,11 @@ import planning.engine.common.enums.EdgeType
 import planning.engine.common.values.node.MnId
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph.Position
 
-// Layered layout of a sample, same as in the yEd maps (see vizedit/yed/two-way-walk.graphml):
+// Layered layout of a graph, same as in the yEd maps (see vizedit/yed/two-way-walk.graphml):
 //  - layer 0 (bottom): concrete nodes, ordered in columns by THEN edges;
 //  - next layers: abstract nodes, each one layer above the abstract nodes linked to it;
 //  - abstract node is centered over the nodes linked to it, or placed as concrete if there are none.
-object SampleLayout:
+object MapLayout:
   // Longest path to each of the nodes. Number of passes is bounded, so cycles in `arcs` can't hang it.
   private def longestPaths(ids: Set[MnId], arcs: Set[(MnId, MnId)]): Map[MnId, Int] =
     def relax(paths: Map[MnId, Int]): Map[MnId, Int] = arcs.foldLeft(paths): (acc, arc) =>

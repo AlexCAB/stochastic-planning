@@ -10,7 +10,7 @@
 | website: github.com/alexcab |||||
 | created: 2026-11-01 |||||||||||*/
 
-package planning.engine.tools.mpi.vizedit.gui.visualization
+package planning.engine.tools.mpi.vizedit.gui.visualization.layouts
 
 import planning.engine.common.enums.EdgeType
 import planning.engine.common.graph.edges.MeKey
@@ -18,7 +18,7 @@ import planning.engine.common.values.node.{HnName, MnId}
 import planning.engine.common.values.text.Description
 import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
-import planning.engine.tools.mpi.vizedit.gui.visualization.layouts.SampleLayout
+import planning.engine.tools.mpi.vizedit.gui.visualization.layouts.MapLayout
 
 // Styled and layered view of map nodes and edges, common for the sample and the map graphs.
 object NodesView:
@@ -39,7 +39,7 @@ object NodesView:
   // All nodes of the `edges` must be in the `nodes`.
   def apply(nodes: Map[MnId, NodeData], edges: Set[MeKey]): NetworkGraph.View =
     val labels = nodes.map((id, data) => id -> nodeLabel(id, data.name, data.description))
-    val positions = SampleLayout(nodes.keySet, edges.map(k => (k.src, k.trg, k.asEdgeType)))
+    val positions = MapLayout(nodes.keySet, edges.map(k => (k.src, k.trg, k.asEdgeType)))
 
     NetworkGraph.View(
       vertices = nodes.toList.map((id, _) => NetworkGraph.Vertex(labels(id), nodeStyle(id), positions(id))),

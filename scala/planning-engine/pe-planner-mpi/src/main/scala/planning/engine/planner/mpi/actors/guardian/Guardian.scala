@@ -40,6 +40,14 @@ private[mpi] trait Guardian:
 private[mpi] object Guardian:
   type Msg = Actor.Msg
 
+  // `terminate()` only starts the shutdown, so wait until all actors stopped (and their `PostStop` handled),
+  // otherwise they outlive the resources acquired before this one (for example the `Visualization` dependencies).
+  private def terminate[F[_]: Async](system: ActorSystem[Msg]): F[Unit] =
+    for
+      _ <- Async[F].delay(system.terminate())
+      _ <- Async[F].fromFuture(Async[F].delay(system.whenTerminated))
+    yield ()
+
   def create[F[_]: Async](viz: Option[Visualization]): Resource[F, (Guardian, Scheduler)] = Resource
-    .make(Async[F].delay(ActorSystem(Actor(Definition(viz)), Actor.name)))(s => Async[F].delay(s.terminate()).void)
+    .make(Async[F].delay(ActorSystem(Actor(Definition(viz)), Actor.name)))(terminate)
     .map(s => (ApiImpl(s), s.scheduler))

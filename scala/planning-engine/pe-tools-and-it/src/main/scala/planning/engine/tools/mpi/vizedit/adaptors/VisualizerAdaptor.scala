@@ -46,7 +46,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
       _ <- logger.info(s"GUI initialized for map: $metadata, variables: $variables")
     yield ()
 
-  override def reset[G[_] : MT](): G[Unit] = withGui: gui =>
+  override def reset[G[_]: MT](): G[Unit] = withGui: gui =>
     for
       _ <- gui.reset()
       _ <- logger.info(s"Visualizer GUI reset")

@@ -32,7 +32,7 @@ private[visualizer] object Actor extends Stateless with Structure with Plan:
       _ <- doInit
     yield ()
 
-  override protected def stopped[F[_] : S]()(using d: Def, ctx: Ctx): F[Unit] = doReset
+  override protected def stopped[F[_]: S]()(using d: Def, ctx: Ctx): F[Unit] = doReset
 
   override protected def receive[F[_]: S](msg: Msg)(using Def, Ctx): F[Bhv] = msg match
     case msg: ShowNodesAdded       => doNodesAdded(msg)

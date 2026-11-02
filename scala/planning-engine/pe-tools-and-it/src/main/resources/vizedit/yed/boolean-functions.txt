@@ -1,0 +1,60 @@
+G:boolean-functions:
+
+Modeling two input A and B and one output R boolean functions
+(A, B -> R) in a map network.
+
+NOT:         AND:         OR:          XOR:
+0, ? -> 1    0, 0 -> 0    0, 0 -> 0    0, 0 -> 0
+1, ? -> 0    0, 1 -> 0    0, 1 -> 1    0, 1 -> 1
+             1, 0 -> 0    1, 0 -> 1    1, 0 -> 1
+             1, 1 -> 1    1, 1 -> 1    1, 1 -> 0
+
+Map variables:
+ * 'F' - input function name, one of: 'not', 'and', 'or', 'xor'
+ * 'A' - first boolean input variable
+ * 'B' - second boolean input variable
+ * 'R' - output boolean variable
+
+Label formats:
+ * Graph label: 'G:<graph name>:<optional description>',
+   example: 'G:boolean-functions:this description'
+ * IO variable label: '<I or O>:<name>:<bool or int or float or list>:<range>:<optional description>',
+   example: 'I:A:bool:t;f:true or false variable'
+ * Hidden concrete value label: 'C:<in/out variable name>:<value>:<node name>:<optional description>',
+   example: 'C:A:f:n1:observed value of variable A'
+ * Hidden abstract value label: 'A:<node name>:<optional description>',
+   example: 'A:n2:abstract input'
+ * Sample label: 'S:<sample id/name>:<probability count>:<utility>:<optional description>',
+   example: 'S:S1:123:-5.5:AND function with A=1, B=0, R=0'
+
+Variable range:
+ * bool: <t;f>, example:
+   'I:my_var:bool:t;f:true or false or unobserved variable'
+ * list: <list of possible values separated by ;>, example:
+   'I:my_var:list:a;b;1;2:list of possible values or unobserved variable'
+
+Sample structure:
+  * Sample represents a single function evaluation with specific input values and the resulting output value.
+  * Sample probability count is 1, utility is 0, and description tell about function evaluation it represents.
+  * Sample have 3 abstract nodes with same name connected in chain with THEN links:
+    'A:function:' -> 'A:input:' -> 'A:output:'
+  * For all samples there one concrete node for each value for of each variable:
+    'F': 'C:F:not:NOT:', 'C:F:and:AND:', 'C:F:or:OR:', 'C:F:xor:XOR:'
+    'A': 'C:A:f:A=0:', 'C:A:t:A=1:'
+    'B': 'C:B:f:B=0:', 'C:B:t:B=1:'
+    'R': 'C:R:f:R=0:', 'C:R:t:R=1:'
+  * THEN chain of concrete nodes starts from function name, next node is input values, and last node is output value.
+    For example: 'C:F:and:AND:' -> ('C:A:t:A=1:', 'C:B:f:B=0:') -> 'C:R:f:R=0:'
+  * Concrete nodes connected with abstract with LINK edges, respectively.
+  * Example:
+    Nodes: 'C:F:and:AND:', 'C:A:t:A=1:', 'C:B:f:B=0:', 'C:R:f:R=0:', 'A:function:', 'A:input:', 'A:output:'
+    THEN edges:
+       'C:F:and:AND:' -> 'C:A:t:A=1:'
+       'C:F:and:AND:' -> 'C:B:f:B=0:'
+       'C:A:t:A=1:' -> 'C:R:f:R=0:'
+       'C:B:f:B=0:' -> 'C:R:f:R=0:'
+    LINK edges:
+       'C:F:and:AND:' -> 'A:function:'
+       'C:A:t:A=1:' -> 'A:input:'
+       'C:B:f:B=0:' -> 'A:input:'
+       'C:R:f:R=0:' -> 'A:output:'

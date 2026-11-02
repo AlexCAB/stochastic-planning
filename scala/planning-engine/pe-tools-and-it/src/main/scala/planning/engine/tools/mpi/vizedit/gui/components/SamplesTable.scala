@@ -46,12 +46,14 @@ class SamplesTable[F[_]: {Async, Dispatcher}] private (control: Deferred[F, Samp
     column("ID", _.idProp),
     column("Name", _.nameProp),
     column("Params", _.paramsProp),
+    column("Description", _.descriptionProp),
   )
 
   private def toRow(sample: Sample): Row = Row(
     id = sample.id,
     name = sample.info.map(_.name.value).getOrElse(""),
     params = s"PN(${sample.props.probabilityCount}), U(${sample.props.utility})",
+    description = sample.info.flatMap(_.description).map(_.value).getOrElse(""),
   )
 
   def setControl(control: SamplesControl[F]): F[Unit] = this.control.complete(control).void
@@ -64,10 +66,11 @@ class SamplesTable[F[_]: {Async, Dispatcher}] private (control: Deferred[F, Samp
   def clear: F[Unit] = fx(items.value.clear())
 
 object SamplesTable:
-  final case class Row(id: SampleId, name: String, params: String):
+  final case class Row(id: SampleId, name: String, params: String, description: String):
     val idProp: StringProperty = StringProperty(id.value.toString)
     val nameProp: StringProperty = StringProperty(name)
     val paramsProp: StringProperty = StringProperty(params)
+    val descriptionProp: StringProperty = StringProperty(description)
 
   def apply[F[_]: {Async, Dispatcher}](): F[SamplesTable[F]] =
     for

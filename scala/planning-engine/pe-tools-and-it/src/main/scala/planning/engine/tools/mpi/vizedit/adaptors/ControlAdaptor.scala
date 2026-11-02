@@ -62,6 +62,8 @@ class ControlAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, 
     def loadSamples(request: MapAddSamplesRequest): F[Unit] =
       for
         vars <- map.getIoVars
+        _ <- logger.info(s"Load samples vars: $vars")
+        _ <- logger.info(s"Load samples request: $request")
         (mnIds, nodes) <- request.toNodes(vars)
         _ <- logger.info(s"Built mnIds map = $mnIds")
         samples <- request.toSamples(mnIds)

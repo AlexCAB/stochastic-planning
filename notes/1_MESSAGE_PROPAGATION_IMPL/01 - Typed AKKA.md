@@ -437,6 +437,9 @@ y#######
 
 ❯ Make `MapGraph` and `SampleGraph` re-render graph (update it layout) on window re-size. 
 
+❯ Use `vizedit/yed/two-way-walk.graphml` as example and fallow `vizedit/yed/boolean-functions.txt` description. Generate `vizedit/yed/boolean-functions.graphml`.
+
+❯ In `SamplesTable` add column Description, and show there sample description 
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

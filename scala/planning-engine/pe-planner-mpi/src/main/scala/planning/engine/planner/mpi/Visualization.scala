@@ -39,7 +39,7 @@ trait Visualization:
   def init[F[_]: MT](metadata: Metadata, variables: IoVars): F[Unit]
 
   // Called on map network reset.
-  def reset[F[_] : MT](): F[Unit]
+  def reset[F[_]: MT](): F[Unit]
 
   // Called when new hidden nodes added to the map network structure.
   def nodesAdded[F[_]: MT](nodes: Map[MnId, NodeData]): F[Unit]

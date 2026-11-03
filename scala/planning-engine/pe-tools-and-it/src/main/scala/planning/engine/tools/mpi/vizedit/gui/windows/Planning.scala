@@ -16,6 +16,7 @@ import cats.effect.Async
 import cats.syntax.all.*
 import cats.effect.std.Dispatcher
 import org.typelevel.log4cats.LoggerFactory
+import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
 import planning.engine.tools.mpi.vizedit.gui.components.Window
 import planning.engine.tools.mpi.vizedit.gui.controls.PlanningControl
 import planning.engine.tools.mpi.vizedit.gui.visualization.PlanningGraph
@@ -37,9 +38,12 @@ object Planning:
       window: Window.Config,
   )
 
-  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](config: Config): F[Planning[F]] =
+  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](
+      config: Config,
+      controlAdaptor: ControlAdaptor[F],
+  ): F[Planning[F]] =
     for
       planningGraph <- PlanningGraph[F]()
-      control <- PlanningControl[F]()
+      control <- PlanningControl[F](controlAdaptor)
       window <- Window[F]("Planning", config.window, planningGraph.graph, control, Async[F].unit)
     yield new Planning(planningGraph, control, window)

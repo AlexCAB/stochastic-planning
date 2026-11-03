@@ -21,7 +21,11 @@ import planning.engine.planner.mpi.MapMpi
 import planning.engine.tools.mpi.vizedit.arguments.Arguments
 import planning.engine.yed.Yed
 import planning.engine.api.model.map.extensions.mpi.{MapAddSamplesRequestEx, MapInitRequestEx}
+import planning.engine.common.errors.*
+import planning.engine.common.graph.io.Observation
 import planning.engine.common.values.db.DbName
+import planning.engine.common.values.io.IoTime
+import planning.engine.tools.mpi.vizedit.gui.controls.PlanningControl
 
 import java.nio.file.Path
 
@@ -80,6 +84,23 @@ class ControlAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, 
       samplesReq <- yed.buildSamples
       _ <- loadSamples(samplesReq)
     yield ()
+
+  // An empty observation is a fatal error for the planner actor, so it is rejected here.
+  def tick(time: IoTime, planning: PlanningControl[F]): F[Unit] =
+    val runTick =
+      for
+        values <- planning.getInputValues
+        utility <- planning.getUtility
+        observation = Observation(time, values, utility)
+        _ <- logger.info(s"Tick input: $observation")
+        _ <- values.assertNonEmpty("At least one input variable value should be set")
+        action <- map.syncPlannerTick(observation)
+        _ <- logger.info(s"Tick output: $action")
+        _ <- planning.setOutputValues(action.values)
+      yield ()
+
+    runTick.onError:
+      case err => logger.error(err)(s"Tick failed at time $time")
 
 object ControlAdaptor:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](args: Arguments, map: MapMpi[F]): Resource[F, ControlAdaptor[F]] =

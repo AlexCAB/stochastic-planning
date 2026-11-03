@@ -60,7 +60,7 @@ object Gui:
     val acquire =
       for
         samples <- Samples[F](config.samples)
-        planning <- Planning[F](config.planning)
+        planning <- Planning[F](config.planning, control)
         main <- Main[F](config.main, control, visualization, samples, planning, exit)
         gui = Gui(samples, planning, main)
         _ <- visualization.setGui(gui)

@@ -461,6 +461,21 @@ y#######
 
 ❯ Actually remove Utility edit up and down buttons
 
+❯ In `PlanningControl`, on "Tick" button click `state.time` should be incremented.
+
+❯ Implement `ControlAdaptor.tick()` it should:
+1. Be called on "Tick" button click.
+2. Read from `PlanningControl`: time, utility, set variable values. Then build `planning.engine.common.graph.io.Observation` of this values.
+3. Log input values
+4. Call `def syncPlannerTick(observation: Observation): F[Action]`
+5. Log output values
+6. Use values from `Action` to update `Output variables`
+
+❯ In `PlanningControl`, on "Tick" button click if at least one input value set, and if not show pop-up with warning and not call  `ControlAdaptor.tick()`
+
+
+
+
 
 
 ##### TODO: 

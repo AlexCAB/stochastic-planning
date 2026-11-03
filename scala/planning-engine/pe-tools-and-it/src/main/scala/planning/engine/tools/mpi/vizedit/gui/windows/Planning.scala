@@ -15,12 +15,14 @@ package planning.engine.tools.mpi.vizedit.gui.windows
 import cats.effect.Async
 import cats.syntax.all.*
 import cats.effect.std.Dispatcher
-import planning.engine.tools.mpi.vizedit.gui.components.{NetworkGraph, Window}
+import org.typelevel.log4cats.LoggerFactory
+import planning.engine.tools.mpi.vizedit.gui.components.Window
 import planning.engine.tools.mpi.vizedit.gui.controls.PlanningControl
+import planning.engine.tools.mpi.vizedit.gui.visualization.PlanningGraph
 
 class Planning[F[_]: {Async, Dispatcher}](
-    val graph: NetworkGraph[F],
-    val control: PlanningControl,
+    val planningGraph: PlanningGraph[F],
+    val control: PlanningControl[F],
     val window: Window[F],
 ):
   def getConfig: F[Planning.Config] =
@@ -35,9 +37,9 @@ object Planning:
       window: Window.Config,
   )
 
-  def apply[F[_]: {Async, Dispatcher}](config: Config): F[Planning[F]] =
+  def apply[F[_]: {Async, Dispatcher, LoggerFactory}](config: Config): F[Planning[F]] =
     for
-      graph <- NetworkGraph[F]()
-      control <- PlanningControl()
-      window <- Window[F]("Planning", config.window, graph, control, Async[F].unit)
-    yield new Planning(graph, control, window)
+      planningGraph <- PlanningGraph[F]()
+      control <- PlanningControl[F]()
+      window <- Window[F]("Planning", config.window, planningGraph.graph, control, Async[F].unit)
+    yield new Planning(planningGraph, control, window)

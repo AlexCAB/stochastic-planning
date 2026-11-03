@@ -440,6 +440,29 @@ y#######
 ❯ Use `vizedit/yed/two-way-walk.graphml` as example and fallow `vizedit/yed/boolean-functions.txt` description. Generate `vizedit/yed/boolean-functions.graphml`.
 
 ❯ In `SamplesTable` add column Description, and show there sample description 
+
+❯ In `PlanningControl` implement: 
+1. It should 3 row.
+2. First row have switch view buttons in row: "Context", "Active forest",  "Planning forest", "Action graph". By default first "Context" button selected and inactive. When other button clicked it become inactive and prev button become active.
+3. Second row split vertically on 2 columns, contain separate tables (they should update on map loaded and cleared when map reset):
+	* First table is "Input variables", with 3 column: "Name", "Type", "Value" 
+	* Second table is "Output variables", with 3 column: "Name", "Type", "Value"  
+4. Third row have: on left side "Tick" button, next to it label "Time = $time", next after label input field "Utility = " for insert Double value. On the right side button "Reset plan"  
+
+❯ Update `PlanningControl`:
+1. Make "Tick" twice wider
+2. To Utility edit up and down buttons with +1 and -1 steps.
+3. For input variables "Values" cells should be editable. Type of edit should depend on variable type: 
+	* For bool: unset, "true", "false" 
+	* For list: unset or options from list
+	* For float: unset or float input
+	* For int: unset or integer input
+	By unset should be a default value. 
+
+❯ Actually remove Utility edit up and down buttons
+
+
+
 ##### TODO: 
 1. Implement VizEditTool tool
 2. Implement context move algorithm. 

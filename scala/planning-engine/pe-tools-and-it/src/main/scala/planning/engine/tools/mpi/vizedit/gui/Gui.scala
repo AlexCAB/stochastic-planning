@@ -42,7 +42,8 @@ final case class Gui[F[_]: {Async, LoggerFactory}](
       _ <- main.window.setTitle(None)
       _ <- main.ioVarsTable.clear
       _ <- samples.control.reset
-      _ <- List(main.mapGraph.clear, samples.sampleGraph.clear, planning.graph.clear).sequence_
+      _ <- planning.control.reset
+      _ <- List(main.mapGraph.clear, samples.sampleGraph.clear, planning.planningGraph.clear).sequence_
     yield ()
 
   // Windows' `onHidden` callbacks run through the `Dispatcher`, so all windows must be closed while it is still open,

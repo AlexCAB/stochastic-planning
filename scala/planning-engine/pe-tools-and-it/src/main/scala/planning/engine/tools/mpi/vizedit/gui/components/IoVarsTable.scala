@@ -39,12 +39,7 @@ class IoVarsTable[F[_]: {Async, Dispatcher}] private ()
   )
 
   private def toRow(isInput: Boolean)(variable: Variable): Row =
-    val typeName = variable.varType match
-      case _: Type.N    => "int"
-      case _: Type.R    => "float"
-      case _: Type.Bool => "bool"
-      case _: Type.Opt  => "list"
-
+    val typeName = IoVarsTable.typeName(variable.varType)
     Row(variable.name.value, s"${if isInput then "input" else "output"} $typeName", variable.varType.toString)
 
   // Inputs first, then outputs, each sorted by name.
@@ -61,5 +56,11 @@ object IoVarsTable:
     val nameProp: StringProperty = StringProperty(name)
     val typeProp: StringProperty = StringProperty(varType)
     val rangeProp: StringProperty = StringProperty(range)
+
+  def typeName(varType: Type[?]): String = varType match
+    case _: Type.N    => "int"
+    case _: Type.R    => "float"
+    case _: Type.Bool => "bool"
+    case _: Type.Opt  => "list"
 
   def apply[F[_]: {Async, Dispatcher}](): F[IoVarsTable[F]] = fx(new IoVarsTable[F]())

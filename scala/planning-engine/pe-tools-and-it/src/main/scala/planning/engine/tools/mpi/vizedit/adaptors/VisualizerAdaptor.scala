@@ -43,6 +43,7 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
     for
       _ <- gui.main.window.setTitle(Some(metadata.name.value))
       _ <- gui.main.ioVarsTable.update(variables)
+      _ <- gui.planning.control.update(variables)
       _ <- logger.info(s"GUI initialized for map: $metadata, variables: $variables")
     yield ()
 

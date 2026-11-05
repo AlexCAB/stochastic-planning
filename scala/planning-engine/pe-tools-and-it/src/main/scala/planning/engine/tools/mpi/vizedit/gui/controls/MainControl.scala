@@ -29,7 +29,7 @@ import scalafx.stage.FileChooser
 
 import java.nio.file.{Files, Path}
 import MainControl.State
-import planning.engine.tools.mpi.vizedit.gui.visualization.MapGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.MapGraph
 
 // Control area of the Main window. Must be constructed on the FX thread (see `MainControl.apply`).
 class MainControl[F[_]: {Async, Dispatcher, LoggerFactory}](

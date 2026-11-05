@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.node.data.parts
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.MnId
@@ -100,7 +101,7 @@ class ActivePathSpec extends UnitSpecWithData with NodeTestData:
     "return active nodes with their PU" in newCase[CaseData]: (tn, data) =>
       import data.*
       initPath.append[IO](parent, Set(parentKey), parentPu).logValue(tn)
-        .asserting(_.nodes mustBe Map(leafMnId -> pu, parentMnId -> parentPu))
+        .asserting(_.nodes mustBe Map(leafMnId -> (leaf.data, pu), parentMnId -> (parent.data, parentPu)))
 
   "ActivePath.edges" should:
     "be empty for path with only the root" in newCase[CaseData]: (tn, data) =>
@@ -110,10 +111,10 @@ class ActivePathSpec extends UnitSpecWithData with NodeTestData:
     "contain edge from root to the single appended node" in newCase[CaseData]: (tn, data) =>
       import data.*
       initPath.append[IO](parent, Set(parentKey), parentPu).logValue(tn)
-        .asserting(_.edges mustBe Set(leafMnId -> parentMnId))
+        .asserting(_.edges mustBe Set(Link(leafMnId, parentMnId)))
 
     "contain edges from root up to the last appended node" in newCase[CaseData]: (tn, data) =>
       import data.*
       initPath.append[IO](parent, Set(parentKey), parentPu)
         .flatMap(_.append[IO](grandParent, Set.empty, parentPu)).logValue(tn)
-        .asserting(_.edges mustBe Set(leafMnId -> parentMnId, parentMnId -> grandParentMnId))
+        .asserting(_.edges mustBe Set(Link(leafMnId, parentMnId), Link(parentMnId, grandParentMnId)))

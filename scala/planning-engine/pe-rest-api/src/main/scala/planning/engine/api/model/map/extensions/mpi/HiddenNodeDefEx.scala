@@ -29,16 +29,17 @@ object HiddenNodeDefEx:
         _.pure,
       )
 
+      // Accepts both JSON booleans and strings ("t"/"true"/"f"/"false", case-insensitive).
       def decodeBool(v: Json): F[Boolean] =
         def parse(str: String): F[Boolean] = str.toLowerCase match
           case "t" | "true"  => true.pure
           case "f" | "false" => false.pure
           case _             => s"Failed to decode value: $v, as type: Bool".assertionError
 
-        v.as[String].fold(
-          err => s"Failed to decode value: $v: ${err.getMessage}".assertionError,
-          str => parse(str),
-        )
+        (v.asBoolean, v.asString) match
+          case (Some(bool), _) => bool.pure
+          case (_, Some(str))  => parse(str)
+          case _ => s"Failed to decode value: $v, as type: Bool, expected boolean or string".assertionError
 
       def parseValue(tp: Type[?], v: Json): F[IoIndex] = tp match
         case t: Type.N    => decodeT[Long](v, t).flatMap(t.indexForValue)

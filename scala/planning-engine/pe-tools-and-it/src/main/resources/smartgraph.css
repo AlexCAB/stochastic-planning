@@ -9,8 +9,8 @@
     -fx-fill: #B1DFF7;
 }
 
-/* Sample and map graphs: same style as in the yEd maps, see vizedit/yed/two-way-walk.graphml */
-.sample-graph, .map-graph {
+/* Sample, map and active forest graphs: same style as in the yEd maps, see vizedit/yed/two-way-walk.graphml */
+.sample-graph, .map-graph, .active-graph {
     -fx-background-color: #FFFFFF;
 }
 

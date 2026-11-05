@@ -24,7 +24,7 @@ import scalafx.scene.control.Label
 import scalafx.scene.layout.{HBox, Priority, VBox}
 import SamplesControl.State
 import planning.engine.planner.mpi.model.data.samples.Sample
-import planning.engine.tools.mpi.vizedit.gui.visualization.SampleGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.SampleGraph
 
 // Control area of the Samples window. Must be constructed on the FX thread (see `SamplesControl.apply`).
 class SamplesControl[F[_]: {Async, Dispatcher}](

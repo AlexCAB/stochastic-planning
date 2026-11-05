@@ -16,8 +16,7 @@ import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all.*
 import planning.engine.tools.mpi.vizedit.gui.AsyncFx.*
-import planning.engine.tools.mpi.vizedit.gui.components.NetworkGraph
-import scalafx.Includes.*
+import planning.engine.tools.mpi.vizedit.gui.visualization.Graph
 import scalafx.scene.layout.BorderPane
 import scalafx.scene.{Node, Scene}
 import scalafx.stage.Stage
@@ -28,7 +27,7 @@ import scalafx.stage.Stage
 class Window[F[_]: {Async, Dispatcher}](
     baseTitle: String,
     config: Window.Config,
-    graph: NetworkGraph[F],
+    graph: Graph[F],
     control: Node,
     onWindowHidden: F[Unit],
 ):
@@ -42,7 +41,7 @@ class Window[F[_]: {Async, Dispatcher}](
     height = config.height
     scene = new Scene:
       root = new BorderPane:
-        center = graph
+        center = graph.node
         bottom = fixedHeight(control)
     onHidden = _ => runF(onWindowHidden)
 
@@ -51,7 +50,7 @@ class Window[F[_]: {Async, Dispatcher}](
   def show: F[Unit] =
     for
       _ <- fx(stage.show())
-      _ <- graph.initGraph
+      _ <- graph.init
     yield ()
 
   // No-op if the window is already hidden.
@@ -84,7 +83,7 @@ object Window:
   def apply[F[_]: {Async, Dispatcher}](
       windowTitle: String,
       config: Window.Config,
-      graph: NetworkGraph[F],
+      graph: Graph[F],
       control: Node,
       onWindowHidden: F[Unit],
   ): F[Window[F]] = fx(new Window(windowTitle, config, graph, control, onWindowHidden))

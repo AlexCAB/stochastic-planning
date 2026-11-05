@@ -15,12 +15,13 @@ package planning.engine.planner.mpi.actors.node.data.parts
 import cats.syntax.all.*
 import cats.syntax.ext.MT
 import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.HuangWeight
 import planning.engine.planner.mpi.actors.node.Node
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath.ActiveNode
-import planning.engine.planner.mpi.model.data.node.StepKey
+import planning.engine.planner.mpi.model.data.node.{NodeData, StepKey}
 
 // Used as accumulator for active path during the active tree traversal.
 private[actors] final case class ActivePath(
@@ -47,12 +48,12 @@ private[actors] final case class ActivePath(
 
   def withNextWeight(weight: HuangWeight): ActivePath = copy(weight = weight)
 
-  lazy val nodes: Map[MnId, PU] = activeNodes.view.mapValues(v => v.pu).toMap
+  lazy val nodes: Map[MnId, (NodeData, PU)] = activeNodes.view.mapValues(v => (v.node.data, v.pu)).toMap
 
   // Splits the path into edges, where each edge is a pair of MnId (from, to).
-  lazy val edges: Set[(MnId, MnId)] =
+  lazy val edges: Set[MeKey] =
     val chain: List[MnId] = root :: path.reverse
-    chain.zip(chain.tail).toSet
+    chain.zip(chain.tail).toSet.map((src, trg) => MeKey.Link(src, trg))
 
 private[actors] object ActivePath:
   final case class ActiveNode(node: Node, pu: PU, steps: Set[StepKey])

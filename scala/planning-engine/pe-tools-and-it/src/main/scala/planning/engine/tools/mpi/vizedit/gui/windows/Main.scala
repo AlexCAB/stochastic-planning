@@ -20,7 +20,7 @@ import planning.engine.tools.GuiApp.Exit
 import planning.engine.tools.mpi.vizedit.adaptors.{ControlAdaptor, VisualizerAdaptor}
 import planning.engine.tools.mpi.vizedit.gui.components.{IoVarsTable, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.MainControl
-import planning.engine.tools.mpi.vizedit.gui.visualization.MapGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.MapGraph
 
 import java.nio.file.Path
 
@@ -56,5 +56,5 @@ object Main:
       mapGraph <- MapGraph[F]()
       ioVarsTable <- IoVarsTable[F]()
       control <- MainControl[F](config.workDir, mapGraph, ioVarsTable, control, visualization, samples, planning)
-      window <- Window[F](title, config.window, mapGraph.graph, control, exit.complete(()).void)
+      window <- Window[F](title, config.window, mapGraph, control, exit.complete(()).void)
     yield new Main(mapGraph, ioVarsTable, control, window)

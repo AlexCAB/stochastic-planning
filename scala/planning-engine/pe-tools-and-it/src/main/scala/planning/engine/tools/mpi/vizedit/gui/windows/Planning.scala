@@ -19,10 +19,10 @@ import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.mpi.vizedit.adaptors.ControlAdaptor
 import planning.engine.tools.mpi.vizedit.gui.components.Window
 import planning.engine.tools.mpi.vizedit.gui.controls.PlanningControl
-import planning.engine.tools.mpi.vizedit.gui.visualization.PlanningGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.PlanningGraphs
 
 class Planning[F[_]: {Async, Dispatcher}](
-    val planningGraph: PlanningGraph[F],
+    val planningGraph: PlanningGraphs[F],
     val control: PlanningControl[F],
     val window: Window[F],
 ):
@@ -43,7 +43,7 @@ object Planning:
       controlAdaptor: ControlAdaptor[F],
   ): F[Planning[F]] =
     for
-      planningGraph <- PlanningGraph[F]()
-      control <- PlanningControl[F](controlAdaptor)
-      window <- Window[F]("Planning", config.window, planningGraph.graph, control, Async[F].unit)
-    yield new Planning(planningGraph, control, window)
+      planningGraphs <- PlanningGraphs[F]()
+      control <- PlanningControl[F](controlAdaptor, planningGraphs)
+      window <- Window[F]("Planning", config.window, planningGraphs, control, Async[F].unit)
+    yield new Planning(planningGraphs, control, window)

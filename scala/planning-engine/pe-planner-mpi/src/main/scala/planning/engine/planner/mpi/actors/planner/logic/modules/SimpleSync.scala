@@ -15,6 +15,8 @@ package planning.engine.planner.mpi.actors.planner.logic.modules
 import cats.syntax.all.*
 import cats.syntax.ext.*
 import planning.engine.common.errors.*
+import planning.engine.common.graph.io.Action
+import planning.engine.common.values.io.{IoIndex, IoName, IoValue}
 import planning.engine.planner.mpi.actors.planner.data.Message
 import planning.engine.planner.mpi.actors.planner.data.state.Tick
 import planning.engine.planner.mpi.actors.planner.logic.Actor
@@ -43,6 +45,7 @@ private[planner] trait SimpleSync:
     for
       _ <- logInfo(s"[doTick] observation = ${msg.observation}")
       conNodes <- state.struct.findInNodes(msg.observation.values)
+      _ <- logInfo(s"[doTick] time ${msg.observation.time} concrete nodes = $conNodes")
       _ <- conNodes.assertNonEmpty(s"No concrete nodes found for observation = ${msg.observation}")
       _ <- conNodes.foreachM(_.activation(msg.observation.time, msg.observation.utility))
     yield state.mapTick(_.next(msg.observation.time, conNodes, msg.sender))
@@ -56,7 +59,9 @@ private[planner] trait SimpleSync:
         _ <- logInfo(s"[doAddActivePath] All active steps collected in ${newTick.activeSteps}.")
         _ <- d.visualizer.traverse_(_.activeStepsFound[F](newTick.time, newTick.activeSteps))
 
-      // TODO: If isBuilt is true, then send visualisation message and run next phase.
+        // TODO: If isBuilt is true, then send visualisation message and run next phase.
+
+        _ = newTick.sender.map(_.tell(TickDone(Action(Set(IoValue(IoName("R") -> IoIndex(1))))))) // TODO Remove
       yield ()
 
     for

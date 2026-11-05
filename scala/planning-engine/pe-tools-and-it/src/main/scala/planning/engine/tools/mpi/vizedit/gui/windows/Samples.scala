@@ -18,7 +18,7 @@ import cats.effect.std.Dispatcher
 import org.typelevel.log4cats.LoggerFactory
 import planning.engine.tools.mpi.vizedit.gui.components.{SamplesTable, Window}
 import planning.engine.tools.mpi.vizedit.gui.controls.SamplesControl
-import planning.engine.tools.mpi.vizedit.gui.visualization.SampleGraph
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.SampleGraph
 
 class Samples[F[_]: {Async, Dispatcher}](
     val sampleGraph: SampleGraph[F],
@@ -43,5 +43,5 @@ object Samples:
       sampleGraph <- SampleGraph[F]()
       samplesTable <- SamplesTable[F]()
       control <- SamplesControl[F](sampleGraph, samplesTable)
-      window <- Window[F]("Samples", config.window, sampleGraph.graph, control, Async[F].unit)
+      window <- Window[F]("Samples", config.window, sampleGraph, control, Async[F].unit)
     yield new Samples(sampleGraph, samplesTable, control, window)

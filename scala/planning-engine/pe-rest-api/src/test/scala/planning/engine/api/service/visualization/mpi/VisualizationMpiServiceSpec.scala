@@ -55,9 +55,9 @@ class VisualizationMpiServiceSpec
   val absPu: PU = PU(p = 0.5, u = 2.0)
 
   val testForest: ActiveForest = ActiveForest(
-    nodes = Map(conId -> conPu, absId -> absPu),
+    nodes = Map(conId -> ActiveForest.Node(conData, conPu), absId -> ActiveForest.Node(absData, absPu)),
     roots = Set(conId),
-    edges = Set(conId -> absId),
+    edges = Set(MeKey.Link(conId, absId)),
   )
 
   def receive(service: VisualizationMpiService[IO], topic: Topic[IO, VisualizationMsg], n: Int)(
@@ -100,7 +100,12 @@ class VisualizationMpiServiceSpec
 
   "VisualizationMpiService.activeStepsFound(...)" should:
     "publish MpiActiveForest message built from time and active forest" in: (service, topic) =>
-      val expected = MpiActiveForest(testTime, testForest.nodes, testForest.roots, testForest.edges)
+      val expected = MpiActiveForest(
+        time = testTime,
+        nodes = Map(conId -> conPu, absId -> absPu),
+        roots = Set(conId),
+        edges = Set(conId -> absId),
+      )
       receive(service, topic, 1)(service.activeStepsFound[IO](testTime, testForest)).logValue("activeStepsFound")
         .asserting(_ mustBe List(expected))
 

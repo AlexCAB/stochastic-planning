@@ -473,8 +473,11 @@ y#######
 
 ❯ In `PlanningControl`, on "Tick" button click if at least one input value set, and if not show pop-up with warning and not call  `ControlAdaptor.tick()`
 
+❯ In `PlanningGraphs` put `context`, `active`, `plan`, `actions` graph  in some UI box, so at only one of them show be shown at same time. Add this box to window in `mpi.vizedit.gui.windows.Planning`. In `PlanningControl` switch graphs on "Context", "Active forest", "Planning forest" and "Action graph" buttons.   
 
-
+❯ In `PlanningGraphs` implement `def activeSteps(time: IoTime, forest: ActiveForest): F[Unit]`:
+1. It should render activation graph from `forest: ActiveForest`.
+2. It should look and have layout same as `SampleGraph`   
 
 
 

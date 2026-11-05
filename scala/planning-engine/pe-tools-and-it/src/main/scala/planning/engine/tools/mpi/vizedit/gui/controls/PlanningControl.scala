@@ -25,19 +25,22 @@ import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.{Alert, Button, Label}
 import scalafx.scene.layout.{HBox, Priority, Region, VBox}
-import PlanningControl.{State, View}
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.PlanningGraphs.View
+import PlanningControl.State
+import planning.engine.tools.mpi.vizedit.gui.visualization.graphs.PlanningGraphs
 
 // Control area of the Planning window. Must be constructed on the FX thread (see `PlanningControl.apply`).
 class PlanningControl[F[_]: {Async, Dispatcher}](
     control: ControlAdaptor[F],
+    planningGraphs: PlanningGraphs[F],
     inputVarsTable: PlanningVarsTable[F],
     outputVarsTable: PlanningVarsTable[F],
     state: AtomicCell[F, State],
 ) extends VBox:
   private val viewButtons: List[(View, Button)] = View.values.toList.map: view =>
     view -> new Button(view.label):
-      disable = view == View.Context
-      onAction = _ => selectView(view)
+      disable = view == View.initial
+      onAction = _ => runF(selectView(view))
 
   private val timeLabel = Label(s"Time = ${IoTime.init.value}")
 
@@ -69,8 +72,11 @@ class PlanningControl[F[_]: {Async, Dispatcher}](
   )
 
   // Selected view button is inactive, all the others are active.
-  private def selectView(selected: View): Unit =
-    viewButtons.foreach((view, button) => button.disable = view == selected)
+  private def selectView(selected: View): F[Unit] =
+    for
+      _ <- fx(viewButtons.foreach((view, button) => button.disable = view == selected))
+      _ <- planningGraphs.show(selected)
+    yield ()
 
   private def varsColumn(title: String, table: PlanningVarsTable[F]): VBox =
     table.vgrow = Priority.Always
@@ -128,16 +134,13 @@ class PlanningControl[F[_]: {Async, Dispatcher}](
 object PlanningControl:
   final case class State(time: Long)
 
-  enum View(val label: String):
-    case Context extends View("Context")
-    case ActiveForest extends View("Active forest")
-    case PlanningForest extends View("Planning forest")
-    case ActionGraph extends View("Action graph")
-
-  def apply[F[_]: {Async, Dispatcher}](control: ControlAdaptor[F]): F[PlanningControl[F]] =
+  def apply[F[_]: {Async, Dispatcher}](
+      control: ControlAdaptor[F],
+      planningGraphs: PlanningGraphs[F],
+  ): F[PlanningControl[F]] =
     for
       inputVarsTable <- PlanningVarsTable[F](isEditable = true)
       outputVarsTable <- PlanningVarsTable[F](isEditable = false)
       state <- AtomicCell[F].of(State(time = 0))
-      planningControl <- fx(new PlanningControl(control, inputVarsTable, outputVarsTable, state))
+      planningControl <- fx(new PlanningControl(control, planningGraphs, inputVarsTable, outputVarsTable, state))
     yield planningControl

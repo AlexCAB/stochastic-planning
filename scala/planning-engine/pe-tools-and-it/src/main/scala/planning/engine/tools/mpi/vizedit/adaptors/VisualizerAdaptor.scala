@@ -71,7 +71,11 @@ class VisualizerAdaptor[F[_]: {Async, Dispatcher, LoggerFactory}](guiDef: Deferr
       _ <- logger.info(s"GUI samples added: ${samples.map(_.id)}")
     yield ()
 
-  override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] = MT.void[G]
+  override def activeStepsFound[G[_]: MT](time: IoTime, forest: ActiveForest): G[Unit] = withGui: gui =>
+    for
+      _ <- gui.planning.planningGraph.activeSteps(time, forest)
+      _ <- logger.info(s"GUI active steps found at $time, forest: $forest")
+    yield ()
 
 object VisualizerAdaptor:
   def apply[F[_]: {Async, Dispatcher, LoggerFactory}](): Resource[F, VisualizerAdaptor[F]] = Resource.eval:

@@ -89,7 +89,13 @@ private[mpi] class MapMpiImpl[F[_]: {Async, LoggerFactory}](
   override def addSamples(samples: Set[Sample.Man], nodes: Map[MnId.Nim, NodeData]): F[Map[SampleId, Sample.Man]] =
     runAt(_.manager.addManSamples(samples, nodes))
 
-  override def syncPlannerTick(observation: Observation): F[Action] = runAt(_.planner.tick(observation))
+  override def syncPlannerTick(observation: Observation): F[Action] =
+    for
+      _ <- logger.info(s"Sync planner tick with observation: $observation")
+      _ <- observation.values.assertNonEmpty("Observation values cannot be empty for planner tick")
+      action <- runAt(_.planner.tick(observation))
+      _ <- logger.info(s"Sync planner tick ${observation.time} result: $action")
+    yield action
 
 private[mpi] object MapMpiImpl:
   final case class MapState(

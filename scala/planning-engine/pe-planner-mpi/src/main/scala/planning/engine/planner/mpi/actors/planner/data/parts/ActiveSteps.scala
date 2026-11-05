@@ -15,10 +15,12 @@ package planning.engine.planner.mpi.actors.planner.data.parts
 import cats.syntax.all.*
 import cats.syntax.ext.MT
 import planning.engine.common.errors.*
+import planning.engine.common.graph.edges.MeKey
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.node.MnId
 import planning.engine.common.values.plan.HuangWeight
 import planning.engine.planner.mpi.actors.node.data.parts.ActivePath
+import planning.engine.planner.mpi.model.data.node.NodeData
 import planning.engine.planner.mpi.model.data.visualization.ActiveForest
 
 private[actors] final case class ActiveSteps(
@@ -37,11 +39,15 @@ private[actors] final case class ActiveSteps(
 
   def isBuilt: Boolean = weightAcc.values.forall(_.isFull)
 
-  lazy val nodes: Map[MnId, PU] = paths.flatMap(_.nodes).toMap
+  lazy val nodes: Map[MnId, (NodeData, PU)] = paths.flatMap(_.nodes).toMap
   lazy val roots: Set[MnId] = paths.map(_.root)
-  lazy val edges: Set[(MnId, MnId)] = paths.flatMap(_.edges)
+  lazy val edges: Set[MeKey] = paths.flatMap(_.edges)
 
-  lazy val activeForest: ActiveForest = ActiveForest(nodes, roots, edges)
+  lazy val activeForest: ActiveForest = ActiveForest(
+    nodes.view.mapValues((d, pu) => ActiveForest.Node(d, pu)).toMap,
+    roots,
+    edges,
+  )
 
 private[actors] object ActiveSteps:
   val empty: ActiveSteps = ActiveSteps(Map.empty, Set.empty)

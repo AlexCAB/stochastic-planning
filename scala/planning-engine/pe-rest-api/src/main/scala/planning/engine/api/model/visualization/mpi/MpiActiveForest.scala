@@ -27,5 +27,9 @@ final case class MpiActiveForest(
 ) extends VisualizationMsg
 
 object MpiActiveForest:
-  def apply[F[_]: MT](time: IoTime, forest: ActiveForest): F[MpiActiveForest] =
-    MT(MpiActiveForest(time, forest.nodes, forest.roots, forest.edges))
+  def apply[F[_]: MT](time: IoTime, forest: ActiveForest): F[MpiActiveForest] = MT(MpiActiveForest(
+    time,
+    forest.nodes.view.mapValues(_.pu).toMap,
+    forest.roots,
+    forest.edges.view.map(k => (k.src, k.trg)).toSet,
+  ))

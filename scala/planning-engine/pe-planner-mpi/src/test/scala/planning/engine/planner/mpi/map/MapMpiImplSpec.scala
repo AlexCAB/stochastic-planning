@@ -173,5 +173,10 @@ class MapMpiImplSpec extends UnitSpecWithIOAndTestKit with AsyncIdiomaticMockito
 
     "raise an error when the map network is not initialized" in newCase[CaseData]: (tn, data) =>
       import data.*
-      mapMpi.syncPlannerTick(Observation(IoTime(1L), Set.empty, None)).logValue(tn)
+      mapMpi.syncPlannerTick(Observation(IoTime(1L), Set(IoValue(inVar.name, IoIndex(0))), None)).logValue(tn)
         .assertThrowsError[AssertionError](_.getMessage must include("Map network not initialized"))
+
+    "raise an error when the observation values are empty" in newCase[CaseData]: (tn, data) =>
+      import data.*
+      mapMpi.syncPlannerTick(Observation(IoTime(1L), Set.empty, None)).logValue(tn)
+        .assertThrowsError[AssertionError](_.getMessage must include("Observation values cannot be empty"))

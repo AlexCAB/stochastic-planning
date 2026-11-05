@@ -15,6 +15,7 @@ package planning.engine.planner.mpi.actors.planner.data.parts
 import cats.effect.IO
 import cats.effect.cps.*
 import planning.engine.common.UnitSpecWithData
+import planning.engine.common.graph.edges.MeKey.Link
 import planning.engine.common.graph.inference.PU
 import planning.engine.common.values.io.IoIndex
 import planning.engine.common.values.node.MnId
@@ -132,7 +133,12 @@ class ActiveStepsSpec extends UnitSpecWithData with NodeTestData:
     "collect PU of active nodes from all paths" in newCase[CaseData]: (tn, data) =>
       import data.*
       builtSteps.logValue(tn)
-        .asserting(_.nodes mustBe Map(root1Id -> conPu, root2Id -> conPu, absId1 -> absPu, absId2 -> absPu))
+        .asserting(_.nodes mustBe Map(
+          root1Id -> (root1.data, conPu),
+          root2Id -> (root2.data, conPu),
+          absId1 -> (abs1.data, absPu),
+          absId2 -> (abs2.data, absPu),
+        ))
 
   "ActiveSteps.roots" should:
     "be empty when no paths added yet" in newCase[CaseData]: (_, data) =>
@@ -150,4 +156,8 @@ class ActiveStepsSpec extends UnitSpecWithData with NodeTestData:
 
     "collect distinct edges of all paths" in newCase[CaseData]: (tn, data) =>
       import data.*
-      builtSteps.logValue(tn).asserting(_.edges mustBe Set(root1Id -> absId1, root1Id -> absId2, root2Id -> absId1))
+      builtSteps.logValue(tn).asserting(_.edges mustBe Set(
+        Link(root1Id, absId1),
+        Link(root1Id, absId2),
+        Link(root2Id, absId1),
+      ))
